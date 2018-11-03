@@ -20,16 +20,16 @@ BaseBayesianRegression <- R6Class("BaseBayesianRegression",
   ),
   private = list(
     prior = NULL, # prior on effect size
-    comp_lbf = function() private$q(), # compute Bayes factor
-    comp_loglik = function() private$q(), # compute loglik
+    comp_lbf = function() private$exit(), # compute Bayes factor
+    comp_loglik = function() private$exit(), # compute loglik
     comp_posterior = function(d,j) {
        # compute posterior
-       private$q()
+      private$exit()
     }
     comp_mloglik = function () private$exit(), # compute marginal loglik
     comp_prior = function() private$exit(), # compute prior in EM updates
     exit = function() {
-        warning("Not implemented.")
+      warning("Not implemented.")
     }
   )
 )
