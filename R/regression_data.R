@@ -5,6 +5,7 @@ DenseData <- R6Class("DenseData",
     Y = NULL,
     csd = NULL,
     cm = NULL,
+    d = NULL,
     initialize = function(X,Y,center=TRUE,scale=TRUE) {
       self$X = X
       self$Y = Y
@@ -13,17 +14,39 @@ DenseData <- R6Class("DenseData",
       private$N = nrow(Y)
       private$J = ncol(X)
       private$standardize(center,scale)
+      private$fitted = rep(0, private$N) 
+      private$residual = self$Y
     },
     get_n_sample = function() private$N,
     get_n_condition = function() private$K,
-    get_n_effect = function() private$J
+    get_n_effect = function() private$J,
+    compute_Xb = function(b) {
+      # tcrossprod(A,B) performs A%*%t(B) but faster
+      tcrossprod(self$X,t(b))
+    },
+    remove_from_fitted = function(value) {
+      private$fitted = private$fitted - value
+    },
+    add_back_fitted = function(value) {
+      private$fitted = private$fitted + value
+    },
+    comp_residual = function() {
+      private$residual = self$Y - private$fitted 
+    },
+    get_XtY = function() {
+      crossprod(self$X,self$Y)
+    },
+    get_XtR = function() {
+      crossprod(self$X,private$residual)
+    }
   ),
   private = list(
     N = NULL,
     J = NULL,
     K = NULL,
-    d = NULL,
     X2t = NULL,
+    fitted = NULL,
+    residual = NULL,
     standardize = function(center, scale) {
       # Credit: This is heavily based on code from
       # https://www.r-bloggers.com/a-faster-scale-function/
@@ -43,7 +66,7 @@ DenseData <- R6Class("DenseData",
       }
       self$X = t( (t(self$X) - self$cm) / self$csd )
       private$X2t = t(self$X * self$X)
-      private$d = colSums(t(private$X2t))
+      self$d = colSums(t(private$X2t))
     }
   )
 )
@@ -58,6 +81,7 @@ SSData <- R6Class("SSData",
     XtY = NULL,
     YtY = NULL,
     csd = NULL,
+    d = NULL,
     initialize = function(XtX,XtY,YtY,N,scale=TRUE) {
       self$XtX = XtX
       self$XtY = XtY
@@ -67,16 +91,37 @@ SSData <- R6Class("SSData",
       if (is.null(dim(YtY))) private$K = 1
       else private$K = nrow(YtY)
       private$standardize(scale)
+      private$fitted = rep(0, private$J) 
+      private$residual = self$XtY 
     },
     get_n_sample = function() private$N,
     get_n_condition = function() private$K,
-    get_n_effect = function() private$J
+    get_n_effect = function() private$J,
+    compute_Xb = function(b) {
+      tcrossprod(self$XtX,t(b))
+    },
+    remove_from_fitted = function(value) {
+      private$fitted = private$fitted - value
+    },
+    add_back_fitted = function(value) {
+      private$fitted = private$fitted + value
+    },
+    comp_residual = function() {
+      private$residual = self$XtY - private$fitted 
+    },
+    get_XtY = function() {
+      self$XtY
+    },
+    get_XtR = function() {
+      private$residual
+    }
   ),
   private = list(
     N = NULL,
     J = NULL,
     K = NULL,
-    d = NULL,
+    fitted = NULL,
+    residual = NULL,
     standardize = function(scale) {
       if (scale) {
           d = diag(self$XtX)
@@ -87,7 +132,7 @@ SSData <- R6Class("SSData",
       } else {
           self$csd = rep(1, length = private$J)
       }
-      private$d = diag(self$XtX)
+      self$d = diag(self$XtX)
     }
   )
 )

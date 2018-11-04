@@ -2,52 +2,41 @@
 SingleEffectRegression <- R6Class("SingleEffectRegression",
   public = list(
     pip = NULL, # posterior inclusion probability, alpha
-    lbf = NULL, # log Bayes Factor for the single effect regression model
+    lbf = NULL, # logBF for SER model: sum of logBF of all J effects
+    loglik = NULL,
     initialize = function(m,J,prior_gamma=NULL) {
         private$J = J
-        private$BR_models = lapply(1:private$J, function(j) m$clone(deep=T))
-        self$set_prior_gamma(prior_gamma)
-    },
-    set_prior_gamma = function(prior_gamma=NULL) {
-        # set prior inclusion probability
+        private$BMR = m$clone(deep=TRUE)
         if (is.null(prior_gamma)) private$prior_gamma = rep(1/private$J,private$J)
         else private$prior_gamma = prior_gamma
     },
-    set_prior_b = function(prior=NULL) {
-        # set prior
-        if (is.null(prior)) private$prior_b = rep(1/private$J,private$J)
-        else private$prior_b = prior
-    },
     fit = function(d) {
-        private$fit_jth_model(d)
-        private$comp_pip()
+        private$BMR$fit(d, use_residual = TRUE, prior_weights = private$prior_gamma)
+        ws = safe_comp_weight(private$BMR$lbf, private$prior_gamma, log = TRUE)
+        self$pip = ws$alpha
+        self$lbf = ws$log_total
+        if (!is.null(d$Y)) self$loglik = self$lbf + sum(dnorm(d$Y,0,sqrt(residual_variance),log=TRUE))
+        # keep track of prior for this SER
+        # because it might have changed due to re-estimates in BMR
+        private$prior_b = BMR$get_prior()
     },
-    # some get private numbers functions
-    get_pi = function() { private$prior_gamma },
-    get_BR_lbf = function() {
-        return(sapply(1:private$J, function(j) private$BR_models[j]$lbf))
-    },
+    predict = function(d) {
+        d$compute_Xb(self$get_posterior_b1())
+    }
     get_posterior_b1 = function() {
         # posterior first moment, alpha * posterior_b1_reg
-        self$posterior_b1 = lapply(1:private$J, function(j) self$pip[j] * private$BR_models[j]$posterior_b1)
+        self$pip * private$BMRs$posterior_b1
     },
     get_posterior_b2 = function() {
         # posterior second moment, alpha * posterior_b2_reg
-        self$posterior_b2 = lapply(1:private$J, function(j) self$pip[j] * private$BR_models[j]$posterior_b2)
+        self$pip * private$BMRs$posterior_b2
     }
   ),
   private = list(
-    BR_models = NULL, # Bayesian regression for the j-th element
+    BMR = NULL, # Bayesian multiple regression model
     prior_gamma = NULL, # prior on gamma
-    prior_b = NULL, # prior on effect size
+    prior_b = NULL,
     J = NULL,
-    fit_jth_model = function(d) {
-        invisible(lapply(1:private$J, function(j) private$BR_models[j]$fit(d,j)))
-    }
-    comp_pip = function() { 
-        # compute posterior inclusion probability
-        self$pip = safe_comp_weight(self$get_lbf, private$prior_gamma, log = TRUE)
-    },
     exit = function() {
         warning("Not yet implemented")
     }
