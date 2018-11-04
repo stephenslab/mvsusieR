@@ -2,7 +2,7 @@
 SuSiE <- R6Class("SuSiE",
   public = list(
     sigma2 = NULL, # residual variance
-    initialize = function(m, L, 
+    initialize = function(m, L, J,
         scaled_prior_variance, residual_variance,
         estimate_prior_variance, estimate_residual_variance, 
         max_iter=100,tol=1e-3,track_pip=FALSE,track_lbf=FALSE) 
@@ -15,6 +15,7 @@ SuSiE <- R6Class("SuSiE",
         if (track_lbf) private$lbf_history = list()
         # initialize single effect regression models
         private$L = L
+        private$J = J
         private$workers = lapply(1:private$J, function(j) m$clone(deep=T))
         self$set_prior_b(scaled_prior_variance * residual_variance)
     },
@@ -54,6 +55,8 @@ SuSiE <- R6Class("SuSiE",
     get_lbf_history = function() return(private$lbf_history)
   ),
   private = list(
+    L = NULL,
+    J = NULL,
     workers = NULL, # Single effect regression models
     elbo = NULL, # Evidence lower bound
     kl = NULL, # KL divergence
