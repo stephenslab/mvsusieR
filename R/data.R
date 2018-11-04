@@ -13,7 +13,10 @@ DenseData <- R6Class("DenseData",
       private$N = nrow(Y)
       private$J = ncol(X)
       private$standardize(center,scale)
-    }
+    },
+    get_n_sample = function() private$N,
+    get_n_condition = function() private$K,
+    get_n_effect = function() private$J
   ),
   private = list(
     N = NULL,
@@ -54,27 +57,30 @@ SSData <- R6Class("SSData",
     XtX = NULL,
     XtY = NULL,
     YtY = NULL,
-    N = NULL,
     csd = NULL,
     initialize = function(XtX,XtY,YtY,N,scale=TRUE) {
       self$XtX = XtX
       self$XtY = XtY
       self$YtY = YtY
-      self$N = N
+      private$N = N
       private$J = nrow(XtX)
       if (is.null(dim(YtY))) private$K = 1
       else private$K = nrow(YtY)
       private$standardize(scale)
-    }
+    },
+    get_n_sample = function() private$N,
+    get_n_condition = function() private$K,
+    get_n_effect = function() private$J
   ),
   private = list(
+    N = NULL,
     J = NULL,
     K = NULL,
     d = NULL,
     standardize = function(scale) {
       if (scale) {
           d = diag(self$XtX)
-          self$csd = sqrt(d/(self$N-1))
+          self$csd = sqrt(d/(private$N-1))
           self$csd[self$csd == 0] = 1
           self$XtX = (1/self$csd) * t((1/self$csd) * self$XtX)
           self$XtY = (1/self$csd) * self$XtY
