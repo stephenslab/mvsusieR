@@ -11,19 +11,18 @@ SingleEffectRegression <- R6Class("SingleEffectRegression",
         if (is.null(prior_gamma)) private$prior_gamma = rep(1/private$J,private$J)
         else private$prior_gamma = prior_gamma
     },
-    fit = function(d, residual_variance) {
+    set_residual_variance = function(r) private$BMR$set_residual_variance(r),
+    fit = function(d) {
         private$BMR$fit(d, use_residual = TRUE, prior_weights = private$prior_gamma)
         ws = safe_comp_weight(private$BMR$lbf, private$prior_gamma, log = TRUE)
         self$pip = ws$alpha
         self$lbf = ws$log_total
-        if (!is.null(d$Y)) self$loglik = self$lbf + sum(dnorm(d$Y,0,sqrt(residual_variance),log=TRUE))
-        # keep track of prior for this SER
-        # because it might have changed due to re-estimates in BMR
-        private$prior_b = BMR$get_prior()
+        if (!is.null(d$Y)) self$loglik = self$lbf + sum(dnorm(d$Y,0,sqrt(private$BMR$get_residual_variance()),log=TRUE))
     },
     predict = function(d) {
         d$compute_Xb(self$get_posterior_b1())
-    }
+    },
+    get_prior = function() private$BMR$get_prior(),
     get_posterior_b1 = function() {
         # posterior first moment, alpha * posterior_b1_reg
         self$pip * private$BMR$posterior_b1
@@ -32,9 +31,9 @@ SingleEffectRegression <- R6Class("SingleEffectRegression",
         # posterior second moment, alpha * posterior_b2_reg
         self$pip * private$BMR$posterior_b2
     },
-    comp_kl = function(d, residual_variance) {
+    comp_kl = function(d) {
         # compute KL divergence
-        pp_eloglik = comp_expected_loglik_partial(d, residual_variance, 
+        pp_eloglik = comp_expected_loglik_partial(d, private$BMR$get_residual_variance(), 
                                                   self$get_posterior_b1(),
                                                   self$get_posterior_b2())
         self$kl = pp_eloglik - self$lbf
@@ -43,7 +42,6 @@ SingleEffectRegression <- R6Class("SingleEffectRegression",
   private = list(
     BMR = NULL, # Bayesian multiple regression model
     prior_gamma = NULL, # prior on gamma
-    prior_b = NULL,
     J = NULL,
     exit = function() {
         warning("Not yet implemented")

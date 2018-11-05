@@ -1,31 +1,28 @@
 # SUm of SIngle Effect (SuSiE) regression
 SuSiE <- R6Class("SuSiE",
   public = list(
-    sigma2 = NULL, # residual variance
-    initialize = function(m, L,
-        scaled_prior_variance, residual_variance,
-        estimate_prior_variance, estimate_residual_variance, 
+    initialize = function(SER,L,residual_variance,estimate_residual_variance, 
         max_iter=100,tol=1e-3,track_pip=FALSE,track_lbf=FALSE) 
     {
+        # initialize single effect regression models
+        private$L = L
+        private$SER = lapply(1:private$L, function(l) SER$clone(deep=T))
         private$elbo = vector()
         private$niter = max_iter
         private$tol = tol
         if (track_pip) private$pip_history = list()
         if (track_lbf) private$lbf_history = list()
-        # initialize single effect regression models
-        private$L = L
-        private$SER = lapply(1:private$L, function(j) m$clone(deep=T))
-        self$set_prior_b(scaled_prior_variance * residual_variance)
     },
     fit = function(d) {
-        for(i in 1:private$niter) {
+        for (i in 1:private$niter) {
             private$save_history()
             for (l in 1:private$L) {
                 fitted_l = private$SER[l].predict(d)
                 d.remove_from_fitted(fitted_l)
                 d.comp_residual()
+                private$SER[l]$set_residual_variance(private$sigma2)
                 private$SER[l]$fit(d)
-                private$SER[l]$comp_kl(d, self$sigma2)
+                private$SER[l]$comp_kl(d)
                 fitted_l = private$SER[l].predict(d)
                 d.add_back_fitted(fitted_l)
             }
@@ -40,30 +37,36 @@ SuSiE <- R6Class("SuSiE",
             }
         }
     },
-    predict = function(x) {
-
-    },
-    coef = function(x) {
-
+    predict = function(x) {},
+    coef = function() {
+        d$rescale_coef(do.call(sum, get_posterior_b1()))
     },
     # some get private numbers functions
-    get_prior_b = function() { 
+    get_prior = function() { 
         # get prior effect size, because it might be updated during iterations
-        private$exit()
+        lapply(1:private$L, function(i) private$SER[l].get_prior())
     },
+    get_residual_variance = function() private$sigma2,
     get_kl = function() {
-        sapply(1:private$L, function(i) private$SER[l]$kl)
-    }
-    get_objective = function() {},
+        sapply(1:private$L, function(l) private$SER[l]$kl)
+    },
+    get_objective = function(dump = FALSE) {
+        if (!all(diff(private$elbo) >= 0)) {
+            warning('Objective is not non-decreasing')
+            dump = TRUE
+        }
+        if (dump) return(private$elbo)
+        else return(private$elbo[private$niter])
+    },
     get_pip = function() {}, # posterior inclusion probability, L by J matrix
     get_pip_history = function() return(private$pip_history)
     get_lbf = function() {},
     get_lbf_history = function() return(private$lbf_history),
     get_posterior_b1 = function() {
-        do.call(rbind, lapply(1:private$L, function(i) private$SER[l].get_posterior_b1()))
+        lapply(1:private$L, function(l) private$SER[l].get_posterior_b1())
     },
     get_posterior_b2 = function() {
-        do.call(rbind, lapply(1:private$L, function(i) private$SER[l].get_posterior_b2()))
+        lapply(1:private$L, function(l) private$SER[l].get_posterior_b2())
     }
   ),
   private = list(
@@ -75,6 +78,7 @@ SuSiE <- R6Class("SuSiE",
     pip_history = NULL, # keep track of pip
     lbf_history = NULL, # keep track of lbf
     tol = NULL, # tolerance level for convergence
+    sigma2 = NULL, # residual variance
     essr = NULL,
     is_converged = function() {
         n = length(private$elbo)
@@ -105,6 +109,10 @@ SuSiE <- R6Class("SuSiE",
 
 # expected squared residuals
 comp_expected_sum_squared_residuals = function(d, Eb1, Eb2) {
+    if (inherits(d, c("DenseData","SparseData", "SSData")) {
+        Eb1 = do.call(rbind, Eb1)
+        Eb2 = do.call(rbind, Eb2)
+    }
     if (inherits(d, c("DenseData","SparseData")) {
         Xr = d$compute_MXt(Eb1)
         Xrsum = colSums(Xr)

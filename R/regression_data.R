@@ -3,8 +3,6 @@ DenseData <- R6Class("DenseData",
   public = list(
     X = NULL,
     Y = NULL,
-    csd = NULL,
-    cm = NULL,
     d = NULL,
     initialize = function(X,Y,center=TRUE,scale=TRUE) {
       self$X = X
@@ -25,6 +23,7 @@ DenseData <- R6Class("DenseData",
       tcrossprod(self$X,t(b))
     },
     compute_MXt = function(M) {
+      # tcrossprod(A,B) performs A%*%t(B) but faster
       tcrossprod(M,self$X)
     },
     remove_from_fitted = function(value) {
@@ -41,6 +40,12 @@ DenseData <- R6Class("DenseData",
     },
     get_XtR = function() {
       crossprod(self$X,private$residual)
+    },
+    rescale_coef = function(b) {
+      coefs = b/private$csd
+      if (!is.null(private$Y_mean)) intercept = private$Y_mean - sum(private$cm * coefs)
+      else intercept = 0
+      c(intercept, coefs)
     }
   ),
   private = list(
@@ -50,22 +55,29 @@ DenseData <- R6Class("DenseData",
     X2t = NULL,
     fitted = NULL,
     residual = NULL,
+    csd = NULL,
+    cm = NULL,
+    y_mean = NULL,
     standardize = function(center, scale) {
       # Credit: This is heavily based on code from
       # https://www.r-bloggers.com/a-faster-scale-function/
       # The only change from that code is its treatment of columns with 0 variance.
       # This "safe" version scales those columns by 1 instead of 0.
-      self$cm = colMeans(self$X, na.rm = TRUE)
+      private$cm = colMeans(self$X, na.rm = TRUE)
       if (scale) {
-        self$csd = matrixStats::colSds(self$X, center = self$cm)
-        self$csd[self$csd==0] = 1
+        private$csd = matrixStats::colSds(self$X, center = private$cm)
+        private$csd[private$csd==0] = 1
       } else {
         # just divide by 1 if not
-        self$csd = rep(1, length = private$J)
+        private$csd = rep(1, length = private$J)
       }
       if (!center) {
         # just subtract 0
-        self$cm = rep(0, length = private$J)
+        private$cm = rep(0, length = private$J)
+      } else {
+        if (private$R == 1) private$Y_mean = mean(self$Y, na.rm = TRUE)
+        else private$Y_mean = colMeans(self$Y, na.rm = TRUE)
+        self$Y = self$Y - self$Y_mean
       }
       self$X = t( (t(self$X) - self$cm) / self$csd )
       private$X2t = t(self$X * self$X)
@@ -83,7 +95,6 @@ SSData <- R6Class("SSData",
     XtX = NULL,
     XtY = NULL,
     YtY = NULL,
-    csd = NULL,
     d = NULL,
     initialize = function(XtX,XtY,YtY,N,scale=TRUE) {
       self$XtX = XtX
@@ -117,6 +128,9 @@ SSData <- R6Class("SSData",
     },
     get_XtR = function() {
       private$residual
+    },
+    rescale_coef = function(b) {
+      c(0, b/private$csd)
     }
   ),
   private = list(
@@ -125,6 +139,7 @@ SSData <- R6Class("SSData",
     K = NULL,
     fitted = NULL,
     residual = NULL,
+    csd = NULL,
     standardize = function(scale) {
       if (scale) {
           d = diag(self$XtX)
