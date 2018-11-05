@@ -48,7 +48,8 @@ BaseBayesianRegression <- R6Class("BaseBayesianRegression",
       # Bayes factor
       self$lbf = dnorm(betahat,0,sqrt(prior+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       self$lbf[shat2==Inf] == 0
-    }
+    },
+
   ),
   private = list(
     prior = NULL, # prior on effect size

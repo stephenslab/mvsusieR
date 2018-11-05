@@ -24,6 +24,9 @@ DenseData <- R6Class("DenseData",
       # tcrossprod(A,B) performs A%*%t(B) but faster
       tcrossprod(self$X,t(b))
     },
+    compute_MXt = function(M) {
+      tcrossprod(M,self$X)
+    },
     remove_from_fitted = function(value) {
       private$fitted = private$fitted - value
     },
