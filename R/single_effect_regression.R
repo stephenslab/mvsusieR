@@ -6,14 +6,15 @@ SingleEffectRegression <- function(base)
     R6Class("SingleEffectRegression",
     inherit = base,
     public = list(
-        initialize = function(m,J,prior_gamma=NULL) {
+        initialize = function(J, prior_variance, estimate_prior_variance, prior_weights=NULL) {
+            super$initialize(prior_variance, estimate_prior_variance)
             private$J = J
-            if (is.null(prior_gamma)) private$prior_gamma = rep(1/private$J,private$J)
-            else private$prior_gamma = prior_gamma
+            if (is.null(prior_weights)) private$prior_weights = rep(1/private$J,private$J)
+            else private$prior_weights = prior_weights
         },
         fit = function(d) {
-            super$fit(d, use_residual = TRUE, prior_weights = private$prior_gamma)
-            ws = safe_comp_weight(private$get_lbf(), private$prior_gamma, log = TRUE)
+            super$fit(d, use_residual = TRUE, prior_weights = private$prior_weights)
+            ws = safe_comp_weight(private$get_lbf(), private$prior_weights, log = TRUE)
             private$pip = ws$alpha
             private$lbf_single_effect = ws$log_total
             if (!is.null(d$Y)) private$mloglik_single_effect = private$lbf_single_effect + sum(dnorm(d$Y,0,sqrt(private$get_residual_variance()),log=TRUE))
@@ -41,7 +42,7 @@ SingleEffectRegression <- function(base)
         get_lbf_single_effect = function() private$lbf_single_effect
     ),
     private = list(
-        prior_gamma = NULL, # prior on gamma
+        prior_weights = NULL, # prior on gamma
         J = NULL,
         mloglik_single_effect = NULL,
         pip = NULL, # posterior inclusion probability, alpha

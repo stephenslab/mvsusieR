@@ -44,9 +44,9 @@ SuSiE <- R6Class("SuSiE",
         d$rescale_coef(do.call(sum, get_posterior_b1()))
     },
     # some get private numbers functions
-    get_prior = function() { 
+    get_prior_variance = function() { 
         # get prior effect size, because it might be updated during iterations
-        lapply(1:private$L, function(l) private$SER[l]$get_prior())
+        lapply(1:private$L, function(l) private$SER[l]$get_prior_variance())
     },
     get_residual_variance = function() private$sigma2,
     get_kl = function() {

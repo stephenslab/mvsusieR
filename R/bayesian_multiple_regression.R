@@ -3,14 +3,14 @@
 #' @keywords internal
 BaseBayesianRegression <- R6Class("BaseBayesianRegression",
   public = list(
-    initialize = function(prior, estimate_prior=FALSE) {
-      self$set_prior(prior,estimate_prior)
+    initialize = function(prior_variance, estimate_prior_variance =FALSE) {
+      self$set_prior_variance(prior_variance, estimate_prior_variance)
     },
-    set_prior = function(prior, estimate_prior) {
-      private$prior = prior 
-      private$estimate_prior = estimate_prior
+    set_prior_variance = function(prior_variance, estimate_prior_variance) {
+      private$prior_variance = prior_variance
+      private$estimate_prior = estimate_prior_variance
     },
-    get_prior = function() private$prior,
+    get_prior_variance = function() private$prior_variance,
     set_residual_variance = function(r) private$residual_variance = r,
     get_residual_variance = function() private$residual_variance,
     fit = function(d, prior_weights = NULL, use_residual = FALSE) {
@@ -22,16 +22,16 @@ BaseBayesianRegression <- R6Class("BaseBayesianRegression",
       # OLS estimates
       betahat = 1/d$d * XtY
       shat2 = private$residual_variance / d$d
-      # deal with prior: can be "estimated" across effects
-      if(private$estimate_prior) {
-        private$prior = estimate.prior(betahat,shat2,prior_weights)
+      # deal with prior variance: can be "estimated" across effects
+      if(private$estimate_prior_variance) {
+        private$prior_variance = est.prior.variance(betahat,shat2,prior_weights)
       }
       # posterior
-      post_var = (1/private$prior + d$d/private$residual_variance)^(-1) # posterior variance
+      post_var = (1/private$prior_variance + d$d/private$residual_variance)^(-1) # posterior variance
       private$posterior_b1 = (1/private$residual_variance) * post_var * XtY
       private$posterior_b2 = post_var + private$posterior_b1^2 # second moment
       # Bayes factor
-      private$lbf = dnorm(betahat,0,sqrt(private$prior+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
+      private$lbf = dnorm(betahat,0,sqrt(private$prior_variance+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       private$lbf[shat2==Inf] == 0
     },
     compute_loglik = function(d) {
@@ -48,9 +48,9 @@ BaseBayesianRegression <- R6Class("BaseBayesianRegression",
     get_lbf = function() private$lbf
   ),
   private = list(
-    prior = NULL, # prior on effect size
+    prior_variance = NULL, # prior on effect size
     residual_variance = NULL,
-    estimate_prior = FALSE,
+    estimate_prior_variance = FALSE,
     loglik = NULL,
     lbf = NULL, # log Bayes factor
     posterior_b1 = NULL, # posterior first moment
@@ -82,7 +82,7 @@ negloglik.grad.logscale = function(lV,betahat,shat2,prior_weights) {
   -exp(lV)*loglik.grad(exp(lV),betahat,shat2,prior_weights)
 }
 
-estimate.prior = function(betahat,shat2,prior_weights) {
+est.prior.variance = function(betahat,shat2,prior_weights) {
   if(loglik.grad(0,betahat,shat2,prior_weights)<0){
     return(0)
   } else {
