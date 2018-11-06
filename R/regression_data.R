@@ -1,4 +1,6 @@
-# The regular regression data
+#' @title The regular regression data object
+#' @importFrom R6 R6Class
+#' @keywords internal
 DenseData <- R6Class("DenseData",
   public = list(
     X = NULL,
@@ -86,10 +88,11 @@ DenseData <- R6Class("DenseData",
   )
 )
 
-# Sufficient statistics
+#' @title Sufficient statistics object
 # XtX, XtY, YtY and N
 # X and Y have to be centered
 # before computing these sufficient statistics
+#' @importFrom R6 R6Class
 SSData <- R6Class("SSData",
   public = list(
     XtX = NULL,

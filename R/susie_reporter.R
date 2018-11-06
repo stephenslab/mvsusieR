@@ -1,4 +1,6 @@
-# SuSiE reporter class
+#' @title SuSiE reporter object
+#' @importFrom R6 R6Class
+#' @keywords internal
 SuSiEReporter <- R6Class("SuSiEReporter",
   public = list(
     cs = NULL,

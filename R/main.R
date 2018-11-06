@@ -55,10 +55,7 @@
 #' plot(y,predict(res))
 #'
 #' @importFrom stats var
-#' @importFrom utils modifyList
-#'
 #' @export
-#'
 susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
                  prior_weights=NULL, null_weight=NULL,
                  standardize=TRUE,intercept=TRUE,
@@ -85,18 +82,16 @@ susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
   }
   # FIXME: input check and initialization
 
-  data = DenseData$new(intercept, standardize)
-  if (estimate_prior_variance) prior = NULL
-  else prior =  scaled_prior_variance * as.numeric(var(Y))
-  BR_model = BayesBaysianRegression$new(prior)
+  data = DenseData$new(X, Y, intercept, standardize)
+  BR_model = BayesBaysianRegression$new(scaled_prior_variance * as.numeric(var(Y)), estimate_prior_variance)
   SER_model = SingleEffectRegression$new(BR_model, data$get_n_effect(), prior_weights)
   SuSiE_model = SuSiE$new(SER_model, L, residual_variance, estimate_residual_variance, max_iter, tol, track_pip, track_lbf)
-  SuSiE_model.fit(data)
+  SuSiE_model$fit(data)
   reporter = SuSiEReporter$new(SuSiE_model)
   ## SuSiE CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    reporter.comp_cs(coverage=coverage, X=X, min_abs_corr=min_abs_corr)
-    reporter.comp_pip()
+    reporter$comp_cs(coverage=coverage, X=X, min_abs_corr=min_abs_corr)
+    reporter$comp_pip()
   }
   ## report z-scores from univariate regression
   if (compute_univariate_zscore) {

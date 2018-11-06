@@ -1,53 +1,57 @@
-# Single effect regression
-SingleEffectRegression <- R6Class("SingleEffectRegression",
-  public = list(
-    pip = NULL, # posterior inclusion probability, alpha
-    lbf = NULL, # logBF for SER model: sum of logBF of all J effects
-    loglik = NULL,
-    kl = NULL,
-    initialize = function(m,J,prior_gamma=NULL) {
-        private$J = J
-        private$BMR = m$clone(deep=TRUE)
-        if (is.null(prior_gamma)) private$prior_gamma = rep(1/private$J,private$J)
-        else private$prior_gamma = prior_gamma
-    },
-    set_residual_variance = function(r) private$BMR$set_residual_variance(r),
-    fit = function(d) {
-        private$BMR$fit(d, use_residual = TRUE, prior_weights = private$prior_gamma)
-        ws = safe_comp_weight(private$BMR$lbf, private$prior_gamma, log = TRUE)
-        self$pip = ws$alpha
-        self$lbf = ws$log_total
-        if (!is.null(d$Y)) self$loglik = self$lbf + sum(dnorm(d$Y,0,sqrt(private$BMR$get_residual_variance()),log=TRUE))
-    },
-    predict = function(d) {
-        d$compute_Xb(self$get_posterior_b1())
-    },
-    get_prior = function() private$BMR$get_prior(),
-    get_posterior_b1 = function() {
-        # posterior first moment, alpha * posterior_b1_reg
-        self$pip * private$BMR$posterior_b1
-    },
-    get_posterior_b2 = function() {
-        # posterior second moment, alpha * posterior_b2_reg
-        self$pip * private$BMR$posterior_b2
-    },
-    comp_kl = function(d) {
-        # compute KL divergence
-        pp_eloglik = comp_expected_loglik_partial(d, private$BMR$get_residual_variance(), 
-                                                  self$get_posterior_b1(),
-                                                  self$get_posterior_b2())
-        self$kl = pp_eloglik - self$lbf
-    }
-  ),
-  private = list(
-    BMR = NULL, # Bayesian multiple regression model
-    prior_gamma = NULL, # prior on gamma
-    J = NULL,
-    exit = function() {
-        warning("Not yet implemented")
-    }
+#' @title Single effect regression object
+#  It is meant to be dynamically inheriated from any regression model
+#' @importFrom R6 R6Class
+#' @keywords internal
+SingleEffectRegression <- function(base)
+    R6Class("SingleEffectRegression",
+    inherit = base,
+    public = list(
+        initialize = function(m,J,prior_gamma=NULL) {
+            private$J = J
+            if (is.null(prior_gamma)) private$prior_gamma = rep(1/private$J,private$J)
+            else private$prior_gamma = prior_gamma
+        },
+        fit = function(d) {
+            super$fit(d, use_residual = TRUE, prior_weights = private$prior_gamma)
+            ws = safe_comp_weight(private$get_lbf(), private$prior_gamma, log = TRUE)
+            private$pip = ws$alpha
+            private$lbf_single_effect = ws$log_total
+            if (!is.null(d$Y)) private$mloglik_single_effect = private$lbf_single_effect + sum(dnorm(d$Y,0,sqrt(private$get_residual_variance()),log=TRUE))
+        },
+        predict = function(d) {
+            d$compute_Xb(self$get_posterior_b1())
+        },
+        get_posterior_b1 = function() {
+            # posterior first moment, alpha * posterior_b1_reg
+            private$pip * super$get_posterior_b1()
+        },
+        get_posterior_b2 = function() {
+            # posterior second moment, alpha * posterior_b2_reg
+            private$pip * super$get_posterior_b2()
+        },
+        comp_kl = function(d) {
+            # compute KL divergence
+            pp_eloglik = comp_expected_loglik_partial(d, self$get_residual_variance(), 
+                                                    self$get_posterior_b1(),
+                                                    self$get_posterior_b2())
+            private$kl = pp_eloglik - private$lbf_single_effect
+        },
+        get_kl = function() private$kl,
+        get_pip = function() private$pip,
+        get_lbf_single_effect = function() private$lbf_single_effect
+    ),
+    private = list(
+        prior_gamma = NULL, # prior on gamma
+        J = NULL,
+        mloglik_single_effect = NULL,
+        pip = NULL, # posterior inclusion probability, alpha
+        lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
+        kl = NULL,
+        exit = function() {
+            warning("Not yet implemented")
+        }
+    )
   )
-)
 
 comp_expected_loglik_partial = function(d, s2, Eb1, Eb2) {
     if (inherits(d, c("DenseData", "SSData", "SparseData"))) {

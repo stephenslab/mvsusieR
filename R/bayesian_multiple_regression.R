@@ -1,26 +1,18 @@
-# Base class for regression model
-# Compare each vector of Y and X matrix at a time
+#' @title Bayesian multiple regression object
+#' @importFrom R6 R6Class
+#' @keywords internal
 BaseBayesianRegression <- R6Class("BaseBayesianRegression",
   public = list(
-    lbf = NULL, # log Bayes factor
-    posterior_b1 = NULL, # posterior first moment
-    posterior_b2 = NULL, # posterior second moment
-    initialize = function(prior=NULL) {
-      self$set_prior(prior)
+    initialize = function(prior, estimate_prior=FALSE) {
+      self$set_prior(prior,estimate_prior)
     },
-    set_prior = function(prior=NULL) {
-        # set prior
-        if (is.null(prior)) {
-            private$prior = -9
-            private$estimate_prior = TRUE
-        } else {
-            private$prior = prior
-            private$estimate_prior = FALSE
-        }
+    set_prior = function(prior, estimate_prior) {
+      private$prior = prior 
+      private$estimate_prior = estimate_prior
     },
+    get_prior = function() private$prior,
     set_residual_variance = function(r) private$residual_variance = r,
     get_residual_variance = function() private$residual_variance,
-    get_prior = function() private$prior,
     fit = function(d, prior_weights = NULL, use_residual = FALSE) {
       # d: data object
       # use_residual: fit with residual instead of with Y, 
@@ -36,17 +28,33 @@ BaseBayesianRegression <- R6Class("BaseBayesianRegression",
       }
       # posterior
       post_var = (1/private$prior + d$d/private$residual_variance)^(-1) # posterior variance
-      self$posterior_b1 = (1/private$residual_variance) * post_var * XtY
-      self$posterior_b2 = post_var + self$posterior_b1^2 # second moment
+      private$posterior_b1 = (1/private$residual_variance) * post_var * XtY
+      private$posterior_b2 = post_var + private$posterior_b1^2 # second moment
       # Bayes factor
-      self$lbf = dnorm(betahat,0,sqrt(prior+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
-      self$lbf[shat2==Inf] == 0
-    }
+      private$lbf = dnorm(betahat,0,sqrt(private$prior+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
+      private$lbf[shat2==Inf] == 0
+    },
+    compute_loglik = function(d) {
+      if (inherites(d, "DenseData")) {
+        private$loglik = dnorm(d$Y,0,sqrt(private$residual_variance),log=TRUE)
+      } else {
+        private$loglik = NA
+        private$exit()
+      }
+    },
+    get_loglik = function() private$loglik,
+    get_posterior_b1 = function() private$posterior_b1,
+    get_posterior_b2 = function() private$posterior_b2,
+    get_lbf = function() private$lbf
   ),
   private = list(
     prior = NULL, # prior on effect size
     residual_variance = NULL,
     estimate_prior = FALSE,
+    loglik = NULL,
+    lbf = NULL, # log Bayes factor
+    posterior_b1 = NULL, # posterior first moment
+    posterior_b2 = NULL, # posterior second moment
     exit = function() {
       warning("Not implemented.")
     }
@@ -61,10 +69,8 @@ lbf.grad = function(V,shat2,T2){
 }
 
 loglik.grad = function(V,betahat,shat2,prior_weights) {
-
   #log(bf) on each effect 
   lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
-
   lbf[shat2==Inf] = 0 # deal with special case of infinite shat2 (eg happens if X does not vary)
   alpha = safe_comp_weight(lbf, prior_weights)$alpha
   sum(alpha*lbf.grad(V,shat2,betahat^2/shat2))
