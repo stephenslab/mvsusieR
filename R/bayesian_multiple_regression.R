@@ -96,7 +96,7 @@ loglik.grad = function(V,betahat,shat2,prior_weights) {
   #log(bf) on each effect 
   lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
   lbf[shat2==Inf] = 0 # deal with special case of infinite shat2 (eg happens if X does not vary)
-  alpha = safe_comp_weight(lbf, prior_weights)$alpha
+  alpha = safe_compute_weight(lbf, prior_weights)$alpha
   sum(alpha*lbf.grad(V,shat2,betahat^2/shat2))
 }
 

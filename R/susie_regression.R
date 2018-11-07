@@ -21,15 +21,12 @@ SuSiE <- R6Class("SuSiE",
         for (i in 1:private$niter) {
             private$save_history()
             for (l in 1:private$L) {
-                fitted_l = private$SER[[l]]$predict(d)
-                d$remove_from_fitted(fitted_l)
-                d$comp_residual()
+                d$remove_from_fitted(private$SER[[l]]$predict(d))
+                d$compute_residual()
                 private$SER[[l]]$residual_variance = private$sigma2
                 private$SER[[l]]$fit(d)
-                private$SER[[l]]$comp_kl(d)
-                fitted_l = private$SER[[l]]$predict(d)
-                # this is how `fitted` is built up
-                d$add_back_fitted(fitted_l)
+                private$SER[[l]]$compute_kl(d)
+                d$add_back_fitted(private$SER[[l]]$predict(d))
             }
             # assign these variables for performance consideration
             # because these active bindings involve some computation
@@ -56,6 +53,7 @@ SuSiE <- R6Class("SuSiE",
         if (dump) return(private$elbo)
         else return(private$elbo[private$niter])
     },
+    get_niter = function() private$niter,
     get_pip_history = function() private$pip_history,
     get_lbf_history = function() private$lbf_history
   ),
@@ -78,16 +76,16 @@ SuSiE <- R6Class("SuSiE",
     },
     compute_objective = function(d,b1,b2) {
         if (is.null(private$essr)) {
-            essr = comp_expected_sum_squared_residuals(d,b1,b2) 
+            essr = compute_expected_sum_squared_residuals(d,b1,b2) 
         } else {
             essr = private$essr
         }
-        expected_loglik = comp_expected_loglik(d$n_sample, private$sigma2, essr)
+        expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
         return(expected_loglik - sum(self$kl))
     },
     estimate_residual_variance = function(d,b1,b2) { 
         if (private$to_estimate_residual_variance) {
-            private$essr = comp_expected_sum_squared_residuals(d,b1,b2)
+            private$essr = compute_expected_sum_squared_residuals(d,b1,b2)
             private$sigma2 = private$essr / (d$n_sample-1)
         }
     },
@@ -102,7 +100,7 @@ SuSiE <- R6Class("SuSiE",
   active = list(
     prior_variance = function(v) { 
         # get prior effect size, because it might be updated during iterations
-        if (missing(v)) lapply(1:private$L, function(l) private$SER[[l]]$prior_variance)
+        if (missing(v)) sapply(1:private$L, function(l) private$SER[[l]]$prior_variance)
         else private$denied('prior_variance')
     },
     residual_variance = function(v) {
@@ -133,7 +131,7 @@ SuSiE <- R6Class("SuSiE",
 )
 
 # expected squared residuals
-comp_expected_sum_squared_residuals = function(d, Eb1, Eb2) {
+compute_expected_sum_squared_residuals = function(d, Eb1, Eb2) {
     if (inherits(d, c("DenseData","SparseData", "SSData"))) {
         Eb1 = t(do.call(cbind, Eb1))
         Eb2 = t(do.call(cbind, Eb2))
@@ -151,6 +149,6 @@ comp_expected_sum_squared_residuals = function(d, Eb1, Eb2) {
 }
 
 # expected loglikelihood for a susie fit
-comp_expected_loglik = function(n, residual_variance, essr) {
+compute_expected_loglik = function(n, residual_variance, essr) {
     -(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr
 }

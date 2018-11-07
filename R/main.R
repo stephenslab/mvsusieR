@@ -79,7 +79,8 @@ susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
       prior_weights = c(prior_weights * (1-null_weight), null_weight)
     X = cbind(X,0)
   }
-  # FIXME: input check and initialization
+  # FIXME: input check should happen elsewhere -- in corresponding class init methods
+  # unless some share??
   residual_variance = as.numeric(var(Y))
 
   ## BEGIN new mmbr code
@@ -91,7 +92,6 @@ susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
   SuSiE_model$fit(data)
   s = report_susie_model(data, SuSiE_model)
   ## END new mmbr code
-  print(s)
 
   ## SuSiE CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {

@@ -14,7 +14,7 @@ SingleEffectRegression <- function(base)
         },
         fit = function(d) {
             super$fit(d, use_residual = TRUE, prior_weights = private$prior_weights)
-            ws = safe_comp_weight(private$.lbf, private$prior_weights, log = TRUE)
+            ws = safe_compute_weight(private$.lbf, private$prior_weights, log = TRUE)
             private$.pip = ws$alpha
             private$.lbf_single_effect = ws$log_total
             self$compute_loglik_null(d)
@@ -23,9 +23,9 @@ SingleEffectRegression <- function(base)
         predict = function(d) {
             d$compute_Xb(self$posterior_b1)
         },
-        comp_kl = function(d) {
+        compute_kl = function(d) {
             # compute KL divergence
-            pp_eloglik = comp_expected_loglik_partial(d, private$.residual_variance,
+            pp_eloglik = compute_expected_loglik_partial(d, private$.residual_variance,
                                                     self$posterior_b1,
                                                     self$posterior_b2)
             private$.kl = pp_eloglik - private$.lbf_single_effect
@@ -40,7 +40,6 @@ SingleEffectRegression <- function(base)
     ),
     active = list(
         # user accessible interface
-
         posterior_b1 = function(v) {
             # posterior first moment, alpha * posterior_b1_reg
             if (missing(v)) private$.pip * private$.posterior_b1
@@ -70,10 +69,10 @@ SingleEffectRegression <- function(base)
     )
   )
 
-comp_expected_loglik_partial = function(d, s2, Eb1, Eb2) {
+compute_expected_loglik_partial = function(d, s2, Eb1, Eb2) {
     if (inherits(d, c("DenseData", "SSData", "SparseData"))) {
         return(- (0.5/s2) * (- 2*sum(Eb1*d$XtR) + sum(d$d*as.vector(Eb2))))
     } else {
-        stop("comp_expected_loglik_partial not implemented for given data type")
+        stop("compute_expected_loglik_partial not implemented for given data type")
     }
 }

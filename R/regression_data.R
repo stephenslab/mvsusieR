@@ -4,7 +4,6 @@
 #' @keywords internal
 DenseData <- R6Class("DenseData",
   public = list(
-
     initialize = function(X,Y,center=TRUE,scale=TRUE) {
       private$.X = X
       if (is.null(dim(Y))) private$.Y = matrix(Y,length(Y),1)
@@ -25,12 +24,15 @@ DenseData <- R6Class("DenseData",
       tcrossprod(M,private$.X)
     },
     remove_from_fitted = function(value) {
+      # this is meant for SuSiE model
+      # where a good fit is achieved bit by bit like this
+      # (along with add_back_fitted method)
       private$.fitted = private$.fitted - value
     },
     add_back_fitted = function(value) {
       private$.fitted = private$.fitted + value
     },
-    comp_residual = function() {
+    compute_residual = function() {
       private$residual = private$.Y - private$.fitted 
     },
     rescale_coef = function(b) {
@@ -94,7 +96,7 @@ DenseData <- R6Class("DenseData",
       else private$denied('d')
     },
     fitted = function(value) {
-      if (missing(value)) private$.fitted + private$Y_mean
+      if (missing(value)) private$.fitted
       else private$denied('fitted')
     },
     XtY = function(value) {
@@ -139,7 +141,7 @@ SSData <- R6Class("SSData",
     add_back_fitted = function(value) {
       private$.fitted = private$.fitted + value
     },
-    comp_residual = function() {
+    compute_residual = function() {
       private$residual = private$.XtY - private$.fitted 
     },
     rescale_coef = function(b) {
