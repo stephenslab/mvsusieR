@@ -4,59 +4,77 @@
 BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
   public = list(
     initialize = function(prior_variance, estimate_prior_variance =FALSE) {
-      self$set_prior_variance(prior_variance, estimate_prior_variance)
+      private$.prior_variance = prior_variance
+      private$estimate_prior_variance = estimate_prior_variance
     },
-    set_prior_variance = function(prior_variance, estimate_prior_variance) {
-      private$prior_variance = prior_variance
-      private$estimate_prior = estimate_prior_variance
-    },
-    get_prior_variance = function() private$prior_variance,
-    set_residual_variance = function(r) private$residual_variance = r,
-    get_residual_variance = function() private$residual_variance,
     fit = function(d, prior_weights = NULL, use_residual = FALSE) {
       # d: data object
       # use_residual: fit with residual instead of with Y, 
       # a special feature for when used with SuSiE algorithm
-      if (use_residual) XtY = d.get_XtR()
-      else XtY = d.get_XtY()
+      if (use_residual) XtY = d$XtR
+      else XtY = d$XtY
       # OLS estimates
       betahat = 1/d$d * XtY
-      shat2 = private$residual_variance / d$d
+      shat2 = private$.residual_variance / d$d
       # deal with prior variance: can be "estimated" across effects
       if(private$estimate_prior_variance) {
-        private$prior_variance = est.prior.variance(betahat,shat2,prior_weights)
+        private$.prior_variance = est.prior.variance(betahat,shat2,prior_weights)
       }
       # posterior
-      post_var = (1/private$prior_variance + d$d/private$residual_variance)^(-1) # posterior variance
-      private$posterior_b1 = (1/private$residual_variance) * post_var * XtY
-      private$posterior_b2 = post_var + private$posterior_b1^2 # second moment
+      post_var = (1/private$.prior_variance + d$d/private$.residual_variance)^(-1) # posterior variance
+      private$.posterior_b1 = (1/private$.residual_variance) * post_var * XtY
+      private$.posterior_b2 = post_var + private$.posterior_b1^2 # second moment
       # Bayes factor
-      private$lbf = dnorm(betahat,0,sqrt(private$prior_variance+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
-      private$lbf[shat2==Inf] == 0
+      private$.lbf = dnorm(betahat,0,sqrt(private$.prior_variance+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
+      private$.lbf[shat2==Inf] == 0
     },
     compute_loglik_null = function(d) {
       if (inherites(d, "DenseData")) {
-        private$loglik_null = dnorm(d$Y,0,sqrt(private$residual_variance),log=TRUE)
+        private$.loglik_null = dnorm(d$Y,0,sqrt(private$.residual_variance),log=TRUE)
       } else {
-        private$loglik_null = NA
-        private$exit()
+        private$.loglik_null = NA
       }
-    },
-    get_loglik_null = function() private$loglik_null,
-    get_posterior_b1 = function() private$posterior_b1,
-    get_posterior_b2 = function() private$posterior_b2,
-    get_lbf = function() private$lbf
+    }
   ),
   private = list(
-    prior_variance = NULL, # prior on effect size
-    residual_variance = NULL,
     estimate_prior_variance = FALSE,
-    loglik_null = NULL,
-    lbf = NULL, # log Bayes factor
-    posterior_b1 = NULL, # posterior first moment
-    posterior_b2 = NULL, # posterior second moment
-    exit = function() {
-      warning("Not implemented.")
+    .prior_variance = NULL, # prior on effect size
+    .residual_variance = NULL,
+    .loglik_null = NULL,
+    .lbf = NULL, # log Bayes factor
+    .posterior_b1 = NULL, # posterior first moment
+    .posterior_b2 = NULL, # posterior second moment
+    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE) 
+  ),
+  active = list(
+    loglik_null = function(v) {
+      if (missing(v)) private$.loglik_null
+      else private$denied('loglik_null')
+    },
+    posterior_b1 = function(v) { 
+      if (missing(v)) private$.posterior_b1
+      else private$denied('posterior_b1')
+    },
+    posterior_b2 = function(v) { 
+      if (missing(v)) private$.posterior_b2
+      else private$denied('posterior_b2')
+    },
+    lbf = function(v) {
+      if (missing(v)) private$.lbf
+      else private$denied('lbf')
+    }, 
+    prior_variance = function(v) {
+      if (missing(v)) {
+        private$.prior_variance
+      } else {
+        if (length(v) != 2) stop('need argument of length 2')
+        private$.prior_variance = v[1] 
+        private$estimate_prior_variance = v[2]
+      }
+    },
+    residual_variance = function(v) {
+      if (missing(v)) private$.residual_variance
+      else private$.residual_variance = v
     }
   )
 )

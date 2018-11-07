@@ -14,50 +14,64 @@ SingleEffectRegression <- function(base)
         },
         fit = function(d) {
             super$fit(d, use_residual = TRUE, prior_weights = private$prior_weights)
-            ws = safe_comp_weight(private$get_lbf(), private$prior_weights, log = TRUE)
-            private$pip = ws$alpha
-            private$lbf_single_effect = ws$log_total
+            ws = safe_comp_weight(private$.lbf, private$prior_weights, log = TRUE)
+            private$.pip = ws$alpha
+            private$.lbf_single_effect = ws$log_total
             self$compute_loglik_null(d)
-            private$mloglik_single_effect = private$lbf_single_effect + self$get_loglik_null()
+            private$.mloglik_single_effect = private$.lbf_single_effect + private$.loglik_null
         },
         predict = function(d) {
-            d$compute_Xb(self$get_posterior_b1())
-        },
-        get_posterior_b1 = function() {
-            # posterior first moment, alpha * posterior_b1_reg
-            private$pip * super$get_posterior_b1()
-        },
-        get_posterior_b2 = function() {
-            # posterior second moment, alpha * posterior_b2_reg
-            private$pip * super$get_posterior_b2()
+            d$compute_Xb(private$.posterior_b1)
         },
         comp_kl = function(d) {
             # compute KL divergence
-            pp_eloglik = comp_expected_loglik_partial(d, self$get_residual_variance(), 
-                                                    self$get_posterior_b1(),
-                                                    self$get_posterior_b2())
-            private$kl = pp_eloglik - private$lbf_single_effect
-        },
-        get_kl = function() private$kl,
-        get_pip = function() private$pip,
-        get_lbf_single_effect = function() private$lbf_single_effect
+            pp_eloglik = comp_expected_loglik_partial(d, private$.residual_variance,
+                                                    self$posterior_b1,
+                                                    self$posterior_b2)
+            private$.kl = pp_eloglik - private$.lbf_single_effect
+        }
     ),
     private = list(
         prior_weights = NULL, # prior on gamma
         J = NULL,
-        mloglik_single_effect = NULL,
-        pip = NULL, # posterior inclusion probability, alpha
-        lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
-        kl = NULL,
-        exit = function() {
-            warning("Not yet implemented")
+        .mloglik_single_effect = NULL,
+        .pip = NULL, # posterior inclusion probability, alpha
+        .lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
+        .kl = NULL
+    ),
+    active = list(
+        posterior_b1 = function() {
+            # posterior first moment, alpha * posterior_b1_reg
+            if (missing(v)) private$.pip * super$posterior_b1
+            else private$denied('posterior_b1')
+        },
+        posterior_b2 = function() {
+            # posterior first moment, alpha * posterior_b2_reg
+            if (missing(v)) private$.pip * super$posterior_b2
+            else private$denied('posterior_b2')
+        },
+        kl = function(v) {
+            if (missing(v)) private$.kl
+            else private$.kl = v
+        },
+        pip = function(v) {
+            if (missing(v)) private$.pip
+            else private$.pip = v
+        },
+        lbf_single_effect = function(v) {
+            if (missing(v)) private$.lbf_single_effect
+            else private$.lbf_single_effect = v
+        },
+        mloglik_single_effect = function(v) {
+            if (missing(v)) private$.mloglik_single_effect
+            else private$denied('mloglik_single_effect')
         }
     )
   )
 
 comp_expected_loglik_partial = function(d, s2, Eb1, Eb2) {
     if (inherits(d, c("DenseData", "SSData", "SparseData"))) {
-        return(- (0.5/s2) * (- 2*sum(Eb1*d$get_XtR()) + sum(d$d*as.vector(Eb2))))
+        return(- (0.5/s2) * (- 2*sum(Eb1*d$XtR) + sum(d$d*as.vector(Eb2))))
     } else {
         stop("comp_expected_loglik_partial not implemented for given data type")
     }

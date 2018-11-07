@@ -1,32 +1,28 @@
 #' @title The regular regression data object
 #' @importFrom R6 R6Class
+#' @importFrom matrixStats colSds
 #' @keywords internal
 DenseData <- R6Class("DenseData",
   public = list(
-    X = NULL,
-    Y = NULL,
-    d = NULL,
+
     initialize = function(X,Y,center=TRUE,scale=TRUE) {
-      self$X = X
-      if (is.null(dim(Y))) self$Y = matrix(Y,length(Y),1)
-      else self$Y = Y
-      private$K = ncol(self$Y)
-      private$N = nrow(self$Y)
-      private$J = ncol(self$X)
+      private$.X = X
+      if (is.null(dim(Y))) private$.Y = matrix(Y,length(Y),1)
+      else private$.Y = Y
+      private$R = ncol(private$.Y)
+      private$N = nrow(private$.Y)
+      private$J = ncol(private$.X)
       private$standardize(center,scale)
       private$fitted = rep(0, private$N) 
-      private$residual = self$Y
+      private$residual = private$.Y
     },
-    get_n_sample = function() private$N,
-    get_n_condition = function() private$K,
-    get_n_effect = function() private$J,
     compute_Xb = function(b) {
       # tcrossprod(A,B) performs A%*%t(B) but faster
-      tcrossprod(self$X,t(b))
+      tcrossprod(private$.X,t(b))
     },
     compute_MXt = function(M) {
       # tcrossprod(A,B) performs A%*%t(B) but faster
-      tcrossprod(M,self$X)
+      tcrossprod(M,private$.X)
     },
     remove_from_fitted = function(value) {
       private$fitted = private$fitted - value
@@ -35,13 +31,7 @@ DenseData <- R6Class("DenseData",
       private$fitted = private$fitted + value
     },
     comp_residual = function() {
-      private$residual = self$Y - private$fitted 
-    },
-    get_XtY = function() {
-      crossprod(self$X,self$Y)
-    },
-    get_XtR = function() {
-      crossprod(self$X,private$residual)
+      private$residual = private$.Y - private$fitted 
     },
     rescale_coef = function(b) {
       coefs = b/private$csd
@@ -51,23 +41,26 @@ DenseData <- R6Class("DenseData",
     }
   ),
   private = list(
+    .X = NULL,
+    .Y = NULL,
+    .d = NULL,
     N = NULL,
     J = NULL,
-    K = NULL,
+    R = NULL,
     X2t = NULL,
     fitted = NULL,
     residual = NULL,
     csd = NULL,
     cm = NULL,
-    y_mean = NULL,
+    Y_mean = NULL,
     standardize = function(center, scale) {
       # Credit: This is heavily based on code from
       # https://www.r-bloggers.com/a-faster-scale-function/
       # The only change from that code is its treatment of columns with 0 variance.
       # This "safe" version scales those columns by 1 instead of 0.
-      private$cm = colMeans(self$X, na.rm = TRUE)
+      private$cm = colMeans(private$.X, na.rm = TRUE)
       if (scale) {
-        private$csd = matrixStats::colSds(self$X, center = private$cm)
+        private$csd = colSds(private$.X, center = private$cm)
         private$csd[private$csd==0] = 1
       } else {
         # just divide by 1 if not
@@ -77,14 +70,40 @@ DenseData <- R6Class("DenseData",
         # just subtract 0
         private$cm = rep(0, length = private$J)
       } else {
-        if (private$R == 1) private$Y_mean = mean(self$Y, na.rm = TRUE)
-        else private$Y_mean = colMeans(self$Y, na.rm = TRUE)
-        self$Y = self$Y - self$Y_mean
+        if (private$R == 1) private$Y_mean = mean(private$.Y, na.rm = TRUE)
+        else private$Y_mean = colMeans(private$.Y, na.rm = TRUE)
+        private$.Y = private$.Y - private$Y_mean
       }
-      self$X = t( (t(self$X) - self$cm) / self$csd )
-      private$X2t = t(self$X * self$X)
-      self$d = colSums(t(private$X2t))
-    }
+      private$.X = t( (t(private$.X) - private$cm) / private$csd )
+      private$X2t = t(private$.X * private$.X)
+      private$.d = colSums(t(private$X2t))
+    },
+    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE) 
+  ),
+  active = list(
+    X = function(value) {
+      if (missing(value)) private$.X
+      else private$.X = value
+    },
+    Y = function(value) {
+      if (missing(value)) private$.Y
+      else private$.Y = value
+    },
+    d = function(value) {
+      if (missing(value)) private$.d
+      else private$denied('d')
+    },
+    XtY = function(value) {
+      if (missing(value)) crossprod(private$.X, private$.Y)
+      else private$denied('XtY')
+    },
+    XtR = function(value) {
+      if (missing(value)) crossprod(private$.X, private$residual)
+      else private$denied('XtR')
+    },
+    n_sample = function(value) private$N,
+    n_condition = function(value) private$R,
+    n_effect = function(value) private$J
   )
 )
 
@@ -95,27 +114,20 @@ DenseData <- R6Class("DenseData",
 #' @importFrom R6 R6Class
 SSData <- R6Class("SSData",
   public = list(
-    XtX = NULL,
-    XtY = NULL,
-    YtY = NULL,
-    d = NULL,
     initialize = function(XtX,XtY,YtY,N,scale=TRUE) {
-      self$XtX = XtX
-      self$XtY = XtY
-      self$YtY = YtY
+      private$.XtX = XtX
+      private$.XtY = XtY
+      private$.YtY = YtY
       private$N = N
       private$J = nrow(XtX)
-      if (is.null(dim(YtY))) private$K = 1
-      else private$K = nrow(YtY)
+      if (is.null(dim(YtY))) private$R = 1
+      else private$R = nrow(YtY)
       private$standardize(scale)
       private$fitted = rep(0, private$J) 
-      private$residual = self$XtY 
+      private$residual = private$.XtY 
     },
-    get_n_sample = function() private$N,
-    get_n_condition = function() private$K,
-    get_n_effect = function() private$J,
     compute_Xb = function(b) {
-      tcrossprod(self$XtX,t(b))
+      tcrossprod(private$.XtX,t(b))
     },
     remove_from_fitted = function(value) {
       private$fitted = private$fitted - value
@@ -124,36 +136,59 @@ SSData <- R6Class("SSData",
       private$fitted = private$fitted + value
     },
     comp_residual = function() {
-      private$residual = self$XtY - private$fitted 
-    },
-    get_XtY = function() {
-      self$XtY
-    },
-    get_XtR = function() {
-      private$residual
+      private$residual = private$.XtY - private$fitted 
     },
     rescale_coef = function(b) {
       c(0, b/private$csd)
     }
   ),
   private = list(
+    .XtX = NULL,
+    .XtY = NULL,
+    .YtY = NULL,
+    .d = NULL,
     N = NULL,
     J = NULL,
-    K = NULL,
+    R = NULL,
     fitted = NULL,
     residual = NULL,
     csd = NULL,
     standardize = function(scale) {
       if (scale) {
-          d = diag(self$XtX)
-          self$csd = sqrt(d/(private$N-1))
-          self$csd[self$csd == 0] = 1
-          self$XtX = (1/self$csd) * t((1/self$csd) * self$XtX)
-          self$XtY = (1/self$csd) * self$XtY
+          d = diag(private$.XtX)
+          private$csd = sqrt(d/(private$N-1))
+          private$csd[private$csd == 0] = 1
+          private$.XtX = (1/private$csd) * t((1/private$csd) * private$.XtX)
+          private$.XtY = (1/private$csd) * private$.XtY
       } else {
-          self$csd = rep(1, length = private$J)
+          private$csd = rep(1, length = private$J)
       }
-      self$d = diag(self$XtX)
+      private$.d = diag(private$.XtX)
     }
+  ),
+  active = list(
+    XtX = function(value) {
+      if (missing(value)) private$.XtX
+      else private$.XtX = value
+    },
+    XtY = function(value) {
+      if (missing(value)) private$.XtY
+      else private$.XtY = value
+    },
+    YtY = function(value) {
+      if (missing(value)) private$.YtY
+      else private$.YtY = value
+    },
+    d = function(value) {
+      if (missing(value)) private$.d
+      else private$denied('d')
+    },
+    XtR = function(value) {
+      if (missing(value)) private$residual
+      else private$denied('XtR')
+    },
+    n_sample = function(value) private$N,
+    n_condition = function(value) private$R,
+    n_effect = function(value) private$J
   )
 )

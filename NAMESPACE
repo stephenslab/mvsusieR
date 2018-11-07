@@ -2,4 +2,5 @@
 
 export(susie)
 importFrom(R6,R6Class)
+importFrom(matrixStats,colSds)
 importFrom(stats,var)

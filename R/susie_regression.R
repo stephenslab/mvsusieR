@@ -22,14 +22,14 @@ SuSiE <- R6Class("SuSiE",
                 fitted_l = private$SER[l]$predict(d)
                 d$remove_from_fitted(fitted_l)
                 d$comp_residual()
-                private$SER[l]$set_residual_variance(private$sigma2)
+                private$SER[l]$residual_variance(private$sigma2)
                 private$SER[l]$fit(d)
                 private$SER[l]$comp_kl(d)
                 fitted_l = private$SER[l]$predict(d)
                 d$add_back_fitted(fitted_l)
             }
-            b1 = self$get_posterior_b1()
-            b2 = self$get_posterior_b2()
+            b1 = self$posterior_b1
+            b2 = self$posterior_b2
             private$estimate_residual_variance(d,b1,b2)
             private$elbo[i] = private$compute_objective(d,b1,b2)
             if (private$is_converged()) {
@@ -41,16 +41,7 @@ SuSiE <- R6Class("SuSiE",
     },
     predict = function(x) {},
     coef = function() {
-        d$rescale_coef(do.call(sum, get_posterior_b1()))
-    },
-    # some get private numbers functions
-    get_prior_variance = function() { 
-        # get prior effect size, because it might be updated during iterations
-        lapply(1:private$L, function(l) private$SER[l]$get_prior_variance())
-    },
-    get_residual_variance = function() private$sigma2,
-    get_kl = function() {
-        sapply(1:private$L, function(l) private$SER[l]$get_kl())
+        d$rescale_coef(do.call(sum, self$posterior_b1))
     },
     get_objective = function(dump = FALSE) {
         if (!all(diff(private$elbo) >= 0)) {
@@ -60,16 +51,8 @@ SuSiE <- R6Class("SuSiE",
         if (dump) return(private$elbo)
         else return(private$elbo[private$niter])
     },
-    get_pip = function() lapply(1:private$L, function(l) private$SER[l]$get_pip()), # posterior inclusion probability, L by J matrix
     get_pip_history = function() private$pip_history,
-    get_lbf = function() lapply(1:private$L, function(l) private$SER[l]$get_lbf_single_effect()),
-    get_lbf_history = function() private$lbf_history,
-    get_posterior_b1 = function() {
-        lapply(1:private$L, function(l) private$SER[l]$get_posterior_b1())
-    },
-    get_posterior_b2 = function() {
-        lapply(1:private$L, function(l) private$SER[l]$get_posterior_b2())
-    }
+    get_lbf_history = function() private$lbf_history
   ),
   private = list(
     L = NULL,
@@ -93,18 +76,47 @@ SuSiE <- R6Class("SuSiE",
         } else {
             essr = private$essr
         }
-        expected_loglik = comp_expected_loglik(d$get_n_sample(), private$sigma2, essr)
-        return(expected_loglik - sum(self$get_kl()))
+        expected_loglik = comp_expected_loglik(d$n_sample, private$sigma2, essr)
+        return(expected_loglik - sum(self$kl))
     },
     estimate_residual_variance = function(d,b1,b2) { 
         private$essr = comp_expected_sum_squared_residuals(d,b1,b2)
-        private$sigma2 = private$essr / (d$get_n_sample()-1)
+        private$sigma2 = private$essr / (d$n_sample-1)
     },
     save_history = function() {
         private$exit()
     },
-    exit = function() {
-        warning("Not yet implemented")
+    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE) 
+  ),
+  active = list(
+    prior_variance = function(v) { 
+        # get prior effect size, because it might be updated during iterations
+        if (missing(v)) lapply(1:private$L, function(l) private$SER[l]$prior_variance)
+        else private$denied('prior_variance')
+    },
+    residual_variance = function(v) {
+        if (missing(v)) private$sigma2
+        else private$denied('residual_variance')
+    },
+    kl = function(v) {
+        if (missing(v)) sapply(1:private$L, function(l) private$SER[l]$kl)
+        else private$denied('kl')
+    },
+    pip = function(v) {
+        if (missing(v)) lapply(1:private$L, function(l) private$SER[l]$pip) # posterior inclusion probability, L by J matrix
+        else private$denied('pip')
+    },
+    lbf = function(v) {
+        if (missing(v)) lapply(1:private$L, function(l) private$SER[l]$lbf_single_effect)
+        else priviate$denied('lbf')
+    },
+    posterior_b1 = function(v) {
+        if (missing(v)) lapply(1:private$L, function(l) private$SER[l]$posterior_b1)
+        else priviate$denied('posterior_b1')
+    },
+    posterior_b2 = function(v) {
+        if (missing(v)) lapply(1:private$L, function(l) private$SER[l]$posterior_b2)
+        else priviate$denied('posterior_b2')
     }
   )
 )
@@ -128,6 +140,6 @@ comp_expected_sum_squared_residuals = function(d, Eb1, Eb2) {
 }
 
 # expected loglikelihood for a susie fit
-comp_expected_loglik = function(n, residual_variance, essr){
+comp_expected_loglik = function(n, residual_variance, essr) {
     -(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr
 }
