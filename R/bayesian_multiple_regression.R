@@ -3,9 +3,14 @@
 #' @keywords internal
 BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
   public = list(
-    initialize = function(prior_variance, estimate_prior_variance =FALSE) {
+    initialize = function(J, residual_variance, prior_variance, estimate_prior_variance =FALSE) {
+      private$J = J
       private$.prior_variance = prior_variance
+      private$.residual_variance = residual_variance
+      private$.posterior_b1 = matrix(0, J, 1)
+      private$.posterior_b2 = matrix(0, J, 1)
       private$estimate_prior_variance = estimate_prior_variance
+
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE) {
       # d: data object
@@ -29,7 +34,7 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       private$.lbf[shat2==Inf] == 0
     },
     compute_loglik_null = function(d) {
-      if (inherites(d, "DenseData")) {
+      if (inherits(d, "DenseData")) {
         private$.loglik_null = dnorm(d$Y,0,sqrt(private$.residual_variance),log=TRUE)
       } else {
         private$.loglik_null = NA
@@ -38,6 +43,7 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
   ),
   private = list(
     estimate_prior_variance = FALSE,
+    J = NULL,
     .prior_variance = NULL, # prior on effect size
     .residual_variance = NULL,
     .loglik_null = NULL,

@@ -6,11 +6,11 @@ SingleEffectRegression <- function(base)
     R6Class("SingleEffectRegression",
     inherit = base,
     public = list(
-        initialize = function(J, prior_variance, estimate_prior_variance, prior_weights=NULL) {
-            super$initialize(prior_variance, estimate_prior_variance)
-            private$J = J
+        initialize = function(J, residual_variance, prior_variance, estimate_prior_variance, prior_weights=NULL) {
+            super$initialize(J, residual_variance, prior_variance, estimate_prior_variance)
             if (is.null(prior_weights)) private$prior_weights = rep(1/private$J,private$J)
             else private$prior_weights = prior_weights
+            private$.pip = rep(0, J)
         },
         fit = function(d) {
             super$fit(d, use_residual = TRUE, prior_weights = private$prior_weights)
@@ -21,7 +21,7 @@ SingleEffectRegression <- function(base)
             private$.mloglik_single_effect = private$.lbf_single_effect + private$.loglik_null
         },
         predict = function(d) {
-            d$compute_Xb(private$.posterior_b1)
+            d$compute_Xb(self$posterior_b1)
         },
         comp_kl = function(d) {
             # compute KL divergence
@@ -33,21 +33,22 @@ SingleEffectRegression <- function(base)
     ),
     private = list(
         prior_weights = NULL, # prior on gamma
-        J = NULL,
         .mloglik_single_effect = NULL,
         .pip = NULL, # posterior inclusion probability, alpha
         .lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
         .kl = NULL
     ),
     active = list(
-        posterior_b1 = function() {
+        # user accessible interface
+
+        posterior_b1 = function(v) {
             # posterior first moment, alpha * posterior_b1_reg
-            if (missing(v)) private$.pip * super$posterior_b1
+            if (missing(v)) private$.pip * private$.posterior_b1
             else private$denied('posterior_b1')
         },
-        posterior_b2 = function() {
+        posterior_b2 = function(v) {
             # posterior first moment, alpha * posterior_b2_reg
-            if (missing(v)) private$.pip * super$posterior_b2
+            if (missing(v)) private$.pip * private$.posterior_b2
             else private$denied('posterior_b2')
         },
         kl = function(v) {

@@ -51,10 +51,9 @@
 #' X = matrix(rnorm(n*p),nrow=n,ncol=p)
 #' y = X %*% beta + rnorm(n)
 #' res =susie(X,y,L=10)
-#' coef(res)
-#' plot(y,predict(res))
 #'
 #' @importFrom stats var
+#' @importFrom susieR susie_get_pip susie_get_cs
 #' @export
 susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
                  prior_weights=NULL, null_weight=NULL,
@@ -81,23 +80,30 @@ susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
     X = cbind(X,0)
   }
   # FIXME: input check and initialization
+  residual_variance = as.numeric(var(Y))
+
+  ## BEGIN new mmbr code
   data = DenseData$new(X, Y, intercept, standardize)
-  SER_model = SingleEffectRegression(BayesianMultipleRegression)$new(data$n_effect, scaled_prior_variance * as.numeric(var(Y)), 
-                                                                    estimate_prior_variance, prior_weights)
-  SuSiE_model = SuSiE$new(SER_model, L, residual_variance, estimate_residual_variance, max_iter, tol, track_pip, track_lbf)
+  SER_model = SingleEffectRegression(BayesianMultipleRegression)$new(data$n_effect, residual_variance,
+                                                                     scaled_prior_variance * as.numeric(var(Y)), 
+                                                                     estimate_prior_variance, prior_weights)
+  SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   SuSiE_model$fit(data)
-  reporter = SuSiEReporter$new(SuSiE_model)
+  s = report_susie_model(data, SuSiE_model)
+  ## END new mmbr code
+  print(s)
+
   ## SuSiE CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    reporter$comp_cs(coverage=coverage, X=X, min_abs_corr=min_abs_corr)
-    reporter$comp_pip()
+    s$sets = susie_get_cs(s, coverage=coverage, X=X, min_abs_corr=min_abs_corr)
+    s$pip = susie_get_pip(s, s$sets$cs_index)
   }
   ## report z-scores from univariate regression
   if (compute_univariate_zscore) {
     if (!is.null(null_weight) && null_weight != 0) {
       X = X[,1:(ncol(X)-1)]
     }
-    reporter$annotate('z', calc_z(X,Y,centered=intercept))
+    s$z = calc_z(X,Y,centered=intercept)
   }
-  return(reporter)
+  return(s)
 }
