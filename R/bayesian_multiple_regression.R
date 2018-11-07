@@ -1,7 +1,7 @@
 #' @title Bayesian multiple regression object
 #' @importFrom R6 R6Class
 #' @keywords internal
-BaseBayesianRegression <- R6Class("BaseBayesianRegression",
+BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
   public = list(
     initialize = function(prior_variance, estimate_prior_variance =FALSE) {
       self$set_prior_variance(prior_variance, estimate_prior_variance)
@@ -34,15 +34,15 @@ BaseBayesianRegression <- R6Class("BaseBayesianRegression",
       private$lbf = dnorm(betahat,0,sqrt(private$prior_variance+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       private$lbf[shat2==Inf] == 0
     },
-    compute_loglik = function(d) {
+    compute_loglik_null = function(d) {
       if (inherites(d, "DenseData")) {
-        private$loglik = dnorm(d$Y,0,sqrt(private$residual_variance),log=TRUE)
+        private$loglik_null = dnorm(d$Y,0,sqrt(private$residual_variance),log=TRUE)
       } else {
-        private$loglik = NA
+        private$loglik_null = NA
         private$exit()
       }
     },
-    get_loglik = function() private$loglik,
+    get_loglik_null = function() private$loglik_null,
     get_posterior_b1 = function() private$posterior_b1,
     get_posterior_b2 = function() private$posterior_b2,
     get_lbf = function() private$lbf
@@ -51,7 +51,7 @@ BaseBayesianRegression <- R6Class("BaseBayesianRegression",
     prior_variance = NULL, # prior on effect size
     residual_variance = NULL,
     estimate_prior_variance = FALSE,
-    loglik = NULL,
+    loglik_null = NULL,
     lbf = NULL, # log Bayes factor
     posterior_b1 = NULL, # posterior first moment
     posterior_b2 = NULL, # posterior second moment

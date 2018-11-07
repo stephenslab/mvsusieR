@@ -8,11 +8,11 @@ DenseData <- R6Class("DenseData",
     d = NULL,
     initialize = function(X,Y,center=TRUE,scale=TRUE) {
       self$X = X
-      self$Y = Y
-      if (is.null(dim(Y))) private$K = 1
-      else private$K = ncol(Y)
-      private$N = nrow(Y)
-      private$J = ncol(X)
+      if (is.null(dim(Y))) self$Y = matrix(Y,length(Y),1)
+      else self$Y = Y
+      private$K = ncol(self$Y)
+      private$N = nrow(self$Y)
+      private$J = ncol(self$X)
       private$standardize(center,scale)
       private$fitted = rep(0, private$N) 
       private$residual = self$Y

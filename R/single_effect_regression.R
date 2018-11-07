@@ -17,7 +17,8 @@ SingleEffectRegression <- function(base)
             ws = safe_comp_weight(private$get_lbf(), private$prior_weights, log = TRUE)
             private$pip = ws$alpha
             private$lbf_single_effect = ws$log_total
-            if (!is.null(d$Y)) private$mloglik_single_effect = private$lbf_single_effect + sum(dnorm(d$Y,0,sqrt(private$get_residual_variance()),log=TRUE))
+            self$compute_loglik_null(d)
+            private$mloglik_single_effect = private$lbf_single_effect + self$get_loglik_null()
         },
         predict = function(d) {
             d$compute_Xb(self$get_posterior_b1())
