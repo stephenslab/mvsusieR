@@ -23,6 +23,7 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       shat2 = private$.residual_variance / d$d
       # deal with prior variance: can be "estimated" across effects
       if(private$estimate_prior_variance) {
+          if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
         private$.prior_variance = est.prior.variance(betahat,shat2,prior_weights)
       }
       # posterior
