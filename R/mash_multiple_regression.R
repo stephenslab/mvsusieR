@@ -15,21 +15,25 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       # we insist that the information should be provided beforehand
       private$estimate_prior_variance = FALSE
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
       # d: data object
       # use_residual: fit with residual instead of with Y, 
       # a special feature for when used with SuSiE algorithm
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
-      # betahat is J by R
+      # bhat is J by R
       # FIXME: can this be done faster?
-      betahat = diag(1/d$d) %*% XtY
-      # shat2 is R by R
+      bhat = diag(1/d$d) %*% XtY
+      # sbhat is R by R
       sigma2 = diag(private$.residual_variance)
-      shat2 = do.call(rbind, lapply(1:private$J, function(j) sigma2 / d$d[j]))
+      sbhat = sqrt(do.call(rbind, lapply(1:private$J, function(j) sigma2 / d$d[j])))
+      if (save_summary_stats) {
+        private$.bhat = bhat
+        private$.sbhat = sbhat
+      }
       # fit MASH model
-      mash_data = mash_set_data(betahat, sqrt(shat2), V = private$.residual_variance)
+      mash_data = mash_set_data(bhat, sbhat, V = private$.residual_variance)
       mobj = mash(mash_data, g = private$.prior_variance$dump(), fixg = TRUE, outputlevel = 3, verbose = FALSE)
       # posterior
       private$.posterior_b1 = mobj$result$PosteriorMean

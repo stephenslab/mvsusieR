@@ -12,27 +12,31 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       private$estimate_prior_variance = estimate_prior_variance
 
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
       # d: data object
       # use_residual: fit with residual instead of with Y, 
       # a special feature for when used with SuSiE algorithm
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
-      betahat = 1/d$d * XtY
-      shat2 = private$.residual_variance / d$d
+      bhat = 1/d$d * XtY
+      sbhat2 = private$.residual_variance / d$d
+      if (save_summary_stats) {
+        private$.bhat = bhat
+        private$.sbhat = sqrt(sbhat2)
+      }
       # deal with prior variance: can be "estimated" across effects
       if(private$estimate_prior_variance) {
           if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-        private$.prior_variance = est.prior.variance(betahat,shat2,prior_weights)
+        private$.prior_variance = est.prior.variance(bhat,sbhat2,prior_weights)
       }
       # posterior
       post_var = (1/private$.prior_variance + d$d/private$.residual_variance)^(-1) # posterior variance
       private$.posterior_b1 = (1/private$.residual_variance) * post_var * XtY
       private$.posterior_b2 = post_var + private$.posterior_b1^2 # second moment
       # Bayes factor
-      private$.lbf = dnorm(betahat,0,sqrt(private$.prior_variance+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
-      private$.lbf[shat2==Inf] == 0
+      private$.lbf = dnorm(bhat,0,sqrt(private$.prior_variance+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
+      private$.lbf[sbhat2==Inf] == 0
     },
     compute_loglik_null = function(d) {
       if (inherits(d, "DenseData")) {
@@ -45,6 +49,8 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
   private = list(
     estimate_prior_variance = NULL,
     J = NULL,
+    .bhat = NULL,
+    .sbhat = NULL,
     .prior_variance = NULL, # prior on effect size
     .residual_variance = NULL,
     .loglik_null = NULL,
@@ -66,9 +72,13 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       if (missing(v)) private$.posterior_b2
       else private$denied('posterior_b2')
     },
-    lbf = function(v) {
-      if (missing(v)) private$.lbf
-      else private$denied('lbf')
+    bhat = function(v) {
+      if (missing(v)) private$.bhat
+      else private$denied('bhat')
+    }, 
+    sbhat = function(v) {
+      if (missing(v)) private$.sbhat
+      else private$denied('sbhat')
     }, 
     prior_variance = function(v) {
       if (missing(v)) {
@@ -87,35 +97,35 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
 )
 
 # vector of gradients of logBF_j for each j, with respect to prior variance V
-lbf.grad = function(V,shat2,T2){
-  l = 0.5* (1/(V+shat2)) * ((shat2/(V+shat2))*T2-1)
+lbf.grad = function(V,sbhat2,T2){
+  l = 0.5* (1/(V+sbhat2)) * ((sbhat2/(V+sbhat2))*T2-1)
   l[is.nan(l)] = 0
   return(l)
 }
 
-loglik.grad = function(V,betahat,shat2,prior_weights) {
+loglik.grad = function(V,bhat,sbhat2,prior_weights) {
   #log(bf) on each effect 
-  lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
-  lbf[shat2==Inf] = 0 # deal with special case of infinite shat2 (eg happens if X does not vary)
+  lbf = dnorm(bhat,0,sqrt(V+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
+  lbf[sbhat2==Inf] = 0 # deal with special case of infinite sbhat2 (eg happens if X does not vary)
   alpha = safe_compute_weight(lbf, prior_weights)$alpha
-  sum(alpha*lbf.grad(V,shat2,betahat^2/shat2))
+  sum(alpha*lbf.grad(V,sbhat2,bhat^2/sbhat2))
 }
 
 # define gradient as function of lV:=log(V)
 # to improve numerical optimization
-negloglik.grad.logscale = function(lV,betahat,shat2,prior_weights) {
-  -exp(lV)*loglik.grad(exp(lV),betahat,shat2,prior_weights)
+negloglik.grad.logscale = function(lV,bhat,sbhat2,prior_weights) {
+  -exp(lV)*loglik.grad(exp(lV),bhat,sbhat2,prior_weights)
 }
 
-est.prior.variance = function(betahat,shat2,prior_weights) {
-  if(loglik.grad(0,betahat,shat2,prior_weights)<0){
+est.prior.variance = function(bhat,sbhat2,prior_weights) {
+  if(loglik.grad(0,bhat,sbhat2,prior_weights)<0){
     return(0)
   } else {
-    ##V.o = optim(par=log(V),fn=negloglik.logscale,gr = negloglik.grad.logscale,betahat=betahat,shat2=shat2,prior_weights=prior_weights,method="BFGS")
+    ##V.o = optim(par=log(V),fn=negloglik.logscale,gr = negloglik.grad.logscale,bhat=bhat,sbhat2=sbhat2,prior_weights=prior_weights,method="BFGS")
     ##if(V.o$convergence!=0){
     ##  warning("optimization over prior variance failed to converge")
     ##}
-    V.u=uniroot(negloglik.grad.logscale,c(-10,10),extendInt = "upX",betahat=betahat,shat2=shat2,prior_weights=prior_weights)
+    V.u=uniroot(negloglik.grad.logscale,c(-10,10),extendInt = "upX",bhat=bhat,sbhat2=sbhat2,prior_weights=prior_weights)
     return(exp(V.u$root))
   }
 }
