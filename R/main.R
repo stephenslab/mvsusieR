@@ -87,7 +87,12 @@ susie = function(X,Y,L=10,V=0.2,
     residual_variance = as.numeric(var(Y))
 
   ## BEGIN new mmbr code
-  # this is a very dirty prototype interface
+  ## ============= 
+  ## FIXME this interface is a playground now
+  ## and it is the last part to worry about
+  ## not before we finalize the design in each modules
+  ## currently this is a very dirty prototype interface
+  ## =============
   data = DenseData$new(X, Y, intercept, standardize)
   # for now only V controls the type of regression 
   if (is.numeric(V)) {

@@ -1,6 +1,6 @@
 #' @title MASH multiple regression object
 #' @importFrom R6 R6Class
-#' @importFrom mashr mash_set_data mash get_log10bf
+#' @importFrom mashr mash_set_data mash
 #' @keywords internal
 MashMultipleRegression <- R6Class("MashMultipleRegression",
   inherit = BayesianMultipleRegression,
@@ -51,7 +51,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       m2 = array(unlist(m2), dim = c(nrow(m2[[1]]), ncol(m2[[1]]), private$J))
       private$.posterior_b2 = mobj$result$PosteriorCov + m2
       # Bayes factor
-      private$.lbf = get_log10bf(mobj) 
+      private$.lbf = mobj$alt_loglik - mobj$null_loglik
       # loglik under the null
       private$.loglik_null = mobj$null_loglik
     },
