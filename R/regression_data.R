@@ -26,10 +26,10 @@ DenseData <- R6Class("DenseData",
     remove_from_fitted = function(value) {
       # this is meant for SuSiE model
       # where a good fit is achieved bit by bit like this
-      # (along with add_back_fitted method)
+      # (along with add_to_fitted method)
       private$.fitted = private$.fitted - value
     },
-    add_back_fitted = function(value) {
+    add_to_fitted = function(value) {
       private$.fitted = private$.fitted + value
     },
     compute_residual = function() {
@@ -80,7 +80,7 @@ DenseData <- R6Class("DenseData",
       private$X2t = t(private$.X * private$.X)
       private$.d = colSums(t(private$X2t))
     },
-    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE) 
+    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE)
   ),
   active = list(
     X = function(value) {
@@ -129,8 +129,8 @@ SSData <- R6Class("SSData",
       if (is.null(dim(YtY))) private$R = 1
       else private$R = nrow(YtY)
       private$standardize(scale)
-      private$.fitted = matrix(0, private$J, 1) 
-      private$residual = private$.XtY 
+      private$.fitted = matrix(0, private$J, 1)
+      private$residual = private$.XtY
     },
     compute_Xb = function(b) {
       tcrossprod(private$.XtX,t(b))
@@ -138,7 +138,7 @@ SSData <- R6Class("SSData",
     remove_from_fitted = function(value) {
       private$.fitted = private$.fitted - value
     },
-    add_back_fitted = function(value) {
+    add_to_fitted = function(value) {
       private$.fitted = private$.fitted + value
     },
     compute_residual = function() {

@@ -32,7 +32,7 @@ SuSiE <- R6Class("SuSiE",
                 private$SER[[l]]$residual_variance = private$sigma2
                 private$SER[[l]]$fit(d)
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
-                d$add_back_fitted(private$SER[[l]]$predict(d))
+                d$add_to_fitted(private$SER[[l]]$predict(d))
             }
 
             # assign these variables for performance consideration
