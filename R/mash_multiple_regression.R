@@ -39,7 +39,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       }
       # fit MASH model
       mash_data = mash_set_data(bhat, sbhat, V = private$effect_correlation)
-      mobj = mash(mash_data, g = private$.prior_variance$dump(), fixg = TRUE, outputlevel = 3, verbose = FALSE)
+      mobj = mash(mash_data, g = private$.prior_variance$dump(), fixg = TRUE, outputlevel = 3, verbose = FALSE, algorithm = 'R')
       # posterior
       private$.posterior_b1 = mobj$result$PosteriorMean
       ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
