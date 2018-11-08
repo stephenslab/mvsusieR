@@ -36,6 +36,18 @@ simulate_univariate = function(n=100, p=200, sparse=F) {
   } else {
     data = DenseData$new(X,y,TRUE,TRUE)
   }
-  return(list(X=X, X.sparse=X.sparse, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta))
+  return(list(X=X, X.sparse=X.sparse, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
 }
 
+expect_susie_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE) {
+  expect_equal(A$alpha, BA$alpha)
+  expect_equal(A$lbf, BA$lbf)
+  expect_equal(A$KL, BA$KL)
+  expect_equal(A$alpha * A$mu, BA$mu)
+  expect_equal(A$alpha * A$mu2, BA$mu2)
+  expect_equal(A$elbo[-1], BA$elbo)
+  expect_equal(A$fitted, BA$fitted)
+  expect_equal(coef(A), BA$coef)
+  if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2)
+  if (estimate_prior_variance) expect_equal(A$V, BA$V)
+}

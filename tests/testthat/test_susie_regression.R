@@ -1,0 +1,36 @@
+context("Test SuSiE regression")
+
+test_that("mmbr is identical to susieR", with(simulate_univariate(), {
+    # Test fixed prior fixed residual
+    A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = FALSE, estimate_prior_variance = FALSE)
+    SER = SingleEffectRegression(BayesianMultipleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = FALSE, prior_weights = NULL)
+    B = SuSiE$new(SER, L, estimate_residual_variance = FALSE)
+    d.copy = d$clone(T)
+    B$fit(d.copy)
+    BA = report_susie_model(d.copy, B) 
+    expect_susie_equal(A, BA)
+    # Test estimated prior fixed residual
+    A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = FALSE, estimate_prior_variance = TRUE)
+    SER = SingleEffectRegression(BayesianMultipleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = TRUE, prior_weights = NULL)
+    B = SuSiE$new(SER, L, estimate_residual_variance = FALSE)
+    d.copy = d$clone(T)
+    B$fit(d.copy)
+    BA = report_susie_model(d.copy, B) 
+    expect_susie_equal(A, BA)
+    # Test fixed prior estimated residual
+    A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = TRUE, estimate_prior_variance = FALSE)
+    SER = SingleEffectRegression(BayesianMultipleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = FALSE, prior_weights = NULL)
+    B = SuSiE$new(SER, L, estimate_residual_variance = TRUE)
+    d.copy = d$clone(T)
+    B$fit(d.copy)
+    BA = report_susie_model(d.copy, B) 
+    expect_susie_equal(A, BA)
+    # Test estimated prior estimated residual
+    A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = TRUE, estimate_prior_variance = TRUE)
+    SER = SingleEffectRegression(BayesianMultipleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = TRUE, prior_weights = NULL)
+    B = SuSiE$new(SER, L, estimate_residual_variance = TRUE)
+    d.copy = d$clone(T)
+    B$fit(d.copy)
+    BA = report_susie_model(d.copy, B) 
+    expect_susie_equal(A, BA)
+}))

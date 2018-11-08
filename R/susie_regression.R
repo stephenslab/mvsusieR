@@ -43,7 +43,7 @@ SuSiE <- R6Class("SuSiE",
     },
     predict = function(x) {},
     coef = function(d) {
-        d$rescale_coef(do.call(sum, self$posterior_b1))
+        d$rescale_coef(Reduce(`+`, self$posterior_b1))
     },
     get_objective = function(dump = FALSE) {
         if (!all(diff(private$elbo) >= 0)) {
@@ -86,12 +86,10 @@ SuSiE <- R6Class("SuSiE",
     estimate_residual_variance = function(d,b1,b2) { 
         if (private$to_estimate_residual_variance) {
             private$essr = compute_expected_sum_squared_residuals(d,b1,b2)
-            private$sigma2 = private$essr / (d$n_sample-1)
+            # FIXME: should we bother with it being N - 1 (or N - 2)?
+            private$sigma2 = private$essr / d$n_sample
         }
     },
-    # FIXME: this is crazy syntax ... 
-    # https://github.com/r-lib/R6/issues/41
-    # too bad I cannot get active binding to work here!
     save_history = function() {
         warning('save_histroy not yet implemented')
     },
@@ -116,7 +114,7 @@ SuSiE <- R6Class("SuSiE",
         else private$denied('pip')
     },
     lbf = function(v) {
-        if (missing(v)) do.call(cbind, lapply(1:private$L, function(l) private$SER[[l]]$lbf_single_effect))
+        if (missing(v)) sapply(1:private$L, function(l) private$SER[[l]]$lbf_single_effect)
         else priviate$denied('lbf')
     },
     posterior_b1 = function(v) {
