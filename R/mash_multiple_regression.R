@@ -23,17 +23,24 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       else XtY = d$XtY
       # OLS estimates
       # betahat is J by R
-      betahat = 1/d$d * XtY
+      # FIXME: can this be done faster?
+      betahat = diag(1/d$d) %*% XtY
       # shat2 is R by R
-      shat2 = private$.residual_variance / d$d
+      sigma2 = diag(private$.residual_variance)
+      shat2 = do.call(rbind, lapply(1:private$J, function(j) sigma2 / d$d[j]))
       # fit MASH model
       mash_data = mash_set_data(betahat, sqrt(shat2), V = private$.residual_variance)
-      mobj = mash(mash_data, g = private$.prior_variance$dump(), fixg = TRUE, outputlevel = 3)
+      mobj = mash(mash_data, g = private$.prior_variance$dump(), fixg = TRUE, outputlevel = 3, verbose = FALSE)
       # posterior
       private$.posterior_b1 = mobj$result$PosteriorMean
       ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
       ## we can get away with checking for convergence by PIP not by ELBO
-      private$.posterior_b2 = mobj$result$PosteriorCov + mobj$result$PosteriorMean %*% t(mobj$result$PosteriorMean)
+      if (ncol(private$.posterior_b1) == 1) {
+        mobj$result$PosteriorCov = array(mobj$result$PosteriorCov, c(1, 1, private$J))
+      } 
+      m2 = lapply(1:private$J, function(i) tcrossprod(mobj$result$PosteriorMean[i,])) 
+      m2 = array(unlist(m2), dim = c(nrow(m2[[1]]), ncol(m2[[1]]), private$J))
+      private$.posterior_b2 = mobj$result$PosteriorCov + m2
       # Bayes factor
       private$.lbf = get_log10bf(mobj) 
       # loglik under the null

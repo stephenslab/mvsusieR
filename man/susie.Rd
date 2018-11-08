@@ -4,10 +4,10 @@
 \alias{susie}
 \title{SUm of Single Effect (SuSiE) Regression of Y on X}
 \usage{
-susie(X, Y, L = 10, scaled_prior_variance = 0.2,
-  residual_variance = NULL, prior_weights = NULL, null_weight = NULL,
-  standardize = TRUE, intercept = TRUE,
-  estimate_residual_variance = TRUE, estimate_prior_variance = FALSE,
+susie(X, Y, L = 10, V = 0.2, residual_variance = NULL,
+  prior_weights = NULL, null_weight = NULL, standardize = TRUE,
+  intercept = TRUE, estimate_residual_variance = TRUE,
+  estimate_prior_variance = FALSE, compute_objective = TRUE,
   s_init = NULL, coverage = 0.95, min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE, max_iter = 100, tol = 0.001,
   verbose = FALSE, track_fit = FALSE)
@@ -18,8 +18,6 @@ susie(X, Y, L = 10, scaled_prior_variance = 0.2,
 \item{Y}{an n vector}
 
 \item{L}{maximum number of non-zero effects}
-
-\item{scaled_prior_variance}{the scaled prior variance (vector of length L, or scalar. In latter case gets repeated L times). The prior variance on each non-zero element of b is set to be var(Y)*scaled_prior_variance.}
 
 \item{residual_variance}{the residual variance (defaults to variance of Y)}
 
@@ -57,6 +55,8 @@ a commonly used threshold for genotype data in genetics studies.}
 \item{verbose}{if true outputs some progress messages}
 
 \item{track_fit}{add an attribute \code{trace} to output that saves current values of all iterations}
+
+\item{scaled_prior_variance}{the scaled prior variance (vector of length L, or scalar. In latter case gets repeated L times). The prior variance on each non-zero element of b is set to be var(Y)*scaled_prior_variance.}
 }
 \value{
 a susie fit, which is a list with some or all of the following elements\cr

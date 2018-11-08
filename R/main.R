@@ -55,7 +55,8 @@
 #' @importFrom stats var
 #' @importFrom susieR susie_get_pip susie_get_cs
 #' @export
-susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
+susie = function(X,Y,L=10,V=0.2,
+                 residual_variance=NULL,
                  prior_weights=NULL, null_weight=NULL,
                  standardize=TRUE,intercept=TRUE,
                  estimate_residual_variance=TRUE,
@@ -82,13 +83,23 @@ susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
   }
   # FIXME: input check should happen elsewhere -- in corresponding class init methods
   # unless some share??
-  residual_variance = as.numeric(var(Y))
+  if (is.null(residual_variance))
+    residual_variance = as.numeric(var(Y))
 
   ## BEGIN new mmbr code
+  # this is a very dirty prototype interface
   data = DenseData$new(X, Y, intercept, standardize)
-  SER_model = SingleEffectRegression(BayesianMultipleRegression)$new(data$n_effect, residual_variance,
-                                                                     scaled_prior_variance * as.numeric(var(Y)), 
-                                                                     estimate_prior_variance, prior_weights)
+  # for now only V controls the type of regression 
+  if (is.numeric(V)) {
+    base = BayesianMultipleRegression
+    V = V * as.numeric(var(Y))
+  } else {
+    base = MashMultipleRegression
+    compute_objective = FALSE
+    residual_variance = diag(data$n_condition) * residual_variance
+  }
+  # Beloare are the core computations
+  SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   SuSiE_model$fit(data)
   s = report_susie_model(data, SuSiE_model)
