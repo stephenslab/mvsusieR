@@ -5,10 +5,15 @@
 MashMultipleRegression <- R6Class("MashMultipleRegression",
   inherit = BayesianMultipleRegression,
   public = list(
-    initialize = function(J, residual_variance, prior_variance, estimate_prior_variance = FALSE) {
+    initialize = function(J, residual_variance, prior_variance, effect_correlation = NULL, estimate_prior_variance = FALSE) {
       private$J = J
       private$.prior_variance = prior_variance
       private$.residual_variance = residual_variance
+      if (is.null(effect_correlation)) {
+        private$effect_correlation = diag(prior_variance$n_condition)
+      } else {
+        private$effect_correlation = effect_correlation
+      }
       private$.posterior_b1 = matrix(0, J, prior_variance$n_condition)
       private$.posterior_b2 = matrix(0, J, prior_variance$n_condition)
       # Though possible to estimate from MASH model on given variables
@@ -17,7 +22,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
       # d: data object
-      # use_residual: fit with residual instead of with Y, 
+      # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
@@ -33,7 +38,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         private$.sbhat = sbhat
       }
       # fit MASH model
-      mash_data = mash_set_data(bhat, sbhat, V = private$.residual_variance)
+      mash_data = mash_set_data(bhat, sbhat, V = private$effect_correlation)
       mobj = mash(mash_data, g = private$.prior_variance$dump(), fixg = TRUE, outputlevel = 3, verbose = FALSE)
       # posterior
       private$.posterior_b1 = mobj$result$PosteriorMean
@@ -51,6 +56,9 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       private$.loglik_null = mobj$null_loglik
     },
     compute_loglik_null = function(d) {}
+  ),
+  private = list(
+    effect_correlation = NULL
   )
 )
 
