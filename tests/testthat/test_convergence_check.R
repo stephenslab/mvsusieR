@@ -1,0 +1,14 @@
+context("Test check for convergence using ELBO or not")
+
+test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(), {
+    SER = SingleEffectRegression(BayesianMultipleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = FALSE, prior_weights = NULL)
+    A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, tol = 1E-9)
+    d.copy = d$clone(T)
+    A$fit(d.copy)
+    A = report_susie_model(d.copy, A) 
+    B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-9)
+    d.copy = d$clone(T)
+    B$fit(d.copy)
+    B = report_susie_model(d.copy, B) 
+    expect_susie_equal(A,B,F,F,tol=1E-5)
+}))

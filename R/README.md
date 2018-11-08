@@ -10,12 +10,10 @@ followed by Single Effect BMR (SER), and finally the SuSiE model.
 Implementation-wise,
 
 1. `bayesian_multiple_regression.R` implements several classes for BMR models using different priors.
-2. `single_effect_regression.R` implements the SER model. It wraps around BMR models.
+    - A conventional univariate multiple regression with normal prior
+    - A multivariate regression with fixed multivariate normal prior (the MASH model)
+2. `single_effect_regression.R` implements the SER model. It inherits BMR models.
 3. `susie_regression.R` implements the SuSiE model and algorithm.
-
-Additionally we have a dedicated file for SuSiE CS related implementation,
-
-- `susie_cs.R` implements computation and visualization of SuSiE credible sets.
 
 ## Misc
 

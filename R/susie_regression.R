@@ -4,16 +4,22 @@
 SuSiE <- R6Class("SuSiE",
   public = list(
     initialize = function(SER,L,estimate_residual_variance,
-    max_iter=100,tol=1e-3,track_pip=FALSE,track_lbf=FALSE) 
+    compute_objective = TRUE,max_iter=100,tol=1e-3,track_pip=FALSE,track_lbf=FALSE)
     {
+        if (!compute_objective) {
+            track_pip = TRUE
+            estimate_residual_variance = FALSE
+        }
         # initialize single effect regression models
         private$L = L
         private$to_estimate_residual_variance = estimate_residual_variance
+        private$to_compute_objective = compute_objective
         private$SER = lapply(1:private$L, function(l) SER$clone(deep=T))
         private$sigma2 = SER$residual_variance
         private$elbo = vector()
         private$niter = max_iter
         private$tol = tol
+
         if (track_pip) private$pip_history = list()
         if (track_lbf) private$lbf_history = list()
     },
@@ -25,15 +31,18 @@ SuSiE <- R6Class("SuSiE",
                 d$compute_residual()
                 private$SER[[l]]$residual_variance = private$sigma2
                 private$SER[[l]]$fit(d)
-                private$SER[[l]]$compute_kl(d)
+                if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
                 d$add_back_fitted(private$SER[[l]]$predict(d))
             }
+
             # assign these variables for performance consideration
             # because these active bindings involve some computation
-            b1 = self$posterior_b1
-            b2 = self$posterior_b2
-            private$estimate_residual_variance(d,b1,b2)
-            private$elbo[i] = private$compute_objective(d,b1,b2)
+            if (private$to_estimate_residual_variance || private$to_compute_objective) {
+                b1 = self$posterior_b1
+                b2 = self$posterior_b2
+                private$estimate_residual_variance(d,b1,b2)
+                private$compute_objective(d,b1,b2)
+            }
             if (private$is_converged()) {
                 private$save_history()
                 private$niter = i
@@ -46,6 +55,7 @@ SuSiE <- R6Class("SuSiE",
         d$rescale_coef(Reduce(`+`, self$posterior_b1))
     },
     get_objective = function(dump = FALSE) {
+        if (length(private$elbo) == 0) return(NULL)
         if (!all(diff(private$elbo) >= 0)) {
             warning('Objective is not non-decreasing')
             dump = TRUE
@@ -59,6 +69,7 @@ SuSiE <- R6Class("SuSiE",
   ),
   private = list(
     to_estimate_residual_variance = NULL,
+    to_compute_objective = NULL,
     L = NULL,
     SER = NULL, # Single effect regression models
     elbo = NULL, # Evidence lower bound
@@ -72,16 +83,25 @@ SuSiE <- R6Class("SuSiE",
     is_converged = function() {
         n = length(private$elbo)
         if (n<=1) return (FALSE)
-        else return ((private$elbo[n]-private$elbo[n-1]) < private$tol)
+        else { 
+            if (private$to_compute_objective)
+                return ((private$elbo[n]-private$elbo[n-1]) < private$tol)
+            else
+                return (max(abs(private$pip_history[n] - private$pip_history[n-1])) < private$tol)
+        }
     },
     compute_objective = function(d,b1,b2) {
-        if (is.null(private$essr)) {
-            essr = compute_expected_sum_squared_residuals(d,b1,b2) 
+        if (private$to_compute_objective) { 
+            if (is.null(private$essr)) {
+                essr = compute_expected_sum_squared_residuals(d,b1,b2) 
+            } else {
+                essr = private$essr
+            }
+            expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
+            private$elbo = c(private$elbo, expected_loglik - sum(self$kl))
         } else {
-            essr = private$essr
+            private$elbo = c(private$elbo, NA)
         }
-        expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
-        return(expected_loglik - sum(self$kl))
     },
     estimate_residual_variance = function(d,b1,b2) { 
         if (private$to_estimate_residual_variance) {
@@ -91,7 +111,12 @@ SuSiE <- R6Class("SuSiE",
         }
     },
     save_history = function() {
-        warning('save_histroy not yet implemented')
+        if (!is.null(private$pip_history)) {
+            private$pip_history[[length(private$pip_history) + 1]] = self$pip
+        }
+        if (!is.null(private$lbf_history)) {
+            private$lbf_history[[length(private$lbf_history) + 1]] = self$pip
+        }
     },
     denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE) 
   ),
@@ -106,6 +131,7 @@ SuSiE <- R6Class("SuSiE",
         else private$denied('residual_variance')
     },
     kl = function(v) {
+        if (!private$to_compute_objective) return(NULL)
         if (missing(v)) sapply(1:private$L, function(l) private$SER[[l]]$kl)
         else private$denied('kl')
     },

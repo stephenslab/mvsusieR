@@ -43,7 +43,7 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
     }
   ),
   private = list(
-    estimate_prior_variance = FALSE,
+    estimate_prior_variance = NULL,
     J = NULL,
     .prior_variance = NULL, # prior on effect size
     .residual_variance = NULL,

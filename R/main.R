@@ -59,7 +59,8 @@ susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
                  prior_weights=NULL, null_weight=NULL,
                  standardize=TRUE,intercept=TRUE,
                  estimate_residual_variance=TRUE,
-                 estimate_prior_variance = FALSE,
+                 estimate_prior_variance=FALSE,
+                 compute_objective=TRUE,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
                  max_iter=100,tol=1e-3,
@@ -88,7 +89,7 @@ susie = function(X,Y,L=10,scaled_prior_variance=0.2,residual_variance=NULL,
   SER_model = SingleEffectRegression(BayesianMultipleRegression)$new(data$n_effect, residual_variance,
                                                                      scaled_prior_variance * as.numeric(var(Y)), 
                                                                      estimate_prior_variance, prior_weights)
-  SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
+  SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   SuSiE_model$fit(data)
   s = report_susie_model(data, SuSiE_model)
   ## END new mmbr code
