@@ -72,6 +72,10 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       if (missing(v)) private$.posterior_b2
       else private$denied('posterior_b2')
     },
+    lbf = function(v) {
+      if (missing(v)) private$.lbf
+      else private$denied('lbf')
+    }, 
     bhat = function(v) {
       if (missing(v)) private$.bhat
       else private$denied('bhat')

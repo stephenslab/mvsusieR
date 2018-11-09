@@ -39,6 +39,20 @@ simulate_univariate = function(n=100, p=200, sparse=F) {
   return(list(X=X, X.sparse=X.sparse, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
 }
 
+simulate_multivariate = function(n=100,p=100,r=2) {
+  set.seed(1)
+  X = matrix(rnorm(n*p,3,4),n,p)
+  beta = matrix(0, p, r)
+  for (i in 1:r) beta[1+(i-1)*4 : 4*i, r] = 1
+  y = X %*% beta + do.call(cbind, lapply(1:r, function(i) rnorm(n)))
+  X = susieR:::safe_colScale(X)
+  y = y - apply(y,2,mean)
+  scaled_prior_variance = 0.2
+  L = 10
+  data = DenseData$new(X,y,TRUE,TRUE)
+  return(list(X=X,y=y,n=n,p=p,r=r,V=scaled_prior_variance * cov(y),b=beta,L=L))
+}
+
 expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-10) {
   expect_equal(A$alpha, BA$alpha, tolerance = tol)
   # do not compare lbf when not using the same convergence check -- because it is rather sensitive

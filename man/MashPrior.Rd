@@ -11,4 +11,4 @@ MashPrior
 \description{
 MASH prior object
 }
-\keyword{datasets}
+\keyword{internal}
