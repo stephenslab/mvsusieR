@@ -55,8 +55,7 @@ simulate_multivariate = function(n=100,p=100,r=2) {
 
 expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-10) {
   expect_equal(A$alpha, BA$alpha, tolerance = tol)
-  # do not compare lbf when not using the same convergence check -- because it is rather sensitive
-  if (!is.null(A$elbo) && !is.null(BA$elbo)) expect_equal(A$lbf, BA$lbf, tolerance = tol)
+  expect_equal(A$lbf, BA$lbf, tolerance = tol)
   if (!is.null(A$KL) && !is.null(BA$KL)) expect_equal(A$KL, BA$KL, tolerance = tol)
   expect_equal(A$alpha * A$mu, BA$mu, tolerance = tol)
   expect_equal(A$alpha * A$mu2, BA$mu2, tolerance = tol)

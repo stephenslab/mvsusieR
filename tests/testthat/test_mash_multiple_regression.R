@@ -10,9 +10,9 @@ test_that("Degenerated mash regression is identical to univariate BMR", with(sim
     # Run MASH BMR
     # null_weight = 1 - 1 / ncol(X)
     null_weight = 0
-    prior_covar = MashPrior$new(list(V), 1, 1 - null_weight, null_weight)
+    mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
     residual_covar = cov(y)
-    B = MashMultipleRegression$new(ncol(X), residual_covar, prior_covar)
+    B = MashMultipleRegression$new(ncol(X), residual_covar, mash_init)
     B$fit(data, save_summary_stats = T)
     # compare result
     expect_equal(A$bhat, B$bhat)

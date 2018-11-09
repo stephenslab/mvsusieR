@@ -2,10 +2,10 @@
 
 export(susie)
 importFrom(R6,R6Class)
-importFrom(mashr,get_log10bf)
 importFrom(mashr,mash)
 importFrom(mashr,mash_set_data)
 importFrom(matrixStats,colSds)
+importFrom(progress,progress_bar)
 importFrom(stats,var)
 importFrom(susieR,susie_get_cs)
 importFrom(susieR,susie_get_pip)

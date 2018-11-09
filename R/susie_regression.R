@@ -23,7 +23,10 @@ SuSiE <- R6Class("SuSiE",
         if (track_pip) private$pip_history = list()
         if (track_lbf) private$lbf_history = list()
     },
-    fit = function(d) {
+    fit = function(d, verbose=TRUE) {
+        if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :current (diff = :delta) :elapsed",
+                                    clear = TRUE, total = private$niter, show_after = .5)
+        else pb = null_progress_bar$new()
         for (i in 1:private$niter) {
             private$save_history()
             for (l in 1:private$L) {
@@ -43,11 +46,14 @@ SuSiE <- R6Class("SuSiE",
                 private$estimate_residual_variance(d,b1,b2)
                 private$compute_objective(d,b1,b2)
             }
-            if (private$is_converged()) {
+            convergence = private$check_convergence(i)
+            if (convergence$converged) {
                 private$save_history()
+                pb$tick(private$niter)
                 private$niter = i
                 break
             }
+            pb$tick(tokens = list(delta=sprintf(convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },
     predict = function(x) {},
@@ -80,14 +86,15 @@ SuSiE <- R6Class("SuSiE",
     tol = NULL, # tolerance level for convergence
     sigma2 = NULL, # residual variance
     essr = NULL,
-    is_converged = function() {
-        n = length(private$elbo)
-        if (n<=1) return (FALSE)
-        else { 
+    check_convergence = function(n) {
+        if (n<=1) {
+            return (list(delta=Inf, converged=FALSE))
+        } else { 
             if (private$to_compute_objective)
-                return ((private$elbo[n]-private$elbo[n-1]) < private$tol)
+                delta = private$elbo[n] - private$elbo[n-1]
             else
-                return (max(abs(private$pip_history[n] - private$pip_history[n-1])) < private$tol)
+                delta = max(abs(private$pip_history[[n]] - private$pip_history[[n-1]]))
+            return (list(delta=delta, converged=(delta < private$tol)))
         }
     },
     compute_objective = function(d,b1,b2) {

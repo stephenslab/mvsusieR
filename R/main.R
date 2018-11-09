@@ -54,6 +54,7 @@
 #'
 #' @importFrom stats var
 #' @importFrom susieR susie_get_pip susie_get_cs
+#' @importFrom progress progress_bar
 #' @export
 susie = function(X,Y,L=10,V=0.2,
                  residual_variance=NULL,
@@ -65,7 +66,7 @@ susie = function(X,Y,L=10,V=0.2,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
                  max_iter=100,tol=1e-3,
-                 verbose=FALSE,track_fit=FALSE) {
+                 verbose=TRUE,track_fit=FALSE) {
   # Check input X.
   if (!(is.double(X) & is.matrix(X)) & !inherits(X,"CsparseMatrix"))
     stop("Input X must be a double-precision matrix, or a sparse matrix.")
@@ -81,10 +82,6 @@ susie = function(X,Y,L=10,V=0.2,
       prior_weights = c(prior_weights * (1-null_weight), null_weight)
     X = cbind(X,0)
   }
-  # FIXME: input check should happen elsewhere -- in corresponding class init methods
-  # unless some share??
-  if (is.null(residual_variance))
-    residual_variance = as.numeric(var(Y))
 
   ## BEGIN new mmbr code
   ## ============= 
@@ -97,13 +94,16 @@ susie = function(X,Y,L=10,V=0.2,
   # for now only V controls the type of regression 
   if (is.numeric(V)) {
     base = BayesianMultipleRegression
-    V = V * as.numeric(var(Y))
+    V = V * as.numeric(var(Y))  
+    if (is.null(residual_variance))
+      residual_variance = as.numeric(var(Y))
   } else {
     base = MashMultipleRegression
     compute_objective = FALSE
-    residual_variance = diag(data$n_condition) * residual_variance
+    if (is.null(residual_variance))
+      residual_variance = cov(Y) 
   }
-  # Beloare are the core computations
+  # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   SuSiE_model$fit(data)

@@ -5,17 +5,17 @@
 MashMultipleRegression <- R6Class("MashMultipleRegression",
   inherit = BayesianMultipleRegression,
   public = list(
-    initialize = function(J, residual_variance, prior_variance, effect_correlation = NULL, estimate_prior_variance = FALSE) {
+    initialize = function(J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) {
       private$J = J
-      private$.prior_variance = prior_variance
+      private$.prior_variance = mash_initializer$prior_covariance
       private$.residual_variance = residual_variance
-      if (is.null(effect_correlation)) {
-        private$effect_correlation = diag(prior_variance$n_condition)
+      if (is.null(mash_initializer$effect_correlation)) {
+        private$effect_correlation = diag(mash_initializer$n_condition)
       } else {
-        private$effect_correlation = effect_correlation
+        private$effect_correlation = mash_initializer$effect_correlation
       }
-      private$.posterior_b1 = matrix(0, J, prior_variance$n_condition)
-      private$.posterior_b2 = matrix(0, J, prior_variance$n_condition)
+      private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
+      private$.posterior_b2 = matrix(0, J, mash_initializer$n_condition)
       # Though possible to estimate from MASH model on given variables
       # we insist that the information should be provided beforehand
       private$estimate_prior_variance = FALSE
@@ -39,7 +39,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       }
       # fit MASH model
       mash_data = mash_set_data(bhat, sbhat, V = private$effect_correlation)
-      mobj = mash(mash_data, g = private$.prior_variance$dump(), fixg = TRUE, outputlevel = 3, verbose = FALSE, algorithm = 'R')
+      mobj = mash(mash_data, g = private$.prior_variance, fixg = TRUE, outputlevel = 3, verbose = FALSE, algorithm = 'R')
       # posterior
       private$.posterior_b1 = mobj$result$PosteriorMean
       ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
@@ -62,12 +62,12 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
   )
 )
 
-#' @title MASH prior object
+#' @title MASH initializer object
 #' @importFrom R6 R6Class
 #' @keywords internal
-MashPrior <- R6Class("MashPrior",
+MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights, null_weight = 0) {
+      initialize = function(Ulist, grid, prior_weights, null_weight = 0, V = NULL) {
         # FIXME: check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -75,14 +75,17 @@ MashPrior <- R6Class("MashPrior",
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
         private$mash_g = list(pi = c(null_weight, prior_weights), Ulist = Ulist, grid = grid, usepointmass=TRUE)
-      },
-      dump = function() private$mash_g
+        private$V = V 
+      }
   ),
   private = list(
       mash_g = NULL,
-      R = NULL
+      R = NULL,
+      V = NULL
   ),
   active = list(
-      n_condition = function(v) private$R
+      n_condition = function(v) private$R,
+      prior_covariance = function() private$mash_g,
+      effect_correlation = function() private$V
   )
 )

@@ -10,7 +10,7 @@ susie(X, Y, L = 10, V = 0.2, residual_variance = NULL,
   estimate_prior_variance = FALSE, compute_objective = TRUE,
   s_init = NULL, coverage = 0.95, min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE, max_iter = 100, tol = 0.001,
-  verbose = FALSE, track_fit = FALSE)
+  verbose = TRUE, track_fit = FALSE)
 }
 \arguments{
 \item{X}{an n by p matrix of covariates}
