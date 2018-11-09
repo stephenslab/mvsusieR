@@ -1,5 +1,6 @@
 #' @title SUm of SIngle Effect (SuSiE) regression object
 #' @importFrom R6 R6Class
+#' @importFrom progress progress_bar
 #' @keywords internal
 SuSiE <- R6Class("SuSiE",
   public = list(

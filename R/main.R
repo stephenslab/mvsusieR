@@ -54,7 +54,6 @@
 #'
 #' @importFrom stats var
 #' @importFrom susieR susie_get_pip susie_get_cs
-#' @importFrom progress progress_bar
 #' @export
 susie = function(X,Y,L=10,V=0.2,
                  residual_variance=NULL,
