@@ -38,10 +38,9 @@ SuSiE <- R6Class("SuSiE",
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
                 d$add_to_fitted(private$SER[[l]]$predict(d))
             }
-
-            # assign these variables for performance consideration
-            # because these active bindings involve some computation
             if (private$to_estimate_residual_variance || private$to_compute_objective) {
+                # assign these variables for performance consideration
+                # because these active bindings involve some computation
                 b1 = self$posterior_b1
                 b2 = self$posterior_b2
                 private$estimate_residual_variance(d,b1,b2)
@@ -90,7 +89,7 @@ SuSiE <- R6Class("SuSiE",
     check_convergence = function(n) {
         if (n<=1) {
             return (list(delta=Inf, converged=FALSE))
-        } else { 
+        } else {
             if (private$to_compute_objective)
                 delta = private$elbo[n] - private$elbo[n-1]
             else
@@ -99,9 +98,9 @@ SuSiE <- R6Class("SuSiE",
         }
     },
     compute_objective = function(d,b1,b2) {
-        if (private$to_compute_objective) { 
+        if (private$to_compute_objective) {
             if (is.null(private$essr)) {
-                essr = compute_expected_sum_squared_residuals(d,b1,b2) 
+                essr = compute_expected_sum_squared_residuals(d,b1,b2)
             } else {
                 essr = private$essr
             }
@@ -111,7 +110,7 @@ SuSiE <- R6Class("SuSiE",
             private$elbo = c(private$elbo, NA)
         }
     },
-    estimate_residual_variance = function(d,b1,b2) { 
+    estimate_residual_variance = function(d,b1,b2) {
         if (private$to_estimate_residual_variance) {
             private$essr = compute_expected_sum_squared_residuals(d,b1,b2)
             # FIXME: should we bother with it being N - 1 (or N - 2)?
@@ -126,10 +125,10 @@ SuSiE <- R6Class("SuSiE",
             private$lbf_history[[length(private$lbf_history) + 1]] = self$pip
         }
     },
-    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE) 
+    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE)
   ),
   active = list(
-    prior_variance = function(v) { 
+    prior_variance = function(v) {
         # get prior effect size, because it might be updated during iterations
         if (missing(v)) sapply(1:private$L, function(l) private$SER[[l]]$prior_variance)
         else private$denied('prior_variance')

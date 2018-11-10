@@ -14,7 +14,7 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
       # d: data object
-      # use_residual: fit with residual instead of with Y, 
+      # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
@@ -57,39 +57,39 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
     .lbf = NULL, # log Bayes factor
     .posterior_b1 = NULL, # posterior first moment
     .posterior_b2 = NULL, # posterior second moment
-    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE) 
+    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE)
   ),
   active = list(
     loglik_null = function(v) {
       if (missing(v)) private$.loglik_null
       else private$denied('loglik_null')
     },
-    posterior_b1 = function(v) { 
+    posterior_b1 = function(v) {
       if (missing(v)) private$.posterior_b1
       else private$denied('posterior_b1')
     },
-    posterior_b2 = function(v) { 
+    posterior_b2 = function(v) {
       if (missing(v)) private$.posterior_b2
       else private$denied('posterior_b2')
     },
     lbf = function(v) {
       if (missing(v)) private$.lbf
       else private$denied('lbf')
-    }, 
+    },
     bhat = function(v) {
       if (missing(v)) private$.bhat
       else private$denied('bhat')
-    }, 
+    },
     sbhat = function(v) {
       if (missing(v)) private$.sbhat
       else private$denied('sbhat')
-    }, 
+    },
     prior_variance = function(v) {
       if (missing(v)) {
         private$.prior_variance
       } else {
         if (length(v) != 2) stop('need argument of length 2')
-        private$.prior_variance = v[1] 
+        private$.prior_variance = v[1]
         private$estimate_prior_variance = v[2]
       }
     },
@@ -108,7 +108,7 @@ lbf.grad = function(V,sbhat2,T2){
 }
 
 loglik.grad = function(V,bhat,sbhat2,prior_weights) {
-  #log(bf) on each effect 
+  #log(bf) on each effect
   lbf = dnorm(bhat,0,sqrt(V+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
   lbf[sbhat2==Inf] = 0 # deal with special case of infinite sbhat2 (eg happens if X does not vary)
   alpha = safe_compute_weight(lbf, prior_weights)$alpha
