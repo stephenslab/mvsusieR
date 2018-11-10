@@ -5,7 +5,7 @@ safe_compute_weight = function(value, weight, log = TRUE) {
     w = exp(value-mvalue)
     w_weighted = w * weight
     weighted_sum_w = sum(w_weighted)
-    return(list(alpha = w_weighted / weighted_sum_w, log_total = log(weighted_sum_w) + mvalue))
+    return(list(alpha = as.vector(w_weighted / weighted_sum_w), log_total = log(weighted_sum_w) + mvalue))
 }
 
 #' @title SuSiE model extractor

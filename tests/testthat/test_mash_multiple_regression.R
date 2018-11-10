@@ -2,7 +2,7 @@ context("Test MASH multiple regression")
 
 test_that("Degenerated mash regression is identical to univariate BMR", with(simulate_multivariate(r=1), {
     # Run univariate BMR
-    prior_var = as.numeric(V)
+    prior_var = V[1,1]
     residual_var = as.numeric(var(y))
     data = DenseData$new(X,y)
     A = BayesianMultipleRegression$new(ncol(X), residual_var, prior_var)

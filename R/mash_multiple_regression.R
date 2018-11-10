@@ -47,9 +47,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       if (ncol(private$.posterior_b1) == 1) {
         mobj$result$PosteriorCov = array(mobj$result$PosteriorCov, c(1, 1, private$J))
       } 
-      m2 = lapply(1:private$J, function(i) tcrossprod(mobj$result$PosteriorMean[i,])) 
-      m2 = array(unlist(m2), dim = c(nrow(m2[[1]]), ncol(m2[[1]]), private$J))
-      private$.posterior_b2 = mobj$result$PosteriorCov + m2
+      m2 = simplify2array(lapply(1:private$J, function(i) tcrossprod(mobj$result$PosteriorMean[i,])))
+      private$.posterior_b2 = aperm(mobj$result$PosteriorCov, c(3,1,2)) + m2
       # Bayes factor
       private$.lbf = mobj$alt_loglik - mobj$null_loglik
       # loglik under the null

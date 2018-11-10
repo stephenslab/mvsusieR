@@ -25,7 +25,7 @@ SuSiE <- R6Class("SuSiE",
         if (track_lbf) private$lbf_history = list()
     },
     fit = function(d, verbose=TRUE) {
-        if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :current (diff = :delta) :elapsed",
+        if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
                                     clear = TRUE, total = private$niter, show_after = .5)
         else pb = null_progress_bar$new()
         for (i in 1:private$niter) {
