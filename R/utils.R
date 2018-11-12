@@ -34,3 +34,9 @@ report_susie_model = function(d, m) {
 #' @importFrom R6 R6Class
 #' @keywords internal
 null_progress_bar = R6Class('null_progress_bar', public = list(tick = function(...) {}))
+
+#' @title check if all elements are the same in matrix of J by R, J >> R
+#' @keywords internal
+is_mat_common = function(mat) {
+  all((t(mat) - mat[1,]) == 0)
+}

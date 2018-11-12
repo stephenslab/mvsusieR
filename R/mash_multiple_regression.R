@@ -1,6 +1,6 @@
 #' @title MASH multiple regression object
 #' @importFrom R6 R6Class
-#' @importFrom mashr mash_set_data mash
+#' @importFrom mashr calc_post_rcpp 
 #' @keywords internal
 MashMultipleRegression <- R6Class("MashMultipleRegression",
   inherit = BayesianMultipleRegression,
@@ -19,6 +19,9 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       # Though possible to estimate from MASH model on given variables
       # we insist that the information should be provided beforehand
       private$estimate_prior_variance = FALSE
+      # We do not need to compute posterior variance
+      # if we do not estimate residual covariance
+      private$to_compute_posterior_b2 = mash_initializer$to_compute_posterior_b2
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
       # d: data object
@@ -37,18 +40,27 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         private$.bhat = bhat
         private$.sbhat = sbhat
       }
-      # fit MASH model
-      mash_data = mash_set_data(bhat, sbhat, V = private$effect_correlation)
-      mobj = mash(mash_data, g = private$.prior_variance, fixg = TRUE, outputlevel = 3, verbose = FALSE, algorithm = 'R')
+      # compute MASH posterior
+      if (private$to_compute_posterior_b2) output_type = 2
+      else output_type = 1
+      mash_post = calc_post_rcpp(t(bhat),t(sbhat),private$effect_correlation,
+                                 matrix(0,0,0), matrix(0,0,0),
+                                 simplify2array(Ulist), t(posterior_weights),
+                                 is_mat_common(sbhat), 
+                                 output_type)
       # posterior
-      private$.posterior_b1 = mobj$result$PosteriorMean
-      ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
-      ## we can get away with checking for convergence by PIP not by ELBO
-      if (ncol(private$.posterior_b1) == 1) {
-        mobj$result$PosteriorCov = array(mobj$result$PosteriorCov, c(1, 1, private$J))
-      } 
-      m2 = simplify2array(lapply(1:private$J, function(i) tcrossprod(mobj$result$PosteriorMean[i,])))
-      private$.posterior_b2 = aperm(mobj$result$PosteriorCov, c(3,1,2)) + m2
+      private$.posterior_b1 = mash_post$post_mean
+      if (private$to_compute_posterior_b2) {
+        ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
+        ## we can get away with checking for convergence by PIP not by ELBO
+        if (ncol(private$.posterior_b1) == 1) {
+          mash_post$post_cov = array(mash_post$post_cov, c(1, 1, private$J))
+        } 
+        m2 = simplify2array(lapply(1:private$J, function(i) tcrossprod(mash_post$post_mean[i,])))
+        private$.posterior_b2 = aperm(mash_post$post_cov, c(3,1,2)) + m2
+      }
+      # likelihoods
+
       # Bayes factor
       private$.lbf = mobj$alt_loglik - mobj$null_loglik
       # loglik under the null
@@ -57,7 +69,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
     compute_loglik_null = function(d) {}
   ),
   private = list(
-    effect_correlation = NULL
+    effect_correlation = NULL,
+    to_compute_posterior_b2 = NULL
   )
 )
 
