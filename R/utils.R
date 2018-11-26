@@ -40,3 +40,36 @@ null_progress_bar = R6Class('null_progress_bar', public = list(tick = function(.
 is_mat_common = function(mat) {
   all((t(mat) - mat[1,]) == 0)
 }
+
+#' @title A simple simulation function to simulate some test data
+#' @param n number of samples
+#' @param p number of features
+#' @param r number of conditions
+#' @param s percentage of signals
+#' @export
+mmbr_sim2 = function(n=200,p=500,r=2,s=0.9) {
+  X = matrix(rnorm(n*p,0,1),n,p)
+  beta = matrix(runif(p*r)>s, p, r)
+  y = X %*% beta + do.call(cbind, lapply(1:r, function(i) rnorm(n)))
+  X = scale(X)
+  y = y - apply(y,2,mean)
+  scaled_prior_variance = 0.2
+  return(list(X=X,y=y, d=diag(t(X)%*%X), n=n,p=p,r=r,V=scaled_prior_variance * cov(y), b=beta))
+}
+
+#' @title A simple simulation function to simulate some test data
+#' @param n number of samples
+#' @param p number of features
+#' @param r number of conditions
+#' @param m number of signals per condition
+#' @export
+mmbr_sim1 = function(n=200,p=500,r=2,m=4) {
+  X = matrix(rnorm(n*p,0,1),n,p)
+  beta = matrix(0, p, r)
+  for (i in 1:r) beta[sample(1:p,1), i] = 1
+  y = X %*% beta + do.call(cbind, lapply(1:r, function(i) rnorm(n)))
+  X = scale(X)
+  y = y - apply(y,2,mean)
+  scaled_prior_variance = 0.2
+  return(list(X=X,y=y, d=diag(t(X)%*%X), n=n,p=p,r=r,V=scaled_prior_variance * cov(y), b=beta))
+}

@@ -41,16 +41,9 @@ simulate_univariate = function(n=100, p=200, sparse=F) {
 
 simulate_multivariate = function(n=100,p=100,r=2) {
   set.seed(1)
-  X = matrix(rnorm(n*p,3,4),n,p)
-  beta = matrix(0, p, r)
-  for (i in 1:r) beta[1+(i-1)*4 : 4*i, r] = 1
-  y = X %*% beta + do.call(cbind, lapply(1:r, function(i) rnorm(n)))
-  X = susieR:::safe_colScale(X)
-  y = y - apply(y,2,mean)
-  scaled_prior_variance = 0.2
-  L = 10
-  data = DenseData$new(X,y,TRUE,TRUE)
-  return(list(X=X,y=y,n=n,p=p,r=r,V=scaled_prior_variance * cov(y),b=beta,L=L))
+  res = mmbr_sim1(n,p,r,4)
+  res$L = 10
+  return(res)
 }
 
 expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-10) {

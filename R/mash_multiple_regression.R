@@ -46,7 +46,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       }
       bhat[which(is.nan(bhat))] = 0
       # Fit MASH model
-      is_common_cov = all((sbhat - sbhat[,1]) == 0)
+      is_common_cov = is_mat_common(sbhat)
       # 1.1 compute log-likelihood matrix given current estimates
       llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$null_correlation,
                              matrix(0,0,0), private$.prior_variance$xUlist, TRUE,
