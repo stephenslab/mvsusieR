@@ -1,6 +1,5 @@
 #' @title MASH multiple regression object
 #' @importFrom R6 R6Class
-#' @importFrom mashr mash_set_data mash
 #' @keywords internal
 MashMultipleRegression <- R6Class("MashMultipleRegression",
   inherit = BayesianMultipleRegression,
@@ -9,11 +8,12 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       private$J = J
       private$.prior_variance = mash_initializer$prior_covariance
       private$.residual_variance = residual_variance
-      if (is.null(mash_initializer$effect_correlation)) {
-        private$effect_correlation = diag(mash_initializer$n_condition)
+      if (is.null(mash_initializer$null_correlation)) {
+        private$null_correlation = diag(mash_initializer$n_condition)
       } else {
-        private$effect_correlation = mash_initializer$effect_correlation
+        private$null_correlation = mash_initializer$null_correlation
       }
+      private$alpha = mash_initializer$alpha
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$.posterior_b2 = matrix(0, J, mash_initializer$n_condition)
       # Though possible to estimate from MASH model on given variables
@@ -37,55 +37,102 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         private$.bhat = bhat
         private$.sbhat = sbhat
       }
-      # fit MASH model
-      mash_data = mash_set_data(bhat, sbhat, V = private$effect_correlation)
-      mobj = mash(mash_data, g = private$.prior_variance, fixg = TRUE, outputlevel = 3, verbose = FALSE, algorithm = 'R')
-      # posterior
-      private$.posterior_b1 = mobj$result$PosteriorMean
+      if (private$alpha != 0 && !all(sbhat == 1)) {
+        s_alpha = sbhat ^ private$alpha 
+        bhat =  bhat / s_alpha
+        sbhat = sbhat ^(1 - private$alpha)
+      } else {
+        s_alpha = matrix(0,0,0)
+      }
+      bhat[which(is.nan(bhat))] = 0
+      # Fit MASH model
+      is_common_cov = all((sbhat - sbhat[,1]) == 0)
+      # 1.1 compute log-likelihood matrix given current estimates
+      llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$null_correlation,
+                             matrix(0,0,0), private$.prior_covariance$xUlist, TRUE,
+                             is_common_cov)$data
+      # 1.2 give a warning if any columns have -Inf likelihoods.
+      rows <- which(apply(llik_mat,2,function (x) any(is.infinite(x))))
+      if (length(rows) > 0)
+        warning(paste("Some mixture components result in non-finite likelihoods,",
+                          "either\n","due to numerical underflow/overflow,",
+                          "or due to invalid covariance matrices",
+                          paste(rows,collapse=", "), "\n"))
+      private$.loglik_null = llik_mat[,1]
+      # 1.3 get relative loglik
+      lfactors = apply(llik_mat,1,max)
+      llik_mat = llik_mat - lfactors
+      # 2. compute posterior weights
+      posterior_weights = mashr:::compute_posterior_weights(private$.prior_covariance$pi, exp(llik_mat))
+      # 3. posterior
       ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
       ## we can get away with checking for convergence by PIP not by ELBO
+      ## but let's set report_type = 4 and compute posterior covariance for now
+      post = mashr:::calc_post_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0), 
+                            private$null_correlation,
+                            matrix(0,0,0), matrix(0,0,0), 
+                            private$.prior_covariance$xUlist, t(posterior_weights), 
+                            is_common_cov, 4)
+      private$.posterior_b1 = post$post_mean
       if (ncol(private$.posterior_b1) == 1) {
-        mobj$result$PosteriorCov = array(mobj$result$PosteriorCov, c(1, 1, private$J))
+        post$post_cov = array(post$post_cov, c(1, 1, private$J))
       } 
-      m2 = lapply(1:private$J, function(i) tcrossprod(mobj$result$PosteriorMean[i,])) 
+      m2 = lapply(1:private$J, function(i) tcrossprod(private$.posterior_b1[i,])) 
       m2 = array(unlist(m2), dim = c(nrow(m2[[1]]), ncol(m2[[1]]), private$J))
-      private$.posterior_b2 = mobj$result$PosteriorCov + m2
-      # Bayes factor
-      private$.lbf = mobj$alt_loglik - mobj$null_loglik
-      # loglik under the null
-      private$.loglik_null = mobj$null_loglik
+      private$.posterior_b2 = post$post_cov + m2
+      # 4. loglik under the alternative
+      loglik_alt = log(exp(llik_matrix[,-1,drop=FALSE]) %*% (private$.prior_covariance$pi[-1]/(1-private$.prior_covariance$pi[1]))) + lfactors
+      # 5. adjust with alpha the EE vs EZ model
+      if (nrow(s_alpha) > 0) {
+        private$.loglik_null = private$.loglik_null - rowSums(log(s_alpha))
+        loglik_alt = loglik_alt - rowSums(log(s_alpha))
+      }
+      # 6. Bayes factor
+      private$.lbf = loglik_alt - private$.loglik_null
     },
     compute_loglik_null = function(d) {}
   ),
   private = list(
-    effect_correlation = NULL
+    null_correlation = NULL,
+    alpha = NULL
   )
 )
 
 #' @title MASH initializer object
 #' @importFrom R6 R6Class
+#' @importFrom mashr expand_cov
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
       initialize = function(Ulist, grid, prior_weights, null_weight = 0, V = NULL) {
-        # FIXME: check input
+        # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
             if (sum(Ulist[[l]]) == 0) 
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
-        private$mash_g = list(pi = c(null_weight, prior_weights), Ulist = Ulist, grid = grid, usepointmass=TRUE)
-        private$V = V 
+        xUlist = expand_cov(Ulist, grid, TRUE)
+        pi = c(null_weight, prior_weights)
+        which.comp = which(pi[-1] > 1e-10)
+        which.comp = c(1, which.comp + 1)
+        private$.prior_covariance = list(pi = pi[which.comp], Ulist = simplify2array(xUlist[which.comp]))
+        private$V = V
+        private$.alpha = 0
       }
   ),
   private = list(
-      mash_g = NULL,
       R = NULL,
-      V = NULL
+      V = NULL,
+      .private_covariance = NULL,
+      .alpha = NULL
   ),
   active = list(
       n_condition = function(v) private$R,
-      prior_covariance = function() private$mash_g,
-      effect_correlation = function() private$V
+      prior_covariance = function() private$.prior_covariance,
+      null_correlation = function() private$V,
+      alpha = function(value) {
+        if (missing(value)) return(private$.alpha)
+        else private$.alpha = value
+      }
   )
 )
