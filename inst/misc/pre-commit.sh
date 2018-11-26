@@ -25,9 +25,9 @@ else
     if [[ `git rev-parse --abbrev-ref HEAD` -eq "master" ]]; then
         cd $ROOT_DIR
         echo "Updating documentation ..."
-        Rscript -e 'devtools::document()' &> /dev/null && git add man/*.Rd
+        R --slave -e 'devtools::document()' &> /dev/null && git add man/*.Rd
         echo "Running unit tests ..."
-        Rscript -e 'devtools::test()'
-        Rscript -e 'library(mmbr); tests = testthat::test_examples(".")'
+        R --slave -e 'devtools::test()'
+        R --slave -e 'library(mmbr); tests = testthat::test_examples(".")'
     fi
 fi
