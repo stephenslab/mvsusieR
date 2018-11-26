@@ -1,9 +1,5 @@
 #' @title MASH multiple regression object
 #' @importFrom R6 R6Class
-<<<<<<< HEAD
-=======
-#' @importFrom mashr calc_post_rcpp 
->>>>>>> 682380b80c6a081b65305e276d15b7525c256365
 #' @keywords internal
 MashMultipleRegression <- R6Class("MashMultipleRegression",
   inherit = BayesianMultipleRegression,
@@ -44,7 +40,6 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         private$.bhat = bhat
         private$.sbhat = sbhat
       }
-<<<<<<< HEAD
       if (private$alpha != 0 && !all(sbhat == 1)) {
         s_alpha = sbhat ^ private$alpha 
         bhat =  bhat / s_alpha
@@ -85,9 +80,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       if (ncol(private$.posterior_b1) == 1) {
         post$post_cov = array(post$post_cov, c(1, 1, private$J))
       } 
-      m2 = lapply(1:private$J, function(i) tcrossprod(private$.posterior_b1[i,])) 
-      m2 = array(unlist(m2), dim = c(nrow(m2[[1]]), ncol(m2[[1]]), private$J))
-      private$.posterior_b2 = post$post_cov + m2
+      m2 = simplify2array(lapply(1:private$J, function(i) tcrossprod(post$post_mean[i,])))
+      private$.posterior_b2 = aperm(post$post_cov, c(3,1,2)) + m2
       # 4. loglik under the alternative
       loglik_alt = log(exp(llik_matrix[,-1,drop=FALSE]) %*% (private$.prior_covariance$pi[-1]/(1-private$.prior_covariance$pi[1]))) + lfactors
       # 5. adjust with alpha the EE vs EZ model
@@ -97,44 +91,12 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       }
       # 6. Bayes factor
       private$.lbf = loglik_alt - private$.loglik_null
-=======
-      # compute MASH posterior
-      if (private$to_compute_posterior_b2) output_type = 2
-      else output_type = 1
-      mash_post = calc_post_rcpp(t(bhat),t(sbhat),private$effect_correlation,
-                                 matrix(0,0,0), matrix(0,0,0),
-                                 simplify2array(Ulist), t(posterior_weights),
-                                 is_mat_common(sbhat), 
-                                 output_type)
-      # posterior
-      private$.posterior_b1 = mash_post$post_mean
-      if (private$to_compute_posterior_b2) {
-        ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
-        ## we can get away with checking for convergence by PIP not by ELBO
-        if (ncol(private$.posterior_b1) == 1) {
-          mash_post$post_cov = array(mash_post$post_cov, c(1, 1, private$J))
-        } 
-        m2 = simplify2array(lapply(1:private$J, function(i) tcrossprod(mash_post$post_mean[i,])))
-        private$.posterior_b2 = aperm(mash_post$post_cov, c(3,1,2)) + m2
-      }
-      # likelihoods
-
-      # Bayes factor
-      private$.lbf = mobj$alt_loglik - mobj$null_loglik
-      # loglik under the null
-      private$.loglik_null = mobj$null_loglik
->>>>>>> 682380b80c6a081b65305e276d15b7525c256365
     },
     compute_loglik_null = function(d) {}
   ),
   private = list(
-<<<<<<< HEAD
     null_correlation = NULL,
     alpha = NULL
-=======
-    effect_correlation = NULL,
-    to_compute_posterior_b2 = NULL
->>>>>>> 682380b80c6a081b65305e276d15b7525c256365
   )
 )
 
