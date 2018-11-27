@@ -35,12 +35,14 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     expect_susieR_equal(A, BA, T, T)
 }))
 
-# test_that("mash regression in SuSiE is identical to univariate case", with(simulate_multivariate(r=1), {
-#     prior_var = V[1,1]
-#     residual_var = as.numeric(var(y))
-#     A = susie(X,y,L=L,V=prior_var,compute_objective=FALSE)
-#     residual_cov = cov(y)
-#     m_init = MashInitializer$new(list(V), 1, 1, 0)
-#     B = susie(X,y,L=L,V=m_init,compute_objective=FALSE)
-#     expect_susie_equal(A,B,F,F)
-# }))
+test_that("mash regression in SuSiE is identical to univariate case", with(simulate_multivariate(r=1), {
+    prior_var = V[1,1]
+    residual_var = as.numeric(var(y))
+    A = susie(X,y,L=L,V=prior_var,
+                estimate_residual_variance=FALSE,
+                compute_objective=FALSE)
+    residual_cov = cov(y)
+    m_init = MashInitializer$new(list(V), 1, 1, 0)
+    B = susie(X,y,L=L,V=m_init,compute_objective=FALSE)
+    expect_susie_equal(A,B,F,F)
+}))

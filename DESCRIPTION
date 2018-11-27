@@ -4,8 +4,8 @@ Package: mmbr
 Title: Multivariate Bayesian variable selection regression
 Description: A more general implementation of the Sum of SIngle Effects (SuSiE)
     regression for Bayesian variable selection
-Date: 2018-11-26
-Version: 0.0.1.0040
+Date: 2018-11-27
+Version: 0.0.1.0041
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="gaow@uchicago.edu"))
 URL: https://github.com/gaow/mmbr
@@ -13,7 +13,7 @@ BugReports: https://github.com/gaow/mmbr/issues
 License: MIT + file LICENSE
 LazyData: true
 NeedsCompilation: no
-RoxygenNote: 6.1.0.9000
+RoxygenNote: 6.1.1
 Depends: R (>= 3.0.0),
     mashr (>= 0.2.19)
 Imports:
@@ -24,7 +24,8 @@ Imports:
     stats,
     Matrix,
     matrixStats,
-    expm
+    expm,
+    progress
 Suggests:
     reshape,
     ggplot2,
@@ -32,6 +33,5 @@ Suggests:
     testthat,
     microbenchmark,
     knitr,
-    rmarkdown,
-    L0Learn
+    rmarkdown
 VignetteBuilder: knitr
