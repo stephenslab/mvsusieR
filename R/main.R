@@ -93,7 +93,7 @@ susie = function(X,Y,L=10,V=0.2,
   # for now only V controls the type of regression 
   if (is.numeric(V)) {
     base = BayesianMultipleRegression
-    V = V * as.numeric(var(Y))  
+    V = V * as.numeric(var(Y))
     if (is.null(residual_variance))
       residual_variance = as.numeric(var(Y))
   } else {

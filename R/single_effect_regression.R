@@ -6,7 +6,7 @@ SingleEffectRegression <- function(base)
     R6Class("SingleEffectRegression",
     inherit = base,
     public = list(
-        initialize = function(J, residual_variance, prior_variance, estimate_prior_variance, prior_weights=NULL) {
+        initialize = function(J, residual_variance, prior_variance, estimate_prior_variance=FALSE, prior_weights=NULL) {
             super$initialize(J, residual_variance, prior_variance, estimate_prior_variance)
             if (is.null(prior_weights)) private$prior_weights = rep(1/private$J,private$J)
             else private$prior_weights = prior_weights
