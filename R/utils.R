@@ -1,6 +1,7 @@
 #' @title compute value_j * weight_j / sum(value_j * weight_j)
 #' @keywords internal
 safe_compute_weight = function(value, weight, log = TRUE) {
+    if (!log) value = log(value)
     mvalue = max(value)
     w = exp(value-mvalue)
     w_weighted = w * weight

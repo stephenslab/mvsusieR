@@ -36,9 +36,9 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
 }))
 
 test_that("mash regression in SuSiE is identical to univariate case", with(simulate_multivariate(r=1), {
-    prior_var = V[1,1]
     residual_var = as.numeric(var(y))
-    A = susie(X,y,L=L,V=prior_var,
+    scaled_prior_var = V[1,1] / residual_var
+    A = susie(X,y,L=L,V=scaled_prior_var,
                 estimate_residual_variance=FALSE,
                 compute_objective=FALSE)
     residual_cov = cov(y)
