@@ -46,31 +46,22 @@ is_mat_common = function(mat) {
 #' @param n number of samples
 #' @param p number of features
 #' @param r number of conditions
-#' @param s percentage of signals
+#' @param s number of effect variables per condition if greater than 1; otherwise percentage of effect variables per condition
+#' @param center_scale FALSE by default
 #' @export
-mmbr_sim2 = function(n=200,p=500,r=2,s=0.9) {
+mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
   X = matrix(rnorm(n*p,0,1),n,p)
-  beta = matrix(runif(p*r)>s, p, r)
+  if (s>1) {
+    beta = matrix(0, p, r)
+    for (i in 1:r) beta[sample(1:p,s), i] = 1
+  } else {
+    beta = matrix(runif(p*r)>s, p, r)
+  }
   y = X %*% beta + do.call(cbind, lapply(1:r, function(i) rnorm(n)))
-  X = scale(X)
-  y = y - apply(y,2,mean)
-  scaled_prior_variance = 0.2
-  return(list(X=X,y=y, d=diag(t(X)%*%X), n=n,p=p,r=r,V=scaled_prior_variance * cov(y), b=beta))
-}
-
-#' @title A simple simulation function to simulate some test data
-#' @param n number of samples
-#' @param p number of features
-#' @param r number of conditions
-#' @param m number of signals per condition
-#' @export
-mmbr_sim1 = function(n=200,p=500,r=2,m=4) {
-  X = matrix(rnorm(n*p,0,1),n,p)
-  beta = matrix(0, p, r)
-  for (i in 1:r) beta[sample(1:p,1), i] = 1
-  y = X %*% beta + do.call(cbind, lapply(1:r, function(i) rnorm(n)))
-  X = scale(X)
-  y = y - apply(y,2,mean)
+  if (center_scale) {
+    X = scale(X)
+    y = y - apply(y,2,mean)
+  }
   scaled_prior_variance = 0.2
   return(list(X=X,y=y, d=diag(t(X)%*%X), n=n,p=p,r=r,V=scaled_prior_variance * cov(y), b=beta))
 }

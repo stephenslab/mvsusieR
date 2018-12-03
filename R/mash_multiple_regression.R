@@ -77,8 +77,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       if (ncol(private$.posterior_b1) == 1) {
         post$post_cov = array(post$post_cov, c(1, 1, private$J))
       } 
-      m2 = simplify2array(lapply(1:private$J, function(i) tcrossprod(post$post_mean[i,])))
-      private$.posterior_b2 = aperm(post$post_cov, c(3,1,2)) + m2
+      private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:private$J, function(i) tcrossprod(post$post_mean[i,])))
       # 4. loglik under the alternative
       loglik_alt = log(exp(llik_mat[,-1,drop=FALSE]) %*% (private$.prior_variance$pi[-1]/(1-private$.prior_variance$pi[1]))) + lfactors
       # 5. adjust with alpha the EE vs EZ model

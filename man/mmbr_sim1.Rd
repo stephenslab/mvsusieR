@@ -4,7 +4,7 @@
 \alias{mmbr_sim1}
 \title{A simple simulation function to simulate some test data}
 \usage{
-mmbr_sim1(n = 200, p = 500, r = 2, m = 4)
+mmbr_sim1(n = 200, p = 500, r = 2, s = 4, center_scale = FALSE)
 }
 \arguments{
 \item{n}{number of samples}
@@ -13,7 +13,9 @@ mmbr_sim1(n = 200, p = 500, r = 2, m = 4)
 
 \item{r}{number of conditions}
 
-\item{m}{number of signals per condition}
+\item{s}{number of effect variables per condition if greater than 1; otherwise percentage of effect variables per condition}
+
+\item{center_scale}{FALSE by default}
 }
 \description{
 A simple simulation function to simulate some test data

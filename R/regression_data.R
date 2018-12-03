@@ -12,7 +12,7 @@ DenseData <- R6Class("DenseData",
       private$N = nrow(private$.Y)
       private$J = ncol(private$.X)
       private$standardize(center,scale)
-      private$.fitted = matrix(0, private$N, 1) 
+      private$.fitted = matrix(0, private$N, private$R) 
       private$residual = private$.Y
     },
     compute_Xb = function(b) {
@@ -129,7 +129,7 @@ SSData <- R6Class("SSData",
       if (is.null(dim(YtY))) private$R = 1
       else private$R = nrow(YtY)
       private$standardize(scale)
-      private$.fitted = matrix(0, private$J, 1)
+      private$.fitted = matrix(0, private$J, private$R)
       private$residual = private$.XtY
     },
     compute_Xb = function(b) {
