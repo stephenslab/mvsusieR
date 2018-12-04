@@ -109,7 +109,7 @@ MashInitializer <- R6Class("MashInitializer",
             if (sum(Ulist[[l]]) == 0) 
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
-        if (is.null(grid)) xUlist = Ulist
+        if (is.null(grid)) xUlist = c(list(null=matrix(0, private$R, private$R)), Ulist)
         else xUlist = expand_cov(Ulist, grid, TRUE)
         weights = c(null_weight, prior_weights)
         which.comp = which(weights[-1] > 1e-10)
