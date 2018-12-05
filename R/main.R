@@ -112,7 +112,7 @@ susie = function(X,Y,L=10,V=0.2,
   ## SuSiE CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$sets = susie_get_cs(s, coverage=coverage, X=X, min_abs_corr=min_abs_corr)
-    s$pip = susie_get_pip(s, s$sets$cs_index)
+    s$pip = susie_get_pip(s)
   }
   ## report z-scores from univariate regression
   if (compute_univariate_zscore) {
