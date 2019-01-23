@@ -22,7 +22,7 @@ simulate_univariate = function(n=100, p=200, sparse=F) {
   L = 10
   residual_variance = 1
   scaled_prior_variance = 0.2
-  X = susieR:::safe_colScale(X)
+  X = susieR:::set_X_attributes(X)
   y = y - mean(y)
   s = list(alpha=matrix(1/p,nrow=L,ncol=p),
            mu=matrix(2,nrow=L,ncol=p),
