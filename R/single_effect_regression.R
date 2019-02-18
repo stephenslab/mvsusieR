@@ -47,8 +47,13 @@ SingleEffectRegression <- function(base)
         },
         posterior_b2 = function(v) {
             # posterior first moment, alpha * posterior_b2_reg
-            if (missing(v)) private$.pip * private$.posterior_b2
-            else private$denied('posterior_b2')
+            if (missing(v)) {
+                if (length(dim(private$.posterior_b2)) == 3)
+                    b2 = t(apply(private$.posterior_b2, 3, diag))
+                else
+                    b2 = private$.posterior_b2
+                private$.pip * b2
+            } else { private$denied('posterior_b2') }
         },
         kl = function(v) {
             if (missing(v)) private$.kl
