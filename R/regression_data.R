@@ -37,9 +37,15 @@ DenseData <- R6Class("DenseData",
     },
     rescale_coef = function(b) {
       coefs = b/private$csd
-      if (!is.null(private$Y_mean)) intercept = private$Y_mean - sum(private$cm * coefs)
-      else intercept = 0
-      c(intercept, coefs)
+      if (is.null(dim(coefs))) {
+        if (!is.null(private$Y_mean)) intercept = private$Y_mean - sum(private$cm * coefs)
+        else intercept = 0
+        c(intercept, coefs)
+      } else {
+        if (!is.null(private$Y_mean)) intercept = private$Y_mean - colSums(private$cm * coefs)
+        else intercept = c(0,0)
+        as.matrix(rbind(intercept, coefs))
+      }
     }
   ),
   private = list(

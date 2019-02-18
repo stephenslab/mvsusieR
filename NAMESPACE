@@ -3,6 +3,7 @@
 export(mmbr_sim1)
 export(susie)
 importFrom(R6,R6Class)
+importFrom(abind,abind)
 importFrom(mashr,expand_cov)
 importFrom(matrixStats,colSds)
 importFrom(progress,progress_bar)

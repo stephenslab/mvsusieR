@@ -10,12 +10,22 @@ safe_compute_weight = function(value, weight, log = TRUE) {
 }
 
 #' @title SuSiE model extractor
+#' @importFrom abind abind
 #' @keywords internal
 report_susie_model = function(d, m) {
+    if (is.null(dim(m$posterior_b1[[1]]))) {
+      mu = t(do.call(cbind, m$posterior_b1))
+      mu2 = t(do.call(cbind, m$posterior_b2))
+      b = colSums(t(m$pip)*mu)
+    } else {
+      mu =  aperm(abind::abind(m$posterior_b1,along=3), c(3,1,2))
+      mu2 = aperm(abind::abind(m$posterior_b2,along=3), c(3,1,2))
+      b = do.call(cbind, lapply(1:dim(mu)[3], function(i) colSums(t(m$pip) * mu[,,i])))
+    }
     s = list(
         alpha = t(m$pip),
-        mu = t(do.call(cbind, m$posterior_b1)),
-        mu2 = t(do.call(cbind, m$posterior_b2)),
+        mu = mu,
+        mu2 = mu2,
         KL = m$kl,
         lbf = m$lbf,
         sigma2 = m$residual_variance,
@@ -23,7 +33,7 @@ report_susie_model = function(d, m) {
         elbo = m$get_objective(dump=TRUE),
         niter = m$get_niter(),
         fitted = d$fitted,
-        coef = m$coef(d),
+        coef = d$rescale_coef(b),
         null_index = -9
         )
     s$intercept = s$coef[1]

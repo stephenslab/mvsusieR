@@ -57,9 +57,6 @@ SuSiE <- R6Class("SuSiE",
         }
     },
     predict = function(x) {},
-    coef = function(d) {
-        d$rescale_coef(Reduce(`+`, self$posterior_b1))
-    },
     get_objective = function(dump = FALSE) {
         if (length(private$elbo) == 0) return(NULL)
         if (!all(diff(private$elbo) >= 0)) {
