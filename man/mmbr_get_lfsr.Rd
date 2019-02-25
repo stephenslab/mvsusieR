@@ -10,12 +10,11 @@ mmbr_get_lfsr(m)
 \item{m}{a mmbr fit, the output of `mmbr::susie()`}
 }
 \value{
-a P by R matrix of lfsr
+a L by R matrix of lfsr
 }
 \description{
 Local false sign rate (lfsr) for credible sets
 }
 \details{
-This computes the average lfsr across SNPs for each l, weighted by the
-posterior inclusion probability alpha
+This computes the lfsr of CS identified for each condition.
 }
