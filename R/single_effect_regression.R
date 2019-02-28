@@ -70,6 +70,10 @@ SingleEffectRegression <- function(base)
         mloglik_single_effect = function(v) {
             if (missing(v)) private$.mloglik_single_effect
             else private$denied('mloglik_single_effect')
+        },
+        mixture_posterior_weights = function(v) {
+            if (missing(v)) private$.mixture_posterior_weights
+            else private$denied('mixture_posterior_weights')
         }
     )
   )

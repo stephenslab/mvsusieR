@@ -63,7 +63,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       lfactors = apply(llik_mat,1,max)
       llik_mat = llik_mat - lfactors
       # 2. compute posterior weights
-      posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik_mat))
+      private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik_mat))
       # 3. posterior
       ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
       ## we can get away with checking for convergence by PIP not by ELBO
@@ -71,7 +71,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       post = mashr:::calc_post_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0), 
                             private$null_correlation,
                             matrix(0,0,0), matrix(0,0,0), 
-                            private$.prior_variance$xUlist, t(posterior_weights),
+                            private$.prior_variance$xUlist, t(private$.mixture_posterior_weights),
                             is_common_cov, 4)
       private$.posterior_b1 = post$post_mean
       if (ncol(private$.posterior_b1) == 1) {
@@ -92,7 +92,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
   ),
   private = list(
     null_correlation = NULL,
-    alpha = NULL
+    alpha = NULL,
+    .mixture_posterior_weights = NULL
   )
 )
 

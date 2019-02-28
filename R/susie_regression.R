@@ -154,6 +154,10 @@ SuSiE <- R6Class("SuSiE",
     posterior_b2 = function(v) {
         if (missing(v)) lapply(1:private$L, function(l) private$SER[[l]]$posterior_b2)
         else priviate$denied('posterior_b2')
+    },
+    mixture_posterior_weights = function(v) {
+        if (missing(v)) lapply(1:private$L, function(l) private$SER[[l]]$mixture_posterior_weights)
+        else priviate$denied('mixture_posterior_weights')
     }
   )
 )

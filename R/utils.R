@@ -34,7 +34,8 @@ report_susie_model = function(d, m) {
         niter = m$get_niter(),
         fitted = d$fitted,
         coef = d$rescale_coef(b),
-        null_index = -9
+        null_index = -9,
+        mixture_weights = aperm(abind::abind(m$mixture_posterior_weights,along=3), c(3,1,2)) 
         )
     s$intercept = s$coef[1]
     class(s) = 'susie'

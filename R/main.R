@@ -77,8 +77,10 @@ susie = function(X,Y,L=10,V=0.2,
       stop('Null weight must be between 0 and 1')
     if (missing(prior_weights))
       prior_weights = c(rep(1/ncol(X)*(1-null_weight), ncol(X)), null_weight)
-    else
+    else {
+      prior_weights = prior_weights / sum(prior_weights)
       prior_weights = c(prior_weights * (1-null_weight), null_weight)
+    }
     X = cbind(X,0)
   }
 
