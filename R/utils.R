@@ -44,6 +44,13 @@ report_susie_model = function(d, m) {
     return(s)
 }
 
+#' @title Compute condition specific posterior inclusion probability
+#' @param m M&M model
+#' @param prior_obj prior mixture object
+mmbr_get_pip_per_condition = function(m, prior_obj) {
+
+}
+
 #' @title A null progressbar, because currently `progressbar_enabled` feature does not work for `progress_bar`
 #' @importFrom R6 R6Class
 #' @keywords internal

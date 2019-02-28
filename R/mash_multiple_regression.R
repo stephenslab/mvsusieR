@@ -7,6 +7,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
     initialize = function(J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) {
       private$J = J
       private$.prior_variance = mash_initializer$prior_covariance
+      private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
       if (is.null(mash_initializer$null_correlation)) {
         private$null_correlation = diag(mash_initializer$n_condition)
@@ -115,7 +116,7 @@ MashInitializer <- R6Class("MashInitializer",
         weights = c(null_weight, prior_weights)
         which.comp = which(weights[-1] > 1e-10)
         which.comp = c(1, which.comp + 1)
-        private$xU = list(pi = weights[which.comp], xUlist = simplify2array(xUlist[which.comp]))
+        private$xU = list(pi = weights[which.comp], xUlist = xUlist[which.comp])
         if (!is.null(grid))
           private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
         if (is.null(V)) private$V = diag(private$R)
