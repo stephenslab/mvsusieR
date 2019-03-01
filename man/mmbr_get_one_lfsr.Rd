@@ -4,7 +4,7 @@
 \alias{mmbr_get_one_lfsr}
 \title{Get lfsr for one condition}
 \usage{
-mmbr_get_one_lfsr(mu, mu2, pip)
+mmbr_get_one_lfsr(m, alpha_all, r)
 }
 \description{
 Get lfsr for one condition
