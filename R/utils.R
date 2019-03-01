@@ -106,13 +106,10 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
 #' @title Get lfsr for one condition
 #' @importFrom stats pnorm
 #' @keywords internal
-mmbr_get_one_lfsr = function(m, alpha_all, r) {
-    mu = m$mu[,,r]
-    mu2 = m$mu2[,,r]
-    alpha = alpha_all[,,r]
-    for (i in 1:nrow(m$mu)) {
-      if (i %in% m$sets$cs_index) {
-       pos = m$sets$cs[[which(m$sets$cs_index == i)]]
+mmbr_get_one_lfsr = function(mu, mu2, alpha, sets) {
+    for (i in 1:nrow(mu)) {
+      if (i %in% sets$cs_index) {
+       pos = sets$cs[[which(sets$cs_index == i)]]
        zeroed = which(!(1:nrow(mu) %in% pos))
        alpha[i, zeroed] = 0
      } else {
@@ -133,5 +130,5 @@ mmbr_get_one_lfsr = function(m, alpha_all, r) {
 #' @export
 mmbr_get_lfsr = function(m, prior_obj) {
     alpha = mmbr_get_alpha_per_condition(m, prior_obj)
-    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_lfsr(m, alpha, r)))
+    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_lfsr(m$mu[,,r], m$mu2[,,r], alpha[,,r], m$sets)))
 }
