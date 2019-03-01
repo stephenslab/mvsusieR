@@ -47,6 +47,7 @@ report_susie_model = function(d, m) {
 #' @title Compute condition specific posterior inclusion probability
 #' @param m M&M model
 #' @param prior_obj prior mixture object
+#' @return P by R matrix of PIP per condition
 #' @export
 mmbr_get_pip_per_condition = function(m, prior_obj) {
   condition_indicator = do.call(rbind, lapply(1:length(prior_obj$prior_covariance$xUlist), function(i) as.integer(diag(prior_obj$prior_covariance$xUlist[[i]]) != 0)))
@@ -98,17 +99,19 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
 #' @title Get lfsr for one condition
 #' @importFrom stats pnorm
 #' @keywords internal
-mmbr_get_one_lfsr = function(mu, mu2, alpha) {
+mmbr_get_one_lfsr = function(mu, mu2, pip) {
     pos_prob = pnorm(0,mean=t(mu),sd=sqrt(mu2-mu^2))
     neg_prob = 1 - pos_prob
-    pmax(0, 1 - rowSums(alpha * t(pmax(pos_prob,neg_prob))))
+    pmax(0, 1 - rowSums(pip * t(pmax(pos_prob,neg_prob))))
 }
 
 #' @title Local false sign rate (lfsr) for credible sets
 #' @details This computes the lfsr of CS identified for each condition.
 #' @param m a mmbr fit, the output of `mmbr::susie()`
+#' @param prior_obj prior mixture object
 #' @return a L by R matrix of lfsr
 #' @export
-mmbr_get_lfsr = function(m) {
-    do.call(cbind, lapply(1:dim(m$mu)[3], function(i) mmbr_get_one_lfsr(m$mu[,,i], m$mu2[,,i], m$alpha)))
+mmbr_get_lfsr = function(m, prior_obj) {
+    pip = mmbr_get_pip_per_condition(m, prior_obj)
+    do.call(cbind, lapply(1:dim(m$mu)[3], function(i) mmbr_get_one_lfsr(m$mu[,,i], m$mu2[,,i], pip[,i])))
 }

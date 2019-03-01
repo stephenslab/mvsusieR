@@ -4,10 +4,12 @@
 \alias{mmbr_get_lfsr}
 \title{Local false sign rate (lfsr) for credible sets}
 \usage{
-mmbr_get_lfsr(m)
+mmbr_get_lfsr(m, prior_obj)
 }
 \arguments{
 \item{m}{a mmbr fit, the output of `mmbr::susie()`}
+
+\item{prior_obj}{prior mixture object}
 }
 \value{
 a L by R matrix of lfsr

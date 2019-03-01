@@ -11,6 +11,9 @@ mmbr_get_pip_per_condition(m, prior_obj)
 
 \item{prior_obj}{prior mixture object}
 }
+\value{
+P by R matrix of PIP per condition
+}
 \description{
 Compute condition specific posterior inclusion probability
 }
