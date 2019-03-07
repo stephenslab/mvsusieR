@@ -2,21 +2,19 @@
 % Please edit documentation in R/utils.R
 \name{mmbr_get_lfsr}
 \alias{mmbr_get_lfsr}
-\title{Local false sign rate (lfsr) for credible sets}
+\title{Local false sign rate (lfsr) for variables}
 \usage{
-mmbr_get_lfsr(m, prior_obj)
+mmbr_get_lfsr(m)
 }
 \arguments{
 \item{m}{a mmbr fit, the output of `mmbr::susie()`}
-
-\item{prior_obj}{prior mixture object}
 }
 \value{
-a L by R matrix of lfsr
+a P by R matrix of lfsr
 }
 \description{
-Local false sign rate (lfsr) for credible sets
+Local false sign rate (lfsr) for variables
 }
 \details{
-This computes the lfsr of CS identified for each condition.
+This computes the lfsr of variables for each condition.
 }

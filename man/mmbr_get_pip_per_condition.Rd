@@ -17,3 +17,4 @@ P by R matrix of PIP per condition
 \description{
 Compute condition specific posterior inclusion probability
 }
+\keyword{internal}
