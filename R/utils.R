@@ -125,12 +125,10 @@ mmbr_get_one_cs_lfsr = function(mu, mu2, alpha, sets) {
 #' @title Local false sign rate (lfsr) for credible sets
 #' @details This computes the lfsr of CS identified for each condition.
 #' @param m a mmbr fit, the output of `mmbr::susie()`
-#' @param prior_obj prior mixture object
 #' @return a L by R matrix of lfsr
 #' @export
-mmbr_get_cs_lfsr = function(m, prior_obj) {
-    alpha = mmbr_get_alpha_per_condition(m, prior_obj)
-    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_cs_lfsr(m$mu[,,r], m$mu2[,,r], alpha[,,r], m$sets)))
+mmbr_get_cs_lfsr = function(m) {
+    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_cs_lfsr(m$mu[,,r], m$mu2[,,r], m$alpha, m$sets)))
 }
 
 #' @title Get lfsr per condition per variable
