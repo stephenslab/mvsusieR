@@ -48,7 +48,7 @@ report_susie_model = function(d, m) {
 #' @param m M&M model
 #' @param prior_obj prior mixture object
 #' @return P by R matrix of PIP per condition
-#' @export
+#' @keywords internal
 mmbr_get_pip_per_condition = function(m, prior_obj) {
   condition_pip = mmbr_get_alpha_per_condition(m, prior_obj)
   return(do.call(cbind, lapply(1:dim(condition_pip)[3], function(r) apply(condition_pip[,,r], 2, function(x) 1-prod(1-x)))))
@@ -103,10 +103,10 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
   return(list(X=X,y=y, d=diag(t(X)%*%X), n=n,p=p,r=r,V=scaled_prior_variance * cov(y), b=beta))
 }
 
-#' @title Get lfsr for one condition
+#' @title Get lfsr per condition per CS
 #' @importFrom stats pnorm
 #' @keywords internal
-mmbr_get_one_lfsr = function(mu, mu2, alpha, sets) {
+mmbr_get_one_cs_lfsr = function(mu, mu2, alpha, sets) {
     for (i in 1:nrow(mu)) {
       if (i %in% sets$cs_index) {
        pos = sets$cs[[which(sets$cs_index == i)]]
@@ -128,7 +128,26 @@ mmbr_get_one_lfsr = function(mu, mu2, alpha, sets) {
 #' @param prior_obj prior mixture object
 #' @return a L by R matrix of lfsr
 #' @export
-mmbr_get_lfsr = function(m, prior_obj) {
+mmbr_get_cs_lfsr = function(m, prior_obj) {
     alpha = mmbr_get_alpha_per_condition(m, prior_obj)
-    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_lfsr(m$mu[,,r], m$mu2[,,r], alpha[,,r], m$sets)))
+    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_cs_lfsr(m$mu[,,r], m$mu2[,,r], alpha[,,r], m$sets)))
+}
+
+#' @title Get lfsr per condition per variable
+#' @importFrom stats pnorm
+#' @keywords internal
+mmbr_get_one_variable_lfsr = function(mu, mu2, alpha) {
+    pos_prob = pnorm(0,mean=t(mu),sd=sqrt(mu2-mu^2))
+    neg_prob = 1 - pos_prob
+    true_sign_mat = alpha * t(pmax(pos_prob, neg_prob))
+    pmax(0, 1 - colSums(true_sign_mat))
+}
+
+#' @title Local false sign rate (lfsr) for variables
+#' @details This computes the lfsr of variables for each condition.
+#' @param m a mmbr fit, the output of `mmbr::susie()`
+#' @return a P by R matrix of lfsr
+#' @export
+mmbr_get_lfsr = function(m) {
+    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_variable_lfsr(m$mu[,,r], m$mu2[,,r], m$alpha)))
 }
