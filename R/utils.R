@@ -24,6 +24,7 @@ report_susie_model = function(d, m) {
     }
     if (is.null(m$mixture_posterior_weights)) mixture_weights = NA
     else mixture_weights = aperm(abind::abind(m$mixture_posterior_weights,along=3), c(3,1,2))
+    lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
     s = list(
         alpha = t(m$pip),
         mu = mu,
@@ -37,7 +38,8 @@ report_susie_model = function(d, m) {
         fitted = d$fitted,
         coef = d$rescale_coef(b),
         null_index = -9,
-        mixture_weights = mixture_weights 
+        mixture_weights = mixture_weights,
+        lfsr = lfsr 
         )
     s$intercept = s$coef[1]
     class(s) = 'susie'
@@ -104,21 +106,18 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
 }
 
 #' @title Get lfsr per condition per CS
-#' @importFrom stats pnorm
 #' @keywords internal
-mmbr_get_one_cs_lfsr = function(mu, mu2, alpha, sets) {
-    for (i in 1:nrow(mu)) {
+mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
+    for (i in 1:nrow(lfsr)) {
       if (i %in% sets$cs_index) {
        pos = sets$cs[[which(sets$cs_index == i)]]
-       zeroed = which(!(1:nrow(mu) %in% pos))
+       zeroed = which(!(1:nrow(lfsr) %in% pos))
        alpha[i, zeroed] = 0
      } else {
        alpha[i, ] = 0
      }
     }
-    pos_prob = pnorm(0,mean=t(mu),sd=sqrt(mu2-mu^2))
-    neg_prob = 1 - pos_prob
-    true_sign_mat = alpha * t(pmax(pos_prob, neg_prob))
+    true_sign_mat = alpha * (1 - lfsr)
     pmax(0, 1 - rowSums(true_sign_mat))
 }
 
@@ -128,16 +127,14 @@ mmbr_get_one_cs_lfsr = function(mu, mu2, alpha, sets) {
 #' @return a L by R matrix of lfsr
 #' @export
 mmbr_get_cs_lfsr = function(m) {
-    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_cs_lfsr(m$mu[,,r], m$mu2[,,r], m$alpha, m$sets)))
+    do.call(cbind, lapply(1:dim(m$lfsr)[3], function(r) mmbr_get_one_cs_lfsr(m$lfsr[,,r], m$alpha, m$sets)))
 }
 
 #' @title Get lfsr per condition per variable
 #' @importFrom stats pnorm
 #' @keywords internal
-mmbr_get_one_variable_lfsr = function(mu, mu2, alpha) {
-    pos_prob = pnorm(0,mean=t(mu),sd=sqrt(mu2-mu^2))
-    neg_prob = 1 - pos_prob
-    true_sign_mat = alpha * t(pmax(pos_prob, neg_prob))
+mmbr_get_one_variable_lfsr = function(lfsr, alpha) {
+    true_sign_mat = alpha * (1 - lfsr)
     pmax(0, 1 - colSums(true_sign_mat))
 }
 
@@ -147,5 +144,5 @@ mmbr_get_one_variable_lfsr = function(mu, mu2, alpha) {
 #' @return a P by R matrix of lfsr
 #' @export
 mmbr_get_lfsr = function(m) {
-    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_variable_lfsr(m$mu[,,r], m$mu2[,,r], m$alpha)))
+    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_variable_lfsr(m$lfsr[,,r], m$alpha)))
 }

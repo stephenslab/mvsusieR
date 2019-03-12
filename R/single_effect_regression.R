@@ -55,6 +55,10 @@ SingleEffectRegression <- function(base)
                 private$.pip * b2
             } else { private$denied('posterior_b2') }
         },
+        lfsr = function(v) {
+            if (missing(v)) private$.lfsr
+            else private$denied('lfsr')
+        },
         kl = function(v) {
             if (missing(v)) private$.kl
             else private$.kl = v

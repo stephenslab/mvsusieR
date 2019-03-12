@@ -79,14 +79,16 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         post$post_cov = array(post$post_cov, c(1, 1, private$J))
       } 
       private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:private$J, function(i) tcrossprod(post$post_mean[i,])))
-      # 4. loglik under the alternative
+      # 4. lfsr
+      private$.lfsr = ashr::compute_lfsr(post$post_neg, post$post_zero)
+      # 5. loglik under the alternative
       loglik_alt = log(exp(llik_mat[,-1,drop=FALSE]) %*% (private$.prior_variance$pi[-1]/(1-private$.prior_variance$pi[1]))) + lfactors
-      # 5. adjust with alpha the EE vs EZ model
+      # 6. adjust with alpha the EE vs EZ model
       if (nrow(s_alpha) > 0) {
         private$.loglik_null = private$.loglik_null - rowSums(log(s_alpha))
         loglik_alt = loglik_alt - rowSums(log(s_alpha))
       }
-      # 6. Bayes factor
+      # 7. Bayes factor
       private$.lbf = loglik_alt - private$.loglik_null
     },
     compute_loglik_null = function(d) {}
@@ -94,7 +96,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
   private = list(
     null_correlation = NULL,
     alpha = NULL,
-    .mixture_posterior_weights = NULL
+    .mixture_posterior_weights = NULL,
+    .lfsr = NULL
   )
 )
 
