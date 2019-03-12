@@ -4,7 +4,7 @@
 \alias{mmbr_get_one_variable_lfsr}
 \title{Get lfsr per condition per variable}
 \usage{
-mmbr_get_one_variable_lfsr(mu, mu2, alpha)
+mmbr_get_one_variable_lfsr(lfsr, alpha)
 }
 \description{
 Get lfsr per condition per variable

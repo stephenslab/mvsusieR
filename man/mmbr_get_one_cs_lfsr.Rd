@@ -4,7 +4,7 @@
 \alias{mmbr_get_one_cs_lfsr}
 \title{Get lfsr per condition per CS}
 \usage{
-mmbr_get_one_cs_lfsr(mu, mu2, alpha, sets)
+mmbr_get_one_cs_lfsr(lfsr, alpha, sets)
 }
 \description{
 Get lfsr per condition per CS
