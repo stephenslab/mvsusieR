@@ -149,3 +149,50 @@ mmbr_get_lfsr = function(m, weighted = TRUE) {
   else alpha = matrix(1, nrow(m$alpha), ncol(m$alpha))
   do.call(cbind, lapply(1:dim(m$lfsr)[3], function(r) mmbr_get_one_variable_lfsr(m$lfsr[,,r], alpha)))
 }
+
+#' @title Make bubble heatmap to display mmbr result
+#' @param m a mmbr fit, the output of `mmbr::susie()`
+#' @return a plot object
+#' @export
+mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE) {
+  variable_lfsr = mmbr_get_lfsr(m, weighted = weighted_lfsr)
+  # get table of effect size estimates and PIP, for all conditions.
+  table = data.frame(matrix(NA, prod(dim(variable_lfsr)), ncol(m$coef)))
+  colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs')
+  x_names = paste('variable', 1:nrow(variable_lfsr))
+  y_names = paste('condition', 1:ncol(variable_lfsr))
+  table$y = rep(y_names, length(x_names))
+  table$x = rep(x_names, each = length(y_names))
+  table$effect_size = as.vector(t(m$coef[-1,]))
+  table$mlog10lfsr = -log10(as.vector(t(variable_lfsr)))
+  # add CS to this table.
+  j = 1
+  for (i in dat$sets$cs_index) {
+    variables = x_names[dat$sets$cs[[j]]]
+    table[which(table$x %in% variables),]$cs = i
+    j = j + 1
+  }
+  if (cs_only) table = table[which(!is.na(table$cs)),]
+  # get colors for x-axis by CS,
+  xtable = unique(cbind(table$x, table$cs))
+  colors = rep('black', nrow(xtable))
+  for (i in unique(xtable[,2])) {
+    colors[which(xtable[,2] == i)] = as.integer(i) + 2
+  }
+  library(ggplot2)
+  p = ggplot(table) + 
+    geom_point(aes(x = x, y = y, colour = effect_size , size = mlog10lfsr)) +
+    scale_x_discrete(limits = unique(table$x)) + 
+    scale_y_discrete(limits = unique(table$y)) + 
+    scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))), low="#022968", mid="white", high="#800000", space="Lab") + 
+    labs(size="-log10(lfsr)", colour="Effect size") + 
+    theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(), 
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
+        axis.text.y = element_text(size = 15, color = "black"),
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank())
+  w = length(unique(table$x)) * 0.5
+  h = length(unique(table$y)) * 0.9
+  cat(paste("Suggested PDF canvas width:", w, "height:", h, "\n"))
+  return(list(plot=p, width=w, height=h))
+}

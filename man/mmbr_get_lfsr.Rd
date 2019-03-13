@@ -4,10 +4,12 @@
 \alias{mmbr_get_lfsr}
 \title{Local false sign rate (lfsr) for variables}
 \usage{
-mmbr_get_lfsr(m)
+mmbr_get_lfsr(m, weighted = TRUE)
 }
 \arguments{
 \item{m}{a mmbr fit, the output of `mmbr::susie()`}
+
+\item{weighted}{TRUE to weight lfsr by PIP; FALSE otherwise.}
 }
 \value{
 a P by R matrix of lfsr

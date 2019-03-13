@@ -2,6 +2,7 @@
 
 export(mmbr_get_cs_lfsr)
 export(mmbr_get_lfsr)
+export(mmbr_plot)
 export(mmbr_sim1)
 export(susie)
 importFrom(R6,R6Class)
