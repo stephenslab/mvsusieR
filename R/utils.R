@@ -154,19 +154,29 @@ mmbr_get_lfsr = function(m, weighted = TRUE) {
 #' @param m a mmbr fit, the output of `mmbr::susie()`
 #' @return a plot object
 #' @export
-mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE) {
-  variable_lfsr = mmbr_get_lfsr(m, weighted = weighted_lfsr)
+mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat = FALSE) {
+  if (original_sumstat) {
+    if (!("bhat" %in% names(m)) || !("shat") %in% names(m))
+      stop("The original summary statistics 'bhat' and 'shat' should present in input object in order to plot original summary statistics")
+    if (nrow(m$bhat) != nrow(m$coef[-1,]) || nrow(m$shat) != nrow(m$coef[-1,]))
+      stop(paste("Summary statistic matrix should have", nrow(m$coef[-1,]), "rows (no intercept term)."))
+    bhat = m$bhat
+    p = pnorm(-abs(m$bhat/m$shat))
+  } else {
+    bhat = m$coef[-1,]
+    p = mmbr_get_lfsr(m, weighted = weighted_lfsr)
+  }
   # get table of effect size estimates and PIP, for all conditions.
-  table = data.frame(matrix(NA, prod(dim(variable_lfsr)), ncol(m$coef)))
+  table = data.frame(matrix(NA, prod(dim(p)), ncol(bhat)))
   colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs')
-  x_names = rownames(m$coef)[-1]
-  y_names = colnames(m$coef)
-  if (is.null(x_names)) x_names = paste('variable', 1:nrow(variable_lfsr))
-  if (is.null(y_names)) y_names = paste('condition', 1:ncol(variable_lfsr))
+  x_names = rownames(bhat)
+  y_names = colnames(bhat)
+  if (is.null(x_names)) x_names = paste('variable', 1:nrow(p))
+  if (is.null(y_names)) y_names = paste('condition', 1:ncol(p))
   table$y = rep(y_names, length(x_names))
   table$x = rep(x_names, each = length(y_names))
-  table$effect_size = as.vector(t(m$coef[-1,]))
-  table$mlog10lfsr = -log10(as.vector(t(variable_lfsr)))
+  table$effect_size = as.vector(t(bhat))
+  table$mlog10lfsr = -log10(as.vector(t(p)))
   # add CS to this table.
   j = 1
   for (i in dat$sets$cs_index) {
@@ -187,7 +197,7 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE) {
     scale_x_discrete(limits = unique(table$x)) + 
     scale_y_discrete(limits = unique(table$y)) + 
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))), low="#022968", mid="white", high="#800000", space="Lab") + 
-    labs(size="-log10(lfsr)", colour="Effect size") + 
+    labs(size=paste0("-log10(", ifelse(original_sumstat, "p", "lfsr"), ")"), colour="Effect size") + 
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(), 
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
         axis.text.y = element_text(size = 15, color = "black"),
