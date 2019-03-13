@@ -118,7 +118,7 @@ mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
      }
     }
     true_sign_mat = alpha * (1 - lfsr)
-    pmax(0, 1 - rowSums(true_sign_mat))
+    pmax(1E-20, 1 - rowSums(true_sign_mat))
 }
 
 #' @title Local false sign rate (lfsr) for credible sets
@@ -135,14 +135,17 @@ mmbr_get_cs_lfsr = function(m) {
 #' @keywords internal
 mmbr_get_one_variable_lfsr = function(lfsr, alpha) {
     true_sign_mat = alpha * (1 - lfsr)
-    pmax(0, 1 - colSums(true_sign_mat))
+    pmax(1E-20, 1 - colSums(true_sign_mat))
 }
 
 #' @title Local false sign rate (lfsr) for variables
 #' @details This computes the lfsr of variables for each condition.
 #' @param m a mmbr fit, the output of `mmbr::susie()`
+#' @param weighted TRUE to weight lfsr by PIP; FALSE otherwise.
 #' @return a P by R matrix of lfsr
 #' @export
-mmbr_get_lfsr = function(m) {
-    do.call(cbind, lapply(1:dim(m$mu)[3], function(r) mmbr_get_one_variable_lfsr(m$lfsr[,,r], m$alpha)))
+mmbr_get_lfsr = function(m, weighted = TRUE) {
+  if (weighted) alpha = m$alpha
+  else alpha = matrix(1, nrow(m$alpha), ncol(m$alpha))
+  do.call(cbind, lapply(1:dim(m$lfsr)[3], function(r) mmbr_get_one_variable_lfsr(m$lfsr[,,r], alpha)))
 }
