@@ -159,8 +159,10 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE) {
   # get table of effect size estimates and PIP, for all conditions.
   table = data.frame(matrix(NA, prod(dim(variable_lfsr)), ncol(m$coef)))
   colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs')
-  x_names = paste('variable', 1:nrow(variable_lfsr))
-  y_names = paste('condition', 1:ncol(variable_lfsr))
+  x_names = rownames(m$coef)[-1]
+  y_names = colnames(m$coef)
+  if (is.null(x_names)) x_names = paste('variable', 1:nrow(variable_lfsr))
+  if (is.null(y_names)) y_names = paste('condition', 1:ncol(variable_lfsr))
   table$y = rep(y_names, length(x_names))
   table$x = rep(x_names, each = length(y_names))
   table$effect_size = as.vector(t(m$coef[-1,]))

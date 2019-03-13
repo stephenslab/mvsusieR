@@ -44,7 +44,9 @@ DenseData <- R6Class("DenseData",
       } else {
         if (!is.null(private$Y_mean)) intercept = private$Y_mean - colSums(private$cm * coefs)
         else intercept = c(0,0)
-        as.matrix(rbind(intercept, coefs))
+        mat = as.matrix(rbind(intercept, coefs))
+        rownames(mat) = NULL
+        return(mat)
       }
     }
   ),
