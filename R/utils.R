@@ -106,6 +106,9 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
 }
 
 #' @title Get lfsr per condition per CS
+#' @param lfsr a L by P matrix of single effect lfsr
+#' @param alpha a L by P matrix of cross-condition posterior inclusion probability
+#' @param sets a list of credible set output from SuSiE model
 #' @keywords internal
 mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
     for (i in 1:nrow(lfsr)) {
@@ -113,12 +116,14 @@ mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
        pos = sets$cs[[which(sets$cs_index == i)]]
        zeroed = which(!(1:nrow(lfsr) %in% pos))
        alpha[i, zeroed] = 0
+       # normalize them to sum to one
+       alpha[i,] = alpha[i,] / sum(alpha[i,])
      } else {
        alpha[i, ] = 0
      }
     }
     true_sign_mat = alpha * (1 - lfsr)
-    pmax(1E-20, 1 - rowSums(true_sign_mat))
+    pmax(0, 1 - rowSums(true_sign_mat))
 }
 
 #' @title Local false sign rate (lfsr) for credible sets
