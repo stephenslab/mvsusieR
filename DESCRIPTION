@@ -34,4 +34,5 @@ Suggests:
     microbenchmark,
     knitr,
     rmarkdown
+Remotes: stephenslab/mashr
 VignetteBuilder: knitr
