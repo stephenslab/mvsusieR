@@ -52,7 +52,7 @@ expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_
   if (!is.null(A$KL) && !is.null(BA$KL)) expect_equal(A$KL, BA$KL, tolerance = tol)
   expect_equal(A$alpha * A$mu, BA$mu, tolerance = tol)
   expect_equal(A$alpha * A$mu2, BA$mu2, tolerance = tol)
-  if (!is.null(A$elbo) && !is.null(BA$elbo)) expect_equal(A$elbo[-1], BA$elbo, tolerance = tol)
+  if (!is.null(A$elbo) && !is.null(BA$elbo)) expect_equal(A$elbo, BA$elbo, tolerance = tol)
   expect_equal(A$fitted, BA$fitted, tolerance = tol)
   expect_equal(coef(A), BA$coef, tolerance = tol)
   if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2, tolerance = tol)
