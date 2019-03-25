@@ -13,7 +13,7 @@ safe_compute_weight = function(value, weight, log = TRUE) {
 #' @importFrom abind abind
 #' @keywords internal
 report_susie_model = function(d, m) {
-    if (is.null(dim(m$posterior_b1[[1]]))) {
+    if (length(dim(m$posterior_b1[[1]])) < 3) {
       mu = t(do.call(cbind, m$posterior_b1))
       mu2 = t(do.call(cbind, m$posterior_b2))
       b = colSums(t(m$pip)*mu)
@@ -23,8 +23,12 @@ report_susie_model = function(d, m) {
       b = do.call(cbind, lapply(1:dim(mu)[3], function(i) colSums(t(m$pip) * mu[,,i])))
     }
     if (is.null(m$mixture_posterior_weights)) mixture_weights = NA
-    else mixture_weights = aperm(abind::abind(m$mixture_posterior_weights,along=3), c(3,1,2))
-    lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
+    else {
+      if (length(dim(m$mixture_posterior_weights)) < 3) mixture_weights = m$mixture_posterior_weights
+      else mixture_weights = aperm(abind::abind(m$mixture_posterior_weights,along=3), c(3,1,2))
+    }
+    if (length(dim(m$mixture_posterior_weights)) < 3) lfsr = m$lfsr
+    else lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
     s = list(
         alpha = t(m$pip),
         mu = mu,

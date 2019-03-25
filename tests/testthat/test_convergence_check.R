@@ -6,7 +6,7 @@ test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(
     A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, tol = 1E-6)
     d.copy = d$clone(T)
     A$fit(d.copy)
-    A = report_susie_model(d.copy, A) 
+    A = report_susie_model(d.copy, A)
     B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-6)
     d.copy = d$clone(T)
     B$fit(d.copy)
@@ -23,5 +23,4 @@ test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(
     B$fit(d.copy)
     B = report_susie_model(d.copy, B) 
     expect_susie_equal(A,B,T,F,tol=5E-4)
-
 }))
