@@ -41,7 +41,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       if (private$alpha != 0 && !all(sbhat == 1)) {
         s_alpha = sbhat ^ private$alpha 
         bhat =  bhat / s_alpha
-        sbhat = sbhat ^(1 - private$alpha)
+        sbhat = sbhat ^ (1 - private$alpha)
       } else {
         s_alpha = matrix(0,0,0)
       }
@@ -50,7 +50,9 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       is_common_cov = is_mat_common(sbhat)
       # 1.1 compute log-likelihood matrix given current estimates
       llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$null_correlation,
-                             matrix(0,0,0), private$.prior_variance$xUlist, TRUE,
+                             matrix(0,0,0),
+                             private$.prior_variance$xUlist,
+                             TRUE,
                              is_common_cov)$data
       # 1.2 give a warning if any columns have -Inf likelihoods.
       rows <- which(apply(llik_mat,2,function (x) any(is.infinite(x))))
@@ -72,7 +74,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       post = mashr:::calc_post_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0), 
                             private$null_correlation,
                             matrix(0,0,0), matrix(0,0,0), 
-                            private$.prior_variance$xUlist, t(private$.mixture_posterior_weights),
+                            private$.prior_variance$xUlist,
+                            t(private$.mixture_posterior_weights),
                             is_common_cov, 4)
       private$.posterior_b1 = post$post_mean
       # Format post_cov for degenerated case with R = 1
