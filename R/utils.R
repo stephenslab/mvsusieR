@@ -13,7 +13,7 @@ safe_compute_weight = function(value, weight, log = TRUE) {
 #' @importFrom abind abind
 #' @keywords internal
 report_susie_model = function(d, m) {
-    if (length(dim(m$posterior_b1[[1]])) < 3) {
+    if (length(dim(m$posterior_b1[[1]])) < 2) {
       b1 = t(do.call(cbind, m$posterior_b1))
       b2 = t(do.call(cbind, m$posterior_b2))
       b = colSums(b1)
