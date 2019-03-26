@@ -119,8 +119,8 @@ MashInitializer <- R6Class("MashInitializer",
             if (all(Ulist[[l]] == 0))
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
-        if (is.null(grid)) xUlist = c(list(null=matrix(0, private$R, private$R)), Ulist)
-        else xUlist = expand_cov(Ulist, grid, TRUE)
+        if (any(grid<=0)) stop("grid values should be greater than")
+        xUlist = expand_cov(Ulist, grid, TRUE)
         plen = length(xUlist) - 1
         if (is.null(null_weight)) null_weight = 0
         if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
@@ -131,8 +131,7 @@ MashInitializer <- R6Class("MashInitializer",
         which.comp = which(weights[-1] > 1e-10)
         which.comp = c(1, which.comp + 1)
         private$xU = list(pi = weights[which.comp], xUlist = xUlist[which.comp])
-        if (!is.null(grid))
-          private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
+        private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
         if (is.null(V)) private$V = diag(private$R)
         else private$V = V
         private$a = 0
