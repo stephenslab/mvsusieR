@@ -14,13 +14,13 @@ safe_compute_weight = function(value, weight, log = TRUE) {
 #' @keywords internal
 report_susie_model = function(d, m) {
     if (length(dim(m$posterior_b1[[1]])) < 3) {
-      mu = t(do.call(cbind, m$posterior_b1))
-      mu2 = t(do.call(cbind, m$posterior_b2))
-      b = colSums(t(m$pip)*mu)
+      b1 = t(do.call(cbind, m$posterior_b1))
+      b2 = t(do.call(cbind, m$posterior_b2))
+      b = colSums(b1)
     } else {
-      mu =  aperm(abind::abind(m$posterior_b1,along=3), c(3,1,2))
-      mu2 = aperm(abind::abind(m$posterior_b2,along=3), c(3,1,2))
-      b = do.call(cbind, lapply(1:dim(mu)[3], function(i) colSums(t(m$pip) * mu[,,i])))
+      b1 =  aperm(abind::abind(m$posterior_b1,along=3), c(3,1,2))
+      b2 = aperm(abind::abind(m$posterior_b2,along=3), c(3,1,2))
+      b = do.call(cbind, lapply(1:dim(b1)[3], function(i) colSums(b1[,,i])))
     }
     if (is.null(m$mixture_posterior_weights)) mixture_weights = NA
     else {
@@ -31,8 +31,8 @@ report_susie_model = function(d, m) {
     else lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
     s = list(
         alpha = t(m$pip),
-        mu = mu,
-        mu2 = mu2,
+        b1 = b1,
+        b2 = b2,
         KL = m$kl,
         lbf = m$lbf,
         sigma2 = m$residual_variance,
@@ -64,7 +64,7 @@ mmbr_get_pip_per_condition = function(m, prior_obj) {
 #' @keywords internal
 mmbr_get_alpha_per_condition = function(m, prior_obj) {
   condition_indicator = do.call(rbind, lapply(1:length(prior_obj$prior_covariance$xUlist), function(i) as.integer(diag(prior_obj$prior_covariance$xUlist[[i]]) != 0)))
-  condition_pip = array(0, dim=dim(m$mu))
+  condition_pip = array(0, dim=dim(m$b1))
   for (r in 1:dim(condition_pip)[3]) {
     for (p in 1:length(condition_indicator[,r])) {
         condition_pip[,,r] = condition_pip[,,r] + m$mixture_weights[,,p] * condition_indicator[p,r]

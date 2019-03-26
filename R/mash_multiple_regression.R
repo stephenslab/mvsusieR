@@ -75,9 +75,11 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
                             private$.prior_variance$xUlist, t(private$.mixture_posterior_weights),
                             is_common_cov, 4)
       private$.posterior_b1 = post$post_mean
-      if (ncol(private$.posterior_b1) == 1) {
-        post$post_cov = array(post$post_cov, c(1, 1, private$J))
-      } 
+      # Format post_cov for degenerated case with R = 1
+      # (no need for it)
+      #if (ncol(private$.posterior_b1) == 1) {
+      #  post$post_cov = array(post$post_cov, c(1, 1, private$J))
+      #}
       private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:private$J, function(i) tcrossprod(post$post_mean[i,])))
       # 4. lfsr
       private$.lfsr = ashr::compute_lfsr(post$post_neg, post$post_zero)
