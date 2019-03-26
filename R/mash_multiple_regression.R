@@ -119,7 +119,7 @@ MashInitializer <- R6Class("MashInitializer",
             if (all(Ulist[[l]] == 0))
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
-        if (any(grid<=0)) stop("grid values should be greater than")
+        if (any(grid<=0)) stop("grid values should be greater than zero")
         xUlist = expand_cov(Ulist, grid, TRUE)
         plen = length(xUlist) - 1
         if (is.null(null_weight)) null_weight = 0
