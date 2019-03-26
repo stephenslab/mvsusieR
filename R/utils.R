@@ -21,6 +21,11 @@ report_susie_model = function(d, m) {
       b1 =  aperm(abind::abind(m$posterior_b1,along=3), c(3,1,2))
       b2 = aperm(abind::abind(m$posterior_b2,along=3), c(3,1,2))
       b = do.call(cbind, lapply(1:dim(b1)[3], function(i) colSums(b1[,,i])))
+      if (dim(b)[2] == 1) {
+        b1 = b1[,,1]
+        b2 = b2[,,1]
+        b = as.vector(b)
+      }
     }
     if (is.null(m$mixture_posterior_weights)) mixture_weights = NA
     else {
