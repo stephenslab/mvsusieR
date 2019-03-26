@@ -112,7 +112,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights, null_weight = 0, V = NULL) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -121,7 +121,13 @@ MashInitializer <- R6Class("MashInitializer",
         }
         if (is.null(grid)) xUlist = c(list(null=matrix(0, private$R, private$R)), Ulist)
         else xUlist = expand_cov(Ulist, grid, TRUE)
+        plen = length(xUlist) - 1
+        if (is.null(null_weight)) null_weight = 0
+        if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
+        if (length(prior_weights) != plen)
+          stop(paste("Invalid prior_weights setting: expect length", plen, "but input is of length", length(prior_weights)))
         weights = c(null_weight, prior_weights)
+        weights = weights / sum(weights)
         which.comp = which(weights[-1] > 1e-10)
         which.comp = c(1, which.comp + 1)
         private$xU = list(pi = weights[which.comp], xUlist = xUlist[which.comp])
