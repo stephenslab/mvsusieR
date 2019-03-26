@@ -116,7 +116,7 @@ MashInitializer <- R6Class("MashInitializer",
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
-            if (sum(Ulist[[l]]) == 0) 
+            if (all(Ulist[[l]] == 0))
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
         if (is.null(grid)) xUlist = c(list(null=matrix(0, private$R, private$R)), Ulist)
