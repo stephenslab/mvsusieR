@@ -50,7 +50,8 @@ report_susie_model = function(d, m) {
         mixture_weights = mixture_weights,
         lfsr = lfsr 
         )
-    s$intercept = s$coef[1]
+    if (is.null(dim(s$coef))) s$intercept = s$coef[1]
+    else s$intercept = s$coef[1,]
     class(s) = 'susie'
     return(s)
 }
