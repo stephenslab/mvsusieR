@@ -26,8 +26,12 @@ else
         cd $ROOT_DIR
         echo "Updating documentation ..."
         R --slave -e 'devtools::document()' &> /dev/null && git add man/*.Rd
-        echo "Re-installing package ..."
-        R --slave -e 'devtools::install()' &> /dev/null
+	if [[ -z `git status --porcelain | grep "\.Rd"` ]]; then 
+	        echo "Package installation up-to-date."
+	else
+	        echo "Re-installing package ..."
+        	R --slave -e 'devtools::install()' &> /dev/null
+	fi
         echo "Running unit tests ..."
         R --slave -e 'devtools::test()'
         R --slave -e 'library(mmbr); tests = testthat::test_examples(".")'
