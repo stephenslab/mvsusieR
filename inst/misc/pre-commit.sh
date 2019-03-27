@@ -26,6 +26,8 @@ else
         cd $ROOT_DIR
         echo "Updating documentation ..."
         R --slave -e 'devtools::document()' &> /dev/null && git add man/*.Rd
+        echo "Re-installing package ..."
+        R --slave -e 'devtools::install()' &> /dev/null
         echo "Running unit tests ..."
         R --slave -e 'devtools::test()'
         R --slave -e 'library(mmbr); tests = testthat::test_examples(".")'
