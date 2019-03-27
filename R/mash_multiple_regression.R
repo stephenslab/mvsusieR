@@ -112,7 +112,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, weights_tol = 1E-10, top_mixtures = 50) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -128,9 +128,19 @@ MashInitializer <- R6Class("MashInitializer",
           stop(paste("Invalid prior_weights setting: expect length", plen, "but input is of length", length(prior_weights)))
         weights = c(null_weight, prior_weights)
         weights = weights / sum(weights)
-        which.comp = which(weights[-1] > 1e-10)
+        # Filter by weights lower bound
+        which.comp = which(weights[-1] > weights_tol)
         which.comp = c(1, which.comp + 1)
-        private$xU = list(pi = weights[which.comp], xUlist = xUlist[which.comp])
+        filtered_weights = weights[which.comp]
+        xUlist = xUlist[which.comp]
+        # Filter for top weights: we only keep top weights
+        if (top_mixtures > 0 && top_mixtures < length(filtered_weights)) {
+          which.comp = head(sort(filtered_weights[-1], index.return=T, decreasing=T)$ix, top_mixtures)
+          which.comp = c(1, which.comp + 1)
+          filtered_weights = weights[which.comp]
+          xUlist = xUlist[which.comp]
+        }
+        private$xU = list(pi = filtered_weights / sum(filtered_weights), xUlist = xUlist)
         private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
         if (is.null(V)) private$V = diag(private$R)
         else private$V = V
