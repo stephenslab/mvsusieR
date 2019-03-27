@@ -223,3 +223,65 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
   cat(paste("Suggested PDF canvas width:", w, "height:", h, "\n"))
   return(list(plot=p, width=w, height=h))
 }
+
+#' @title Predict future observations or extract coefficients from susie fit
+#' @param object a susie fit 
+#' @param newx a new value for X at which to do predictions 
+#' @return a matrix of predicted values for each condition
+#' @details This function computes predicted values from a susie fit and a new value of X
+#' @export
+predict.mmbr <- function (object, newx = NULL) {
+      s <- object
+  for(i in 1:ncol(s$coef)){
+          if(i==1){res <- s$intercept[i] + newx %*% s$coef[-1, i]} else if(i>1){
+                    res <- cbind(res, s$intercept[i] + newx %*% s$coef[-1, i])
+      }
+    }
+    return(res)
+}
+
+#' @title Compute a list of canonical covariance matrices
+#' @param R an integer indicating the number of conditions
+#' @param singletons a logical value indicating whether the singleton matrices are computed
+#' @param hetgrid a vector of numbers between -1 and 1, each representing the off-diagonal elements of matrices with 1s on the diagonal. 
+#' If 0 is included, the identity matrix will be returned which corresponds to assuming effects are independent across conditions. 
+#' IF NULL, these matrices are not computed. 
+#' @return a list of canonical covariance matrices
+#' @details This function computes canonical covariance matrices to be provided to mash
+#' @examples
+#'  cov_canonical(3)
+#'  cov_canonical(3, singletons=F)
+#'  cov_canonical(3, hetgrid=NULL)
+#' @keywords internal
+cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
+      mats <- list()
+  
+  ###Singleton matrices
+  if((singletons==T)){
+          for(i in 1:R){
+                    mats[[i]] <- matrix(0, nrow=R, ncol=R)
+        mats[[i]][i, i] <- 1
+            }
+      
+      ###Heterogeneity matrices
+      if(!is.null(hetgrid)){
+                for(j in 1:length(hetgrid)){
+                            mats[[R+j]] <- matrix(1, nrow=R, ncol=R)
+              mats[[R+j]][lower.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
+                      mats[[R+j]][upper.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
+                    }
+          }
+        } else {
+                ###Heterogeneity matrices
+                if(!is.null(hetgrid)){
+                          for(j in 1:length(hetgrid)){
+                                      mats[[j]] <- matrix(1, nrow=R, ncol=R)
+                mats[[j]][lower.tri(mats[[j]], diag = FALSE)] <- hetgrid[j]
+                        mats[[j]][upper.tri(mats[[j]], diag = FALSE)] <- hetgrid[j]
+                      }
+            }
+          }
+    
+    return(mats)
+}
+
