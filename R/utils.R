@@ -229,7 +229,7 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
 #' @param newx a new value for X at which to do predictions 
 #' @return a matrix of predicted values for each condition
 #' @details This function computes predicted values from a susie fit and a new value of X
-#' @export predict.susie
+#' @export predict.mmbr
 #' @export
 predict.mmbr <- function (object, newx) {
       s <- object
