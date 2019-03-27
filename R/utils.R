@@ -249,11 +249,11 @@ predict.mmbr <- function (object, newx = NULL) {
 #' @return a list of canonical covariance matrices
 #' @details This function computes canonical covariance matrices to be provided to mash
 #' @examples
-#'  covmat_canonical(3)
-#'  covmat_canonical(3, singletons=F)
-#'  covmat_canonical(3, hetgrid=NULL)
+#'  cov_canonical(3)
+#'  cov_canonical(3, singletons=F)
+#'  cov_canonical(3, hetgrid=NULL)
 #' @keywords internal
-create_canonicalcov <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
+cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
       mats <- list()
   
   ###Singleton matrices
