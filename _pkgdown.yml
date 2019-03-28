@@ -1,0 +1,20 @@
+navbar:
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Vignettes"
+      href: articles/index.html
+    - text: "Functions"
+      href: reference/index.html
+  right:
+    - text: "Source"
+      href: https://github.com/gaow/mmbr
+
+articles:
+  - title: "Vignettes"
+    desc: >
+      The following vignettes provide detailed illustrations of the
+      mmbr package, as well as guidance on correct application of the
+      statistical methods.
+    contents:
+    - prediction
