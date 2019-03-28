@@ -1,0 +1,93 @@
+---
+title: "Prediction example"
+author: "Fabio Morgante"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Prediction example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE,comment = "#",fig.width = 5,
+                      fig.height = 3,fig.align = "center",
+                      fig.cap = "&nbsp;",dpi = 120)
+```
+
+This vignette demonstrates `mmbr` in the context of prediction. We first simulate three phenotypes
+($y_1$, $y_2$, $y_3$) and genotypes at $P = 1000$ loci ($X$) for $N = 500$ individuals. Then, the goal is
+to predict phenotypes from genotypes for $N_{test} = 100$ individuals, training our model on the remaining 
+$N_{training} = 400$ individuals.
+
+```{r}
+library(mmbr)
+set.seed(1234)
+options(stringsAsFactors = F)
+```
+
+## The data-set
+
+The first step involves simulating phenotypic and genotypic data.
+
+```{r}
+N = 500
+P = 1000
+true_eff <- 2
+X = matrix(sample(c(0, 1, 2), size=N*P, replace=T), nrow=N, ncol=P)
+beta1 = beta2 = beta3 = rep(0, P)
+beta1[1:true_eff] = runif(true_eff)
+beta2[1:true_eff] = runif(true_eff)
+beta3[1:true_eff] = runif(true_eff)
+y1 = X %*% beta1 + rnorm(N)
+y2 = X %*% beta2 + rnorm(N)
+y3 = X %*% beta3 + rnorm(N)
+```
+
+The phenotypic data was simulated assuming the same 2 causal variables affect each of the traits with different effects.
+
+```{r}
+which(beta1 != 0)
+which(beta2 != 0)
+which(beta3 != 0)
+
+head(beta1)
+head(beta2)
+head(beta3)
+```
+
+## Prediction with `mmbr`
+
+For starters, we assume there are at most 10 causal variables (i.e., set `L = 10`), select the first 100 individuals as the training set,
+and compute the prior canonical covariance matrices.
+
+```{r}
+L <- 10
+test_num <- 1:100
+prior_var <- mmbr:::create_covcanonical(3)
+prior_covar <- mmbr:::MashInitializer$new(prior_var, 0.2)
+```
+
+Then, we fit the `mmbr` model to the training set.
+
+```{r}
+y <- cbind(y1[-test_num], y2[-test_num], y3[-test_num])
+m <- mmbr::susie(X[-test_num, ], y, L=L, V=prior_covar)
+```
+
+Finally, we use the parameter estimates from the training set to predict phenotypes in the test set. The accuracy of prediction is calculated as the correlation between true and predicted phenotypes.
+
+```{r}
+pred <- predict.mmbr(m, X[test_num, ])
+
+results <- matrix(c(cor(pred[, 1], y1[test_num, ]), cor(pred[, 2], y2[test_num, ]), cor(pred[, 3], y3[test_num, ])), nrow=3, ncol=1)
+results
+```
+
+## Session information
+
+Here are some details about the computing environment, including the versions of R, and the R packages, used to generate these results.
+
+```{r}
+sessionInfo()
+```
