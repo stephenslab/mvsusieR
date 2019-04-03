@@ -64,7 +64,7 @@ and compute the prior canonical covariance matrices.
 ```{r}
 L <- 10
 test_num <- 1:100
-prior_var <- mmbr:::create_covcanonical(3)
+prior_var <- mmbr:::create_cov_canonical(3)
 prior_covar <- mmbr:::MashInitializer$new(prior_var, 0.2)
 ```
 

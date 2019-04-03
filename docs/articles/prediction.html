@@ -29,7 +29,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.1.101</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.1.104</span>
       </span>
     </div>
 
@@ -64,7 +64,7 @@
       <h1>Prediction example</h1>
                         <h4 class="author">Fabio Morgante</h4>
             
-            <h4 class="date">2019-03-28</h4>
+            <h4 class="date">2019-04-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gaow/mmbr/blob/master/vignettes/prediction.Rmd"><code>vignettes/prediction.Rmd</code></a></small>
       <div class="hidden name"><code>prediction.Rmd</code></div>
@@ -116,7 +116,7 @@ y3 =<span class="st"> </span>X %*%<span class="st"> </span>beta3 +<span class="s
 <p>For starters, we assume there are at most 10 causal variables (i.e., set <code>L = 10</code>), select the first 100 individuals as the training set, and compute the prior canonical covariance matrices.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">L &lt;-<span class="st"> </span><span class="dv">10</span>
 test_num &lt;-<span class="st"> </span><span class="dv">1</span>:<span class="dv">100</span>
-prior_var &lt;-<span class="st"> </span>mmbr:::<span class="kw"><a href="../reference/create_covcanonical.html">create_covcanonical</a></span>(<span class="dv">3</span>)
+prior_var &lt;-<span class="st"> </span>mmbr:::<span class="kw"><a href="../reference/create_cov_canonical.html">create_cov_canonical</a></span>(<span class="dv">3</span>)
 prior_covar &lt;-<span class="st"> </span>mmbr:::MashInitializer$<span class="kw">new</span>(prior_var, <span class="fl">0.2</span>)</code></pre></div>
 <p>Then, we fit the <code>mmbr</code> model to the training set.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw">cbind</span>(y1[-test_num], y2[-test_num], y3[-test_num])
@@ -156,14 +156,14 @@ results
 <span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
 <span class="co"># </span>
 <span class="co"># other attached packages:</span>
-<span class="co"># [1] mmbr_0.0.1.0099 mashr_0.2.21    ashr_2.2-33    </span>
+<span class="co"># [1] mmbr_0.0.1.0104 mashr_0.2.21    ashr_2.2-33    </span>
 <span class="co"># </span>
 <span class="co"># loaded via a namespace (and not attached):</span>
 <span class="co">#  [1] Rcpp_1.0.1          susieR_0.7.1.0487   compiler_3.4.4     </span>
 <span class="co">#  [4] plyr_1.8.4          prettyunits_1.0.2   progress_1.2.0     </span>
 <span class="co">#  [7] iterators_1.0.10    tools_3.4.4         digest_0.6.17      </span>
 <span class="co"># [10] evaluate_0.10.1     memoise_1.1.0       lattice_0.20-29    </span>
-<span class="co"># [13] pkgconfig_2.0.2     rlang_0.3.2         Matrix_1.1-4       </span>
+<span class="co"># [13] pkgconfig_2.0.2     rlang_0.3.3         Matrix_1.1-4       </span>
 <span class="co"># [16] foreach_1.4.4       commonmark_1.5      yaml_2.2.0         </span>
 <span class="co"># [19] parallel_3.4.4      mvtnorm_1.0-8       pkgdown_1.1.0.9000 </span>
 <span class="co"># [22] stringr_1.3.1       roxygen2_6.1.0.9000 xml2_1.2.0         </span>

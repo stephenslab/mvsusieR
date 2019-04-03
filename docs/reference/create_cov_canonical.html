@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • mmbr</title>
+<title>Compute a list of canonical covariance matrices — create_cov_canonical • mmbr</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,7 +30,10 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Compute a list of canonical covariance matrices — create_cov_canonical" />
+
+<meta property="og:description" content="Compute a list of canonical covariance matrices" />
+<meta name="twitter:card" content="summary" />
 
 
 
@@ -46,7 +49,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -89,78 +92,69 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Compute a list of canonical covariance matrices</h1>
+    <small class="dont-index">Source: <a href='https://github.com/gaow/mmbr/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <div class="hidden name"><code>create_cov_canonical.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    
+    <p>Compute a list of canonical covariance matrices</p>
+    
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
-
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="SSData.html">SSData</a></code> </p>
-        </td>
-        <td><p>Sufficient statistics object</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_get_cs_lfsr.html">mmbr_get_cs_lfsr()</a></code> </p>
-        </td>
-        <td><p>Local false sign rate (lfsr) for credible sets</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_get_lfsr.html">mmbr_get_lfsr()</a></code> </p>
-        </td>
-        <td><p>Local false sign rate (lfsr) for variables</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_plot.html">mmbr_plot()</a></code> </p>
-        </td>
-        <td><p>Make bubble heatmap to display mmbr result</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_sim1.html">mmbr_sim1()</a></code> </p>
-        </td>
-        <td><p>A simple simulation function to simulate some test data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="predict.mmbr.html">predict(<i>&lt;mmbr&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Predict future observations or extract coefficients from susie fit</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="susie.html">susie()</a></code> </p>
-        </td>
-        <td><p>SUm of Single Effect (SuSiE) Regression of Y on X</p></td>
-      </tr>
-    </tbody>
+    <pre class="usage"><span class='fu'>create_cov_canonical</span>(<span class='no'>R</span>, <span class='kw'>singletons</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>hetgrid</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>0</span>, <span class='fl'>0.25</span>, <span class='fl'>0.5</span>, <span class='fl'>0.75</span>,
+  <span class='fl'>1</span>))</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>R</th>
+      <td><p>an integer indicating the number of conditions</p></td>
+    </tr>
+    <tr>
+      <th>singletons</th>
+      <td><p>a logical value indicating whether the singleton matrices are computed</p></td>
+    </tr>
+    <tr>
+      <th>hetgrid</th>
+      <td><p>a vector of numbers between -1 and 1, each representing the off-diagonal elements of matrices with 1s on the diagonal. 
+If 0 is included, the identity matrix will be returned which corresponds to assuming effects are independent across conditions. 
+IF NULL, these matrices are not computed.</p></td>
+    </tr>
     </table>
-  </div>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
+    <p>a list of canonical covariance matrices</p>
+    
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function computes canonical covariance matrices to be provided to mash</p>
+    
+
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><span class='co'># NOT RUN {</span>
+ <span class='kw pkg'>mmbr</span><span class='kw ns'>:::</span><span class='fu'><a href='http://www.rdocumentation.org/packages/mmbr/topics/create_cov_canonical'>create_cov_canonical</a></span>(<span class='fl'>3</span>)
+ <span class='kw pkg'>mmbr</span><span class='kw ns'>:::</span><span class='fu'><a href='http://www.rdocumentation.org/packages/mmbr/topics/create_cov_canonical'>create_cov_canonical</a></span>(<span class='fl'>3</span>, <span class='kw'>singletons</span><span class='kw'>=</span><span class='no'>F</span>)
+ <span class='kw pkg'>mmbr</span><span class='kw ns'>:::</span><span class='fu'><a href='http://www.rdocumentation.org/packages/mmbr/topics/create_cov_canonical'>create_cov_canonical</a></span>(<span class='fl'>3</span>, <span class='kw'>hetgrid</span><span class='kw'>=</span><span class='kw'>NULL</span>)
+<span class='co'># }</span></pre>
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#arguments">Arguments</a></li>
+      
+      <li><a href="#value">Value</a></li>
+
+      <li><a href="#details">Details</a></li>
+      
+      <li><a href="#examples">Examples</a></li>
     </ul>
+
   </div>
 </div>
 
