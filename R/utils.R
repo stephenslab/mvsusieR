@@ -14,6 +14,7 @@ safe_compute_weight = function(value, weight, log = TRUE) {
 #' @keywords internal
 report_susie_model = function(d, m) {
     if (length(dim(m$posterior_b1[[1]])) < 2) {
+      # univariate case
       b1 = t(do.call(cbind, m$posterior_b1))
       b2 = t(do.call(cbind, m$posterior_b2))
       b = colSums(b1)
@@ -27,13 +28,16 @@ report_susie_model = function(d, m) {
         b = as.vector(b)
       }
     }
-    if (is.null(m$mixture_posterior_weights)) mixture_weights = NA
+    if (is.null(m$mixture_posterior_weights[[1]])) mixture_weights = NA
     else {
-      if (is.list(m$mixture_posterior_weights)) mixture_weights = m$mixture_posterior_weights
+      if (length(dim(m$mixture_posterior_weights[[1]])) < 2) mixture_weights = t(do.call(cbind, m$mixture_posterior_weights))
       else mixture_weights = aperm(abind::abind(m$mixture_posterior_weights,along=3), c(3,1,2))
     }
-    if (length(dim(mixture_weights)) < 3) lfsr = m$lfsr
-    else lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
+    if (is.null(m$lfsr[[1]])) lfsr = NA
+    else {
+      if (length(dim(m$lfsr[[1]])) < 2) lfsr = t(do.call(cbind, m$lfsr))
+      else lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
+    }
     s = list(
         alpha = t(m$pip),
         b1 = b1,
