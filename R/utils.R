@@ -29,10 +29,10 @@ report_susie_model = function(d, m) {
     }
     if (is.null(m$mixture_posterior_weights)) mixture_weights = NA
     else {
-      if (length(dim(m$mixture_posterior_weights)) < 3) mixture_weights = m$mixture_posterior_weights
+      if (is.list(m$mixture_posterior_weights)) mixture_weights = m$mixture_posterior_weights
       else mixture_weights = aperm(abind::abind(m$mixture_posterior_weights,along=3), c(3,1,2))
     }
-    if (length(dim(m$mixture_posterior_weights)) < 3) lfsr = m$lfsr
+    if (length(dim(mixture_weights)) < 3) lfsr = m$lfsr
     else lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
     s = list(
         alpha = t(m$pip),

@@ -7,7 +7,7 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     B = SuSiE$new(SER, L, estimate_residual_variance = FALSE)
     d.copy = d$clone(T)
     B$fit(d.copy)
-    BA = report_susie_model(d.copy, B) 
+    BA = report_susie_model(d.copy, B)
     expect_susieR_equal(A, BA, F, F)
     # Test estimated prior fixed residual
     A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = FALSE, estimate_prior_variance = TRUE)
