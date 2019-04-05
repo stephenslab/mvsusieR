@@ -48,6 +48,11 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       bhat[which(is.nan(bhat))] = 0
       # Fit MASH model
       is_common_cov = is_mat_common(sbhat)
+      # FIXME: add d$X_has_missing true or false
+      # and if X has no missing data AND is_common_cov, we can do that faster version
+      # where Vinv_mat and Vinv_cube are pre-specified inside MASH initializer
+      # and MASH initializer should thus have a function to take input data d and residual variance
+      # and output Vinv_mat and Vinv_cube
       # 1.1 compute log-likelihood matrix given current estimates
       llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$null_correlation,
                              matrix(0,0,0),
