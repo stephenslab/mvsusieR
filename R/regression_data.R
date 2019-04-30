@@ -35,6 +35,9 @@ DenseData <- R6Class("DenseData",
     compute_residual = function() {
       private$residual = private$.Y - private$.fitted 
     },
+    X_has_missing = function() {
+      any(is.na(private$.X))
+    },
     rescale_coef = function(b) {
       coefs = b/private$csd
       if (is.null(dim(coefs))) {
