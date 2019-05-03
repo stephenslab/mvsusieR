@@ -63,7 +63,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$null_correlation, 
                                          matrix(0,0,0),
                                          private$.prior_variance$xUlist,
-                                         TRUE, 
+                                         FALSE,
                                          is_common_cov)$data
       else
         llik_mat = mashr:::calc_lik_common_rcpp(t(bhat), 
@@ -99,9 +99,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
                               private$null_correlation,
                               matrix(0,0,0), matrix(0,0,0), 
                               precomputed_cov_matrices$Vinv,
-                              precomputed_cov_matrices$U0,
-                              t(private$.mixture_posterior_weights),
-                              is_common_cov, 4)
+                              simplyfy2array(precomputed_cov_matrices$U0),
+                              t(private$.mixture_posterior_weights), 4)
       private$.posterior_b1 = post$post_mean
       # Format post_cov for degenerated case with R = 1
       # (no need for it)
