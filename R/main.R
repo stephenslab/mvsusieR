@@ -93,7 +93,7 @@ susie = function(X,Y,L=10,V=0.2,
   ## =============
   data = DenseData$new(X, Y, intercept, standardize)
   # FIXME: this is because of issue #5
-  if (data.X_has_missing()) stop("Missing data in input matrix X is not allowed at this point.")
+  if (data$X_has_missing()) stop("Missing data in input matrix X is not allowed at this point.")
   # for now only V controls the type of regression 
   if (is.numeric(V)) {
     base = BayesianMultipleRegression

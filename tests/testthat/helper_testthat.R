@@ -46,7 +46,7 @@ simulate_multivariate = function(n=100,p=100,r=2) {
   return(res)
 }
 
-expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-10) {
+expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-8) {
   expect_equal(A$alpha, BA$alpha, tolerance = tol)
   expect_equal(A$lbf, BA$lbf, tolerance = tol)
   if (!is.null(A$KL) && !is.null(BA$KL)) expect_equal(A$KL, BA$KL, tolerance = tol)
@@ -59,7 +59,7 @@ expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_
   if (estimate_prior_variance) expect_equal(A$V, BA$V, tolerance = tol)
 }
 
-expect_susie_equal = function(A, B, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-10) {
+expect_susie_equal = function(A, B, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-8) {
   expect_equal(A$alpha, B$alpha, tolerance = tol)
   if (!is.null(A$elbo) && !is.null(B$elbo)) expect_equal(A$lbf, B$lbf, tolerance = tol)
   expect_equal(A$b1, B$b1, tolerance = tol)
