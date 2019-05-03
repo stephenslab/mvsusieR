@@ -67,8 +67,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
                                          is_common_cov)$data
       else
         llik_mat = mashr:::calc_lik_common_rcpp(t(bhat), 
-                                         precomputed_cov_matrices$sigma_inv, 
-                                         TRUE)
+                                         simplyfy2array(precomputed_cov_matrices$sigma_rooti),
+                                         FALSE)
 
       # 1.2 give a warning if any columns have -Inf likelihoods.
       rows <- which(apply(llik_mat,2,function (x) any(is.infinite(x))))
@@ -186,7 +186,7 @@ MashInitializer <- R6Class("MashInitializer",
       svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
       # this is in preparation for some constants used in dmvnrom() for likelihood calculations
       sigma_rooti = list()
-      for (i in 1:length(private$xU$xUlist)) sigma_rooti[[i]] = backsolve(chol(svs + private$xU$xUlist[[i]]), diag(nrow(svs)))
+      for (i in 1:length(private$xU$xUlist)) sigma_rooti[[i]] = backsolve(muffled_chol(svs + private$xU$xUlist[[i]], pivot=T), diag(nrow(svs)))
       # this is in prepartion for some constants used in posterior calculation
       Vinv = solve(svs)
       U0 = list()

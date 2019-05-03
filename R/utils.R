@@ -1,3 +1,12 @@
+
+#' @keywords internal
+muffled_chol = function(x, ...)
+  withCallingHandlers(chol(x, ...),
+                      warning = function(w) {
+                        if (grepl("the matrix is either rank-deficient or indefinite", w$message))
+                          invokeRestart("muffleWarning")
+                      })
+
 #' @title compute value_j * weight_j / sum(value_j * weight_j)
 #' @keywords internal
 safe_compute_weight = function(value, weight, log = TRUE) {
