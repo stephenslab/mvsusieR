@@ -200,7 +200,7 @@ MashInitializer <- R6Class("MashInitializer",
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()
         for (i in 1:length(private$xU$xUlist)) {
-          if (algorithm == 'R') sigma_rooti[[i]] = backsolve(muffled_chol(svs + private$xU$xUlist[[i]]), diag(nrow(svs)))
+          if (algorithm == 'R') sigma_rooti[[i]] = t(backsolve(muffled_chol(svs + private$xU$xUlist[[i]]), diag(nrow(svs))))
           else sigma_rooti[[i]] = mashr:::calc_rooti_rcpp(svs + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
