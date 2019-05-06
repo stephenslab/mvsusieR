@@ -5,7 +5,6 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
   inherit = BayesianMultipleRegression,
   public = list(
     initialize = function(J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) {
-      private$J = J
       private$.prior_variance = mash_initializer$prior_covariance
       private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
@@ -37,7 +36,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       } else {
         # sbhat is R by R
         sigma2 = diag(private$.residual_variance)
-        sbhat = sqrt(do.call(rbind, lapply(1:private$J, function(j) sigma2 / d$d[j])))
+        sbhat = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
       }
       if (save_summary_stats) {
         private$.bhat = bhat
@@ -55,16 +54,17 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       if (!is.null(private$precomputed_cov_matrices)) is_common_cov = private$precomputed_cov_matrices$common_sbhat
       else is_common_cov = is_mat_common(sbhat)
       # 1.1 compute log-likelihood matrix given current estimates
-      if (is.null(private$precomputed_cov_matrices))
+      if (is.null(private$precomputed_cov_matrices) || ncol(bhat) == 1) {
         llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$null_correlation, 
                                          matrix(0,0,0),
                                          private$.prior_variance$xUlist,
                                          TRUE,
                                          is_common_cov)$data
-      else
+      } else {
         llik_mat = mashr:::calc_lik_common_rcpp(t(bhat), 
-                                         simplyfy2array(private$precomputed_cov_matrices$sigma_rooti),
-                                         TRUE)
+                                         simplify2array(private$precomputed_cov_matrices$sigma_rooti),
+                                         TRUE)$data
+      }
 
       # 1.2 give a warning if any columns have -Inf likelihoods.
       rows <- which(apply(llik_mat,2,function (x) any(is.infinite(x))))
@@ -83,27 +83,28 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
       ## we can get away with checking for convergence by PIP not by ELBO
       ## but let's set report_type = 4 and compute posterior covariance for now
-      if (is.null(private$precomputed_cov_matrices))
+      if (is.null(private$precomputed_cov_matrices) || ncol(bhat) == 1) {
         post = mashr:::calc_post_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0), 
                               private$null_correlation,
                               matrix(0,0,0), matrix(0,0,0), 
                               private$.prior_variance$xUlist,
                               t(private$.mixture_posterior_weights),
                               is_common_cov, 4)
-      else
+      } else {
         post = mashr:::calc_post_precision_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0), 
                               private$null_correlation,
                               matrix(0,0,0), matrix(0,0,0), 
                               private$precomputed_cov_matrices$Vinv,
-                              simplyfy2array(private$precomputed_cov_matrices$U0),
+                              simplify2array(private$precomputed_cov_matrices$U0),
                               t(private$.mixture_posterior_weights), 4)
+      }
       private$.posterior_b1 = post$post_mean
       # Format post_cov for degenerated case with R = 1
       # (no need for it)
       #if (ncol(private$.posterior_b1) == 1) {
       #  post$post_cov = array(post$post_cov, c(1, 1, private$J))
       #}
-      private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:private$J, function(i) tcrossprod(post$post_mean[i,])))
+      private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:length(d$d), function(i) tcrossprod(post$post_mean[i,])))
       # 4. lfsr
       private$.lfsr = ashr::compute_lfsr(post$post_neg, post$post_zero)
       # 5. loglik under the alternative
@@ -133,7 +134,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, weights_tol = 1E-10, top_mixtures = 50) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, alpha = 0, weights_tol = 1E-10, top_mixtures = 50) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -165,9 +166,9 @@ MashInitializer <- R6Class("MashInitializer",
         private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
         if (is.null(V)) private$V = diag(private$R)
         else private$V = V
-        private$a = 0
+        private$a = alpha
       },
-    precompute_cov_matrices = function(d) {
+    precompute_cov_matrices = function(d, residual_variance, algorithm = c('R', 'cpp')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
       # and sigma_rooti for likelihooods
       # output of this function will provide input to `mashr`'s
@@ -175,19 +176,23 @@ MashInitializer <- R6Class("MashInitializer",
       # calc_post_precision_rcpp()
       # The input should be sbhat data matrix
       # FIXME: currently only allows for common sbhat (see issue #5)
-      sigma2 = diag(private$.residual_variance)
-      sbhat = sqrt(do.call(rbind, lapply(1:private$J, function(j) sigma2 / d$d[j])))
+      sigma2 = diag(residual_variance)
+      sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+      sbhat = sbhat0 ^ (1 - private$a)
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
       if (is_mat_common(sbhat) && !d$X_has_missing()) {
         svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()
-        for (i in 1:length(private$xU$xUlist)) sigma_rooti[[i]] = backsolve(muffled_chol(svs + private$xU$xUlist[[i]], pivot=T), diag(nrow(svs)))
+        for (i in 1:length(private$xU$xUlist)) {
+          if (algorithm == 'R') sigma_rooti[[i]] = backsolve(muffled_chol(svs + private$xU$xUlist[[i]], pivot=T), diag(nrow(svs)))
+          else sigma_rooti[[i]] = mashr:::calc_rooti_rcpp(svs + private$xU$xUlist[[i]])$data
+        }
         # this is in prepartion for some constants used in posterior calculation
         Vinv = solve(svs)
         U0 = list()
         for (i in 1:length(private$xU$xUlist)) U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
-        private$inv_mats = list(Vinv = Vinv, U0 = U0, sigma_rooti = sigma_rooti, sbhat = sbhat, common_sbhat = TRUE)
+        private$inv_mats = list(Vinv = Vinv, U0 = U0, sigma_rooti = sigma_rooti, sbhat = sbhat0, common_sbhat = TRUE)
       }
     }
   ),

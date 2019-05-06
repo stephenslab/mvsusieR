@@ -101,7 +101,7 @@ null_progress_bar = R6Class('null_progress_bar', public = list(tick = function(.
 #' @title check if all elements are the same in matrix of J by R, J >> R
 #' @keywords internal
 is_mat_common = function(mat) {
-  all((t(mat) - mat[1,]) == 0)
+  sum(1-duplicated(mat, MARGIN=2)) == 1
 }
 
 #' @title A simple simulation function to simulate some test data

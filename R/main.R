@@ -70,17 +70,14 @@ susie = function(X,Y,L=10,V=0.2,
   if (!(is.double(X) & is.matrix(X)) & !inherits(X,"CsparseMatrix"))
     stop("Input X must be a double-precision matrix, or a sparse matrix.")
   if (is.numeric(null_weight) && null_weight == 0) null_weight = NULL
+  if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
+  else prior_weights = prior_weights / sum(prior_weights)
   if (!is.null(null_weight)) {
     if (!is.numeric(null_weight))
       stop("Null weight must be numeric")
     if (null_weight<0 || null_weight>=1)
       stop('Null weight must be between 0 and 1')
-    if (missing(prior_weights))
-      prior_weights = c(rep(1/ncol(X)*(1-null_weight), ncol(X)), null_weight)
-    else {
-      prior_weights = prior_weights / sum(prior_weights)
-      prior_weights = c(prior_weights * (1-null_weight), null_weight)
-    }
+    prior_weights = c(prior_weights * (1-null_weight), null_weight)
     X = cbind(X,0)
   }
 
