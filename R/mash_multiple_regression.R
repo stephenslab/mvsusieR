@@ -29,12 +29,13 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       else XtY = d$XtY
       # OLS estimates
       # bhat is J by R
-      # FIXME: can this be done faster?
-      bhat = diag(1/d$d) %*% XtY
+      bhat = XtY / d$d
       if (!is.null(private$precomputed_cov_matrices)) {
         sbhat = private$precomputed_cov_matrices$sbhat
       } else {
         # sbhat is R by R
+        # here d$d is a J vector ... 
+        # FIXME: for missing data it is a J by R matrix
         sigma2 = diag(private$.residual_variance)
         sbhat = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
       }
@@ -177,15 +178,29 @@ MashInitializer <- R6Class("MashInitializer",
       # The input should be sbhat data matrix
       # FIXME: currently only allows for common sbhat (see issue #5)
       sigma2 = diag(residual_variance)
-      sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+      # d[j,] can be different for different conditions due to missing Y data
+      if (!is.null(dim(d$d))) sbhat0 = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
+      else sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
       sbhat = sbhat0 ^ (1 - private$a)
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
-      if (is_mat_common(sbhat) && !d$X_has_missing()) {
+      if (private$a == 1 && !d$X_has_missing()) {
+        #if (!d$Y_has_missing) {
+        #  svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
+        #} else {
+        #  svs = matrix(0, private$R, private$R)
+        #  for (r1 in 1:(private$R - 1)) {
+        #    for (r2 in (r1+1):private$R) {
+        #      common_elements = as.logical(d$Y_non_missing[,r1] * d$Y_non_missing[,r2])
+        #      svs[r1,r2] = sum((d$X[common_elements,j])^2)/(X2[j,r]*X2[j,d])
+        #      svs[r2,r1] = svs[r1,r2]
+        #    }
+        #  }
+        #} 
         svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()
         for (i in 1:length(private$xU$xUlist)) {
-          if (algorithm == 'R') sigma_rooti[[i]] = backsolve(muffled_chol(svs + private$xU$xUlist[[i]], pivot=T), diag(nrow(svs)))
+          if (algorithm == 'R') sigma_rooti[[i]] = backsolve(muffled_chol(svs + private$xU$xUlist[[i]]), diag(nrow(svs)))
           else sigma_rooti[[i]] = mashr:::calc_rooti_rcpp(svs + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
