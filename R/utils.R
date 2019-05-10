@@ -297,4 +297,3 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
     
     return(mats)
 }
-

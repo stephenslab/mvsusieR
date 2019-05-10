@@ -62,9 +62,10 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
                                          TRUE,
                                          is_common_cov)$data
       } else {
-        llik_mat = mashr:::calc_lik_common_rcpp(t(bhat), 
+        llik_mat = mashr:::calc_lik_rooti_rcpp(t(bhat), 
                                          private$precomputed_cov_matrices$sigma_rooti,
-                                         TRUE)$data
+                                         TRUE,
+                                         is_common_cov)$data
       }
 
       # 1.2 give a warning if any columns have -Inf likelihoods.
@@ -97,7 +98,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
                               matrix(0,0,0), matrix(0,0,0), 
                               private$precomputed_cov_matrices$Vinv,
                               private$precomputed_cov_matrices$U0,
-                              t(private$.mixture_posterior_weights), 4)
+                              t(private$.mixture_posterior_weights), 
+                              is_common_cov, 4)
       }
       private$.posterior_b1 = post$post_mean
       # Format post_cov for degenerated case with R = 1
@@ -181,8 +183,9 @@ MashInitializer <- R6Class("MashInitializer",
       if (!is.null(dim(d$d))) sbhat0 = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
       else sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
       sbhat = sbhat0 ^ (1 - private$a)
+      common_sbhat = is_mat_common(sbhat)
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
-      if (is_mat_common(sbhat) && !d$X_has_missing()) {
+      if (common_sbhat && !d$X_has_missing()) {
         # sigma_rooti is R * R * P
         svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
@@ -192,11 +195,10 @@ MashInitializer <- R6Class("MashInitializer",
           else sigma_rooti[[i]] = mashr:::calc_rooti_rcpp(svs + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
-        Vinv = solve(svs)
+        Vinv = list()
+        Vinv[[1]] = solve(svs)
         U0 = list()
-        for (i in 1:length(private$xU$xUlist)) U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
-        private$inv_mats = list(Vinv = Vinv, U0 = simplify2array(U0),
-                                sigma_rooti = simplify2array(sigma_rooti), sbhat = sbhat0, common_sbhat = TRUE)
+        for (i in 1:length(private$xU$xUlist)) U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
       } else {
           # have to do this for every effect
           # sigma_rooti and U0 will be R * R * (J * P)
@@ -217,9 +219,9 @@ MashInitializer <- R6Class("MashInitializer",
                 U0[[i*j]] = private$xU$xUlist[[i]] %*% solve(Vinv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
             }
           }
-        private$inv_mats = list(Vinv = simplify2array(Vinv), U0 = simplify2array(U0),
-                                sigma_rooti = simplify2array(sigma_rooti), sbhat = sbhat0, common_sbhat = FALSE)
       }
+      private$inv_mats = list(Vinv = simplify2array(Vinv), U0 = simplify2array(U0),
+                              sigma_rooti = simplify2array(sigma_rooti), sbhat = sbhat0, common_sbhat = common_sbhat)
     }
   ),
   private = list(
