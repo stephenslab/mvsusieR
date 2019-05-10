@@ -1,4 +1,3 @@
-
 #' @keywords internal
 muffled_chol = function(x, ...)
   withCallingHandlers(chol(x, ...),

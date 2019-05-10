@@ -63,7 +63,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
                                          is_common_cov)$data
       } else {
         llik_mat = mashr:::calc_lik_common_rcpp(t(bhat), 
-                                         simplify2array(private$precomputed_cov_matrices$sigma_rooti),
+                                         private$precomputed_cov_matrices$sigma_rooti,
                                          TRUE)$data
       }
 
@@ -96,7 +96,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
                               private$null_correlation,
                               matrix(0,0,0), matrix(0,0,0), 
                               private$precomputed_cov_matrices$Vinv,
-                              simplify2array(private$precomputed_cov_matrices$U0),
+                              private$precomputed_cov_matrices$U0,
                               t(private$.mixture_posterior_weights), 4)
       }
       private$.posterior_b1 = post$post_mean
@@ -176,26 +176,14 @@ MashInitializer <- R6Class("MashInitializer",
       # functions calc_lik_common_rcpp() and
       # calc_post_precision_rcpp()
       # The input should be sbhat data matrix
-      # FIXME: currently only allows for common sbhat (see issue #5)
       sigma2 = diag(residual_variance)
       # d[j,] can be different for different conditions due to missing Y data
       if (!is.null(dim(d$d))) sbhat0 = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
       else sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
       sbhat = sbhat0 ^ (1 - private$a)
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
-      if (private$a == 1 && !d$X_has_missing()) {
-        #if (!d$Y_has_missing) {
-        #  svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
-        #} else {
-        #  svs = matrix(0, private$R, private$R)
-        #  for (r1 in 1:(private$R - 1)) {
-        #    for (r2 in (r1+1):private$R) {
-        #      common_elements = as.logical(d$Y_non_missing[,r1] * d$Y_non_missing[,r2])
-        #      svs[r1,r2] = sum((d$X[common_elements,j])^2)/(X2[j,r]*X2[j,d])
-        #      svs[r2,r1] = svs[r1,r2]
-        #    }
-        #  }
-        #} 
+      if (is_mat_common(sbhat) && !d$X_has_missing()) {
+        # sigma_rooti is R * R * P
         svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()
@@ -207,7 +195,30 @@ MashInitializer <- R6Class("MashInitializer",
         Vinv = solve(svs)
         U0 = list()
         for (i in 1:length(private$xU$xUlist)) U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
-        private$inv_mats = list(Vinv = Vinv, U0 = U0, sigma_rooti = sigma_rooti, sbhat = sbhat0, common_sbhat = TRUE)
+        private$inv_mats = list(Vinv = Vinv, U0 = simplify2array(U0),
+                                sigma_rooti = simplify2array(sigma_rooti), sbhat = sbhat0, common_sbhat = TRUE)
+      } else {
+          # have to do this for every effect
+          # sigma_rooti and U0 will be R * R * (J * P)
+          # and Vinv will be a J list, not a matrix
+          svs = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(private$V * sbhat[j,]))
+          # this is in preparation for some constants used in dmvnrom() for likelihood calculations
+          sigma_rooti = list()
+          for (j in 1:nrow(sbhat)) {
+            for (i in 1:length(private$xU$xUlist)) {
+              if (algorithm == 'R') sigma_rooti[[j*i]] = t(backsolve(muffled_chol(svs[[j]] + private$xU$xUlist[[i]]), diag(nrow(svs[[j]]))))
+              else sigma_rooti[[j*i]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
+            }
+          }
+          Vinv = lapply(1:length(svs), function(i) solve(svs[[i]]))
+          U0 = list()
+          for (j in 1:nrow(sbhat)) {
+            for (i in 1:length(private$xU$xUlist)) {
+                U0[[i*j]] = private$xU$xUlist[[i]] %*% solve(Vinv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+            }
+          }
+        private$inv_mats = list(Vinv = simplify2array(Vinv), U0 = simplify2array(U0),
+                                sigma_rooti = simplify2array(sigma_rooti), sbhat = sbhat0, common_sbhat = FALSE)
       }
     }
   ),
