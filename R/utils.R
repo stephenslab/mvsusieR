@@ -206,8 +206,8 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
   table$mlog10lfsr = -log10(as.vector(t(p)))
   # add CS to this table.
   j = 1
-  for (i in dat$sets$cs_index) {
-    variables = x_names[dat$sets$cs[[j]]]
+  for (i in m$sets$cs_index) {
+    variables = x_names[m$sets$cs[[j]]]
     table[which(table$x %in% variables),]$cs = i
     j = j + 1
   }

@@ -101,7 +101,7 @@ susie = function(X,Y,L=10,V=0.2,
     base = MashMultipleRegression
     compute_objective = FALSE
     if (is.null(residual_variance))
-      residual_variance = cov(Y) 
+      residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
   }
   # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)
