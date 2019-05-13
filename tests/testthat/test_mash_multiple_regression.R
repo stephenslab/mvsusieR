@@ -25,7 +25,6 @@ test_that("Degenerated mash regression is identical to univariate BMR", with(sim
 test_that("Mash regression + precomputed cov is identical to not precompute", with(simulate_multivariate(r=2), {
     # Run univariate BMR
     prior_var = V[1,1]
-    residual_var = as.numeric(var(y))
     data = DenseData$new(X,y)
     null_weight = 0
     residual_covar = cov(y)

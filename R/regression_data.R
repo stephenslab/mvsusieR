@@ -13,7 +13,7 @@ DenseData <- R6Class("DenseData",
       private$J = ncol(private$.X)
       Y_missing = is.na(Y)
       private$Y_non_missing = !Y_missing
-      private$Y_has_missing = any(Y_missing)
+      private$.Y_has_missing = any(Y_missing)
       private$standardize(center,scale)
       private$.fitted = matrix(0, private$N, private$R) 
       private$residual = private$.Y
@@ -40,6 +40,9 @@ DenseData <- R6Class("DenseData",
     },
     X_has_missing = function() {
       any(is.na(private$.X))
+    },
+    Y_has_missing = function() {
+      private$.Y_has_missing
     },
     rescale_coef = function(b) {
       coefs = b/private$csd
@@ -69,7 +72,7 @@ DenseData <- R6Class("DenseData",
     cm = NULL,
     Y_mean = NULL,
     Y_non_missing = NULL,
-    Y_has_missing = NULL,
+    .Y_has_missing = NULL,
     standardize = function(center, scale) {
       # Credit: This is heavily based on code from
       # https://www.r-bloggers.com/a-faster-scale-function/
@@ -94,8 +97,8 @@ DenseData <- R6Class("DenseData",
       private$.X = t( (t(private$.X) - private$cm) / private$csd )
       # For non-missing Y, d is a J vector
       # For missing Y, d is a J by R matrix
-      if (!private$Y_has_missing) private$.d = colSums(private$.X ^ 2)
-      else private$.d = sapply(1:R, function(r) colSums(private$.X[private$Y_non_missing[,r],]^2))
+      if (!private$.Y_has_missing) private$.d = colSums(private$.X ^ 2)
+      else private$.d = sapply(1:private$R, function(r) colSums(private$.X[private$Y_non_missing[,r],]^2))
     },
     denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE)
   ),
@@ -118,15 +121,19 @@ DenseData <- R6Class("DenseData",
     },
     XtY = function(value) {
       if (missing(value)) {
-        if (private$Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$.Y[private$Y_non_missing[,r],r]))
+        if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$.Y[private$Y_non_missing[,r],r]))
         else crossprod(private$.X, private$.Y)
       } else {
         private$denied('XtY')
       }
     },
     XtR = function(value) {
-      if (missing(value)) crossprod(private$.X, private$residual)
-      else private$denied('XtR')
+      if (missing(value)) {
+        if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$residual[private$Y_non_missing[,r],r]))
+        else crossprod(private$.X, private$residual)
+      } else {
+        private$denied('XtR')
+      }
     },
     n_sample = function(value) private$N,
     n_condition = function(value) private$R,

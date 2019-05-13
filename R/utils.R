@@ -297,3 +297,27 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
     
     return(mats)
 }
+
+#' @title Compute multivariate summary statistics in the presence of missing data
+#' @keywords internal
+get_sumstats_missing_data = function(X, Y, residual_variances, V){
+  J = ncol(X)
+  R = ncol(Y)
+  M = !is.na(Y)
+  Xty = sapply(1:R, function(r) crossprod(X[M[,r],], Y[M[,r],r]) ) # J by R
+  X2 = sapply(1:R, function(r) colSums(X[M[,r],]^2 )) # J by R
+  bhat = Xty/X2
+  S = lapply(1:J, function(j) diag(1/X2[j,]) * residual_variances )
+  Sigma = sqrt(residual_variances) * t(sqrt(residual_variances) * V)
+  # FIXME: may want to do this in parallel
+  for(j in 1:J){
+    for(r in 1:(R-1)){
+      for(d in (r+1):R){
+        common = as.logical(M[,r] * M[,d])
+        S[[j]][r,d] = Sigma[r,d] * sum((X[common,j])^2)/(X2[j,r]*X2[j,d])
+        S[[j]][d,r] = S[[j]][r,d]
+      }
+    }
+  }
+  return(list(svs=S, bhat=bhat))
+}

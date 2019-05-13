@@ -34,10 +34,11 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         sbhat = private$precomputed_cov_matrices$sbhat
       } else {
         # sbhat is R by R
-        # here d$d is a J vector ... 
-        # FIXME: for missing data it is a J by R matrix
+        # for non-missing Y d$d is a J vector
+        # for missing Y it is a J by R matrix
         sigma2 = diag(private$.residual_variance)
-        sbhat = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+        if (d$Y_has_missing()) sbhat = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
+        else sbhat = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
       }
       if (save_summary_stats) {
         private$.bhat = bhat
@@ -107,7 +108,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       #if (ncol(private$.posterior_b1) == 1) {
       #  post$post_cov = array(post$post_cov, c(1, 1, private$J))
       #}
-      private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:length(d$d), function(i) tcrossprod(post$post_mean[i,])))
+      private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
       # 4. lfsr
       private$.lfsr = ashr::compute_lfsr(post$post_neg, post$post_zero)
       # 5. loglik under the alternative
@@ -137,7 +138,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, alpha = 0, weights_tol = 1E-10, top_mixtures = 50) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, alpha = 0, weights_tol = 1E-10, top_mixtures = 20) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -180,14 +181,23 @@ MashInitializer <- R6Class("MashInitializer",
       # The input should be sbhat data matrix
       sigma2 = diag(residual_variance)
       # d[j,] can be different for different conditions due to missing Y data
-      if (!is.null(dim(d$d))) sbhat0 = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
-      else sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
-      sbhat = sbhat0 ^ (1 - private$a)
-      common_sbhat = is_mat_common(sbhat)
+      # FIXME: did not use alpha information
+      if (d$Y_has_missing()) {
+        sbhat0 = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
+        svs = get_sumstats_missing_data(d$X, d$Y, residual_variance, private$V)$svs
+        common_sbhat = FALSE
+      } else {
+        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+        sbhat = sbhat0 ^ (1 - private$a)
+        common_sbhat = is_mat_common(sbhat)
+        if (common_sbhat) svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
+        else svs = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(private$V * sbhat[j,]))
+      }
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
-      if (common_sbhat && !d$X_has_missing()) {
+      # FIXME: compute this in parallel in the future
+      algorithm = match.arg(algorithm)
+      if (common_sbhat && !d$X_has_missing() && !d$Y_has_missing()) {
         # sigma_rooti is R * R * P
-        svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()
         for (i in 1:length(private$xU$xUlist)) {
@@ -203,11 +213,10 @@ MashInitializer <- R6Class("MashInitializer",
           # have to do this for every effect
           # sigma_rooti and U0 will be R * R * (J * P)
           # and Vinv will be a J list, not a matrix
-          svs = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(private$V * sbhat[j,]))
           # this is in preparation for some constants used in dmvnrom() for likelihood calculations
           sigma_rooti = list()
           k = 1
-          for (j in 1:nrow(sbhat)) {
+          for (j in 1:length(svs)) {
             for (i in 1:length(private$xU$xUlist)) {
               if (algorithm == 'R') sigma_rooti[[k]] = t(backsolve(muffled_chol(svs[[j]] + private$xU$xUlist[[i]]), diag(nrow(svs[[j]]))))
               else sigma_rooti[[k]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
@@ -217,7 +226,7 @@ MashInitializer <- R6Class("MashInitializer",
           Vinv = lapply(1:length(svs), function(i) solve(svs[[i]]))
           U0 = list()
           k = 1
-          for (j in 1:nrow(sbhat)) {
+          for (j in 1:length(svs)) {
             for (i in 1:length(private$xU$xUlist)) {
                 U0[[k]] = private$xU$xUlist[[i]] %*% solve(Vinv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
                 k = k + 1
