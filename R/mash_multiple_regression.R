@@ -206,17 +206,21 @@ MashInitializer <- R6Class("MashInitializer",
           svs = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(private$V * sbhat[j,]))
           # this is in preparation for some constants used in dmvnrom() for likelihood calculations
           sigma_rooti = list()
+          k = 1
           for (j in 1:nrow(sbhat)) {
             for (i in 1:length(private$xU$xUlist)) {
-              if (algorithm == 'R') sigma_rooti[[j*i]] = t(backsolve(muffled_chol(svs[[j]] + private$xU$xUlist[[i]]), diag(nrow(svs[[j]]))))
-              else sigma_rooti[[j*i]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
+              if (algorithm == 'R') sigma_rooti[[k]] = t(backsolve(muffled_chol(svs[[j]] + private$xU$xUlist[[i]]), diag(nrow(svs[[j]]))))
+              else sigma_rooti[[k]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
+              k = k + 1
             }
           }
           Vinv = lapply(1:length(svs), function(i) solve(svs[[i]]))
           U0 = list()
+          k = 1
           for (j in 1:nrow(sbhat)) {
             for (i in 1:length(private$xU$xUlist)) {
-                U0[[i*j]] = private$xU$xUlist[[i]] %*% solve(Vinv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+                U0[[k]] = private$xU$xUlist[[i]] %*% solve(Vinv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+                k = k + 1
             }
           }
       }
