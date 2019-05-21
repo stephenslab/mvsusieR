@@ -93,11 +93,14 @@ susie = function(X,Y,L=10,V=0.2,
   if (data$X_has_missing()) stop("Missing data in input matrix X is not allowed at this point.")
   # for now only V controls the type of regression 
   if (is.numeric(V)) {
+    if (!(is.null(dim(Y)) || dim(Y)[2] == 1))
+      stop("V cannot be a numeric value when Y is a multivariate variable.")
     base = BayesianMultipleRegression
     V = V * as.numeric(var(Y))
     if (is.null(residual_variance))
       residual_variance = as.numeric(var(Y))
   } else {
+    # FIXME: check V is valid input. 
     base = MashMultipleRegression
     compute_objective = FALSE
     if (is.null(residual_variance))
