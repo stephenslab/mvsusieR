@@ -104,7 +104,7 @@ susie = function(X,Y,L=10,V=0.2,
     base = MashMultipleRegression
     compute_objective = FALSE
     if (is.null(residual_variance))
-      if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 1, function(x) var(x, na.rm=T)))
+      if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
       else residual_variance = var(Y, na.rm=T)
   }
   # Below are the core computations
