@@ -47,7 +47,7 @@ test_that("mash regression in SuSiE is identical to univariate case", with(simul
     expect_susie_equal(A,B,F,F)
 }))
 
-test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=2), {
+test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=3), {
     m_init = MashInitializer$new(list(V), 1, 1, 0)
     A = susie(X,y,L=L,V=m_init,compute_objective=FALSE)
     B = susie(X,y,L=L,V=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
