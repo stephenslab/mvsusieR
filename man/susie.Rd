@@ -9,8 +9,8 @@ susie(X, Y, L = 10, V = 0.2, residual_variance = NULL,
   intercept = TRUE, estimate_residual_variance = TRUE,
   estimate_prior_variance = FALSE, compute_objective = TRUE,
   s_init = NULL, coverage = 0.95, min_abs_corr = 0.5,
-  compute_univariate_zscore = FALSE, max_iter = 100, tol = 0.001,
-  verbose = TRUE, track_fit = FALSE)
+  compute_univariate_zscore = FALSE, precompute_covariances = FALSE,
+  max_iter = 100, tol = 0.001, verbose = TRUE, track_fit = FALSE)
 }
 \arguments{
 \item{X}{an n by p matrix of covariates}
@@ -47,6 +47,8 @@ Default set to 0.5 to correspond to squared correlation of 0.25,
 a commonly used threshold for genotype data in genetics studies.}
 
 \item{compute_univariate_zscore}{if true, outputs z-score from per variable univariate regression}
+
+\item{precompute_covariances}{if true, precomputes various covariance quantities to speed up computations at the cost of increased memory usage}
 
 \item{max_iter}{maximum number of iterations to perform}
 

@@ -27,6 +27,7 @@
 #' Default set to 0.5 to correspond to squared correlation of 0.25,
 #' a commonly used threshold for genotype data in genetics studies.
 #' @param compute_univariate_zscore if true, outputs z-score from per variable univariate regression
+#' @param precompute_covariances if true, precomputes various covariance quantities to speed up computations at the cost of increased memory usage
 #' @param max_iter maximum number of iterations to perform
 #' @param tol convergence tolerance
 #' @param verbose if true outputs some progress messages
@@ -64,6 +65,7 @@ susie = function(X,Y,L=10,V=0.2,
                  compute_objective=TRUE,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
+                 precompute_covariances = FALSE,
                  max_iter=100,tol=1e-3,
                  verbose=TRUE,track_fit=FALSE) {
   # Check input X.
@@ -106,6 +108,7 @@ susie = function(X,Y,L=10,V=0.2,
     if (is.null(residual_variance))
       if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
       else residual_variance = var(Y, na.rm=T)
+    if (precompute_covariances) V$precompute_cov_matrices(data, residual_variance, algorithm = 'cpp')
   }
   # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)

@@ -45,7 +45,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         private$.sbhat = sbhat
       }
       if (private$alpha != 0 && !all(sbhat == 1)) {
-        s_alpha = sbhat ^ private$alpha 
+        s_alpha = sbhat ^ private$alpha
         bhat =  bhat / s_alpha
         sbhat = sbhat ^ (1 - private$alpha)
       } else {
