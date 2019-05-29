@@ -179,14 +179,16 @@ MashInitializer <- R6Class("MashInitializer",
       # functions calc_lik_common_rcpp() and
       # calc_post_precision_rcpp()
       # The input should be sbhat data matrix
-      sigma2 = diag(residual_variance)
       # d[j,] can be different for different conditions due to missing Y data
       # FIXME: did not use alpha information
       if (d$Y_has_missing()) {
-        sbhat0 = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
-        svs = get_sumstats_missing_data(d$X, d$Y, residual_variance, private$V)$svs
-        common_sbhat = FALSE
+        res = get_sumstats_missing_data(d$X, d$Y, residual_variance, private$V, private$a)
+        svs = res$svs
+        sbhat0 = res$sbhat0
+        sbhat = sbhat0 ^ (1 - private$a)
+        common_sbhat = is_mat_common(sbhat)
       } else {
+        sigma2 = diag(residual_variance)
         sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
@@ -196,7 +198,7 @@ MashInitializer <- R6Class("MashInitializer",
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
       # FIXME: compute this in parallel in the future
       algorithm = match.arg(algorithm)
-      if (common_sbhat && !d$X_has_missing() && !d$Y_has_missing()) {
+      if (is.matrix(svs)) {
         # sigma_rooti is R * R * P
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()

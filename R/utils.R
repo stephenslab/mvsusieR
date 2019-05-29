@@ -300,15 +300,25 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 
 #' @title Compute multivariate summary statistics in the presence of missing data
 #' @keywords internal
-get_sumstats_missing_data = function(X, Y, residual_variances, V){
+get_sumstats_missing_data = function(X, Y, residual_variances, V, alpha){
   J = ncol(X)
   R = ncol(Y)
   M = !is.na(Y)
+  # this is same as DenseData$new()$Xty
+  # recomputed here for clarity
   Xty = sapply(1:R, function(r) crossprod(X[M[,r],], Y[M[,r],r]) ) # J by R
+  # this is same as DenseData$new()$d
+  # recomputed here for clarity
   X2 = sapply(1:R, function(r) colSums(X[M[,r],]^2 )) # J by R
   bhat = Xty/X2
   S = lapply(1:J, function(j) diag(1/X2[j,]) * residual_variances )
+  sbhat0 = sqrt(do.call(rbind, lapply(1:length(S), function(j) diag(S[[j]]))))
   Sigma = sqrt(residual_variances) * t(sqrt(residual_variances) * V)
+  # FIXME: need to think of using other alpha values 
+  # though currently we are not even doing that in MASH
+  if (alpha != 0) {
+    for (j in 1:J) diag(S[[j]]) = diag(S[[j]]) ^ (1 - alpha)
+  }
   # FIXME: may want to do this in parallel
   for(j in 1:J){
     for(r in 1:(R-1)){
@@ -319,5 +329,6 @@ get_sumstats_missing_data = function(X, Y, residual_variances, V){
       }
     }
   }
-  return(list(svs=S, bhat=bhat))
+  if (alpha == 1) S = S[[1]]
+  return(list(svs=S, sbhat0=sbhat0, bhat=bhat))
 }
