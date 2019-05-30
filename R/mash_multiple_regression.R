@@ -138,7 +138,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, alpha = 0, weights_tol = 1E-10, top_mixtures = 20) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {

@@ -42,7 +42,7 @@ test_that("mash regression in SuSiE is identical to univariate case", with(simul
     A = susie(X,y,L=L,V=scaled_prior_var,
                 estimate_residual_variance=FALSE,
                 compute_objective=FALSE)
-    m_init = MashInitializer$new(list(V), 1, 1, 0)
+    m_init = MashInitializer$new(list(V), 1, 1, 0, alpha = 0)
     B = susie(X,y,L=L,V=m_init,compute_objective=FALSE)
     expect_susie_equal(A,B,F,F)
 }))
