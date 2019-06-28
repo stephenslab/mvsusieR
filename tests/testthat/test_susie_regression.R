@@ -57,3 +57,8 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     B = susie(X,y,L=L,V=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
     expect_susie_equal(A,B,F,F)
 }))
+
+test_that("customized initialization interface", with(simulate_multivariate(r=3), {
+    m_init = MashInitializer$new(list(V), 1, 1, 0, alpha = 0)
+    A = susie(X,y,L=L,V=m_init,s_init=list(coef_index=c(2,3,4),coef_value=matrix(1,3,3)),compute_objective=FALSE)
+}))

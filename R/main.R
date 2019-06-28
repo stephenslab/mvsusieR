@@ -113,6 +113,7 @@ susie = function(X,Y,L=10,V=0.2,
   # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
+  if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, ncol(X), ncol(Y))
   SuSiE_model$fit(data)
   s = report_susie_model(data, SuSiE_model)
   ## END new mmbr code

@@ -40,6 +40,10 @@ SingleEffectRegression <- function(base)
     ),
     active = list(
         # user accessible interface
+        mu = function(v) {
+            if (missing(v)) private$.posterior_b1
+            else private$.posterior_b1 = v
+        },
         posterior_b1 = function(v) {
             # posterior first moment, alpha * posterior_b1_reg
             if (missing(v)) private$.pip * private$.posterior_b1
@@ -65,6 +69,7 @@ SingleEffectRegression <- function(base)
         },
         pip = function(v) {
             if (missing(v)) private$.pip
+            # allow for initializing it
             else private$.pip = v
         },
         lbf_single_effect = function(v) {

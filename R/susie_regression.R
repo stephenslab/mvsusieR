@@ -24,6 +24,22 @@ SuSiE <- R6Class("SuSiE",
         if (track_pip) private$pip_history = list()
         if (track_lbf) private$lbf_history = list()
     },
+    init_coef = function(coef_index, coef_value, p, r) {
+        L = length(coef_index)
+        if (L <= 0) stop("Need at least one non-zero effect")
+        if (L > private$L) stop("Cannot initialize more effects than the current model allows")
+        if (any(which(apply(coef_value,1,sum)==0))) stop("Input coef_value must be at least one non-zero item per row")
+        if (L != nrow(coef_value)) stop("Inputs coef_index and coef_value must of the same length")
+        if (max(coef_index)>p) stop("Input coef_index exceeds the boundary of p")
+        for (i in 1:L) {
+            alpha = rep(0, p)
+            mu = matrix(0, p, r)
+            alpha[coef_index[i]] = 1
+            mu[coef_index[i], i] = coef_value[i]
+            private$SER[[i]]$pip = alpha
+            private$SER[[i]]$mu = mu
+        }
+    },
     fit = function(d, verbose=TRUE) {
         if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
                                     clear = TRUE, total = private$niter, show_after = .5)
