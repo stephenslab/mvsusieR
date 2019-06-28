@@ -35,7 +35,7 @@ SuSiE <- R6Class("SuSiE",
             alpha = rep(0, p)
             mu = matrix(0, p, r)
             alpha[coef_index[i]] = 1
-            mu[coef_index[i], i] = coef_value[i]
+            mu[coef_index[i], ] = coef_value[i,]
             private$SER[[i]]$pip = alpha
             private$SER[[i]]$mu = mu
         }
@@ -47,11 +47,15 @@ SuSiE <- R6Class("SuSiE",
         for (i in 1:private$niter) {
             private$save_history()
             for (l in 1:private$L) {
+                #print("----1-----")
+                #print(head(private$SER[[l]]$predict(d)))
                 d$remove_from_fitted(private$SER[[l]]$predict(d))
                 d$compute_residual()
                 private$SER[[l]]$residual_variance = private$sigma2
                 private$SER[[l]]$fit(d)
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
+                #print("----2-----")
+                #print(head(private$SER[[l]]$predict(d)))
                 d$add_to_fitted(private$SER[[l]]$predict(d))
             }
             if (private$to_estimate_residual_variance || private$to_compute_objective) {
