@@ -46,17 +46,22 @@ SuSiE <- R6Class("SuSiE",
         else pb = null_progress_bar$new()
         for (i in 1:private$niter) {
             private$save_history()
+            fitted = d$compute_Xb(Reduce(`+`, lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1)))
+            d$compute_residual(fitted)
+            #print(c('iteration', i))
             for (l in 1:private$L) {
+                #print(c("effect", l))
                 #print("----1-----")
-                #print(head(private$SER[[l]]$predict(d)))
-                d$remove_from_fitted(private$SER[[l]]$predict(d))
-                d$compute_residual()
+                #print(head(private$SER[[l]]$predict(d), 2))
+                #print(tail(private$SER[[l]]$predict(d), 2))
+                d$add_to_residual(private$SER[[l]]$predict(d))
                 private$SER[[l]]$residual_variance = private$sigma2
                 private$SER[[l]]$fit(d)
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
                 #print("----2-----")
-                #print(head(private$SER[[l]]$predict(d)))
-                d$add_to_fitted(private$SER[[l]]$predict(d))
+                #print(head(private$SER[[l]]$predict(d), 2))
+                #print(tail(private$SER[[l]]$predict(d), 2))
+                d$remove_from_residual(private$SER[[l]]$predict(d))
             }
             if (private$to_estimate_residual_variance || private$to_compute_objective) {
                 # assign these variables for performance consideration

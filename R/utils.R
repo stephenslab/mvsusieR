@@ -56,12 +56,13 @@ report_susie_model = function(d, m) {
         V = m$prior_variance,
         elbo = m$get_objective(dump=TRUE),
         niter = m$get_niter(),
-        fitted = d$fitted,
         coef = d$rescale_coef(b),
         null_index = -9,
         mixture_weights = mixture_weights,
         lfsr = lfsr 
         )
+    # FIXME: need to check scaling issue for the fitted
+    s$fitted = d$compute_Xb(b)
     if (is.null(dim(s$coef))) s$intercept = s$coef[1]
     else s$intercept = s$coef[1,]
     class(s) = 'susie'

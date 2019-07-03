@@ -15,7 +15,6 @@ DenseData <- R6Class("DenseData",
       private$Y_non_missing = !Y_missing
       private$.Y_has_missing = any(Y_missing)
       private$standardize(center,scale)
-      private$.fitted = matrix(0, private$N, private$R) 
       private$residual = private$.Y
     },
     compute_Xb = function(b) {
@@ -26,17 +25,14 @@ DenseData <- R6Class("DenseData",
       # tcrossprod(A,B) performs A%*%t(B) but faster
       tcrossprod(M,private$.X)
     },
-    remove_from_fitted = function(value) {
-      # this is meant for SuSiE model
-      # where a good fit is achieved bit by bit like this
-      # (along with add_to_fitted method)
-      private$.fitted = private$.fitted - value
+    remove_from_residual = function(value) {
+      private$residual = private$residual - value
     },
-    add_to_fitted = function(value) {
-      private$.fitted = private$.fitted + value
+    add_to_residual = function(value) {
+      private$residual = private$residual + value
     },
-    compute_residual = function() {
-      private$residual = private$.Y - private$.fitted 
+    compute_residual = function(fitted) {
+      private$residual = private$.Y - fitted
     },
     X_has_missing = function() {
       any(is.na(private$.X))
@@ -63,7 +59,6 @@ DenseData <- R6Class("DenseData",
     .X = NULL,
     .Y = NULL,
     .d = NULL,
-    .fitted = NULL,
     N = NULL,
     J = NULL,
     R = NULL,
@@ -115,10 +110,6 @@ DenseData <- R6Class("DenseData",
       if (missing(value)) private$.d
       else private$denied('d')
     },
-    fitted = function(value) {
-      if (missing(value)) private$.fitted
-      else private$denied('fitted')
-    },
     XtY = function(value) {
       if (missing(value)) {
         if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$.Y[private$Y_non_missing[,r],r]))
@@ -157,20 +148,19 @@ SSData <- R6Class("SSData",
       if (is.null(dim(YtY))) private$R = 1
       else private$R = nrow(YtY)
       private$standardize(scale)
-      private$.fitted = matrix(0, private$J, private$R)
       private$residual = private$.XtY
     },
     compute_Xb = function(b) {
       tcrossprod(private$.XtX,t(b))
     },
-    remove_from_fitted = function(value) {
-      private$.fitted = private$.fitted - value
+    remove_from_residual = function(value) {
+      private$residual = private$residual - value
     },
-    add_to_fitted = function(value) {
-      private$.fitted = private$.fitted + value
+    add_to_residual = function(value) {
+      private$residual = private$residual + value
     },
-    compute_residual = function() {
-      private$residual = private$.XtY - private$.fitted 
+    compute_residual = function(fitted) {
+      private$residual = private$.XtY - fitted
     },
     rescale_coef = function(b) {
       c(0, b/private$csd)
@@ -181,7 +171,6 @@ SSData <- R6Class("SSData",
     .XtY = NULL,
     .YtY = NULL,
     .d = NULL,
-    .fitted = NULL,
     N = NULL,
     J = NULL,
     R = NULL,
@@ -216,10 +205,6 @@ SSData <- R6Class("SSData",
     d = function(value) {
       if (missing(value)) private$.d
       else private$denied('d')
-    },
-    fitted = function(value) {
-      if (missing(value)) private$.fitted
-      else private$denied('fitted')
     },
     XtR = function(value) {
       if (missing(value)) private$residual
