@@ -33,6 +33,7 @@ report_susie_model = function(d, m) {
         # single effect
         b = do.call(cbind, lapply(1:dim(b1)[3], function(i) b1[,,i]))
       } else {
+        # multiple effect dimension fix
         b = do.call(cbind, lapply(1:dim(b1)[3], function(i) colSums(b1[,,i])))
       }
       if (dim(b)[2] == 1) {
