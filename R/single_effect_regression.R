@@ -17,26 +17,29 @@ SingleEffectRegression <- function(base)
             ws = safe_compute_weight(private$.lbf, private$prior_weights, log = TRUE)
             private$.pip = ws$alpha
             private$.lbf_single_effect = ws$log_total
-            self$compute_loglik_null(d)
-            private$.mloglik_single_effect = private$.lbf_single_effect + private$.loglik_null
         },
         predict = function(d) {
             d$compute_Xb(self$posterior_b1)
         },
         compute_kl = function(d) {
             # compute KL divergence
-            pp_eloglik = compute_expected_loglik_partial(d, private$.residual_variance,
-                                                    self$posterior_b1,
-                                                    self$posterior_b2)
+            pp_eloglik = private$compute_expected_loglik_partial(d)
             private$.kl = pp_eloglik - private$.lbf_single_effect
         }
     ),
     private = list(
         prior_weights = NULL, # prior on gamma
-        .mloglik_single_effect = NULL,
         .pip = NULL, # posterior inclusion probability, alpha
         .lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
-        .kl = NULL
+        .kl = NULL,
+        # This is the expected loglik minus the loglik_null, that is, N(R|B,V) - N(R|0,V)
+        compute_expected_loglik_partial = function(d) {
+            if (inherits(d, c("DenseData", "SSData", "SparseData"))) {
+                return(- (0.5/private$.residual_variance) * (- 2*sum(self$posterior_b1*d$XtR) + sum(d$d*as.vector(self$posterior_b2))))
+            } else {
+                stop("compute_expected_loglik_partial not implemented for given data type")
+            }
+        }
     ),
     active = list(
         # user accessible interface
@@ -76,21 +79,9 @@ SingleEffectRegression <- function(base)
             if (missing(v)) private$.lbf_single_effect
             else private$.lbf_single_effect = v
         },
-        mloglik_single_effect = function(v) {
-            if (missing(v)) private$.mloglik_single_effect
-            else private$denied('mloglik_single_effect')
-        },
         mixture_posterior_weights = function(v) {
             if (missing(v)) private$.mixture_posterior_weights
             else private$denied('mixture_posterior_weights')
         }
     )
   )
-
-compute_expected_loglik_partial = function(d, s2, Eb1, Eb2) {
-    if (inherits(d, c("DenseData", "SSData", "SparseData"))) {
-        return(- (0.5/s2) * (- 2*sum(Eb1*d$XtR) + sum(d$d*as.vector(Eb2))))
-    } else {
-        stop("compute_expected_loglik_partial not implemented for given data type")
-    }
-}
