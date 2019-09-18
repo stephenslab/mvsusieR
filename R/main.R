@@ -71,6 +71,9 @@ susie = function(X,Y,L=10,V=0.2,
   # Check input X.
   if (!(is.double(X) & is.matrix(X)) & !inherits(X,"CsparseMatrix"))
     stop("Input X must be a double-precision matrix, or a sparse matrix.")
+  if (any(is.na(X))) {
+    stop("Input X must not contain missing values.")
+  }
   if (is.numeric(null_weight) && null_weight == 0) null_weight = NULL
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
