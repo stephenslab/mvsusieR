@@ -63,14 +63,11 @@ SuSiE <- R6Class("SuSiE",
                 #print(tail(private$SER[[l]]$predict(d), 2))
                 d$remove_from_residual(private$SER[[l]]$predict(d))
             }
-            if (private$to_estimate_residual_variance || private$to_compute_objective) {
-                # assign these variables for performance consideration
-                # because these active bindings involve some computation
-                b1 = self$posterior_b1
-                b2 = self$posterior_b2
-                private$estimate_residual_variance(d,b1,b2)
-                private$compute_objective(d,b1,b2)
-            }
+            # FIXME: different logic for univariate and multivariate cases
+            if (private$to_estimate_residual_variance) 
+                private$estimate_residual_variance(d)
+            if (private$to_compute_objective)
+                private$compute_objective(d)
             convergence = private$check_convergence(i)
             if (convergence$converged) {
                 private$save_history()
@@ -119,22 +116,39 @@ SuSiE <- R6Class("SuSiE",
             return (list(delta=delta, converged=(delta < private$tol)))
         }
     },
-    compute_objective = function(d,b1,b2) {
+    compute_objective = function(d) {
         if (private$to_compute_objective) {
-            if (is.null(private$essr)) {
-                essr = compute_expected_sum_squared_residuals(d,b1,b2)
+            v_inv = private$SER[[1]]$residual_variance_inv
+            if (is.null(v_inv)) {
+                # univeriate case
+                # FIXME: should improve the way to identify
+                if (is.null(private$essr)) {
+                    essr = compute_expected_sum_squared_residuals(d,self$posterior_b1,self$posterior_b2)
+                } else {
+                    essr = private$essr
+                }
+                expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
             } else {
-                essr = private$essr
+                XtX = d$XtX
+                essr = 0
+                for (l1 in 1:length(private$SER)) {
+                    for (l2 in 1:length(private$SER)) {
+                        essr = essr + tr(v_inv%*%t(private$SER[[l1]]$posterior_b1)%*%XtX%*%private$SER[[l2]]$posterior_b1)
+                    }
+                    essr = essr + private$SER[[l1]]$str_vs
+                }
+                res = tr(v_inv%*%crossprod(d$Y, d$Y)) - 2 * tr(d$Y %*% v_inv %*% Reduce('+', lapply(1:length(private$SER), function(l) t(private$SER[[l]]$posterior_b1) %*% t(d$X)))) + essr
+                expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample * log(det(private$SER[[1]]$residual_variance)) - res / 2
             }
-            expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
-            private$elbo = c(private$elbo, expected_loglik - sum(self$kl))
+            elbo = expected_loglik - Reduce('+', self$kl)
         } else {
-            private$elbo = c(private$elbo, NA)
+            elbo = NA
         }
+        private$elbo = c(private$elbo, elbo)
     },
-    estimate_residual_variance = function(d,b1,b2) {
+    estimate_residual_variance = function(d) {
         if (private$to_estimate_residual_variance) {
-            private$essr = compute_expected_sum_squared_residuals(d,b1,b2)
+            private$essr = compute_expected_sum_squared_residuals(d,self$posterior_b1,self$posterior_b2)
             # FIXME: should we bother with it being N - 1 (or N - 2)?
             private$sigma2 = private$essr / d$n_sample
         }

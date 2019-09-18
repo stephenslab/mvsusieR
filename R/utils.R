@@ -6,6 +6,15 @@ muffled_chol = function(x, ...)
                           invokeRestart("muffleWarning")
                       })
 
+#' @title Find trace of diag matrix
+#' @keywords internal
+tr = function (m) {
+    if (!is.matrix(m) | (dim(m)[1] != dim(m)[2])) 
+        stop("Input to tr() function must be a square matrix")
+    return(sum(diag(m), na.rm = TRUE))
+}
+
+
 #' @title compute value_j * weight_j / sum(value_j * weight_j)
 #' @keywords internal
 safe_compute_weight = function(value, weight, log = TRUE) {

@@ -7,7 +7,7 @@
 susie(X, Y, L = 10, V = 0.2, residual_variance = NULL,
   prior_weights = NULL, null_weight = NULL, standardize = TRUE,
   intercept = TRUE, estimate_residual_variance = TRUE,
-  estimate_prior_variance = FALSE, compute_objective = TRUE,
+  estimate_prior_variance = FALSE, compute_objective = FALSE,
   s_init = NULL, coverage = 0.95, min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE, precompute_covariances = FALSE,
   max_iter = 100, tol = 0.001, verbose = TRUE, track_fit = FALSE)

@@ -62,7 +62,7 @@ susie = function(X,Y,L=10,V=0.2,
                  standardize=TRUE,intercept=TRUE,
                  estimate_residual_variance=TRUE,
                  estimate_prior_variance=FALSE,
-                 compute_objective=TRUE,
+                 compute_objective=FALSE,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
                  precompute_covariances = FALSE,
@@ -104,7 +104,6 @@ susie = function(X,Y,L=10,V=0.2,
   } else {
     # FIXME: check V is valid input. 
     base = MashMultipleRegression
-    compute_objective = FALSE
     if (is.null(residual_variance))
       #if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
       if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")

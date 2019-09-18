@@ -8,7 +8,6 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       private$.prior_variance = prior_variance
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, 1)
-      private$.posterior_b2 = matrix(0, J, 1)
       private$estimate_prior_variance = estimate_prior_variance
 
     },
