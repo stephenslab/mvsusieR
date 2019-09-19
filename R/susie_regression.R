@@ -121,7 +121,7 @@ SuSiE <- R6Class("SuSiE",
             v_inv = private$SER[[1]]$residual_variance_inv
             if (is.null(v_inv)) {
                 # univeriate case
-                # FIXME: should improve the way to identify
+                # FIXME: should improve the way to identify univariate vs multivariate
                 if (is.null(private$essr)) {
                     essr = compute_expected_sum_squared_residuals(d,self$posterior_b1,self$posterior_b2)
                 } else {
@@ -129,16 +129,10 @@ SuSiE <- R6Class("SuSiE",
                 }
                 expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
             } else {
-                XtX = d$XtX
-                essr = 0
-                for (l1 in 1:length(private$SER)) {
-                    for (l2 in 1:length(private$SER)) {
-                        essr = essr + tr(v_inv%*%t(private$SER[[l1]]$posterior_b1)%*%XtX%*%private$SER[[l2]]$posterior_b1)
-                    }
-                    essr = essr + private$SER[[l1]]$str_vs
-                }
-                res = tr(v_inv%*%crossprod(d$Y, d$Y)) - 2 * tr(d$Y %*% v_inv %*% Reduce('+', lapply(1:length(private$SER), function(l) t(private$SER[[l]]$posterior_b1) %*% t(d$X)))) + essr
-                expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample * log(det(private$SER[[1]]$residual_variance)) - res / 2
+                expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
+                E1 = tr(v_inv%*%crossprod(d$Y, d$Y)) - 2 * tr(v_inv %*% t(d$Y) %*% d$X %*% Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1)))
+                essr = -0.5 * (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
+                expected_loglik = expected_loglik + essr
             }
             elbo = expected_loglik - Reduce('+', self$kl)
         } else {

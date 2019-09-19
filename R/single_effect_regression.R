@@ -32,7 +32,7 @@ SingleEffectRegression <- function(base)
         .pip = NULL, # posterior inclusion probability, alpha
         .lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
         .kl = NULL,
-        .str_vs = NULL,
+        .vbxxb = NULL,
         # This is the expected loglik minus the loglik_null, that is, N(R|B,V) - N(R|0,V)
         compute_expected_loglik_partial = function(d) {
             if (inherits(d, c("DenseData", "SSData", "SparseData"))) {
@@ -43,9 +43,8 @@ SingleEffectRegression <- function(base)
                     E1 = tr(private$.residual_variance_inv %*% t(self$posterior_b1) %*% d$XtR)
                     # posterior variance covariance matrix, weighted by PIP
                     S = lapply(1:dim(private$.posterior_b2)[3], function(j) private$.pip[j] * private$.posterior_b2[,,j] - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
-                    tr_vs = sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]]))
-                    private$.str_vs = sum(d$d*tr_vs)
-                    E2 = tr(private$.residual_variance_inv%*%t(self$posterior_b1)%*%d$XtX%*%self$posterior_b1) + private$.str_vs
+                    private$.vbxxb = sum(d$d * sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]])))
+                    E2 = sum(d$d * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,]))
                     return(E1 - E2 / 2)
                 }
             } else {
@@ -95,9 +94,9 @@ SingleEffectRegression <- function(base)
             if (missing(v)) private$.mixture_posterior_weights
             else private$denied('mixture_posterior_weights')
         },
-        str_vs = function(v) {
-            if (missing(v)) private$.str_vs
-            else private$denied('str_vs')
+        vbxxb = function(v) {
+            if (missing(v)) private$.vbxxb
+            else private$denied('vbxxb')
         }
     )
   )
