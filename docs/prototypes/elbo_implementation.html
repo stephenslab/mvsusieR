@@ -1,0 +1,816 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=prototypesDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=prototypesArray;
+            var docs_map=prototypesArrayMap;
+            var pos=prototypesArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>R package for the M&M method for regression</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">R package for the M&M method for regression</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../prototypes.html">Prototypes</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="ELBO-implementation-and-comparisons">ELBO implementation and comparisons<a class="anchor-link" href="#ELBO-implementation-and-comparisons">&#182;</a></h1><p>I have implemented ELBO for M&amp;M model based on write up in <a href="https://www.overleaf.com/project/5bd111aaa3ec8118d7b1cfa8">this document</a>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="susieR-implementation-in-univariate-case"><code>susieR</code> implementation in univariate case<a class="anchor-link" href="#susieR-implementation-in-univariate-case">&#182;</a></h2><p>Here I simulate one trait and run with <code>susieR::susie</code> as well as <code>mmbr::susie</code> to check if the elbo agree.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>mmbr<span class="p">)</span>
+<span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading required package: mashr
+Loading required package: ashr
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>I pick <code>L=5</code> and simulate a univariate trait,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>L <span class="o">=</span> <span class="m">5</span>
+dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">1</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Then run SuSiE and get the ELBO,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> susieR<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>scaled_prior_variance<span class="o">=</span><span class="m">0.2</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-429.40495176513</li>
+	<li>-409.549300389438</li>
+	<li>-407.707739710942</li>
+	<li>-407.7058409462</li>
+	<li>-407.70583907902</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Compare-mmbr's-Bayesian-multivariate-regression-module-with-SuSiE">Compare <code>mmbr</code>'s Bayesian multivariate regression module with SuSiE<a class="anchor-link" href="#Compare-mmbr's-Bayesian-multivariate-regression-module-with-SuSiE">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>I have implemented the multiple regression <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_multiple_regression.R">in this class in <code>mmbr</code> package</a>. On the <code>mmbr</code> interface this is triggered by setting prior <code>V</code> as a scalar and make input <code>Y</code> a one column matrix,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span><span class="m">0.2</span><span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-429.40495176513</li>
+	<li>-409.549300389436</li>
+	<li>-407.707739710942</li>
+	<li>-407.7058409462</li>
+	<li>-407.70583907902</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The output is identical to using <code>susieR</code>.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Compare-mmbr's-MASH-regression-module-with-SuSiE">Compare <code>mmbr</code>'s MASH regression module with SuSiE<a class="anchor-link" href="#Compare-mmbr's-MASH-regression-module-with-SuSiE">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here I create a degenerated <a href="https://github.com/gaow/mmbr/blob/master/R/mash_multiple_regression.R">MASH regression module implemented in <code>mmbr</code></a>. "Degenerated" means it has only one phenotype, and the prior is also a trivial one-component 1 by 1 matrix of <code>0.2 * var(Y)</code>. Here we use <code>EE</code> model in MASH (<code>alpha = 0</code>).</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The difference in code between this and previous section in computing ELBO can be found in this function for computing the L-th KL: <a href="https://github.com/gaow/mmbr/blob/7eead885b914efcb44e97acfb26a1b81bec6ab64/R/single_effect_regression.R#L37">compute_expected_loglik_partial()</a> and this function: <a href="https://github.com/gaow/mmbr/blob/7eead885b914efcb44e97acfb26a1b81bec6ab64/R/susie_regression.R#L111">compute_objective()</a> for finalizing the ELBO. The univariate and multivariate cases are distinguished by <code>if ... else</code> statement.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="kt">matrix</span><span class="p">(</span><span class="m">0.2</span><span class="o">*</span>var<span class="p">(</span>dat<span class="o">$</span>y<span class="p">))),</span> <span class="m">1</span><span class="p">,</span> prior_weight <span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
+m_init<span class="o">$</span>mash_prior
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$pi</dt>
+		<dd><ol class=list-inline>
+	<li>0</li>
+	<li>1</li>
+</ol>
+</dd>
+	<dt>$Ulist</dt>
+		<dd><ol>
+	<li><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1.138784</td></tr>
+</tbody>
+</table>
+</li>
+</ol>
+</dd>
+	<dt>$grid</dt>
+		<dd>1</dd>
+	<dt>$usepointmass</dt>
+		<dd>TRUE</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-429.40495176513</li>
+	<li>-409.549300389436</li>
+	<li>-407.707739710942</li>
+	<li>-407.7058409462</li>
+	<li>-407.70583907902</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The output is also the same as previous calculations.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Problem-with-multivariate-calculation">Problem with multivariate calculation<a class="anchor-link" href="#Problem-with-multivariate-calculation">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now using the same code, but more phenotypes, <code>R = 5</code>, and still using a very simple prior for the MASH part,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">5</span><span class="p">)</span>
+m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>dat<span class="o">$</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> prior_weight <span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
+m_init<span class="o">$</span>mash_prior
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$pi</dt>
+		<dd><ol class=list-inline>
+	<li>0</li>
+	<li>1</li>
+</ol>
+</dd>
+	<dt>$Ulist</dt>
+		<dd><ol>
+	<li><table>
+<caption>A matrix: 5 × 5 of type dbl</caption>
+<tbody>
+	<tr><td> 1.14068826</td><td>-0.02561830</td><td>-0.19275481</td><td>-0.040421229</td><td>-0.029376381</td></tr>
+	<tr><td>-0.02561830</td><td> 1.01088663</td><td> 0.03491952</td><td> 0.018064842</td><td> 0.016833489</td></tr>
+	<tr><td>-0.19275481</td><td> 0.03491952</td><td> 1.15215509</td><td>-0.112673234</td><td>-0.063194855</td></tr>
+	<tr><td>-0.04042123</td><td> 0.01806484</td><td>-0.11267323</td><td> 0.836044978</td><td> 0.008248383</td></tr>
+	<tr><td>-0.02937638</td><td> 0.01683349</td><td>-0.06319485</td><td> 0.008248383</td><td> 0.865937437</td></tr>
+</tbody>
+</table>
+</li>
+</ol>
+</dd>
+	<dt>$grid</dt>
+		<dd>1</dd>
+	<dt>$usepointmass</dt>
+		<dd>TRUE</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>But the ELBO now is problematic,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Warning message in m$get_objective(dump = TRUE):
+“Objective is not non-decreasing”</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-2175.62693859326</li>
+	<li>-2167.86641698802</li>
+	<li>-2165.96779287995</li>
+	<li>-2163.65364615963</li>
+	<li>-2162.84327893865</li>
+	<li>-2161.81742415547</li>
+	<li>-2160.47818053715</li>
+	<li>-2160.57300024871</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>although it is not always reproduced, eg with a different seed:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">5</span><span class="p">)</span>
+m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>dat<span class="o">$</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> prior_weight <span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
+res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-2160.72684263865</li>
+	<li>-2156.67794273142</li>
+	<li>-2155.30077273089</li>
+	<li>-2153.17920875588</li>
+	<li>-2152.59376272092</li>
+	<li>-2152.46246944398</li>
+	<li>-2152.43582299289</li>
+	<li>-2152.42981649149</li>
+	<li>-2152.42826536545</li>
+	<li>-2152.42782200092</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<hr>
+&copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
+<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/elbo_implementation.ipynb"><code>prototypes/elbo_implementation.ipynb</code></a> committed by Gao Wang on Fri Sep 20 15:31:00 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+</div>
+</div>
+</body>
+</html>
