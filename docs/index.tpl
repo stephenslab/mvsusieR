@@ -1,4 +1,7 @@
+{%- extends 'basic.tpl' -%}
 
+{%- block header -%}
+{{ super() }}
 
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -197,14 +200,9 @@ $(document).ready(function () {
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Welcome-to-R-package-for-the-M&amp;M-method-for-regression!">Welcome to R package for the M&amp;M method for regression!<a class="anchor-link" href="#Welcome-to-R-package-for-the-M&amp;M-method-for-regression!">&#182;</a></h1>
-</div>
-</div>
-</div>
+
+{%- endblock header -%}
+{% block footer %}
 <hr>
 &copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
 <!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
@@ -229,3 +227,4 @@ $(document).ready(function () {
 </script>
 </body>
 </html>
+{% endblock %}

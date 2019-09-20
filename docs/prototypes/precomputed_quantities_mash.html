@@ -1,0 +1,743 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=prototypesDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=prototypesArray;
+            var docs_map=prototypesArrayMap;
+            var pos=prototypesArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>R package for the M&M method for regression</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">R package for the M&M method for regression</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../prototypes.html">Prototypes</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Pre-computing-various-second-moment-related-quantities">Pre-computing various second-moment related quantities<a class="anchor-link" href="#Pre-computing-various-second-moment-related-quantities">&#182;</a></h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This saves computation for M&amp;M by precomputing and re-using quantitaties shared between iterations. It mostly saves $O(R^3)$ computations. This vignette shows results agree with the original version. Cannot use unit test due to numerical discrepency between <code>chol</code> of amardillo and R -- this has been shown problematic for some computations. I'll have to improve <code>mashr</code> for it.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>muffled_chol <span class="o">=</span> <span class="kr">function</span><span class="p">(</span>x<span class="p">,</span> <span class="kc">...</span><span class="p">)</span>
+<span class="kp">withCallingHandlers</span><span class="p">(</span><span class="kp">chol</span><span class="p">(</span>x<span class="p">,</span> <span class="kc">...</span><span class="p">),</span>
+                    warning <span class="o">=</span> <span class="kr">function</span><span class="p">(</span>w<span class="p">)</span> <span class="p">{</span>
+                      <span class="kr">if</span> <span class="p">(</span><span class="kp">grepl</span><span class="p">(</span><span class="s">&quot;the matrix is either rank-deficient or indefinite&quot;</span><span class="p">,</span> w<span class="o">$</span><span class="kp">message</span><span class="p">))</span>
+                        <span class="kp">invokeRestart</span><span class="p">(</span><span class="s">&quot;muffleWarning&quot;</span><span class="p">)</span>
+                    <span class="p">}</span> <span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+<span class="kn">library</span><span class="p">(</span>mashr<span class="p">)</span>
+simdata <span class="o">=</span> simple_sims<span class="p">(</span><span class="m">500</span><span class="p">,</span><span class="m">5</span><span class="p">,</span><span class="m">1</span><span class="p">)</span>
+data <span class="o">=</span> mash_set_data<span class="p">(</span>simdata<span class="o">$</span>Bhat<span class="p">,</span> simdata<span class="o">$</span>Shat<span class="p">,</span> alpha <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
+U.c <span class="o">=</span> cov_canonical<span class="p">(</span>data<span class="p">)</span>
+grid <span class="o">=</span> mashr<span class="o">:::</span>autoselect_grid<span class="p">(</span>data<span class="p">,</span><span class="kp">sqrt</span><span class="p">(</span><span class="m">2</span><span class="p">))</span>
+Ulist <span class="o">=</span> mashr<span class="o">:::</span>normalize_Ulist<span class="p">(</span>U.c<span class="p">)</span>
+xUlist <span class="o">=</span> expand_cov<span class="p">(</span>Ulist<span class="p">,</span>grid<span class="p">,</span><span class="kc">TRUE</span><span class="p">)</span>
+llik_mat0 <span class="o">=</span> mashr<span class="o">:::</span>calc_lik_rcpp<span class="p">(</span><span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>Bhat<span class="p">),</span><span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>Shat<span class="p">),</span>data<span class="o">$</span>V<span class="p">,</span>
+                             <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> <span class="kp">simplify2array</span><span class="p">(</span>xUlist<span class="p">),</span><span class="bp">T</span><span class="p">,</span><span class="bp">T</span><span class="p">)</span><span class="o">$</span>data
+svs <span class="o">=</span> data<span class="o">$</span>Shat<span class="p">[</span><span class="m">1</span><span class="p">,]</span> <span class="o">*</span> <span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>V <span class="o">*</span> data<span class="o">$</span>Shat<span class="p">[</span><span class="m">1</span><span class="p">,])</span>
+sigma_rooti <span class="o">=</span> <span class="kt">list</span><span class="p">()</span>
+<span class="kr">for</span> <span class="p">(</span>i <span class="kr">in</span> <span class="m">1</span><span class="o">:</span><span class="kp">length</span><span class="p">(</span>xUlist<span class="p">))</span> sigma_rooti<span class="p">[[</span>i<span class="p">]]</span> <span class="o">=</span> <span class="kp">t</span><span class="p">(</span><span class="kp">backsolve</span><span class="p">(</span>muffled_chol<span class="p">(</span>svs <span class="o">+</span> xUlist<span class="p">[[</span>i<span class="p">]],</span> pivot<span class="o">=</span><span class="bp">T</span><span class="p">),</span> <span class="kp">diag</span><span class="p">(</span><span class="kp">nrow</span><span class="p">(</span>svs<span class="p">))))</span>
+llik_mat <span class="o">=</span> mashr<span class="o">:::</span>calc_lik_common_rcpp<span class="p">(</span><span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>Bhat<span class="p">),</span>
+                                 <span class="kp">simplify2array</span><span class="p">(</span>sigma_rooti<span class="p">),</span>
+                                 <span class="bp">T</span><span class="p">)</span><span class="o">$</span>data
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading required package: ashr
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>llik_mat0<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 151 of type dbl</caption>
+<tbody>
+	<tr><td>-6.614617</td><td>-6.618552</td><td>-6.617560</td><td>-6.613450</td><td>-6.616111</td><td>-6.611883</td><td>-6.618015</td><td>-6.633439</td><td>-6.622304</td><td>-6.626036</td><td>⋯</td><td>-16.84729</td><td>-8.927616</td><td>-8.419585</td><td>-8.748621</td><td>-8.225967</td><td>-8.983972</td><td> -9.837773</td><td>-16.62644</td><td>-16.03729</td><td>-14.85275</td></tr>
+	<tr><td>-6.831829</td><td>-6.834020</td><td>-6.835287</td><td>-6.832223</td><td>-6.834385</td><td>-6.827677</td><td>-6.831764</td><td>-6.829151</td><td>-6.832735</td><td>-6.831496</td><td>⋯</td><td>-16.84892</td><td>-9.208583</td><td>-8.829744</td><td>-9.097031</td><td>-8.267823</td><td>-8.773054</td><td> -9.503088</td><td>-16.62518</td><td>-16.03369</td><td>-14.84397</td></tr>
+	<tr><td>-6.695994</td><td>-6.699277</td><td>-6.698464</td><td>-6.689499</td><td>-6.695493</td><td>-6.699789</td><td>-6.700010</td><td>-6.715781</td><td>-6.703436</td><td>-6.707573</td><td>⋯</td><td>-16.84790</td><td>-8.950472</td><td>-7.842302</td><td>-8.583297</td><td>-9.114239</td><td>-9.141571</td><td> -9.943916</td><td>-16.62740</td><td>-16.03880</td><td>-14.85582</td></tr>
+	<tr><td>-5.355281</td><td>-5.369328</td><td>-5.357995</td><td>-5.359199</td><td>-5.355141</td><td>-5.359134</td><td>-5.358983</td><td>-5.373266</td><td>-5.370355</td><td>-5.371353</td><td>⋯</td><td>-16.83787</td><td>-7.640063</td><td>-7.788803</td><td>-7.287280</td><td>-7.780747</td><td>-7.762101</td><td> -8.556955</td><td>-16.61377</td><td>-16.01831</td><td>-14.81529</td></tr>
+	<tr><td>-5.076525</td><td>-5.092811</td><td>-5.080164</td><td>-5.077245</td><td>-5.080430</td><td>-5.080531</td><td>-5.080543</td><td>-5.096056</td><td>-5.093674</td><td>-5.094503</td><td>⋯</td><td>-16.83578</td><td>-7.475559</td><td>-7.114715</td><td>-7.508368</td><td>-7.520835</td><td>-7.522408</td><td> -8.317861</td><td>-16.61124</td><td>-16.01466</td><td>-14.80822</td></tr>
+	<tr><td>-7.535281</td><td>-7.531825</td><td>-7.537303</td><td>-7.532084</td><td>-7.535045</td><td>-7.529715</td><td>-7.538802</td><td>-7.546298</td><td>-7.535427</td><td>-7.539041</td><td>⋯</td><td>-16.85418</td><td>-9.734424</td><td>-9.089307</td><td>-9.455301</td><td>-8.796534</td><td>-9.919744</td><td>-10.558070</td><td>-16.63436</td><td>-16.04849</td><td>-14.87421</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>llik_mat<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 151 of type dbl</caption>
+<tbody>
+	<tr><td>-6.614617</td><td>-6.618552</td><td>-6.617560</td><td>-6.617560</td><td>-6.617560</td><td>-6.617560</td><td>-6.617560</td><td>-6.633439</td><td>-6.622304</td><td>-6.626036</td><td>⋯</td><td>-16.84729</td><td>-8.927616</td><td>-8.927616</td><td>-8.927616</td><td>-8.927616</td><td>-8.927616</td><td> -9.837773</td><td>-16.62644</td><td>-16.03729</td><td>-14.85275</td></tr>
+	<tr><td>-6.831829</td><td>-6.834020</td><td>-6.835287</td><td>-6.835287</td><td>-6.835287</td><td>-6.835287</td><td>-6.835287</td><td>-6.829151</td><td>-6.832735</td><td>-6.831496</td><td>⋯</td><td>-16.84892</td><td>-9.208583</td><td>-9.208583</td><td>-9.208583</td><td>-9.208583</td><td>-9.208583</td><td> -9.503088</td><td>-16.62518</td><td>-16.03369</td><td>-14.84397</td></tr>
+	<tr><td>-6.695994</td><td>-6.699277</td><td>-6.698464</td><td>-6.698464</td><td>-6.698464</td><td>-6.698464</td><td>-6.698464</td><td>-6.715781</td><td>-6.703436</td><td>-6.707573</td><td>⋯</td><td>-16.84790</td><td>-8.950472</td><td>-8.950472</td><td>-8.950472</td><td>-8.950472</td><td>-8.950472</td><td> -9.943916</td><td>-16.62740</td><td>-16.03880</td><td>-14.85582</td></tr>
+	<tr><td>-5.355281</td><td>-5.369328</td><td>-5.357995</td><td>-5.357995</td><td>-5.357995</td><td>-5.357995</td><td>-5.357995</td><td>-5.373266</td><td>-5.370355</td><td>-5.371353</td><td>⋯</td><td>-16.83787</td><td>-7.640063</td><td>-7.640063</td><td>-7.640063</td><td>-7.640063</td><td>-7.640063</td><td> -8.556955</td><td>-16.61377</td><td>-16.01831</td><td>-14.81529</td></tr>
+	<tr><td>-5.076525</td><td>-5.092811</td><td>-5.080164</td><td>-5.080164</td><td>-5.080164</td><td>-5.080164</td><td>-5.080164</td><td>-5.096056</td><td>-5.093674</td><td>-5.094503</td><td>⋯</td><td>-16.83578</td><td>-7.475559</td><td>-7.475559</td><td>-7.475559</td><td>-7.475559</td><td>-7.475559</td><td> -8.317861</td><td>-16.61124</td><td>-16.01466</td><td>-14.80822</td></tr>
+	<tr><td>-7.535281</td><td>-7.531825</td><td>-7.537303</td><td>-7.537303</td><td>-7.537303</td><td>-7.537303</td><td>-7.537303</td><td>-7.546298</td><td>-7.535427</td><td>-7.539041</td><td>⋯</td><td>-16.85418</td><td>-9.734424</td><td>-9.734424</td><td>-9.734424</td><td>-9.734424</td><td>-9.734424</td><td>-10.558070</td><td>-16.63436</td><td>-16.04849</td><td>-14.87421</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>rows <span class="o">&lt;-</span> <span class="kp">which</span><span class="p">(</span><span class="kp">apply</span><span class="p">(</span>llik_mat<span class="p">,</span><span class="m">2</span><span class="p">,</span><span class="kr">function</span> <span class="p">(</span>x<span class="p">)</span> <span class="kp">any</span><span class="p">(</span><span class="kp">is.infinite</span><span class="p">(</span>x<span class="p">))))</span>
+<span class="kr">if</span> <span class="p">(</span><span class="kp">length</span><span class="p">(</span>rows<span class="p">)</span> <span class="o">&gt;</span> <span class="m">0</span><span class="p">)</span>
+    <span class="kp">warning</span><span class="p">(</span><span class="kp">paste</span><span class="p">(</span><span class="s">&quot;Some mixture components result in non-finite likelihoods,&quot;</span><span class="p">,</span>
+                          <span class="s">&quot;either\n&quot;</span><span class="p">,</span><span class="s">&quot;due to numerical underflow/overflow,&quot;</span><span class="p">,</span>
+                          <span class="s">&quot;or due to invalid covariance matrices&quot;</span><span class="p">,</span>
+                          <span class="kp">paste</span><span class="p">(</span>rows<span class="p">,</span>collapse<span class="o">=</span><span class="s">&quot;, &quot;</span><span class="p">),</span> <span class="s">&quot;\n&quot;</span><span class="p">))</span>
+loglik_null <span class="o">=</span> llik_mat<span class="p">[,</span><span class="m">1</span><span class="p">]</span>
+lfactors <span class="o">=</span> <span class="kp">apply</span><span class="p">(</span>llik_mat<span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="kp">max</span><span class="p">)</span>
+llik_mat <span class="o">=</span> llik_mat <span class="o">-</span> lfactors
+mixture_posterior_weights <span class="o">=</span> mashr<span class="o">:::</span>compute_posterior_weights<span class="p">(</span><span class="m">1</span><span class="o">/</span><span class="kp">ncol</span><span class="p">(</span>llik_mat<span class="p">),</span> <span class="kp">exp</span><span class="p">(</span>llik_mat<span class="p">))</span>
+post0 <span class="o">=</span> mashr<span class="o">:::</span>calc_post_rcpp<span class="p">(</span><span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>Bhat<span class="p">),</span> <span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>Shat<span class="p">),</span> <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> 
+                              data<span class="o">$</span>V<span class="p">,</span>
+                              <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> 
+                              <span class="kp">simplify2array</span><span class="p">(</span>xUlist<span class="p">),</span>
+                              <span class="kp">t</span><span class="p">(</span>mixture_posterior_weights<span class="p">),</span>
+                              <span class="bp">T</span><span class="p">,</span> <span class="m">4</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>Vinv <span class="o">=</span> <span class="kp">solve</span><span class="p">(</span>svs<span class="p">)</span>
+U0 <span class="o">=</span> <span class="kt">list</span><span class="p">()</span>
+<span class="kr">for</span> <span class="p">(</span>i <span class="kr">in</span> <span class="m">1</span><span class="o">:</span><span class="kp">length</span><span class="p">(</span>xUlist<span class="p">))</span> U0<span class="p">[[</span>i<span class="p">]]</span> <span class="o">=</span> xUlist<span class="p">[[</span>i<span class="p">]]</span> <span class="o">%*%</span> <span class="kp">solve</span><span class="p">(</span>Vinv <span class="o">%*%</span> xUlist<span class="p">[[</span>i<span class="p">]]</span> <span class="o">+</span> <span class="kp">diag</span><span class="p">(</span><span class="kp">nrow</span><span class="p">(</span>xUlist<span class="p">[[</span>i<span class="p">]])))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>post <span class="o">=</span> mashr<span class="o">:::</span>calc_post_precision_rcpp<span class="p">(</span><span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>Bhat<span class="p">),</span> <span class="kp">t</span><span class="p">(</span>data<span class="o">$</span>Shat<span class="p">),</span> <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> 
+                              data<span class="o">$</span>V<span class="p">,</span>
+                              <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> <span class="kt">matrix</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span> 
+                              Vinv<span class="p">,</span>
+                              <span class="kp">simplify2array</span><span class="p">(</span>U0<span class="p">),</span>
+                              <span class="kp">t</span><span class="p">(</span>mixture_posterior_weights<span class="p">),</span>
+                              <span class="m">4</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>post<span class="o">$</span>post_mean<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 5 of type dbl</caption>
+<tbody>
+	<tr><td> 0.03023996</td><td>-0.09104803</td><td>-0.065958732</td><td> 0.0870959372</td><td>-0.0368528016</td></tr>
+	<tr><td>-0.01197680</td><td>-0.11237334</td><td> 0.005281632</td><td>-0.1483115322</td><td>-0.1167708502</td></tr>
+	<tr><td>-0.04478144</td><td> 0.12249719</td><td>-0.077508133</td><td> 0.0198387907</td><td>-0.0029075669</td></tr>
+	<tr><td>-0.02611321</td><td> 0.02045102</td><td> 0.073993548</td><td>-0.0033532066</td><td> 0.0279024790</td></tr>
+	<tr><td> 0.01468888</td><td>-0.05841497</td><td> 0.006610546</td><td> 0.0007731817</td><td>-0.0006098738</td></tr>
+	<tr><td>-0.03702274</td><td> 0.14111328</td><td>-0.065148199</td><td> 0.1588718245</td><td> 0.0554540584</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>post0<span class="o">$</span>post_mean<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 5 of type dbl</caption>
+<tbody>
+	<tr><td> 0.03023996</td><td>-0.09104803</td><td>-0.065958732</td><td> 0.0870959372</td><td>-0.0368528016</td></tr>
+	<tr><td>-0.01197680</td><td>-0.11237334</td><td> 0.005281632</td><td>-0.1483115322</td><td>-0.1167708502</td></tr>
+	<tr><td>-0.04478144</td><td> 0.12249719</td><td>-0.077508133</td><td> 0.0198387907</td><td>-0.0029075669</td></tr>
+	<tr><td>-0.02611321</td><td> 0.02045102</td><td> 0.073993548</td><td>-0.0033532066</td><td> 0.0279024790</td></tr>
+	<tr><td> 0.01468888</td><td>-0.05841497</td><td> 0.006610546</td><td> 0.0007731817</td><td>-0.0006098738</td></tr>
+	<tr><td>-0.03702274</td><td> 0.14111328</td><td>-0.065148199</td><td> 0.1588718245</td><td> 0.0554540584</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>post<span class="o">$</span>post_cov<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>0.0970547786416048</li>
+	<li>0.0106815929364079</li>
+	<li>0.0121522694564318</li>
+	<li>0.0211239793871823</li>
+	<li>0.0138583916329948</li>
+	<li>0.0106815929364079</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>post0<span class="o">$</span>post_cov<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>0.0970547786416048</li>
+	<li>0.010681592936408</li>
+	<li>0.0121522694564318</li>
+	<li>0.0211239793871823</li>
+	<li>0.0138583916329948</li>
+	<li>0.0106815929364079</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now test the relevant <code>mmbr</code> interface:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>simulate_multivariate <span class="o">=</span> <span class="kr">function</span><span class="p">(</span>n<span class="o">=</span><span class="m">100</span><span class="p">,</span>p<span class="o">=</span><span class="m">100</span><span class="p">,</span>r<span class="o">=</span><span class="m">2</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kp">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+  res <span class="o">=</span> mmbr<span class="o">::</span>mmbr_sim1<span class="p">(</span>n<span class="p">,</span>p<span class="p">,</span>r<span class="p">,</span><span class="m">4</span><span class="p">,</span>center_scale<span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+  res<span class="o">$</span>L <span class="o">=</span> <span class="m">10</span>
+  <span class="kr">return</span><span class="p">(</span>res<span class="p">)</span>
+<span class="p">}</span>
+<span class="kn">attach</span><span class="p">(</span>simulate_multivariate<span class="p">(</span>r<span class="o">=</span><span class="m">2</span><span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>prior_var <span class="o">=</span> V<span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">]</span>
+residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
+data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class="o">$</span>new<span class="p">(</span>X<span class="p">,</span>y<span class="p">)</span>
+A <span class="o">=</span> mmbr<span class="o">:::</span>BayesianMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
+A<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
+null_weight <span class="o">=</span> <span class="m">0</span>
+mash_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span> <span class="o">-</span> null_weight<span class="p">,</span> null_weight<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
+mash_init<span class="o">$</span>precompute_cov_matrices<span class="p">(</span>data<span class="p">,</span> residual_covar<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>B <span class="o">=</span> mmbr<span class="o">:::</span>MashMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> mash_init<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>B<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<hr>
+&copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
+<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/precomputed_quantities_mash.ipynb"><code>prototypes/precomputed_quantities_mash.ipynb</code></a> committed by Gao Wang on Fri Sep 20 13:22:23 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+</div>
+</div>
+</body>
+</html>

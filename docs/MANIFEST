@@ -1,0 +1,16 @@
+docs/index.html
+docs/index.tpl
+docs/js/docs.js
+docs/prototypes.html
+docs/prototypes.tpl
+docs/prototypes/Multivariate_Computation_Compared_Univariate.html
+docs/prototypes/lfsr_for_CS.html
+docs/prototypes/mash_regression_univariate_degenerated.html
+docs/prototypes/missing_data_precomputed.html
+docs/prototypes/mmbr_mwe.html
+docs/prototypes/mmbr_univariate_algorithm_agreement.html
+docs/prototypes/multivariate_regression.html
+docs/prototypes/output_visualization.html
+docs/prototypes/precomputed_quantities_mash.html
+docs/prototypes/two_snps_dispute.html
+docs/prototypes/two_snps_dispute_missing_data.html

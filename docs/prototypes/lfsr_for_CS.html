@@ -1,0 +1,981 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=prototypesDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=prototypesArray;
+            var docs_map=prototypesArrayMap;
+            var pos=prototypesArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>R package for the M&M method for regression</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">R package for the M&M method for regression</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../prototypes.html">Prototypes</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Investigating-behavior-of-lfsr-for-condition-specific-CS">Investigating behavior of lfsr for condition specific CS<a class="anchor-link" href="#Investigating-behavior-of-lfsr-for-condition-specific-CS">&#182;</a></h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here I investigate behavior of lfsr of CS per condition, using singleton simulation setting.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Load-data">Load data<a class="anchor-link" href="#Load-data">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>Y <span class="o">=</span> dscrutils<span class="o">::</span>read_dsc<span class="p">(</span><span class="s">&#39;small_data_1_singleton_1.pkl&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">names</span><span class="p">(</span>Y<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>'Y'</li>
+	<li>'R'</li>
+	<li>'J'</li>
+	<li>'meta'</li>
+	<li>'DSC_DEBUG'</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>X <span class="o">=</span> <span class="kp">readRDS</span><span class="p">(</span><span class="s">&#39;small_data_1.rds&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">names</span><span class="p">(</span>X<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>'X'</li>
+	<li>'Y'</li>
+	<li>'N'</li>
+	<li>'meta'</li>
+	<li>'DSC_DEBUG'</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>prior <span class="o">=</span> dscrutils<span class="o">::</span>read_dsc<span class="p">(</span><span class="s">&#39;oracle_generator_1.pkl&#39;</span><span class="p">)</span><span class="o">$</span>configurations<span class="o">$</span>mixture_1
+<span class="kp">names</span><span class="p">(</span>prior<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>'xUlist'</li>
+	<li>'pi'</li>
+	<li>'null_weight'</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Setup-M&amp;M-model">Setup M&amp;M model<a class="anchor-link" href="#Setup-M&amp;M-model">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span>prior<span class="o">$</span>xUlist<span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> prior<span class="o">$</span><span class="kc">pi</span><span class="p">,</span> prior<span class="o">$</span>null_weight<span class="p">,</span> Y<span class="o">$</span>meta<span class="o">$</span>residual_correlation<span class="p">)</span>
+result <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>X<span class="o">$</span>X<span class="p">,</span> Y<span class="o">$</span>Y<span class="p">,</span> L<span class="o">=</span><span class="m">10</span><span class="p">,</span> V<span class="o">=</span>m_init<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>true_idx <span class="o">=</span> <span class="kp">which</span><span class="p">(</span><span class="kp">apply</span><span class="p">(</span>Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="kp">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
+Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[</span>true_idx<span class="p">,]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-0.452527792535091</li>
+	<li>0</li>
+	<li>0</li>
+	<li>0</li>
+	<li>0</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>true_idx
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+136
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">names</span><span class="p">(</span>result<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>'alpha'</li>
+	<li>'mu'</li>
+	<li>'mu2'</li>
+	<li>'KL'</li>
+	<li>'lbf'</li>
+	<li>'sigma2'</li>
+	<li>'V'</li>
+	<li>'elbo'</li>
+	<li>'niter'</li>
+	<li>'fitted'</li>
+	<li>'coef'</li>
+	<li>'null_index'</li>
+	<li>'mixture_weights'</li>
+	<li>'intercept'</li>
+	<li>'sets'</li>
+	<li>'pip'</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">dim</span><span class="p">(</span>result<span class="o">$</span>mixture_weights<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>10</li>
+	<li>1001</li>
+	<li>41</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>result<span class="o">$</span>pip<span class="p">[</span>true_idx<span class="p">]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+0.266990630555645
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>result<span class="o">$</span>sets
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$cs</dt>
+		<dd><strong>$L1</strong> = <ol class=list-inline>
+	<li>63</li>
+	<li>119</li>
+	<li>128</li>
+	<li>130</li>
+	<li>136</li>
+</ol>
+</dd>
+	<dt>$purity</dt>
+		<dd><table>
+<thead><tr><th></th><th scope=col>min.abs.corr</th><th scope=col>mean.abs.corr</th><th scope=col>median.abs.corr</th></tr></thead>
+<tbody>
+	<tr><th scope=row>L1</th><td>0.9685025</td><td>0.9850541</td><td>0.9828454</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$cs_index</dt>
+		<dd>1</dd>
+	<dt>$coverage</dt>
+		<dd>0.95</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>pip <span class="o">=</span> mmbr<span class="o">::</span>mmbr_get_pip_per_condition<span class="p">(</span>result<span class="p">,</span> m_init<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>pip<span class="p">[</span>true_idx<span class="p">,]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>0.263549734245782</li>
+	<li>0.0125849967978989</li>
+	<li>0.0115212740782256</li>
+	<li>0.0114882603162298</li>
+	<li>0.0120969090373405</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This looks perfectly Okay.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>lfsr <span class="o">=</span> mmbr<span class="o">::</span>mmbr_get_lfsr<span class="p">(</span>result<span class="p">,</span> m_init<span class="p">)</span>
+lfsr
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<tbody>
+	<tr><td>0.0005888439</td><td>0.9846616   </td><td>0.9877158   </td><td>0.988432    </td><td>0.9859519   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+	<tr><td>1.0000000000</td><td>1.0000000   </td><td>1.0000000   </td><td>1.000000    </td><td>1.0000000   </td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This also looks good.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Another-dataset">Another dataset<a class="anchor-link" href="#Another-dataset">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now let me try another data-set,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>Y <span class="o">=</span> dscrutils<span class="o">::</span>read_dsc<span class="p">(</span><span class="s">&#39;small_data_100_singleton_1.pkl&#39;</span><span class="p">)</span>
+X <span class="o">=</span> <span class="kp">readRDS</span><span class="p">(</span><span class="s">&#39;small_data_100.rds&#39;</span><span class="p">)</span>
+prior <span class="o">=</span> dscrutils<span class="o">::</span>read_dsc<span class="p">(</span><span class="s">&#39;oracle_generator_1.pkl&#39;</span><span class="p">)</span><span class="o">$</span>configurations<span class="o">$</span>mixture_1
+m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span>prior<span class="o">$</span>xUlist<span class="p">,</span> <span class="kc">NULL</span><span class="p">,</span> prior<span class="o">$</span><span class="kc">pi</span><span class="p">,</span> prior<span class="o">$</span>null_weight<span class="p">,</span> Y<span class="o">$</span>meta<span class="o">$</span>residual_correlation<span class="p">)</span>
+result <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>X<span class="o">$</span>X<span class="p">,</span> Y<span class="o">$</span>Y<span class="p">,</span> L<span class="o">=</span><span class="m">10</span><span class="p">,</span> V<span class="o">=</span>m_init<span class="p">)</span>
+true_idx <span class="o">=</span> <span class="kp">which</span><span class="p">(</span><span class="kp">apply</span><span class="p">(</span>Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="kp">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
+Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[</span>true_idx<span class="p">,]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>0</li>
+	<li>0</li>
+	<li>0</li>
+	<li>0</li>
+	<li>-0.200455126526174</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>pip <span class="o">=</span> mmbr<span class="o">::</span>mmbr_get_pip_per_condition<span class="p">(</span>result<span class="p">,</span> m_init<span class="p">)</span>
+pip<span class="p">[</span>true_idx<span class="p">,]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>0.00388769469577288</li>
+	<li>0.00397410849521607</li>
+	<li>0.00389179779816473</li>
+	<li>0.00389232580332377</li>
+	<li>0.216374802538277</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This looks good.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="lfsr-extraction">lfsr extraction<a class="anchor-link" href="#lfsr-extraction">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>lfsr <span class="o">=</span> mmbr<span class="o">::</span>mmbr_get_lfsr<span class="p">(</span>result<span class="p">,</span> m_init<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>lfsr
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<tbody>
+	<tr><td>0.9947506 </td><td>0.9946973 </td><td>0.9947697 </td><td>0.9947516 </td><td>0.01336184</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+	<tr><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.0000000 </td><td>1.00000000</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This also looks good.</p>
+
+</div>
+</div>
+</div>
+<hr>
+&copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
+<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/lfsr_for_CS.ipynb"><code>prototypes/lfsr_for_CS.ipynb</code></a> committed by Gao Wang on Fri Sep 20 13:22:23 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+</div>
+</div>
+</body>
+</html>

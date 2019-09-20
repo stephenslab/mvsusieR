@@ -1,0 +1,1521 @@
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=prototypesDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=prototypesArray;
+            var docs_map=prototypesArrayMap;
+            var pos=prototypesArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>R package for the M&M method for regression</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">R package for the M&M method for regression</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../prototypes.html">Prototypes</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Running-&quot;degenerated&quot;-MASH-computation">Running "degenerated" MASH computation<a class="anchor-link" href="#Running-&quot;degenerated&quot;-MASH-computation">&#182;</a></h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The goal is to verify implementation of mash computation is correct, by comparing it to univariate case when $Y$ has one column and prior covariance matrices is fixed. It should later become part of a unit test.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Simulate-data">Simulate data<a class="anchor-link" href="#Simulate-data">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+n <span class="o">=</span> <span class="m">1000</span>
+p <span class="o">=</span> <span class="m">1000</span>
+beta <span class="o">=</span> <span class="kp">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span>p<span class="p">)</span>
+<span class="kp">beta</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span> <span class="o">=</span> <span class="m">1</span>
+X <span class="o">=</span> <span class="kt">matrix</span><span class="p">(</span>rnorm<span class="p">(</span>n<span class="o">*</span>p<span class="p">),</span>nrow<span class="o">=</span>n<span class="p">,</span>ncol<span class="o">=</span>p<span class="p">)</span>
+y <span class="o">=</span> X <span class="o">%*%</span> beta <span class="o">+</span> rnorm<span class="p">(</span>n<span class="p">)</span>
+<span class="c1">#&#39; res =susie(X,y,L=10)</span>
+<span class="kn">library</span><span class="p">(</span>mmbr<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading required package: mashr
+Loading required package: ashr
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Run-univariate-computation">Run univariate computation<a class="anchor-link" href="#Run-univariate-computation">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>prior_var <span class="o">=</span> <span class="m">0.2</span> <span class="o">*</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
+residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
+data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class="o">$</span>new<span class="p">(</span>X<span class="p">,</span>y<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>residual_var
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+5.74816803778574
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>prior_var
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+1.14963360755715
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m1 <span class="o">=</span> mmbr<span class="o">:::</span>BayesianMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
+m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m1<span class="o">$</span>posterior_b1<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 1 of type dbl</caption>
+<tbody>
+	<tr><td> 1.17582479</td></tr>
+	<tr><td> 1.10571117</td></tr>
+	<tr><td> 1.11985691</td></tr>
+	<tr><td> 1.07629210</td></tr>
+	<tr><td>-0.12724319</td></tr>
+	<tr><td>-0.07497652</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m1
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+
+<div class="output_text output_subarea ">
+<pre>&lt;BayesianMultipleRegression&gt;
+  Public:
+    bhat: active binding
+    clone: function (deep = FALSE) 
+    compute_loglik_null: function (d) 
+    fit: function (d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) 
+    initialize: function (J, residual_variance, prior_variance, estimate_prior_variance = FALSE) 
+    lbf: active binding
+    loglik_null: active binding
+    posterior_b1: active binding
+    posterior_b2: active binding
+    prior_variance: active binding
+    residual_variance: active binding
+    sbhat: active binding
+  Private:
+    .bhat: 1.18170980260002 1.11124526041777 1.12546180389929 1.081 ...
+    .lbf: 118.091157635422 104.120913660333 106.870332723677 98.51 ...
+    .loglik_null: NULL
+    .posterior_b1: 1.17582479362293 1.10571117047545 1.11985691443764 1.076 ...
+    .posterior_b2: 1.38828921226831 1.2283224594841 1.25980477578369 1.1641 ...
+    .prior_variance: 1.14963360755715
+    .residual_variance: 5.74816803778574
+    .sbhat: 0.0758546106689995 0.0758546106689995 0.0758546106689995 ...
+    denied: function (v) 
+    estimate_prior_variance: FALSE
+    J: 1000</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Run-multivariate-computation">Run multivariate computation<a class="anchor-link" href="#Run-multivariate-computation">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="c1"># Assuming 1 out of $J$ are causal, we place a null weight $1-1/J$ a priori.</span>
+<span class="c1"># This will lead to some shrinkage</span>
+<span class="c1"># null_weight = 1 - 1 / ncol(X)</span>
+null_weight <span class="o">=</span> <span class="m">0</span>
+prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> cov<span class="p">(</span>y<span class="p">)),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span> <span class="o">-</span> null_weight<span class="p">,</span> null_weight<span class="p">,</span> alpha <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
+residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>prior_covar<span class="o">$</span>prior_covariance
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$pi</dt>
+		<dd><ol class=list-inline>
+	<li>0</li>
+	<li>1</li>
+</ol>
+</dd>
+	<dt>$xUlist</dt>
+		<dd><dl>
+	<dt>$null</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>0</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$`.1`</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1.149634</td></tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>residual_covar
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>5.748168</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m2 <span class="o">=</span> mmbr<span class="o">:::</span>MashMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> prior_covar<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m2<span class="o">$</span>posterior_b1<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 1 of type dbl</caption>
+<tbody>
+	<tr><td> 1.17582479</td></tr>
+	<tr><td> 1.10571117</td></tr>
+	<tr><td> 1.11985691</td></tr>
+	<tr><td> 1.07629210</td></tr>
+	<tr><td>-0.12724319</td></tr>
+	<tr><td>-0.07497652</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m2
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+
+<div class="output_text output_subarea ">
+<pre>&lt;MashMultipleRegression&gt;
+  Inherits from: &lt;BayesianMultipleRegression&gt;
+  Public:
+    bhat: active binding
+    clone: function (deep = FALSE) 
+    compute_loglik_null: function (d) 
+    fit: function (d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) 
+    initialize: function (J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) 
+    lbf: active binding
+    loglik_null: active binding
+    posterior_b1: active binding
+    posterior_b2: active binding
+    prior_variance: active binding
+    residual_variance: active binding
+    residual_variance_inv: active binding
+    sbhat: active binding
+  Private:
+    .bhat: 1.18170980260002 1.11124526041777 1.12546180389929 1.081 ...
+    .lbf: 118.091157635422 104.120913660333 106.870332723677 98.51 ...
+    .lfsr: 9.33179437154505e-55 1.15780564779897e-48 7.313195958829 ...
+    .loglik_null: -119.686629951695 -105.64646483559 -108.409644755107 -10 ...
+    .mixture_posterior_weights: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0  ...
+    .posterior_b1: 1.17582479362293 1.10571117047545 1.11985691443764 1.076 ...
+    .posterior_b2: 1.38828921226832 1.2283224594841 1.25980477578369 1.1641 ...
+    .prior_variance: list
+    .residual_variance: 5.74816803778574
+    .residual_variance_inv: 0.173968470202414
+    .sbhat: 0.0758546106689995 0.0758546106689995 0.0758546106689995 ...
+    alpha: 0
+    denied: function (v) 
+    estimate_prior_variance: FALSE
+    J: NULL
+    null_correlation: 1
+    precomputed_cov_matrices: NULL</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>All quantities seem to agree now.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Run-ASH-to-confirm">Run ASH to confirm<a class="anchor-link" href="#Run-ASH-to-confirm">&#182;</a></h2><p>ASH works well.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>ashr<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>a.out <span class="o">=</span> ash<span class="p">(</span><span class="kp">as.vector</span><span class="p">(</span>m1<span class="o">$</span>bhat<span class="p">),</span> <span class="kp">as.vector</span><span class="p">(</span>m1<span class="o">$</span>sbhat<span class="p">),</span> mixcompdist <span class="o">=</span> <span class="s">&#39;normal&#39;</span><span class="p">)</span>
+<span class="kp">head</span><span class="p">(</span>get_pm<span class="p">(</span>a.out<span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>1.17684065287554</li>
+	<li>1.10666645474003</li>
+	<li>1.12082441998294</li>
+	<li>1.07722197094866</li>
+	<li>-0.000161974819598887</li>
+	<li>-3.79185831359806e-05</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Run-with-fixed-prior-directly-from-MASH">Run with fixed prior directly from MASH<a class="anchor-link" href="#Run-with-fixed-prior-directly-from-MASH">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>prior_covar<span class="o">$</span>mash_prior
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$pi</dt>
+		<dd><ol class=list-inline>
+	<li>0</li>
+	<li>1</li>
+</ol>
+</dd>
+	<dt>$Ulist</dt>
+		<dd><ol>
+	<li><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1.149634</td></tr>
+</tbody>
+</table>
+</li>
+</ol>
+</dd>
+	<dt>$grid</dt>
+		<dd>1</dd>
+	<dt>$usepointmass</dt>
+		<dd>TRUE</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>mashr<span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>data <span class="o">=</span> mash_set_data<span class="p">(</span>m2<span class="o">$</span>bhat<span class="p">,</span> m2<span class="o">$</span>sbhat<span class="p">)</span>
+m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</span> g <span class="o">=</span> prior_covar<span class="o">$</span>mash_prior<span class="p">,</span> fixg <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> algorithm <span class="o">=</span><span class="s">&#39;Rcpp&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre> - Computing 1000 x 2 likelihood matrix.
+ - Likelihood calculations took 0.00 seconds.
+ - Computing posterior matrices.
+ - Computation allocated took 0.00 seconds.
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m.c<span class="o">$</span>fitted_g
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$pi</dt>
+		<dd><ol class=list-inline>
+	<li>0</li>
+	<li>1</li>
+</ol>
+</dd>
+	<dt>$Ulist</dt>
+		<dd><ol>
+	<li><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1.149634</td></tr>
+</tbody>
+</table>
+</li>
+</ol>
+</dd>
+	<dt>$grid</dt>
+		<dd>1</dd>
+	<dt>$usepointmass</dt>
+		<dd>TRUE</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>get_pm<span class="p">(</span>m.c<span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 1 of type dbl</caption>
+<tbody>
+	<tr><td> 1.17582479</td></tr>
+	<tr><td> 1.10571117</td></tr>
+	<tr><td> 1.11985691</td></tr>
+	<tr><td> 1.07629210</td></tr>
+	<tr><td>-0.12724319</td></tr>
+	<tr><td>-0.07497652</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Run-from-MASH-with-canonical-priors-but-weights-learned-from-data">Run from MASH with canonical priors but weights learned from data<a class="anchor-link" href="#Run-from-MASH-with-canonical-priors-but-weights-learned-from-data">&#182;</a></h2><p>Very similiar results to what I got with fixed <code>g</code> earlier.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>U.c <span class="o">=</span> cov_canonical<span class="p">(</span>data<span class="p">)</span>
+<span class="kp">print</span><span class="p">(</span><span class="kp">names</span><span class="p">(</span>U.c<span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>[1] &#34;identity&#34;      &#34;singletons_1&#34;  &#34;equal_effects&#34; &#34;simple_het_1&#34; 
+[5] &#34;simple_het_2&#34;  &#34;simple_het_3&#34; 
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</span> U.c<span class="p">,</span> <span class="p">,</span> algorithm <span class="o">=</span><span class="s">&#39;Rcpp&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre> - Computing 1000 x 109 likelihood matrix.
+ - Likelihood calculations took 0.01 seconds.
+ - Fitting model with 109 mixture components.
+ - Model fitting took 0.13 seconds.
+ - Computing posterior matrices.
+ - Computation allocated took 0.00 seconds.
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>get_pm<span class="p">(</span>m.c<span class="p">))</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 1 of type dbl</caption>
+<tbody>
+	<tr><td> 1.176841e+00</td></tr>
+	<tr><td> 1.106666e+00</td></tr>
+	<tr><td> 1.120824e+00</td></tr>
+	<tr><td> 1.077222e+00</td></tr>
+	<tr><td>-1.619748e-04</td></tr>
+	<tr><td>-3.791859e-05</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m.c<span class="o">$</span>fitted_g
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$pi</dt>
+		<dd><dl class=dl-horizontal>
+	<dt>null</dt>
+		<dd>0.995204680070225</dd>
+	<dt>identity.1</dt>
+		<dd>0</dd>
+	<dt>singletons_1.1</dt>
+		<dd>0</dd>
+	<dt>equal_effects.1</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.1</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.1</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.1</dt>
+		<dd>0</dd>
+	<dt>identity.2</dt>
+		<dd>0</dd>
+	<dt>singletons_1.2</dt>
+		<dd>0</dd>
+	<dt>equal_effects.2</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.2</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.2</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.2</dt>
+		<dd>0</dd>
+	<dt>identity.3</dt>
+		<dd>0</dd>
+	<dt>singletons_1.3</dt>
+		<dd>0</dd>
+	<dt>equal_effects.3</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.3</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.3</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.3</dt>
+		<dd>0</dd>
+	<dt>identity.4</dt>
+		<dd>0</dd>
+	<dt>singletons_1.4</dt>
+		<dd>0</dd>
+	<dt>equal_effects.4</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.4</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.4</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.4</dt>
+		<dd>0</dd>
+	<dt>identity.5</dt>
+		<dd>0</dd>
+	<dt>singletons_1.5</dt>
+		<dd>0</dd>
+	<dt>equal_effects.5</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.5</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.5</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.5</dt>
+		<dd>0</dd>
+	<dt>identity.6</dt>
+		<dd>0</dd>
+	<dt>singletons_1.6</dt>
+		<dd>0</dd>
+	<dt>equal_effects.6</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.6</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.6</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.6</dt>
+		<dd>0</dd>
+	<dt>identity.7</dt>
+		<dd>0</dd>
+	<dt>singletons_1.7</dt>
+		<dd>0</dd>
+	<dt>equal_effects.7</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.7</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.7</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.7</dt>
+		<dd>0</dd>
+	<dt>identity.8</dt>
+		<dd>0</dd>
+	<dt>singletons_1.8</dt>
+		<dd>0</dd>
+	<dt>equal_effects.8</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.8</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.8</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.8</dt>
+		<dd>0</dd>
+	<dt>identity.9</dt>
+		<dd>0</dd>
+	<dt>singletons_1.9</dt>
+		<dd>0</dd>
+	<dt>equal_effects.9</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.9</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.9</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.9</dt>
+		<dd>0</dd>
+	<dt>identity.10</dt>
+		<dd>0</dd>
+	<dt>singletons_1.10</dt>
+		<dd>0</dd>
+	<dt>equal_effects.10</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.10</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.10</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.10</dt>
+		<dd>0</dd>
+	<dt>identity.11</dt>
+		<dd>0</dd>
+	<dt>singletons_1.11</dt>
+		<dd>0</dd>
+	<dt>equal_effects.11</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.11</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.11</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.11</dt>
+		<dd>0</dd>
+	<dt>identity.12</dt>
+		<dd>0</dd>
+	<dt>singletons_1.12</dt>
+		<dd>0</dd>
+	<dt>equal_effects.12</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.12</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.12</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.12</dt>
+		<dd>0</dd>
+	<dt>identity.13</dt>
+		<dd>0</dd>
+	<dt>singletons_1.13</dt>
+		<dd>0</dd>
+	<dt>equal_effects.13</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.13</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.13</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.13</dt>
+		<dd>0</dd>
+	<dt>identity.14</dt>
+		<dd>0</dd>
+	<dt>singletons_1.14</dt>
+		<dd>0</dd>
+	<dt>equal_effects.14</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.14</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.14</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.14</dt>
+		<dd>0</dd>
+	<dt>identity.15</dt>
+		<dd>0</dd>
+	<dt>singletons_1.15</dt>
+		<dd>0</dd>
+	<dt>equal_effects.15</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.15</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.15</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.15</dt>
+		<dd>0</dd>
+	<dt>identity.16</dt>
+		<dd>0.00479531992977486</dd>
+	<dt>singletons_1.16</dt>
+		<dd>0</dd>
+	<dt>equal_effects.16</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.16</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.16</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.16</dt>
+		<dd>0</dd>
+	<dt>identity.17</dt>
+		<dd>0</dd>
+	<dt>singletons_1.17</dt>
+		<dd>0</dd>
+	<dt>equal_effects.17</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.17</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.17</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.17</dt>
+		<dd>0</dd>
+	<dt>identity.18</dt>
+		<dd>0</dd>
+	<dt>singletons_1.18</dt>
+		<dd>0</dd>
+	<dt>equal_effects.18</dt>
+		<dd>0</dd>
+	<dt>simple_het_1.18</dt>
+		<dd>0</dd>
+	<dt>simple_het_2.18</dt>
+		<dd>0</dd>
+	<dt>simple_het_3.18</dt>
+		<dd>0</dd>
+</dl>
+</dd>
+	<dt>$Ulist</dt>
+		<dd><dl>
+	<dt>$identity</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$singletons_1</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$equal_effects</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$simple_het_1</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$simple_het_2</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$simple_het_3</dt>
+		<dd><table>
+<caption>A matrix: 1 × 1 of type dbl</caption>
+<tbody>
+	<tr><td>1</td></tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd>
+	<dt>$grid</dt>
+		<dd><ol class=list-inline>
+	<li>0.00651462291736128</li>
+	<li>0.00921306808347891</li>
+	<li>0.0130292458347226</li>
+	<li>0.0184261361669578</li>
+	<li>0.0260584916694451</li>
+	<li>0.0368522723339156</li>
+	<li>0.0521169833388903</li>
+	<li>0.0737045446678313</li>
+	<li>0.104233966677781</li>
+	<li>0.147409089335663</li>
+	<li>0.208467933355561</li>
+	<li>0.294818178671325</li>
+	<li>0.416935866711122</li>
+	<li>0.589636357342651</li>
+	<li>0.833871733422245</li>
+	<li>1.1792727146853</li>
+	<li>1.66774346684449</li>
+	<li>2.3585454293706</li>
+</ol>
+</dd>
+	<dt>$usepointmass</dt>
+		<dd>TRUE</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<hr>
+&copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
+<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/mash_regression_univariate_degenerated.ipynb"><code>prototypes/mash_regression_univariate_degenerated.ipynb</code></a> committed by Gao Wang on Fri Sep 20 13:22:23 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+</div>
+</div>
+</body>
+</html>
