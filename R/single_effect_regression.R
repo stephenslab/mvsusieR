@@ -48,8 +48,8 @@ SingleEffectRegression <- function(base)
                         S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]) - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
                     }
                     private$.vbxxb = sum(d$d * sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]])))
-                    E2 = sum(d$d * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
-                    return(E1 - E2 / 2)
+                    private$.vbxxb = sum(d$d * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
+                    return(E1 - private$.vbxxb / 2)
                 }
             } else {
                 stop("compute_expected_loglik_partial not implemented for given data type")
