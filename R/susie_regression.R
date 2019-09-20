@@ -127,14 +127,24 @@ SuSiE <- R6Class("SuSiE",
                 } else {
                     essr = private$essr
                 }
+                # This quantity should be same as multivariate scaled_essr
+                #print(essr * -(1/(2*private$SER[[1]]$residual_variance)))
                 expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
             } else {
                 expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
+                # a version not expanding the math
+                #b = Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1))
+                #resid = d$Y - d$X %*% b
+                #E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
+                #E1 = tr(v_inv%*%t(resid)%*%resid) - sum(E1)
+                # After expanding & simplifying the math
                 E1 = tr(v_inv%*%crossprod(d$Y, d$Y)) - 2 * tr(v_inv %*% t(d$Y) %*% d$X %*% Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1)))
-                essr = -0.5 * (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
-                expected_loglik = expected_loglik + essr
+                scaled_essr = -0.5 * (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
+                #print(scaled_essr)
+                expected_loglik = expected_loglik + scaled_essr
             }
             elbo = expected_loglik - Reduce('+', self$kl)
+            #print(c(expected_loglik, elbo, expected_loglik - elbo))
         } else {
             elbo = NA
         }

@@ -8,7 +8,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       private$.prior_variance = mash_initializer$prior_covariance
       private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
-      if (!is.null(residual_variance)) private$.residual_variance_inv = solve(residual_variance)
+      private$.residual_variance_inv = solve(residual_variance)
       if (is.null(mash_initializer$null_correlation)) {
         private$null_correlation = diag(mash_initializer$n_condition)
       } else {

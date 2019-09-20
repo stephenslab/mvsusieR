@@ -42,9 +42,13 @@ SingleEffectRegression <- function(base)
                     # FIXME: Currently this computation does not work for case with missing data
                     E1 = tr(private$.residual_variance_inv %*% t(self$posterior_b1) %*% d$XtR)
                     # posterior variance covariance matrix, weighted by PIP
-                    S = lapply(1:dim(private$.posterior_b2)[3], function(j) private$.pip[j] * private$.posterior_b2[,,j] - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
+                    if (length(dim(private$.posterior_b2)) == 3) {
+                        S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * private$.posterior_b2[,,j] - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
+                    } else {
+                        S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]) - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
+                    }
                     private$.vbxxb = sum(d$d * sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]])))
-                    E2 = sum(d$d * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,]))
+                    E2 = sum(d$d * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
                     return(E1 - E2 / 2)
                 }
             } else {
