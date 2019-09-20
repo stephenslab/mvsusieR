@@ -139,7 +139,16 @@ SuSiE <- R6Class("SuSiE",
                 #E1 = tr(v_inv%*%t(resid)%*%resid) - sum(E1)
                 # After expanding & simplifying the math
                 E1 = tr(v_inv%*%crossprod(d$Y, d$Y)) - 2 * tr(v_inv %*% t(d$Y) %*% d$X %*% Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1)))
-                scaled_essr = -0.5 * (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
+                XtX = d$XtX
+                E2 = 0
+                for (l1 in 1:length(private$SER)) {
+                    for (l2 in 1:length(private$SER)) {
+                        if (l1 != l2) {
+                            E2 = E2 + tr(v_inv %*% t(private$SER[[l1]]$posterior_b1) %*% XtX %*% private$SER[[l2]]$posterior_b1)
+                        }
+                    }
+                }
+                scaled_essr = -0.5 * (E1 + E2 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
                 #print(scaled_essr)
                 expected_loglik = expected_loglik + scaled_essr
             }
