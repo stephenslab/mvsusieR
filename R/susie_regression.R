@@ -48,19 +48,11 @@ SuSiE <- R6Class("SuSiE",
             private$save_history()
             fitted = d$compute_Xb(Reduce(`+`, lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1)))
             d$compute_residual(fitted)
-            #print(c('iteration', i))
             for (l in 1:private$L) {
-                #print(c("effect", l))
-                #print("----1-----")
-                #print(head(private$SER[[l]]$predict(d), 2))
-                #print(tail(private$SER[[l]]$predict(d), 2))
                 d$add_to_residual(private$SER[[l]]$predict(d))
                 private$SER[[l]]$residual_variance = private$sigma2
                 private$SER[[l]]$fit(d)
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
-                #print("----2-----")
-                #print(head(private$SER[[l]]$predict(d), 2))
-                #print(tail(private$SER[[l]]$predict(d), 2))
                 d$remove_from_residual(private$SER[[l]]$predict(d))
             }
             # FIXME: different logic for univariate and multivariate cases
@@ -123,20 +115,15 @@ SuSiE <- R6Class("SuSiE",
                 # univeriate case
                 # FIXME: should improve the way to identify univariate vs multivariate
                 if (is.null(private$essr)) {
-                    essr = compute_expected_sum_squared_residuals(d,self$posterior_b1,self$posterior_b2, private$sigma2)
+                    essr = compute_expected_sum_squared_residuals(d,self$posterior_b1,self$posterior_b2)
                 } else {
                     essr = private$essr
                 }
-                # This quantity should be same as multivariate scaled_essr
-                #print(essr * -(1/(2*private$SER[[1]]$residual_variance)))
                 expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
             } else {
                 expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
                 # a version not expanding the math
                 resid = d$Y - d$X %*% Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1))
-                #print(c(v_inv %*% t(resid)%*%resid, 
-                #sum(sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))),
-                #Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb))))
                 E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
                 E1 = tr(v_inv%*%t(resid)%*%resid) - sum(E1)
                 # After expanding the math
@@ -150,11 +137,9 @@ SuSiE <- R6Class("SuSiE",
                 #    }
                 #}
                 scaled_essr = -0.5 * (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
-                #print(scaled_essr)
                 expected_loglik = expected_loglik + scaled_essr
             }
             elbo = expected_loglik - Reduce('+', self$kl)
-            #print(c(expected_loglik, elbo, expected_loglik - elbo))
         } else {
             elbo = NA
         }
@@ -220,7 +205,7 @@ SuSiE <- R6Class("SuSiE",
 )
 
 # expected squared residuals
-compute_expected_sum_squared_residuals = function(d, Eb1, Eb2, residual_variance = 1) {
+compute_expected_sum_squared_residuals = function(d, Eb1, Eb2) {
     if (inherits(d, c("DenseData","SparseData", "SSData"))) {
         Eb1 = t(do.call(cbind, Eb1))
         Eb2 = t(do.call(cbind, Eb2))
@@ -228,7 +213,6 @@ compute_expected_sum_squared_residuals = function(d, Eb1, Eb2, residual_variance
     if (inherits(d, c("DenseData","SparseData"))) {
         Xr = d$compute_MXt(Eb1)
         Xrsum = colSums(Xr)
-        #print(c(sum((d$Y-Xrsum)^2)/residual_variance, sum(Xr^2)/residual_variance, sum(d$d*t(Eb2))/residual_variance))
         return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$d*t(Eb2)))
     } else {
         XB2 = sum((Eb1%*%d$XtX) * Eb1)
