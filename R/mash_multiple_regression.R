@@ -128,7 +128,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       # 7. Bayes factor
       private$.lbf = loglik_alt - private$.loglik_null
       # FIXME: NA situation
-      private$.lbf[which(is.na(private$.lbf))] = 0
+      # private$.lbf[which(is.na(private$.lbf))] = 0
     },
     compute_loglik_null = function(d) {}
   ),

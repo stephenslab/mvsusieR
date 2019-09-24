@@ -111,6 +111,7 @@ susie = function(X,Y,L=10,V=0.2,
       #if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
       if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
       else residual_variance = var(Y, na.rm=T)
+    residual_variance[which(is.na(residual_variance))] = 0
     if (precompute_covariances) V$precompute_cov_matrices(data, residual_variance, algorithm = 'cpp')
   }
   # Below are the core computations
