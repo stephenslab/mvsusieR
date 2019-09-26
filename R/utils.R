@@ -29,7 +29,7 @@ safe_compute_weight = function(value, weight, log = TRUE) {
 #' @title SuSiE model extractor
 #' @importFrom abind abind
 #' @keywords internal
-report_susie_model = function(d, m, estimate_prior_variance) {
+report_susie_model = function(d, m, estimate_prior_variance = FALSE) {
     if (length(dim(m$posterior_b1[[1]])) < 2) {
       # univariate case
       b1 = t(do.call(cbind, m$posterior_b1))

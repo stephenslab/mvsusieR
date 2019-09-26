@@ -4,7 +4,7 @@
 \alias{report_susie_model}
 \title{SuSiE model extractor}
 \usage{
-report_susie_model(d, m, estimate_prior_variance)
+report_susie_model(d, m, estimate_prior_variance = FALSE)
 }
 \description{
 SuSiE model extractor
