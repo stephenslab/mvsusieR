@@ -8,7 +8,6 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$.prior_variance = prior_variance
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
-      private$.posterior_b2 = matrix(0, J, nrow(prior_variance))
       # We dont estimate prior variance at this point
       private$estimate_prior_variance = FALSE
       tryCatch({
@@ -44,15 +43,24 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   ),
   private = list(
     .residual_variance_inv = NULL
+  ),
+  active = list(
+    residual_variance_inv = function(v) {
+      if (missing(v)) private$.residual_variance_inv
+      else private$.residual_variance_inv = v
+    }
   )
 )
 
+#' @title Multiviate regression core
+#' @importFrom abind abind
+#' @keywords internal
 multivariate_regression = function(bhat, xtx_inv, V, U) {
   S = lapply(1:length(xtx_inv), function(j) xtx_inv[j] * V)
   S_inv = lapply(1:length(S), function(j) solve(S[[j]]))
   post_cov = lapply(1:length(S), function(j) U %*% solve(diag(nrow(U)) + S_inv[[j]] %*% U))
-  post_b1 = do.call(rbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
+  post_b1 = do.call(cbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
   bf = sapply(1:length(S), function(j) sqrt(det(S[[j]])/det(S[[j]]+U))*exp(0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,]))
-  post_b2 = do.call(rbind, lapply(1:length(post_cov), function(j) tcrossprod(post_b1[j,]) + diag(post_cov[[j]])))
-  return(list(b1 = post_b1, b2 = post_b2, lbf = log(bf)))
+  post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[,j]) + post_cov[[j]])
+  return(list(b1 = t(post_b1), b2 = aperm(abind(post_b2, along = 3), c(2,1,3)), lbf = log(bf)))
 }

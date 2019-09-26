@@ -29,7 +29,7 @@ safe_compute_weight = function(value, weight, log = TRUE) {
 #' @title SuSiE model extractor
 #' @importFrom abind abind
 #' @keywords internal
-report_susie_model = function(d, m) {
+report_susie_model = function(d, m, estimate_prior_variance) {
     if (length(dim(m$posterior_b1[[1]])) < 2) {
       # univariate case
       b1 = t(do.call(cbind, m$posterior_b1))
@@ -68,7 +68,6 @@ report_susie_model = function(d, m) {
         KL = m$kl,
         lbf = m$lbf,
         sigma2 = m$residual_variance,
-        V = m$prior_variance,
         elbo = m$get_objective(dump=TRUE),
         niter = m$get_niter(),
         coef = d$rescale_coef(b),
@@ -80,6 +79,7 @@ report_susie_model = function(d, m) {
     s$fitted = d$compute_Xb(b)
     if (is.null(dim(s$coef))) s$intercept = s$coef[1]
     else s$intercept = s$coef[1,]
+    if (estimate_prior_variance) s$V = m$prior_variance
     class(s) = 'susie'
     return(s)
 }

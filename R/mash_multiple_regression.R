@@ -13,7 +13,6 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         private$.residual_variance_inv = solve(residual_variance)
       }, error = function(e) {
         warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
-
       })
       if (is.null(mash_initializer$null_correlation)) {
         private$null_correlation = diag(mash_initializer$n_condition)
@@ -23,7 +22,6 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       private$alpha = mash_initializer$alpha
       private$precomputed_cov_matrices = mash_initializer$precomputed
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
-      private$.posterior_b2 = matrix(0, J, mash_initializer$n_condition)
       # Though possible to estimate from MASH model on given variables
       # we insist that the information should be provided beforehand
       private$estimate_prior_variance = FALSE
