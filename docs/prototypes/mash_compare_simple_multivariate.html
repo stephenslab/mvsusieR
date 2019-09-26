@@ -247,7 +247,7 @@ body {
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>To investigate the issue we will 1) further simplify the problem and 2) isolate the problem to posterior calculation versus ELBO calculations and check which part is problematic. The best way to achieve both is to implement a simple Bayesian multivariate regression model with prior $b \sim MVN(0, U)$ where $U$ is known, instead of using MASH prior for $b$.</p>
-<p>This feature is now implemented in the <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_mulvariate_regression.R"><code>BayesianMultivariateRegression</code> class</a> with an interface added to the main function such that the code will be triggered <a href="">when prior variance is a matrix</a>.</p>
+<p>This feature is now implemented in the <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_mulvariate_regression.R"><code>BayesianMultivariateRegression</code> class</a> with an interface added to the main function such that the code will be triggered <a href="https://github.com/gaow/mmbr/blob/dccc26cfbba0cfd3e6f20b37e06d4db6305b834f/R/main.R#L110">when prior variance is a matrix</a>.</p>
 
 </div>
 </div>
@@ -267,6 +267,7 @@ body {
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>mmbr<span class="p">)</span>
 <span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+L <span class="o">=</span> <span class="m">5</span>
 </pre></div>
 
 </div>
@@ -298,8 +299,7 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>L <span class="o">=</span> <span class="m">5</span>
-dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">1</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">1</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -414,9 +414,130 @@ res<span class="o">$</span>elbo
 </div>
 </div>
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Test-multivariate-analysis">Test multivariate analysis<a class="anchor-link" href="#Test-multivariate-analysis">&#182;</a></h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">5</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>dat<span class="o">$</span>V
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 5 × 5 of type dbl</caption>
+<tbody>
+	<tr><td> 1.14068826</td><td>-0.02561830</td><td>-0.19275481</td><td>-0.040421229</td><td>-0.029376381</td></tr>
+	<tr><td>-0.02561830</td><td> 1.01088663</td><td> 0.03491952</td><td> 0.018064842</td><td> 0.016833489</td></tr>
+	<tr><td>-0.19275481</td><td> 0.03491952</td><td> 1.15215509</td><td>-0.112673234</td><td>-0.063194855</td></tr>
+	<tr><td>-0.04042123</td><td> 0.01806484</td><td>-0.11267323</td><td> 0.836044978</td><td> 0.008248383</td></tr>
+	<tr><td>-0.02937638</td><td> 0.01683349</td><td>-0.06319485</td><td> 0.008248383</td><td> 0.865937437</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>dat<span class="o">$</span>V<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-2184.07604753707</li>
+	<li>-2173.19925417124</li>
+	<li>-2169.55143832283</li>
+	<li>-2167.74410199547</li>
+	<li>-2167.26694357295</li>
+	<li>-2167.08740604301</li>
+	<li>-2166.51381866454</li>
+	<li>-2166.01270008591</li>
+	<li>-2164.89405592024</li>
+	<li>-2163.63506437887</li>
+	<li>-2163.57378303911</li>
+	<li>-2163.57265177467</li>
+	<li>-2163.57261683874</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here the ELBO is non-decreasing.</p>
+
+</div>
+</div>
+</div>
 <hr>
 &copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
-<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/mash_compare_simple_multivariate.ipynb"><code>prototypes/mash_compare_simple_multivariate.ipynb</code></a> committed by Gao Wang on Thu Sep 26 11:07:39 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/mash_compare_simple_multivariate.ipynb"><code>prototypes/mash_compare_simple_multivariate.ipynb</code></a> committed by Gao Wang on Thu Sep 26 16:37:35 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
 </div>
 </div>
 </body>
