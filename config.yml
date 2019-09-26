@@ -2,10 +2,11 @@ name: 'R package for the M&M method for regression'
 repo: 'http://github.com/gaow/mmbr'
 footer: "&copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago"
 include_dir: ['prototypes']
+skip_homepage: True
+add_commit_info: False
 # exclude_file: []
 # hide_navbar: []
 # homepage: "Overview.ipynb"
-# add_commit_info: True
 # disqus: NULL
 # release_message: NULL # type a release message to enable auto-commit, eg: "Build website via jnbinder"
 # post_release_actions: NULL

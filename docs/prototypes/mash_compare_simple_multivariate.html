@@ -237,7 +237,7 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Comparing-MASH-analysis-with-simple-multivariate-analysis">Comparing MASH analysis with simple multivariate analysis<a class="anchor-link" href="#Comparing-MASH-analysis-with-simple-multivariate-analysis">&#182;</a></h1><p>Previously we showed that even though univariate analysis with degenerated MASH model gives identical results to SuSiE as expected (with non-decreasing ELBO), in multivariate calculations the ELBO does not always non-decreasing.</p>
+<h1 id="Comparing-MASH-analysis-with-simple-multivariate-analysis">Comparing MASH analysis with simple multivariate analysis<a class="anchor-link" href="#Comparing-MASH-analysis-with-simple-multivariate-analysis">&#182;</a></h1><p>Previously we showed that even though univariate analysis with degenerated MASH model gives identical results to SuSiE as expected (with non-decreasing ELBO), in multivariate calculations the ELBO is not always non-decreasing. To investigate the issue we will 1) further simplify the problem and 2) isolate the problem to posterior calculation versus ELBO calculations and check which part is problematic. The best way to achieve both is to implement a simple Bayesian multivariate regression model with prior $b \sim MVN(0, U)$ where $U$ is known, instead of using MASH prior for $b$.</p>
 
 </div>
 </div>
@@ -246,8 +246,7 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>To investigate the issue we will 1) further simplify the problem and 2) isolate the problem to posterior calculation versus ELBO calculations and check which part is problematic. The best way to achieve both is to implement a simple Bayesian multivariate regression model with prior $b \sim MVN(0, U)$ where $U$ is known, instead of using MASH prior for $b$.</p>
-<p>This feature is now implemented in the <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_mulvariate_regression.R"><code>BayesianMultivariateRegression</code> class</a> with an interface added to the main function such that the code will be triggered <a href="https://github.com/gaow/mmbr/blob/dccc26cfbba0cfd3e6f20b37e06d4db6305b834f/R/main.R#L110">when prior variance is a matrix</a>.</p>
+<p>This feature is now implemented in the <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_multivariate_regression.R"><code>BayesianMultivariateRegression</code> class</a> with an interface added to the main function such that the code will be triggered <a href="https://github.com/gaow/mmbr/blob/dccc26cfbba0cfd3e6f20b37e06d4db6305b834f/R/main.R#L110">when prior variance is a matrix</a>.</p>
 
 </div>
 </div>
@@ -418,7 +417,7 @@ res<span class="o">$</span>elbo
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Test-multivariate-analysis">Test multivariate analysis<a class="anchor-link" href="#Test-multivariate-analysis">&#182;</a></h1>
+<h2 id="Test-multivariate-analysis">Test multivariate analysis<a class="anchor-link" href="#Test-multivariate-analysis">&#182;</a></h2>
 </div>
 </div>
 </div>
@@ -439,48 +438,6 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>dat<span class="o">$</span>V
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt"></div>
-
-
-
-<div class="output_html rendered_html output_subarea ">
-<table>
-<caption>A matrix: 5 × 5 of type dbl</caption>
-<tbody>
-	<tr><td> 1.14068826</td><td>-0.02561830</td><td>-0.19275481</td><td>-0.040421229</td><td>-0.029376381</td></tr>
-	<tr><td>-0.02561830</td><td> 1.01088663</td><td> 0.03491952</td><td> 0.018064842</td><td> 0.016833489</td></tr>
-	<tr><td>-0.19275481</td><td> 0.03491952</td><td> 1.15215509</td><td>-0.112673234</td><td>-0.063194855</td></tr>
-	<tr><td>-0.04042123</td><td> 0.01806484</td><td>-0.11267323</td><td> 0.836044978</td><td> 0.008248383</td></tr>
-	<tr><td>-0.02937638</td><td> 0.01683349</td><td>-0.06319485</td><td> 0.008248383</td><td> 0.865937437</td></tr>
-</tbody>
-</table>
-
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>dat<span class="o">$</span>V<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
@@ -530,14 +487,151 @@ res<span class="o">$</span>elbo
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Here the ELBO is non-decreasing.</p>
+<p>Here the ELBO is non-decreasing, as expected.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Compare-with-MASH-based-model">Compare with MASH based model<a class="anchor-link" href="#Compare-with-MASH-based-model">&#182;</a></h2><p>Here to keep things simple we use simulation with 2 conditions, and a diagonal prior covariance. We analyze with simple Bayesian multivariate regression,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">2</span><span class="p">)</span>
+res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span><span class="m">0.2</span><span class="o">*</span><span class="kp">diag</span><span class="p">(</span><span class="m">2</span><span class="p">),</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-857.279239893128</li>
+	<li>-843.553674109714</li>
+	<li>-842.721346118149</li>
+	<li>-842.37990946604</li>
+	<li>-842.346911351756</li>
+	<li>-842.341720973642</li>
+	<li>-842.340500326427</li>
+	<li>-842.340188902999</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>and with MASH based regression,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span><span class="o">*</span><span class="kp">diag</span><span class="p">(</span><span class="m">2</span><span class="p">)),</span> <span class="m">1</span><span class="p">,</span> prior_weight<span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Warning message in m$get_objective(dump = TRUE):
+“Objective is not non-decreasing”</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-857.944621643872</li>
+	<li>-843.166205097434</li>
+	<li>-842.357582094323</li>
+	<li>-842.329959888325</li>
+	<li>-842.324234394174</li>
+	<li>-842.324297108138</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>So for now, the results do not agree with MASH. But with this mininal example and baseline comparison we should be in a much better position to dig into what's going on.</p>
 
 </div>
 </div>
 </div>
 <hr>
 &copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
-<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/mash_compare_simple_multivariate.ipynb"><code>prototypes/mash_compare_simple_multivariate.ipynb</code></a> committed by Gao Wang on Thu Sep 26 16:37:35 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+
 </div>
 </div>
 </body>
