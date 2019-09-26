@@ -237,7 +237,8 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Improving-calculation-of-multivariate-multiple-regression">Improving calculation of multivariate multiple regression<a class="anchor-link" href="#Improving-calculation-of-multivariate-multiple-regression">&#182;</a></h1>
+<h1 id="Comparing-MASH-analysis-with-simple-multivariate-analysis">Comparing MASH analysis with simple multivariate analysis<a class="anchor-link" href="#Comparing-MASH-analysis-with-simple-multivariate-analysis">&#182;</a></h1><p>Previously we showed that even though univariate analysis with degenerated MASH model gives identical results to SuSiE as expected (with non-decreasing ELBO), in multivariate calculations the ELBO does not always non-decreasing.</p>
+
 </div>
 </div>
 </div>
@@ -245,8 +246,17 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>A small prototype for multivariate multiple regression computation assuming fixed residual covariance matrix.</p>
+<p>To investigate the issue we will 1) further simplify the problem and 2) isolate the problem to posterior calculation versus ELBO calculations and check which part is problematic. The best way to achieve both is to implement a simple Bayesian multivariate regression model with prior $b \sim MVN(0, U)$ where $U$ is known, instead of using MASH prior for $b$.</p>
+<p>This feature is now implemented in the <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_mulvariate_regression.R"><code>BayesianMultivariateRegression</code> class</a> with an interface added to the main function such that the code will be triggered <a href="">when prior variance is a matrix</a>.</p>
 
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Test-the-calculation-agree-with-univariate-code">Test the calculation agree with univariate code<a class="anchor-link" href="#Test-the-calculation-agree-with-univariate-code">&#182;</a></h2>
 </div>
 </div>
 </div>
@@ -255,61 +265,41 @@ body {
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>data <span class="o">=</span> mmbr<span class="o">::</span>mmbr_sim2<span class="p">(</span><span class="m">1000</span><span class="p">,</span><span class="m">7000</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">0.8</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>mmbr<span class="p">)</span>
+<span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
 </pre></div>
 
 </div>
 </div>
 </div>
 
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading required package: mashr
+Loading required package: ashr
+</pre>
 </div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Here we do not use an existing R routine because <code>lm</code> is very slow (even using <code>.lm.fit</code> compared to providing pre-computed <code>d</code> as done below).</p>
 
 </div>
 </div>
+
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>method_1 <span class="o">=</span> <span class="kr">function</span><span class="p">(</span>d<span class="p">,</span>X<span class="p">,</span>y<span class="p">,</span>residual_covar<span class="p">,</span>p<span class="p">)</span> <span class="p">{</span>
-    XtY<span class="o">=</span><span class="kp">t</span><span class="p">(</span>X<span class="p">)</span><span class="o">%*%</span>y
-    bhat <span class="o">=</span> <span class="kp">diag</span><span class="p">(</span><span class="m">1</span><span class="o">/</span>d<span class="p">)</span> <span class="o">%*%</span> XtY
-    s2 <span class="o">=</span> <span class="kp">diag</span><span class="p">(</span>residual_covar<span class="p">)</span>
-    sbhat <span class="o">=</span> <span class="kp">sqrt</span><span class="p">(</span><span class="kp">do.call</span><span class="p">(</span><span class="kp">rbind</span><span class="p">,</span> <span class="kp">lapply</span><span class="p">(</span><span class="m">1</span><span class="o">:</span>p<span class="p">,</span> <span class="kr">function</span><span class="p">(</span>j<span class="p">)</span> s2 <span class="o">/</span> d<span class="p">[</span>j<span class="p">])))</span>
-    <span class="kr">return</span><span class="p">(</span><span class="kt">list</span><span class="p">(</span>b<span class="o">=</span>bhat<span class="p">,</span>s<span class="o">=</span>sbhat<span class="p">))</span>
-<span class="p">}</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>method <span class="o">=</span> method_1
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> <span class="kp">with</span><span class="p">(</span>data<span class="p">,</span> method<span class="p">(</span>d<span class="p">,</span>X<span class="p">,</span>y<span class="p">,</span><span class="kp">diag</span><span class="p">(</span>r<span class="p">),</span>p<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span>L <span class="o">=</span> <span class="m">5</span>
+dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">1</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -321,14 +311,112 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The speed is decent but the code seems ugly. Must be a more elegant matrix representation (and hopefully faster)?</p>
+<p>Run the simulated univariate data with SuSiE,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> susieR<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>scaled_prior_variance<span class="o">=</span><span class="m">0.2</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-429.40495176513</li>
+	<li>-409.549300389438</li>
+	<li>-407.707739710942</li>
+	<li>-407.7058409462</li>
+	<li>-407.70583907902</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now run it with multivariate simple prior implementation in <code>mmbr</code>,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span><span class="m">0.2</span><span class="o">*</span>var<span class="p">(</span>dat<span class="o">$</span>y<span class="p">),</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+res<span class="o">$</span>elbo
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol class=list-inline>
+	<li>-429.40495176513</li>
+	<li>-409.549300389436</li>
+	<li>-407.707739710942</li>
+	<li>-407.7058409462</li>
+	<li>-407.70583907902</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>So it is confirmed that this implementation produces identical results as SuSiE runs.</p>
 
 </div>
 </div>
 </div>
 <hr>
 &copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
-<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/multivariate_regression.ipynb"><code>prototypes/multivariate_regression.ipynb</code></a> committed by Gao Wang on Thu Sep 26 11:07:39 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
+<p><small>Exported from <a href="http://github.com/gaow/mmbr/blob//prototypes/mash_compare_simple_multivariate.ipynb"><code>prototypes/mash_compare_simple_multivariate.ipynb</code></a> committed by Gao Wang on Thu Sep 26 11:07:39 2019 <a href="http://github.com/gaow/mmbr/commit/">revision 0, </a> <a href="https://stephenslab.github.io/ipynb-website/notes.html#Note-about-commit-ids"><span class="fa fa-question-circle"></span></a></small></p>
 </div>
 </div>
 </body>
