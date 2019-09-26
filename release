@@ -245,6 +245,8 @@ if os.path.isfile(_output):
   all_f2 = [(x, y) for x, y in zip(notebook_files,  [f"docs/{x.replace('.ipynb', '.html')}" for x in notebook_files])]
   sha1_files = [f"docs/{item.rsplit('_', 1)[-1][:-5]}/{path(item.rsplit('_', 1)[0]):b}.html" if item.rsplit('_', 1)[-1][:-5] != 'docs' else f"docs/{path(item.rsplit('_', 1)[0]):b}.html" for item in get_sha1_files(all_f1, all_f2, password)]
   for item in [x for x in old_files if not x in generated_files + sha1_files]:
+    if item == 'docs/index.html':
+      continue
     try:
       os.remove(item)
     except OSError:
