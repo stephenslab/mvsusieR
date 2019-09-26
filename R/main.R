@@ -96,22 +96,26 @@ susie = function(X,Y,L=10,V=0.2,
   data = DenseData$new(X, Y, intercept, standardize)
   # FIXME: this is because of issue #5
   if (data$X_has_missing()) stop("Missing data in input matrix X is not allowed at this point.")
+  if (is.null(residual_variance)) {
+    #if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
+    if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
+    else residual_variance = var(Y, na.rm=T)
+    if (is.numeric(V) && !is.matrix(V)) residual_variance = as.numeric(residual_variance)
+    residual_variance[which(is.na(residual_variance))] = 0
+  }
   # for now only V controls the type of regression 
   if (is.numeric(V)) {
-    if (!(is.null(dim(Y)) || dim(Y)[2] == 1))
-      stop("V cannot be a numeric value when Y is a multivariate variable.")
-    base = BayesianMultipleRegression
-    V = V * as.numeric(var(Y))
-    if (is.null(residual_variance))
-      residual_variance = as.numeric(var(Y))
+    if (!(is.null(dim(Y)) || dim(Y)[2] == 1) && !is.matrix(V))
+      stop("V cannot be a number when Y is a multivariate variable.")
+    if (is.matrix(V)) {
+      base = BayesianMultivariateRegression
+    } else {
+      base = BayesianMultipleRegression
+      V = V * residual_variance
+    }
   } else {
     # FIXME: check V is valid input. 
     base = MashMultipleRegression
-    if (is.null(residual_variance))
-      #if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
-      if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
-      else residual_variance = var(Y, na.rm=T)
-    residual_variance[which(is.na(residual_variance))] = 0
     if (precompute_covariances) V$precompute_cov_matrices(data, residual_variance, algorithm = 'cpp')
   }
   # Below are the core computations
