@@ -33,7 +33,7 @@ test_that("Mash regression + precomputed cov is identical to not precompute", wi
     A = MashMultipleRegression$new(ncol(X), residual_covar, A_init)
     A$fit(data, save_summary_stats = T)
     B_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight, alpha = 1)
-    B_init$precompute_cov_matrices(data, residual_covar, algorithm = 'cpp')
+    B_init$precompute_cov_matrices(data, diag(residual_covar), algorithm = 'cpp')
     B = MashMultipleRegression$new(ncol(X), residual_covar, B_init)
     B$fit(data, save_summary_stats = T)
     # compare result
@@ -47,7 +47,7 @@ test_that("Mash regression + precomputed cov is identical to not precompute", wi
     A = MashMultipleRegression$new(ncol(X), residual_covar, A_init)
     A$fit(data, save_summary_stats = T)
     B_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight, alpha = 0)
-    B_init$precompute_cov_matrices(data, residual_covar, algorithm = 'cpp')
+    B_init$precompute_cov_matrices(data, diag(residual_covar), algorithm = 'cpp')
     B = MashMultipleRegression$new(ncol(X), residual_covar, B_init)
     B$fit(data, save_summary_stats = T)
     # compare result

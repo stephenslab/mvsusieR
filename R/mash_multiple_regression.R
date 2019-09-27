@@ -186,7 +186,7 @@ MashInitializer <- R6Class("MashInitializer",
         else private$V = residual_correlation
         private$a = alpha
       },
-    precompute_cov_matrices = function(d, algorithm = c('R', 'cpp')) {
+    precompute_cov_matrices = function(d, residual_vars, algorithm = c('R', 'cpp')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
       # and sigma_rooti for likelihooods
       # output of this function will provide input to `mashr`'s
@@ -195,16 +195,14 @@ MashInitializer <- R6Class("MashInitializer",
       # The input should be sbhat data matrix
       # d[j,] can be different for different conditions due to missing Y data
       # FIXME: did not use alpha information
-      sigma2 = apply(d$Y, 2, function(y) var(y, na.rm=T))
       if (d$Y_has_missing()) {
-        # FIXME: here I use var(y) in place for residual variances -- is conservative
-        res = get_sumstats_missing_data(d$X, d$Y, sigma2, private$V, private$a)
+        res = get_sumstats_missing_data(d$X, d$Y, residual_vars, private$V, private$a)
         svs = res$svs
         sbhat0 = res$sbhat0
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
       } else {
-        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) residual_vars / d$d[j])))
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
         if (common_sbhat) svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)

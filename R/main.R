@@ -119,7 +119,7 @@ susie = function(X,Y,L=10,V=0.2,
   } else {
     # FIXME: check V is valid input. 
     base = MashMultipleRegression
-    if (precompute_covariances) V$precompute_cov_matrices(data, algorithm = 'cpp')
+    if (precompute_covariances) V$precompute_cov_matrices(data, diag(residual_variance), algorithm = 'cpp')
   }
   # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)
