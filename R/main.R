@@ -101,7 +101,9 @@ susie = function(X,Y,L=10,V=0.2,
     if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
     else residual_variance = var(Y, na.rm=T)
     if (is.numeric(V) && !is.matrix(V)) residual_variance = as.numeric(residual_variance)
-    residual_variance[which(is.na(residual_variance))] = 0 
+    residual_variance[which(is.na(residual_variance))] = 0
+    # FIXME: allow mash result to override it
+    if (class(V)[1] == 'MashInitializer') residual_variance = sqrt(diag(residual_variance)) * t(sqrt(diag(residual_variance)) * V$residual_correlation)
   }
 
   # for now only V controls the type of regression 
