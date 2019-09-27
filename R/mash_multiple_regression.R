@@ -14,10 +14,10 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       }, error = function(e) {
         warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
       })
-      if (is.null(mash_initializer$null_correlation)) {
-        private$null_correlation = diag(mash_initializer$n_condition)
+      if (is.null(mash_initializer$residual_correlation)) {
+        private$residual_correlation = diag(mash_initializer$n_condition)
       } else {
-        private$null_correlation = mash_initializer$null_correlation
+        private$residual_correlation = mash_initializer$residual_correlation
       }
       private$alpha = mash_initializer$alpha
       private$precomputed_cov_matrices = mash_initializer$precomputed
@@ -62,7 +62,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       else is_common_cov = is_mat_common(sbhat)
       # 1.1 compute log-likelihood matrix given current estimates
       if (is.null(private$precomputed_cov_matrices) || ncol(bhat) == 1) {
-        llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$null_correlation, 
+        llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation, 
                                          matrix(0,0,0),
                                          private$.prior_variance$xUlist,
                                          TRUE,
@@ -93,14 +93,14 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       ## but let's set report_type = 4 and compute posterior covariance for now
       if (is.null(private$precomputed_cov_matrices) || ncol(bhat) == 1) {
         post = mashr:::calc_post_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0), 
-                              private$null_correlation,
+                              private$residual_correlation,
                               matrix(0,0,0), matrix(0,0,0), 
                               private$.prior_variance$xUlist,
                               t(private$.mixture_posterior_weights),
                               is_common_cov, 4)
       } else {
         post = mashr:::calc_post_precision_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0), 
-                              private$null_correlation,
+                              private$residual_correlation,
                               matrix(0,0,0), matrix(0,0,0), 
                               private$precomputed_cov_matrices$Vinv,
                               private$precomputed_cov_matrices$U0,
@@ -131,7 +131,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
     compute_loglik_null = function(d) {}
   ),
   private = list(
-    null_correlation = NULL,
+    residual_correlation = NULL,
     precomputed_cov_matrices = NULL,
     alpha = NULL,
     .mixture_posterior_weights = NULL,
@@ -152,7 +152,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, V = NULL, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, residual_correlation = NULL, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -182,11 +182,11 @@ MashInitializer <- R6Class("MashInitializer",
         }
         private$xU = list(pi = filtered_weights / sum(filtered_weights), xUlist = xUlist)
         private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
-        if (is.null(V)) private$V = diag(private$R)
-        else private$V = V
+        if (is.null(residual_correlation)) private$V = diag(private$R)
+        else private$V = residual_correlation
         private$a = alpha
       },
-    precompute_cov_matrices = function(d, residual_variance, algorithm = c('R', 'cpp')) {
+    precompute_cov_matrices = function(d, algorithm = c('R', 'cpp')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
       # and sigma_rooti for likelihooods
       # output of this function will provide input to `mashr`'s
@@ -195,14 +195,15 @@ MashInitializer <- R6Class("MashInitializer",
       # The input should be sbhat data matrix
       # d[j,] can be different for different conditions due to missing Y data
       # FIXME: did not use alpha information
+      sigma2 = apply(d$Y, 2, function(y) var(y, na.rm=T))
       if (d$Y_has_missing()) {
-        res = get_sumstats_missing_data(d$X, d$Y, residual_variance, private$V, private$a)
+        # FIXME: here I use var(y) in place for residual variances -- is conservative
+        res = get_sumstats_missing_data(d$X, d$Y, sigma2, private$V, private$a)
         svs = res$svs
         sbhat0 = res$sbhat0
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
       } else {
-        sigma2 = diag(residual_variance)
         sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
@@ -265,7 +266,7 @@ MashInitializer <- R6Class("MashInitializer",
       n_condition = function(v) private$R,
       prior_covariance = function() private$xU,
       mash_prior = function() private$U,
-      null_correlation = function() private$V,
+      residual_correlation = function() private$V,
       precomputed = function() private$inv_mats,
       alpha = function(value) {
         if (missing(value)) return(private$a)

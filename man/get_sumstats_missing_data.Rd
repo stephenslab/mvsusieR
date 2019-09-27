@@ -4,7 +4,8 @@
 \alias{get_sumstats_missing_data}
 \title{Compute multivariate summary statistics in the presence of missing data}
 \usage{
-get_sumstats_missing_data(X, Y, residual_variances, V, alpha)
+get_sumstats_missing_data(X, Y, residual_variances, residual_correlation,
+  alpha)
 }
 \description{
 Compute multivariate summary statistics in the presence of missing data

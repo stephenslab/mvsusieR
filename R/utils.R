@@ -316,7 +316,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 
 #' @title Compute multivariate summary statistics in the presence of missing data
 #' @keywords internal
-get_sumstats_missing_data = function(X, Y, residual_variances, V, alpha){
+get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlation, alpha){
   J = ncol(X)
   R = ncol(Y)
   M = !is.na(Y)
@@ -327,9 +327,9 @@ get_sumstats_missing_data = function(X, Y, residual_variances, V, alpha){
   # recomputed here for clarity
   X2 = sapply(1:R, function(r) colSums(X[M[,r],]^2 )) # J by R
   bhat = Xty/X2
-  S = lapply(1:J, function(j) diag(1/X2[j,]) * residual_variances )
+  S = lapply(1:J, function(j) diag(1/X2[j,]) * residual_variances)
   sbhat0 = sqrt(do.call(rbind, lapply(1:length(S), function(j) diag(S[[j]]))))
-  Sigma = sqrt(residual_variances) * t(sqrt(residual_variances) * V)
+  Sigma = sqrt(residual_variances) * t(sqrt(residual_variances) * residual_correlation)
   # FIXME: need to think of using other alpha values 
   # though currently we are not even doing that in MASH
   if (alpha != 0) {

@@ -101,8 +101,9 @@ susie = function(X,Y,L=10,V=0.2,
     if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
     else residual_variance = var(Y, na.rm=T)
     if (is.numeric(V) && !is.matrix(V)) residual_variance = as.numeric(residual_variance)
-    residual_variance[which(is.na(residual_variance))] = 0
+    residual_variance[which(is.na(residual_variance))] = 0 
   }
+
   # for now only V controls the type of regression 
   if (is.numeric(V)) {
     if (!(is.null(dim(Y)) || dim(Y)[2] == 1) && !is.matrix(V))
@@ -116,7 +117,7 @@ susie = function(X,Y,L=10,V=0.2,
   } else {
     # FIXME: check V is valid input. 
     base = MashMultipleRegression
-    if (precompute_covariances) V$precompute_cov_matrices(data, residual_variance, algorithm = 'cpp')
+    if (precompute_covariances) V$precompute_cov_matrices(data, algorithm = 'cpp')
   }
   # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)
