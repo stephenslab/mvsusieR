@@ -1,15 +1,15 @@
-#' @title SUm of Single Effect (SuSiE) Regression of Y on X
+#' @title SUm of Single Effect (SuSiE) Regression of multivariate Y on X
 #' @details Performs Bayesian multiple linear regression of Y on X.
 #' That is, this function
 #' fits the regression model Y= sum_l Xb_l + e, where elements of e are iid N(0,residual_variance) and the
 #' sum_l b_l is a p vector of effects to be estimated.
 #' The assumption is that each b_l has exactly one non-zero element, with all elements
-#' equally likely to be non-zero. The prior on the non-zero element is N(0,var=var(Y)*scaled_prior_variance).
+#' equally likely to be non-zero.
 #' @param X an n by p matrix of covariates
 #' @param Y an n vector
 #' @param L maximum number of non-zero effects
-#' @param scaled_prior_variance the scaled prior variance (vector of length L, or scalar. In latter case gets repeated L times). The prior variance on each non-zero element of b is set to be var(Y)*scaled_prior_variance.
-#' @param residual_variance the residual variance (defaults to variance of Y)
+#' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
+#' @param residual_variance the residual variance (defaults to sample variance of Y)
 #' @param prior_weights a p vector of prior probability that each element is non-zero
 #' @param null_weight probability of no effect, for each single effect model
 #' @param standardize logical flag (default=TRUE) for whether to standardize columns of X to unit variance prior to fitting.
@@ -51,12 +51,13 @@
 #' beta[1:4] = 1
 #' X = matrix(rnorm(n*p),nrow=n,ncol=p)
 #' y = X %*% beta + rnorm(n)
-#' res =susie(X,y,L=10)
+#' res = msusie(X,y,L=10)
 #'
 #' @importFrom stats var
 #' @importFrom susieR susie_get_pip susie_get_cs
 #' @export
-susie = function(X,Y,L=10,V=0.2,
+msusie = function(X,Y,L=10,
+                 prior_variance=0.2,
                  residual_variance=NULL,
                  prior_weights=NULL, null_weight=NULL,
                  standardize=TRUE,intercept=TRUE,
@@ -100,29 +101,30 @@ susie = function(X,Y,L=10,V=0.2,
     #if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
     if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
     else residual_variance = var(Y, na.rm=T)
-    if (is.numeric(V) && !is.matrix(V)) residual_variance = as.numeric(residual_variance)
+    if (is.numeric(prior_variance) && !is.matrix(prior_variance)) residual_variance = as.numeric(residual_variance)
     residual_variance[which(is.na(residual_variance))] = 0
     # FIXME: allow mash result to override it
-    if (class(V)[1] == 'MashInitializer') residual_variance = sqrt(diag(residual_variance)) * t(sqrt(diag(residual_variance)) * V$residual_correlation)
+    if (class(prior_variance)[1] == 'MashInitializer') residual_variance = sqrt(diag(residual_variance)) * t(sqrt(diag(residual_variance)) * prior_variance$residual_correlation)
   }
 
-  # for now only V controls the type of regression 
-  if (is.numeric(V)) {
-    if (!(is.null(dim(Y)) || dim(Y)[2] == 1) && !is.matrix(V))
-      stop("V cannot be a number when Y is a multivariate variable.")
-    if (is.matrix(V)) {
+  # for now the type of prior_variance controls the type of regression 
+  if (is.numeric(prior_variance)) {
+    if (!(is.null(dim(Y)) || dim(Y)[2] == 1) && !is.matrix(prior_variance))
+      stop("prior variance cannot be a number when Y is a multivariate variable.")
+    if (is.matrix(prior_variance)) {
       base = BayesianMultivariateRegression
     } else {
       base = BayesianMultipleRegression
-      V = V * residual_variance
+      # Here prior variance is scaled prior variance
+      prior_variance = prior_variance * residual_variance
     }
   } else {
-    # FIXME: check V is valid input. 
+    # FIXME: check prior_variance is valid MASH object
     base = MashMultipleRegression
-    if (precompute_covariances) V$precompute_cov_matrices(data, diag(residual_variance), algorithm = 'cpp')
+    if (precompute_covariances) prior_variance$precompute_cov_matrices(data, diag(residual_variance), algorithm = 'cpp')
   }
   # Below are the core computations
-  SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, V, estimate_prior_variance, prior_weights)
+  SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance, prior_weights)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, ncol(X), ncol(Y))
   SuSiE_model$fit(data)

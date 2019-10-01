@@ -39,26 +39,26 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
 test_that("mash regression in SuSiE is identical to univariate case", with(simulate_multivariate(r=1), {
     residual_var = as.numeric(var(y))
     scaled_prior_var = V[1,1] / residual_var
-    A = susie(X,y,L=L,V=scaled_prior_var,
+    A = msusie(X,y,L=L,prior_variance=scaled_prior_var,
                 estimate_residual_variance=FALSE,
                 compute_objective=FALSE)
     m_init = MashInitializer$new(list(V), 1, 1, 0, alpha = 0)
-    B = susie(X,y,L=L,V=m_init,compute_objective=FALSE)
+    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE)
     expect_susie_equal(A,B,F,F)
 }))
 
 test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=3), {
     m_init = MashInitializer$new(list(V), 1, 1, 0, alpha = 0)
-    A = susie(X,y,L=L,V=m_init,compute_objective=FALSE)
-    B = susie(X,y,L=L,V=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
+    A = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE)
+    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
     expect_susie_equal(A,B,F,F)
     m_init = MashInitializer$new(list(V), 1, 1, 0, alpha = 1)
-    A = susie(X,y,L=L,V=m_init,compute_objective=FALSE)
-    B = susie(X,y,L=L,V=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
+    A = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE)
+    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
     expect_susie_equal(A,B,F,F)
 }))
 
 test_that("customized initialization interface", with(simulate_multivariate(r=3), {
     m_init = MashInitializer$new(list(V), 1, 1, 0, alpha = 0)
-    A = susie(X,y,L=L,V=m_init,s_init=list(coef_index=c(2,3,4),coef_value=matrix(1,3,3)),compute_objective=FALSE)
+    A = msusie(X,y,L=L,prior_variance=m_init,s_init=list(coef_index=c(2,3,4),coef_value=matrix(1,3,3)),compute_objective=FALSE)
 }))
