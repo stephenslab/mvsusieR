@@ -103,8 +103,6 @@ msusie = function(X,Y,L=10,
     else residual_variance = var(Y, na.rm=T)
     if (is.numeric(prior_variance) && !is.matrix(prior_variance)) residual_variance = as.numeric(residual_variance)
     residual_variance[which(is.na(residual_variance))] = 0
-    # FIXME: allow mash result to override it
-    if (class(prior_variance)[1] == 'MashInitializer') residual_variance = sqrt(diag(residual_variance)) * t(sqrt(diag(residual_variance)) * prior_variance$residual_correlation)
   }
 
   # for now the type of prior_variance controls the type of regression 
@@ -121,7 +119,7 @@ msusie = function(X,Y,L=10,
   } else {
     # FIXME: check prior_variance is valid MASH object
     base = MashMultipleRegression
-    if (precompute_covariances) prior_variance$precompute_cov_matrices(data, diag(residual_variance), algorithm = 'cpp')
+    if (precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance, algorithm = 'cpp')
   }
   # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance, prior_weights)

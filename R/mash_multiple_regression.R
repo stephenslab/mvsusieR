@@ -14,11 +14,8 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       }, error = function(e) {
         warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
       })
-      if (is.null(mash_initializer$residual_correlation)) {
-        private$residual_correlation = diag(mash_initializer$n_condition)
-      } else {
-        private$residual_correlation = mash_initializer$residual_correlation
-      }
+      if (is.matrix(residual_variance)) private$residual_correlation = cov2cor(residual_variance)
+      else private$residual_correlation = diag(1) 
       private$alpha = mash_initializer$alpha
       private$precomputed_cov_matrices = mash_initializer$precomputed
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
@@ -152,7 +149,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, residual_correlation = NULL, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -182,11 +179,9 @@ MashInitializer <- R6Class("MashInitializer",
         }
         private$xU = list(pi = filtered_weights / sum(filtered_weights), xUlist = xUlist)
         private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
-        if (is.null(residual_correlation)) private$V = diag(private$R)
-        else private$V = residual_correlation
         private$a = alpha
       },
-    precompute_cov_matrices = function(d, residual_vars, algorithm = c('R', 'cpp')) {
+    precompute_cov_matrices = function(d, residual_covariance, algorithm = c('R', 'cpp')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
       # and sigma_rooti for likelihooods
       # output of this function will provide input to `mashr`'s
@@ -195,18 +190,20 @@ MashInitializer <- R6Class("MashInitializer",
       # The input should be sbhat data matrix
       # d[j,] can be different for different conditions due to missing Y data
       # FIXME: did not use alpha information
+      V = cov2cor(residual_covariance)
+      sigma2 = diag(residual_covariance)
       if (d$Y_has_missing()) {
-        res = get_sumstats_missing_data(d$X, d$Y, residual_vars, private$V, private$a)
+        res = get_sumstats_missing_data(d$X, d$Y, sigma2, V, private$a)
         svs = res$svs
         sbhat0 = res$sbhat0
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
       } else {
-        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) residual_vars / d$d[j])))
+        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
-        if (common_sbhat) svs = sbhat[1,] * t(private$V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
-        else svs = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(private$V * sbhat[j,]))
+        if (common_sbhat) svs = sbhat[1,] * t(V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
+        else svs = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(V * sbhat[j,]))
       }
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
       # FIXME: compute this in parallel in the future
@@ -264,7 +261,6 @@ MashInitializer <- R6Class("MashInitializer",
       n_condition = function(v) private$R,
       prior_covariance = function() private$xU,
       mash_prior = function() private$U,
-      residual_correlation = function() private$V,
       precomputed = function() private$inv_mats,
       alpha = function(value) {
         if (missing(value)) return(private$a)
