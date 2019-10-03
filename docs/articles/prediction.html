@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.169</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.178</span>
       </span>
     </div>
 
@@ -67,7 +67,7 @@
       <h1>Prediction example</h1>
                         <h4 class="author">Fabio Morgante</h4>
             
-            <h4 class="date">2019-09-26</h4>
+            <h4 class="date">2019-10-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/gaow/mmbr/blob/master/vignettes/prediction.Rmd"><code>vignettes/prediction.Rmd</code></a></small>
       <div class="hidden name"><code>prediction.Rmd</code></div>
@@ -123,16 +123,16 @@ prior_var &lt;-<span class="st"> </span>mmbr:::<span class="kw"><a href="../refe
 prior_covar &lt;-<span class="st"> </span>mmbr:::MashInitializer$<span class="kw">new</span>(prior_var, <span class="fl">0.2</span>)</code></pre></div>
 <p>Then, we fit the <code>mmbr</code> model to the training set.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span>(y1[-test_num], y2[-test_num], y3[-test_num])
-m &lt;-<span class="st"> </span>mmbr::<span class="kw"><a href="../reference/susie.html">susie</a></span>(X[-test_num, ], y, <span class="dt">L=</span>L, <span class="dt">V=</span>prior_covar)</code></pre></div>
+m &lt;-<span class="st"> </span>mmbr::<span class="kw"><a href="../reference/msusie.html">msusie</a></span>(X[-test_num, ], y, <span class="dt">L=</span>L, <span class="dt">prior_variance=</span>prior_covar)</code></pre></div>
 <p>Finally, we use the parameter estimates from the training set to predict phenotypes in the test set. The accuracy of prediction is calculated as the correlation between true and predicted phenotypes.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pred &lt;-<span class="st"> </span><span class="kw"><a href="../reference/predict.mmbr.html">predict.mmbr</a></span>(m, X[test_num, ])
 
 results &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">1</span>], y1[test_num, ]), <span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">2</span>], y2[test_num, ]), <span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">3</span>], y3[test_num, ])), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span><span class="dv">1</span>)
 results
 <span class="co">#           [,1]</span>
-<span class="co"># [1,] 0.2286558</span>
-<span class="co"># [2,] 0.6044051</span>
-<span class="co"># [3,] 0.2548433</span></code></pre></div>
+<span class="co"># [1,] 0.2369283</span>
+<span class="co"># [2,] 0.5994042</span>
+<span class="co"># [3,] 0.2920610</span></code></pre></div>
 </div>
 <div id="session-information" class="section level2">
 <h2 class="hasAnchor">
@@ -159,7 +159,7 @@ results
 <span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
 <span class="co"># </span>
 <span class="co"># other attached packages:</span>
-<span class="co"># [1] mmbr_0.0.1.0169   mashr_0.2.21.0641 ashr_2.2-38      </span>
+<span class="co"># [1] mmbr_0.0.1.0178   mashr_0.2.21.0641 ashr_2.2-38      </span>
 <span class="co"># </span>
 <span class="co"># loaded via a namespace (and not attached):</span>
 <span class="co">#  [1] Rcpp_1.0.2         susieR_0.8.1.0545  pillar_1.3.1      </span>

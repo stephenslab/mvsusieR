@@ -72,7 +72,7 @@ Then, we fit the `mmbr` model to the training set.
 
 ```{r}
 y <- cbind(y1[-test_num], y2[-test_num], y3[-test_num])
-m <- mmbr::susie(X[-test_num, ], y, L=L, V=prior_covar)
+m <- mmbr::msusie(X[-test_num, ], y, L=L, prior_variance=prior_covar)
 ```
 
 Finally, we use the parameter estimates from the training set to predict phenotypes in the test set. The accuracy of prediction is calculated as the correlation between true and predicted phenotypes.

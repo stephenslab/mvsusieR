@@ -370,7 +370,7 @@ res<span class="o">$</span>elbo
 <div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span><span class="m">0.2</span><span class="o">*</span>var<span class="p">(</span>dat<span class="o">$</span>y<span class="p">),</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>msusie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span><span class="m">0.2</span><span class="o">*</span>var<span class="p">(</span>dat<span class="o">$</span>y<span class="p">),</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 res<span class="o">$</span>elbo
 </pre></div>
 
@@ -441,7 +441,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>dat<span class="o">$</span>V<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>msusie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>dat<span class="o">$</span>V<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 res<span class="o">$</span>elbo
 </pre></div>
 
@@ -506,7 +506,7 @@ res<span class="o">$</span>elbo
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>dat<span class="o">$</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> residual_correlation <span class="o">=</span> cov2cor<span class="p">(</span>var<span class="p">(</span>dat<span class="o">$</span>y<span class="p">)),</span> prior_weight<span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>dat<span class="o">$</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> prior_weight<span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -519,7 +519,7 @@ res<span class="o">$</span>elbo
 <div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>msusie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 res<span class="o">$</span>elbo
 </pre></div>
 
@@ -544,11 +544,11 @@ res<span class="o">$</span>elbo
 	<li>-2169.55143832283</li>
 	<li>-2167.74410199547</li>
 	<li>-2167.26694357295</li>
-	<li>-2167.08740604301</li>
-	<li>-2166.51381866454</li>
+	<li>-2167.08740604302</li>
+	<li>-2166.51381866455</li>
 	<li>-2166.01270008591</li>
-	<li>-2164.89405592024</li>
-	<li>-2163.63506437887</li>
+	<li>-2164.8940559203</li>
+	<li>-2163.63506437888</li>
 	<li>-2163.57378303911</li>
 	<li>-2163.57265177467</li>
 	<li>-2163.57261683874</li>
@@ -576,7 +576,7 @@ res<span class="o">$</span>elbo
 <div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span><span class="m">0.2</span><span class="o">*</span><span class="kp">diag</span><span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>dat<span class="o">$</span>y<span class="p">)),</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>msusie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span><span class="m">0.2</span><span class="o">*</span><span class="kp">diag</span><span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>dat<span class="o">$</span>y<span class="p">)),</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 res<span class="o">$</span>elbo
 </pre></div>
 
@@ -628,7 +628,7 @@ res<span class="o">$</span>elbo
 <div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span><span class="o">*</span><span class="kp">diag</span><span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>dat<span class="o">$</span>y<span class="p">))),</span> <span class="m">1</span><span class="p">,</span> residual_correlation <span class="o">=</span> cov2cor<span class="p">(</span>var<span class="p">(</span>dat<span class="o">$</span>y<span class="p">)),</span> prior_weight<span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span><span class="o">*</span><span class="kp">diag</span><span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>dat<span class="o">$</span>y<span class="p">))),</span> <span class="m">1</span><span class="p">,</span> prior_weight<span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -641,7 +641,7 @@ res<span class="o">$</span>elbo
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>msusie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 res<span class="o">$</span>elbo
 </pre></div>
 

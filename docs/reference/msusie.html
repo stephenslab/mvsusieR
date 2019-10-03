@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SUm of Single Effect (SuSiE) Regression of Y on X — susie • mmbr</title>
+<title>SUm of Single Effect (SuSiE) Regression of multivariate Y on X — msusie • mmbr</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -32,9 +32,9 @@
 
 
 
-<meta property="og:title" content="SUm of Single Effect (SuSiE) Regression of Y on X — susie" />
+<meta property="og:title" content="SUm of Single Effect (SuSiE) Regression of multivariate Y on X — msusie" />
 
-<meta property="og:description" content="SUm of Single Effect (SuSiE) Regression of Y on X" />
+<meta property="og:description" content="SUm of Single Effect (SuSiE) Regression of multivariate Y on X" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -66,7 +66,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.169</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.178</span>
       </span>
     </div>
 
@@ -100,18 +100,18 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>SUm of Single Effect (SuSiE) Regression of Y on X</h1>
+    <h1>SUm of Single Effect (SuSiE) Regression of multivariate Y on X</h1>
     <small class="dont-index">Source: <a href='https://github.com/gaow/mmbr/blob/master/R/main.R'><code>R/main.R</code></a></small>
-    <div class="hidden name"><code>susie.Rd</code></div>
+    <div class="hidden name"><code>msusie.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>SUm of Single Effect (SuSiE) Regression of Y on X</p>
+    <p>SUm of Single Effect (SuSiE) Regression of multivariate Y on X</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>susie</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='kw'>L</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>V</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>residual_variance</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+    <pre class="usage"><span class='fu'>msusie</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='kw'>L</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>prior_variance</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>residual_variance</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>prior_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>null_weight</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>standardize</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>intercept</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>estimate_residual_variance</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>estimate_prior_variance</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>compute_objective</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
@@ -135,8 +135,12 @@
       <td><p>maximum number of non-zero effects</p></td>
     </tr>
     <tr>
+      <th>prior_variance</th>
+      <td><p>Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights</p></td>
+    </tr>
+    <tr>
       <th>residual_variance</th>
-      <td><p>the residual variance (defaults to variance of Y)</p></td>
+      <td><p>the residual variance (defaults to sample variance of Y)</p></td>
     </tr>
     <tr>
       <th>prior_weights</th>
@@ -205,10 +209,6 @@ a commonly used threshold for genotype data in genetics studies.</p></td>
       <th>track_fit</th>
       <td><p>add an attribute <code>trace</code> to output that saves current values of all iterations</p></td>
     </tr>
-    <tr>
-      <th>scaled_prior_variance</th>
-      <td><p>the scaled prior variance (vector of length L, or scalar. In latter case gets repeated L times). The prior variance on each non-zero element of b is set to be var(Y)*scaled_prior_variance.</p></td>
-    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
@@ -233,7 +233,7 @@ That is, this function
 fits the regression model Y= sum_l Xb_l + e, where elements of e are iid N(0,residual_variance) and the
 sum_l b_l is a p vector of effects to be estimated.
 The assumption is that each b_l has exactly one non-zero element, with all elements
-equally likely to be non-zero. The prior on the non-zero element is N(0,var=var(Y)*scaled_prior_variance).</p>
+equally likely to be non-zero.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
@@ -244,7 +244,7 @@ equally likely to be non-zero. The prior on the non-zero element is N(0,var=var(
 <span class='no'>beta</span>[<span class='fl'>1</span>:<span class='fl'>4</span>] <span class='kw'>=</span> <span class='fl'>1</span>
 <span class='no'>X</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span>*<span class='no'>p</span>),<span class='kw'>nrow</span><span class='kw'>=</span><span class='no'>n</span>,<span class='kw'>ncol</span><span class='kw'>=</span><span class='no'>p</span>)
 <span class='no'>y</span> <span class='kw'>=</span> <span class='no'>X</span> <span class='kw'>%*%</span> <span class='no'>beta</span> + <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span>)
-<span class='no'>res</span> <span class='kw'>=</span><span class='fu'>susie</span>(<span class='no'>X</span>,<span class='no'>y</span>,<span class='kw'>L</span><span class='kw'>=</span><span class='fl'>10</span>)</pre>
+<span class='no'>res</span> <span class='kw'>=</span> <span class='fu'>msusie</span>(<span class='no'>X</span>,<span class='no'>y</span>,<span class='kw'>L</span><span class='kw'>=</span><span class='fl'>10</span>)</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
