@@ -3,9 +3,8 @@ context("Test summary statistics computation with missing data")
 test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=3), {
     d = DenseData$new(X,y)
     residual_variance = cov(y)
-    # FIXME: V is non-diag then a=1 test will fail
-    # V = cov2cor(residual_variance)
-    V = diag(ncol(y))
+    V = cov2cor(residual_variance)
+    # V = diag(ncol(y))
     # use alpha = 0
     a = 0
     # code for missing data
