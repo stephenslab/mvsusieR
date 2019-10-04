@@ -149,7 +149,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = NULL, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
         # FIXME: need to check input
         private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
@@ -157,15 +157,15 @@ MashInitializer <- R6Class("MashInitializer",
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
         if (any(grid<=0)) stop("grid values should be greater than zero")
-        xUlist = expand_cov(Ulist, grid, TRUE)
+        xUlist = expand_cov(Ulist, grid, usepointmass=TRUE)
         plen = length(xUlist) - 1
-        if (is.null(null_weight)) null_weight = 0
         if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
         if (length(prior_weights) != plen)
           stop(paste("Invalid prior_weights setting: expect length", plen, "but input is of length", length(prior_weights)))
         weights = c(null_weight, prior_weights)
         weights = weights / sum(weights)
         # Filter by weights lower bound
+        # Have to keep the first null component
         which.comp = which(weights[-1] > weights_tol)
         which.comp = c(1, which.comp + 1)
         filtered_weights = weights[which.comp]
