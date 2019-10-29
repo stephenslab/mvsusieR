@@ -149,14 +149,21 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, exclude_conditions = NULL) {
         # FIXME: need to check input
-        private$R = nrow(Ulist[[1]])
         for (l in 1:length(Ulist)) {
             if (all(Ulist[[l]] == 0))
             stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
         }
         if (any(grid<=0)) stop("grid values should be greater than zero")
+        private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
+        all_zeros = vector()
+        if (!is.null(exclude_conditions)) {
+          for (l in 1:length(Ulist)) {
+            Ulist[[l]] = Ulist[[l]][-exclude_conditions, -exclude_conditions] 
+            all_zeros[l] = all(Ulist[[l]] == 0)
+          }
+        }
         xUlist = expand_cov(Ulist, grid, usepointmass=TRUE)
         plen = length(xUlist) - 1
         if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
@@ -170,6 +177,14 @@ MashInitializer <- R6Class("MashInitializer",
         which.comp = c(1, which.comp + 1)
         filtered_weights = weights[which.comp]
         xUlist = xUlist[which.comp]
+        # There are all zero priors, after some conditions are removed
+        # we will have to adjust the prior weights based on it
+        # This is a not very efficient yet safe and clear way to do it
+        if (length(which(all_zeros))>0) {
+          non_zeros = which(sapply(1:length(xUlist), function(l) !all(xUlist[[l]] == 0)))
+          xUlist = xUlist[c(1, non_zeros[-1])]
+          filtered_weights = filtered_weights[c(1, non_zeros[-1])]
+        }
         # Filter for top weights: we only keep top weights
         if (top_mixtures > 0 && top_mixtures < length(filtered_weights)) {
           which.comp = head(sort(filtered_weights[-1], index.return=T, decreasing=T)$ix, top_mixtures)
@@ -178,7 +193,6 @@ MashInitializer <- R6Class("MashInitializer",
           xUlist = xUlist[which.comp]
         }
         private$xU = list(pi = filtered_weights / sum(filtered_weights), xUlist = xUlist)
-        private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
         private$a = alpha
       },
     precompute_cov_matrices = function(d, residual_covariance, algorithm = c('R', 'cpp')) {
@@ -250,7 +264,6 @@ MashInitializer <- R6Class("MashInitializer",
     }
   ),
   private = list(
-      R = NULL,
       V = NULL,
       U = NULL,
       xU = NULL,
@@ -258,7 +271,7 @@ MashInitializer <- R6Class("MashInitializer",
       inv_mats = NULL
   ),
   active = list(
-      n_condition = function(v) private$R,
+      n_condition = function(v) nrow(private$xU$xUlist[[1]]),
       prior_covariance = function() private$xU,
       mash_prior = function() private$U,
       precomputed = function() private$inv_mats,
