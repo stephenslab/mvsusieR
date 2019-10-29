@@ -118,6 +118,7 @@ msusie = function(X,Y,L=10,
     }
   } else {
     # FIXME: check prior_variance is valid MASH object
+    if (prior_variance$n_condition != ncol(Y)) stop("Dimension mismatch between input prior covariance and response data.")
     base = MashMultipleRegression
     if (precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance, algorithm = 'cpp')
   }
