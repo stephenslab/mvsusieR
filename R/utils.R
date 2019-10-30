@@ -220,19 +220,21 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
   table$x = rep(x_names, each = length(y_names))
   table$effect_size = as.vector(t(bhat))
   table$mlog10lfsr = -log10(as.vector(t(p)))
+  colors = rep('black', length(table$x))
   # add CS to this table.
-  j = 1
-  for (i in m$sets$cs_index) {
-    variables = x_names[m$sets$cs[[j]]]
-    table[which(table$x %in% variables),]$cs = i
-    j = j + 1
-  }
-  if (cs_only) table = table[which(!is.na(table$cs)),]
-  # get colors for x-axis by CS,
-  xtable = unique(cbind(table$x, table$cs))
-  colors = rep('black', nrow(xtable))
-  for (i in unique(xtable[,2])) {
-    colors[which(xtable[,2] == i)] = as.integer(i) + 2
+  if (!is.null(m$sets$cs_index)) {
+    j = 1
+    for (i in m$sets$cs_index) {
+      variables = x_names[m$sets$cs[[j]]]
+      table[which(table$x %in% variables),]$cs = i
+      j = j + 1
+    }
+    if (cs_only) table = table[which(!is.na(table$cs)),]
+    # get colors for x-axis by CS,
+    xtable = unique(cbind(table$x, table$cs))
+    for (i in unique(xtable[,2])) {
+      colors[which(xtable[,2] == i)] = as.integer(i) + 2
+    }
   }
   library(ggplot2)
   p = ggplot(table) + 

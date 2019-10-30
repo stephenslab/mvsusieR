@@ -8,6 +8,7 @@ DenseData <- R6Class("DenseData",
       private$.X = X
       if (is.null(dim(Y))) private$.Y = matrix(Y,length(Y),1)
       else private$.Y = Y
+      if (any(dim(X) == 0)) stop('X input dimension is invalid.')
       private$R = ncol(private$.Y)
       private$N = nrow(private$.Y)
       private$J = ncol(private$.X)
