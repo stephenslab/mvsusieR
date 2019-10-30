@@ -205,9 +205,12 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
       stop(paste("Summary statistic matrix should have", nrow(m$coef[-1,]), "rows (no intercept term)."))
     bhat = m$bhat
     p = pnorm(-abs(m$bhat/m$shat))
+    logp = -log10(p)
+    top_snp = which(logp == max(logp, na.rm=TRUE), arr.ind = TRUE)[1]
   } else {
     bhat = m$coef[-1,]
     p = mmbr_get_lfsr(m, weighted = weighted_lfsr)
+    top_snp = NULL
   }
   # get table of effect size estimates and PIP, for all conditions.
   table = data.frame(matrix(NA, prod(dim(p)), ncol(bhat)))
@@ -228,6 +231,10 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
       variables = x_names[m$sets$cs[[j]]]
       table[which(table$x %in% variables),]$cs = i
       j = j + 1
+    }
+    # mark top_snp if available, as a CS by itself
+    if (!is.null(top_snp)) {
+        table[which(table$x == x_names[top_snp]),]$cs = 0
     }
     if (cs_only) table = table[which(!is.na(table$cs)),]
     # get colors for x-axis by CS,
