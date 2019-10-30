@@ -149,7 +149,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, exclude_conditions = NULL) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, include_conditions = NULL) {
         # FIXME: need to check input
         for (l in 1:length(Ulist)) {
             if (all(Ulist[[l]] == 0))
@@ -158,9 +158,9 @@ MashInitializer <- R6Class("MashInitializer",
         if (any(grid<=0)) stop("grid values should be greater than zero")
         private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
         all_zeros = vector()
-        if (!is.null(exclude_conditions)) {
+        if (!is.null(include_conditions)) {
           for (l in 1:length(Ulist)) {
-            Ulist[[l]] = Ulist[[l]][-exclude_conditions, -exclude_conditions] 
+            Ulist[[l]] = Ulist[[l]][include_conditions, include_conditions]
             all_zeros[l] = all(Ulist[[l]] == 0)
           }
         }
