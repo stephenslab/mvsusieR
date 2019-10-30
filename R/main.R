@@ -69,6 +69,8 @@ msusie = function(X,Y,L=10,
                  precompute_covariances = FALSE,
                  max_iter=100,tol=1e-3,
                  verbose=TRUE,track_fit=FALSE) {
+  # FIXME: this main function code needs to be examined and cleaned up
+  # to make it more elegant and robust
   # Check input X.
   if (!(is.double(X) & is.matrix(X)) & !inherits(X,"CsparseMatrix"))
     stop("Input X must be a double-precision matrix, or a sparse matrix.")
@@ -87,13 +89,8 @@ msusie = function(X,Y,L=10,
     X = cbind(X,0)
   }
 
-  ## BEGIN new mmbr code
-  ## ============= 
-  ## FIXME this interface is a playground now
-  ## and it is the last part to worry about
-  ## not before we finalize the design in each modules
-  ## currently this is a very dirty prototype interface
-  ## =============
+  ptm = proc.time()
+  ## BEGIN mmbr code
   data = DenseData$new(X, Y, intercept, standardize)
   # FIXME: this is because of issue #5
   if (data$X_has_missing()) stop("Missing data in input matrix X is not allowed at this point.")
@@ -129,6 +126,7 @@ msusie = function(X,Y,L=10,
   SuSiE_model$fit(data)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   ## END new mmbr code
+  s$walltime = proc.time() - ptm 
 
   ## SuSiE CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
