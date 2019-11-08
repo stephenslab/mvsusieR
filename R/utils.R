@@ -357,5 +357,7 @@ get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlat
       break
     }
   }
+  bhat[which(is.nan(bhat))] = 0
+  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 0
   return(list(svs=S, sbhat0=sbhat0, bhat=bhat))
 }
