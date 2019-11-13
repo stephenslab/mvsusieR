@@ -150,22 +150,24 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, include_conditions = NULL) {
-        # FIXME: need to check input
-        for (l in 1:length(Ulist)) {
-            if (all(Ulist[[l]] == 0))
-            stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
-        }
-        if (any(grid<=0)) stop("grid values should be greater than zero")
-        private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
-        all_zeros = vector()
-        if (!is.null(include_conditions)) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
+        if (is.null(xUlist)) {
+          # FIXME: need to check input
           for (l in 1:length(Ulist)) {
-            Ulist[[l]] = Ulist[[l]][include_conditions, include_conditions]
-            all_zeros[l] = all(Ulist[[l]] == 0)
+              if (all(Ulist[[l]] == 0))
+              stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
           }
+          if (any(grid<=0)) stop("grid values should be greater than zero")
+          private$U = list(pi = weights, Ulist = Ulist, grid = grid, usepointmass = TRUE)
+          all_zeros = vector()
+          if (!is.null(include_conditions)) {
+            for (l in 1:length(Ulist)) {
+              Ulist[[l]] = Ulist[[l]][include_conditions, include_conditions]
+              all_zeros[l] = all(Ulist[[l]] == 0)
+            }
+          }
+          xUlist = expand_cov(Ulist, grid, usepointmass=TRUE)
         }
-        xUlist = expand_cov(Ulist, grid, usepointmass=TRUE)
         plen = length(xUlist) - 1
         if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
         if (length(prior_weights) != plen)
