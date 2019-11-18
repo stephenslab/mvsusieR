@@ -96,11 +96,13 @@ msusie = function(X,Y,L=10,
   if (data$X_has_missing()) stop("Missing data in input matrix X is not allowed at this point.")
   if (is.null(residual_variance)) {
     #if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
+    # FIXME: either need better initialization method, or just quit on error for unspecified residual variance
     if (dim(Y)[2] > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
     else residual_variance = var(Y, na.rm=T)
     if (is.numeric(prior_variance) && !is.matrix(prior_variance)) residual_variance = as.numeric(residual_variance)
     residual_variance[which(is.na(residual_variance))] = 0
   }
+  if (is.matrix(residual_variance)) mashr:::check_positive_definite(residual_variance)
 
   # for now the type of prior_variance controls the type of regression 
   if (is.numeric(prior_variance)) {
