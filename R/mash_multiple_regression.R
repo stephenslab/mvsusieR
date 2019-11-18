@@ -41,7 +41,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
         sigma2 = diag(private$.residual_variance)
         if (d$Y_has_missing()) sbhat = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
         else sbhat = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
-        sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 0
+        sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E6
       }
       if (save_summary_stats) {
         private$.bhat = bhat
@@ -154,6 +154,8 @@ MashInitializer <- R6Class("MashInitializer",
         all_zeros = vector()
         if (is.null(xUlist)) {
           # FIXME: need to check input
+          # eg for psd, cf mashr checks
+          # also fix mashr::: namespace
           for (l in 1:length(Ulist)) {
               if (all(Ulist[[l]] == 0))
               stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
@@ -217,7 +219,7 @@ MashInitializer <- R6Class("MashInitializer",
         common_sbhat = is_mat_common(sbhat)
       } else {
         sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
-        sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 0
+        sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
         if (common_sbhat) svs = sbhat[1,] * t(V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)

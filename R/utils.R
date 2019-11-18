@@ -150,7 +150,7 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
 #' @param sets a list of credible set output from SuSiE model
 #' @keywords internal
 mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
-    # fix data dimension issue due to R's geniusity
+    # fix data dimension issue due to R's ingenuity
     if (is.null(nrow(lfsr))) lfsr = matrix(lfsr, 1, length(lfsr))
     for (i in 1:nrow(lfsr)) {
       if (i %in% sets$cs_index) {
@@ -361,6 +361,6 @@ get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlat
     }
   }
   bhat[which(is.nan(bhat))] = 0
-  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 0
+  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
   return(list(svs=S, sbhat0=sbhat0, bhat=bhat))
 }
