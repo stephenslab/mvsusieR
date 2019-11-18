@@ -321,8 +321,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
                         mats[[j]][upper.tri(mats[[j]], diag = FALSE)] <- hetgrid[j]
                       }
             }
-          }
-    
+        }
     return(mats)
 }
 
@@ -361,6 +360,14 @@ get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlat
     }
   }
   bhat[which(is.nan(bhat))] = 0
-  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
+  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 0
   return(list(svs=S, sbhat0=sbhat0, bhat=bhat))
+}
+
+#' @title Check if matrix is diag
+#' @keywords internal
+is_diag_mat = function(x, tol=1E-10) {
+    y <- x
+    diag(y) <- rep(0, nrow(y))
+    return(all(abs(y) < tol))
 }
