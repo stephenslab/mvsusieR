@@ -70,6 +70,7 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         sigma2 = m$residual_variance,
         elbo = m$get_objective(dump=TRUE),
         niter = m$get_niter(),
+        convergence = m$get_convergence(),
         coef = d$rescale_coef(b),
         null_index = -9,
         mixture_weights = mixture_weights,
@@ -325,7 +326,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 
 #' @title Compute multivariate summary statistics in the presence of missing data
 #' @keywords internal
-get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlation, alpha){
+get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlation, alpha) {
   J = ncol(X)
   R = ncol(Y)
   M = !is.na(Y)

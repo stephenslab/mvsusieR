@@ -4,7 +4,7 @@
 \name{BayesianMultivariateRegression}
 \alias{BayesianMultivariateRegression}
 \title{Multiviate regression object}
-\format{An object of class \code{R6ClassGenerator} of length 24.}
+\format{An object of class \code{R6ClassGenerator} of length 25.}
 \usage{
 BayesianMultivariateRegression
 }

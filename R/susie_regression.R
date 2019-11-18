@@ -60,14 +60,14 @@ SuSiE <- R6Class("SuSiE",
                 private$estimate_residual_variance(d)
             if (private$to_compute_objective)
                 private$compute_objective(d)
-            convergence = private$check_convergence(i)
-            if (convergence$converged) {
+            private$convergence = private$check_convergence(i)
+            if (private$convergence$converged) {
                 private$save_history()
                 pb$tick(private$niter)
                 private$niter = i
                 break
             }
-            pb$tick(tokens = list(delta=sprintf(convergence$delta, fmt = '%#.1e'), iteration=i))
+            pb$tick(tokens = list(delta=sprintf(private$convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },
     predict = function(x) {},
@@ -81,6 +81,7 @@ SuSiE <- R6Class("SuSiE",
         else return(private$elbo[private$niter])
     },
     get_niter = function() private$niter,
+    get_convergence = function() private$convergence,
     get_pip_history = function() private$pip_history,
     get_lbf_history = function() private$lbf_history
   ),
@@ -92,6 +93,7 @@ SuSiE <- R6Class("SuSiE",
     elbo = NULL, # Evidence lower bound
     null_index = NULL, # index of null effect intentially added
     niter = NULL,
+    convergence = NULL,
     pip_history = NULL, # keep track of pip
     lbf_history = NULL, # keep track of lbf
     tol = NULL, # tolerance level for convergence

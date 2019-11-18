@@ -4,7 +4,7 @@
 \name{SuSiE}
 \alias{SuSiE}
 \title{SUm of SIngle Effect (SuSiE) regression object}
-\format{An object of class \code{R6ClassGenerator} of length 24.}
+\format{An object of class \code{R6ClassGenerator} of length 25.}
 \usage{
 SuSiE
 }

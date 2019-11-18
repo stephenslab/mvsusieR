@@ -4,7 +4,7 @@
 \name{null_progress_bar}
 \alias{null_progress_bar}
 \title{A null progressbar, because currently `progressbar_enabled` feature does not work for `progress_bar`}
-\format{An object of class \code{R6ClassGenerator} of length 24.}
+\format{An object of class \code{R6ClassGenerator} of length 25.}
 \usage{
 null_progress_bar
 }
