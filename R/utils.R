@@ -340,6 +340,8 @@ get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlat
   bhat = Xty/X2
   S = lapply(1:J, function(j) diag(1/X2[j,]) * residual_variances)
   sbhat0 = sqrt(do.call(rbind, lapply(1:length(S), function(j) diag(S[[j]]))))
+  bhat[which(is.nan(bhat))] = 0
+  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
   Sigma = sqrt(residual_variances ^ (1 - alpha)) * t(sqrt(residual_variances ^ (1 - alpha)) * residual_correlation)
   # this is for MASH EE and EZ model
   if (alpha != 0) {
@@ -347,10 +349,11 @@ get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlat
   }
   # FIXME: may want to do this in parallel
   for(j in 1:J){
+    S[[j]][which(is.nan(S[[j]]) | is.infinite(S[[j]]))] = 1E6
     for(r in 1:(R-1)){
       for(d in (r+1):R){
         common = as.logical(M[,r] * M[,d])
-        S[[j]][r,d] = Sigma[r,d] * (sum((X[common,j])^2)/(X2[j,r]*X2[j,d])) ^ (1 - alpha)
+        S[[j]][r,d] = Sigma[r,d] * ifelse(X2[j,r]*X2[j,d] != 0, sum((X[common,j])^2)/(X2[j,r]*X2[j,d]), 0) ^ (1 - alpha)
         S[[j]][d,r] = S[[j]][r,d]
       }
     }
@@ -359,8 +362,6 @@ get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlat
       break
     }
   }
-  bhat[which(is.nan(bhat))] = 0
-  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 0
   return(list(svs=S, sbhat0=sbhat0, bhat=bhat))
 }
 

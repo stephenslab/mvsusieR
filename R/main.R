@@ -119,7 +119,7 @@ msusie = function(X,Y,L=10,
     # FIXME: check prior_variance is valid MASH object
     if (prior_variance$n_condition != ncol(Y)) stop("Dimension mismatch between input prior covariance and response data.")
     base = MashMultipleRegression
-    if ((data$Y_has_missing() && !is_diag_mat(residual_variance)) || precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance, algorithm = 'cpp')
+    if ((data$Y_has_missing() && !is_diag_mat(residual_variance)) || precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance)
   }
   # Below are the core computations
   SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance, prior_weights)

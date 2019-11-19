@@ -153,9 +153,7 @@ MashInitializer <- R6Class("MashInitializer",
       initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
         all_zeros = vector()
         if (is.null(xUlist)) {
-          # FIXME: need to check input
-          # eg for psd, cf mashr checks
-          # also fix mashr::: namespace
+          # FIXME: mashr::: namespace
           for (l in 1:length(Ulist)) {
               if (all(Ulist[[l]] == 0))
               stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
@@ -197,10 +195,17 @@ MashInitializer <- R6Class("MashInitializer",
           filtered_weights = weights[which.comp]
           xUlist = xUlist[which.comp]
         }
+        # Check on xUlist
+        u_rows = vector()
+        for (i in 1:length(xUlist)) {
+          mashr:::check_covmat_basics(xUlist[[i]])
+          u_rows[i] = nrow(xUlist[[i]])
+        }
+        if (length(unique(u_rows)) > 1) stop("Ulist contains matrices of different dimensions.")
         private$xU = list(pi = filtered_weights / sum(filtered_weights), xUlist = xUlist)
         private$a = alpha
       },
-    precompute_cov_matrices = function(d, residual_covariance, algorithm = c('R', 'cpp')) {
+    precompute_cov_matrices = function(d, residual_covariance, algorithm = c('cpp', 'R')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
       # and sigma_rooti for likelihooods
       # output of this function will provide input to `mashr`'s
@@ -250,8 +255,11 @@ MashInitializer <- R6Class("MashInitializer",
           k = 1
           for (j in 1:length(svs)) {
             for (i in 1:length(private$xU$xUlist)) {
-              if (algorithm == 'R') sigma_rooti[[k]] = t(backsolve(muffled_chol(svs[[j]] + private$xU$xUlist[[i]]), diag(nrow(svs[[j]]))))
-              else sigma_rooti[[k]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
+              if (algorithm == 'R') {
+                sigma_rooti[[k]] = t(backsolve(muffled_chol(svs[[j]] + private$xU$xUlist[[i]]), diag(nrow(svs[[j]]))))
+              } else {
+                sigma_rooti[[k]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
+              }
               k = k + 1
             }
           }
@@ -270,7 +278,6 @@ MashInitializer <- R6Class("MashInitializer",
     }
   ),
   private = list(
-      V = NULL,
       U = NULL,
       xU = NULL,
       a = NULL,
