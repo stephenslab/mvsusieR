@@ -205,7 +205,7 @@ MashInitializer <- R6Class("MashInitializer",
         private$xU = list(pi = filtered_weights / sum(filtered_weights), xUlist = xUlist)
         private$a = alpha
       },
-    precompute_cov_matrices = function(d, residual_covariance, algorithm = c('cpp', 'R')) {
+    precompute_cov_matrices = function(d, residual_covariance, algorithm = c('R', 'cpp')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
       # and sigma_rooti for likelihooods
       # output of this function will provide input to `mashr`'s
