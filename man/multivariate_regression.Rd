@@ -4,7 +4,7 @@
 \alias{multivariate_regression}
 \title{Multiviate regression core}
 \usage{
-multivariate_regression(bhat, xtx_inv, V, U)
+multivariate_regression(bhat, S, U)
 }
 \description{
 Multiviate regression core

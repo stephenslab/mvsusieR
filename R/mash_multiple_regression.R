@@ -285,6 +285,7 @@ MashInitializer <- R6Class("MashInitializer",
   ),
   active = list(
       n_condition = function(v) nrow(private$xU$xUlist[[1]]),
+      prior_variance = function() NULL,
       prior_covariance = function() private$xU,
       mash_prior = function() private$U,
       precomputed = function() private$inv_mats,
