@@ -110,6 +110,16 @@ mmbr_get_alpha_per_condition = function(m, prior_obj) {
   return(condition_pip)
 }
 
+# Cannot use `unique` directly here -- for perfectly identical rows (by computation)
+# due to possible numerical issues, `unique` (and `duplicated`) function reports
+# that they are not identical.
+almost.unique.rows <- function(x,  tolerance = sqrt(.Machine$double.eps), ...)
+{
+  y <- round(x/tolerance, 0)
+  d <- duplicated(y, ...)
+  x[!d,,drop=F]
+}
+
 #' @title A null progressbar, because currently `progressbar_enabled` feature does not work for `progress_bar`
 #' @importFrom R6 R6Class
 #' @keywords internal
@@ -118,7 +128,7 @@ null_progress_bar = R6Class('null_progress_bar', public = list(tick = function(.
 #' @title check if all elements are the same in matrix of J by R, J >> R
 #' @keywords internal
 is_mat_common = function(mat) {
-  sum(1-duplicated(mat, MARGIN=1)) == 1
+  nrow(almost.unique.rows(mat)) == 1
 }
 
 #' @title A simple simulation function to simulate some test data

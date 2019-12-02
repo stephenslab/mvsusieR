@@ -1,7 +1,9 @@
 context("Test summary statistics computation with missing data")
 
 test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=3), {
-    d = DenseData$new(X,y)
+    # mix-up X and don't scale it such that sbhat will be different
+    X = matrix(runif(ncol(X) * nrow(X)), nrow(X), ncol(X))
+    d = DenseData$new(X,y,scale=F)
     residual_variance = cov(y)
     V = cov2cor(residual_variance)
     # V = diag(ncol(y))
