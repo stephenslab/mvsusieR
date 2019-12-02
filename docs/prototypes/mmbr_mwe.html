@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -234,16 +233,14 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="A-non-trivial-toy-example-for-multivariate-regression-with-mmbr">A non-trivial toy example for multivariate regression with <code>mmbr</code><a class="anchor-link" href="#A-non-trivial-toy-example-for-multivariate-regression-with-mmbr">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here I show with a toy simulation of 600 samples, 3000 variables phenotypes and 50 conditions of interest, just to see how the method works in terms of computational speed,
 and roughly how well it works.</p>
@@ -252,8 +249,7 @@ and roughly how well it works.</p>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The simulation parameters are set to mimic the scale of GTEx cis-QTL analysis. I simulated 1 random effect variables per condition for these 50 conditions considered.</p>
 
@@ -270,7 +266,7 @@ and roughly how well it works.</p>
 <span class="kn">attach</span><span class="p">(</span>mmbr_sim1<span class="p">(</span>n<span class="o">=</span><span class="m">600</span><span class="p">,</span>p<span class="o">=</span><span class="m">3000</span><span class="p">,</span>r<span class="o">=</span><span class="m">50</span><span class="p">,</span>s<span class="o">=</span><span class="m">1</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -280,7 +276,7 @@ and roughly how well it works.</p>
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -295,16 +291,14 @@ Loading required package: ashr
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Multivariate-analysis">Multivariate analysis<a class="anchor-link" href="#Multivariate-analysis">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>From the simulation we know that the number of total effect variables is about 50 (exactly 50 if there are no overlaps). Here I let <code>mmbr</code> to discover only 10 of them:</p>
 
@@ -319,14 +313,13 @@ Loading required package: ashr
 <div class=" highlight hl-r"><pre><span></span>L <span class="o">=</span> <span class="m">10</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>In practice the priors are to be specified using <code>mashr</code> output, which will take a few hours to compute. But once computed it can be applied to all test units.</p>
 
@@ -341,14 +334,13 @@ Loading required package: ashr
 <div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here I'm only using one weight and one prior covariance which is a very much degenerated MASH result. In practice there can usually be dozens of prior matrices in the MASH mixture with non-trivial weight. But the computation can also be parallelled. Here I only use one CPU core to time it.</p>
 
@@ -365,7 +357,7 @@ B <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span
 end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span class="p">()</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -378,7 +370,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class=" highlight hl-r"><pre><span></span>end_time <span class="o">-</span> start_time
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -388,7 +380,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -411,7 +403,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class=" highlight hl-r"><pre><span></span>B<span class="o">$</span>niter
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -421,7 +413,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -436,8 +428,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Not to bad in compute time. Now check the result:</p>
 
@@ -452,7 +443,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class=" highlight hl-r"><pre><span></span>b_all <span class="o">=</span> <span class="kp">as.integer</span><span class="p">(</span><span class="kp">apply</span><span class="p">(</span>b<span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="kp">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -465,7 +456,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class=" highlight hl-r"><pre><span></span>susieR<span class="o">::</span>susie_plot<span class="p">(</span>B<span class="p">,</span>y<span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span>b<span class="o">=</span>b_all<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -475,7 +466,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -883,8 +874,7 @@ oAiCHQAAgCIIdgAAAIog2AEAACji/wEV8MaOCH6D0AAAAABJRU5ErkJggg=="
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>I specified 10 variables but only see 9 here. I suspect there is signal overlap issue. But overall result is promising.</p>
 
@@ -892,8 +882,7 @@ oAiCHQAAgCIIdgAAAIog2AEAACji/wEV8MaOCH6D0AAAAABJRU5ErkJggg=="
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="A-simpler-case">A simpler case<a class="anchor-link" href="#A-simpler-case">&#182;</a></h2><p>Now I try it with 4 conditions each having 2 effect variables and see how it works:</p>
 
@@ -910,14 +899,13 @@ oAiCHQAAgCIIdgAAAIog2AEAACji/wEV8MaOCH6D0AAAAABJRU5ErkJggg=="
 <span class="kn">attach</span><span class="p">(</span>mmbr_sim1<span class="p">(</span><span class="m">600</span><span class="p">,</span><span class="m">3000</span><span class="p">,</span><span class="m">4</span><span class="p">,</span><span class="m">2</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>I still ask to look for 10 variables, hoping it will report back 8 correctly,</p>
 
@@ -936,7 +924,7 @@ B <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span
 end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span class="p">()</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -949,7 +937,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class=" highlight hl-r"><pre><span></span>end_time <span class="o">-</span> start_time
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -959,7 +947,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -982,7 +970,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class=" highlight hl-r"><pre><span></span>B<span class="o">$</span>niter
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -992,7 +980,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1015,7 +1003,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 susieR<span class="o">::</span>susie_plot<span class="p">(</span>B<span class="p">,</span>y<span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span>b<span class="o">=</span>b_all<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1025,7 +1013,7 @@ susieR<span class="o">::</span>susie_plot<span class="p">(</span>B<span class="p
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1401,8 +1389,7 @@ FjIPjCpAKw0AAAAASUVORK5CYII="
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>which is indeed the case.</p>
 

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -234,16 +233,14 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Comparing-multivariate-MASH-analysis-using-diagonal-priors-with-univariate-computations">Comparing multivariate MASH analysis using diagonal priors with univariate computations<a class="anchor-link" href="#Comparing-multivariate-MASH-analysis-using-diagonal-priors-with-univariate-computations">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>This is to verify that the mmbr implementation is correct for the truthly multivariate computations. Previously I have only compared it for the degenerated case where the prior matrix is 1 by 1.</p>
 
@@ -251,8 +248,7 @@ body {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Simulate-data">Simulate data<a class="anchor-link" href="#Simulate-data">&#182;</a></h2>
 </div>
@@ -274,7 +270,7 @@ y1 <span class="o">=</span> X <span class="o">%*%</span> beta1 <span class="o">+
 y2 <span class="o">=</span> X <span class="o">%*%</span> beta2 <span class="o">+</span> rnorm<span class="p">(</span>n<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -287,7 +283,7 @@ y2 <span class="o">=</span> X <span class="o">%*%</span> beta2 <span class="o">+
 <div class=" highlight hl-r"><pre><span></span>beta1<span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -297,7 +293,7 @@ y2 <span class="o">=</span> X <span class="o">%*%</span> beta2 <span class="o">+
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -325,7 +321,7 @@ y2 <span class="o">=</span> X <span class="o">%*%</span> beta2 <span class="o">+
 <div class=" highlight hl-r"><pre><span></span>beta2<span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -335,7 +331,7 @@ y2 <span class="o">=</span> X <span class="o">%*%</span> beta2 <span class="o">+
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -356,8 +352,7 @@ y2 <span class="o">=</span> X <span class="o">%*%</span> beta2 <span class="o">+
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Run-univariate-computation">Run univariate computation<a class="anchor-link" href="#Run-univariate-computation">&#182;</a></h2>
 </div>
@@ -372,7 +367,7 @@ y2 <span class="o">=</span> X <span class="o">%*%</span> beta2 <span class="o">+
 bhat1 <span class="o">=</span> coef<span class="p">(</span>m1<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -386,7 +381,7 @@ bhat1 <span class="o">=</span> coef<span class="p">(</span>m1<span class="p">)</
 bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -399,7 +394,7 @@ bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</
 <div class=" highlight hl-r"><pre><span></span>bhat1<span class="p">[</span><span class="m">2</span><span class="o">:</span><span class="m">5</span><span class="p">]</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -409,7 +404,7 @@ bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -437,7 +432,7 @@ bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</
 <div class=" highlight hl-r"><pre><span></span>bhat2<span class="p">[</span><span class="m">2</span><span class="o">:</span><span class="m">5</span><span class="p">]</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -447,7 +442,7 @@ bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -468,8 +463,7 @@ bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Run-multivariate-computation">Run multivariate computation<a class="anchor-link" href="#Run-multivariate-computation">&#182;</a></h2>
 </div>
@@ -486,7 +480,7 @@ y <span class="o">=</span> <span class="kp">cbind</span><span class="p">(</span>
 data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class="o">$</span>new<span class="p">(</span>X<span class="p">,</span>y<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -499,7 +493,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class=" highlight hl-r"><pre><span></span>prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>prior_var<span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -512,7 +506,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class=" highlight hl-r"><pre><span></span>m <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>X<span class="p">,</span> y<span class="p">,</span> L<span class="o">=</span><span class="m">10</span><span class="p">,</span> V<span class="o">=</span>prior_covar<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -522,7 +516,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stdout output_text">
@@ -543,7 +537,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class=" highlight hl-r"><pre><span></span><span class="kp">length</span><span class="p">(</span>m<span class="o">$</span>coef<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -553,7 +547,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -568,8 +562,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Get-lfsr">Get lfsr<a class="anchor-link" href="#Get-lfsr">&#182;</a></h2>
 </div>
@@ -583,7 +576,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class=" highlight hl-r"><pre><span></span>mmbr<span class="o">::</span>mmbr_get_cs_lfsr<span class="p">(</span>m<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -593,7 +586,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -622,8 +615,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Get-PIP-per-condition">Get PIP per condition<a class="anchor-link" href="#Get-PIP-per-condition">&#182;</a></h2>
 </div>
@@ -637,7 +629,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class=" highlight hl-r"><pre><span></span>pip_cond <span class="o">=</span> mmbr<span class="o">:::</span>mmbr_get_pip_per_condition<span class="p">(</span>m<span class="p">,</span> prior_covar<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -650,7 +642,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class=" highlight hl-r"><pre><span></span><span class="kp">dim</span><span class="p">(</span>pip_cond<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -660,7 +652,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -686,7 +678,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pip_cond<span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -696,7 +688,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
