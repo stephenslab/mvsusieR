@@ -10,8 +10,8 @@ docs/prototypes/mash_regression_univariate_degenerated.html
 docs/prototypes/missing_data_precomputed.html
 docs/prototypes/mmbr_mwe.html
 docs/prototypes/mmbr_univariate_algorithm_agreement.html
+docs/prototypes/multivariate_est_prior.html
 docs/prototypes/multivariate_regression.html
-docs/prototypes/multivariate_simple_regression.html
 docs/prototypes/output_visualization.html
 docs/prototypes/precomputed_quantities_mash.html
 docs/prototypes/two_snps_dispute.html

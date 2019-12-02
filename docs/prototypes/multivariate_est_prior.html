@@ -235,15 +235,14 @@ body {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Multivariate-simple-regression-comparison-with-univariate">Multivariate simple regression comparison with univariate<a class="anchor-link" href="#Multivariate-simple-regression-comparison-with-univariate">&#182;</a></h1>
+<h1 id="Multivariate-regression-simple-prior-with-estimated-scalar.">Multivariate regression simple prior with estimated scalar.<a class="anchor-link" href="#Multivariate-regression-simple-prior-with-estimated-scalar.">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Here I use multivariate prior (not mash mixture) for <code>msusie</code> call, and compute result with <code>susie</code>.</p>
-<p>Multicariate calculation is implemented in the <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_multivariate_regression.R"><code>BayesianMultivariateRegression</code> class</a> with an interface added to the main function such that the code will be triggered <a href="https://github.com/gaow/mmbr/blob/dccc26cfbba0cfd3e6f20b37e06d4db6305b834f/R/main.R#L110">when prior variance is a matrix</a>.</p>
+<p>Here I use multivariate prior (not mash mixture) for <code>msusie</code> call, but allow for the scalar of prior to be estimated. That is, I have implemeted <code>estimate_prior_variance</code> for <a href="https://github.com/gaow/mmbr/blob/1c9b14283aa9615436447738932618c81388bd41/R/bayesian_multivariate_regression.R#L7">this class</a>.</p>
 
 </div>
 </div>
