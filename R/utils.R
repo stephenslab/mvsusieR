@@ -140,7 +140,7 @@ is_mat_common = function(mat) {
 #' @export
 mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE) {
   X = matrix(rnorm(n*p,0,1),n,p)
-  if (s>1) {
+  if (s>=1) {
     beta = matrix(0, p, r)
     for (i in 1:r) beta[sample(1:p,s), i] = 1
   } else {
