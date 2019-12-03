@@ -137,7 +137,7 @@ negloglik.grad.logscale = function(lV,betahat,shat2,prior_weights) {
 
 est.prior.variance = function(betahat,shat2,prior_weights, method=c('optim', 'uniroot')) {
   if(method=="optim"){
-    lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=neg.loglik.logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, method='Brent', lower = -10, upper = 15)$par
+    lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=neg.loglik.logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, method='Brent', lower = -20, upper = 0)$par
     V = exp(lV)
   } else {
     V.u = uniroot(negloglik.grad.logscale,c(-10,10),extendInt = "upX",betahat=betahat,shat2=shat2,prior_weights=prior_weights)

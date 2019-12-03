@@ -97,6 +97,7 @@ neg.loglik.logscale.mv = function(lV,bhat,S,U,prior_weights) {
 }
 
 est.prior.variance.scale = function(bhat,sbhat2,U,prior_weights) {
-    lV = optim(par=log(1), fn=neg.loglik.logscale.mv, bhat=bhat, S=sbhat2, U=U, prior_weights = prior_weights, method='Brent', lower = -10, upper = 15)$par
+    # dont constrain on values of `lV` -- as a scalar it does not have to be between 0 and 1 (unlike the case with SuSiE)
+    lV = optim(par=log(1), fn=neg.loglik.logscale.mv, bhat=bhat, S=sbhat2, U=U, prior_weights = prior_weights, method='BFGS')$par
     return(exp(lV))
 }
