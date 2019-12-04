@@ -4,7 +4,7 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     # Test fixed prior
     A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = NULL)
     kl = susieR:::SER_posterior_e_loglik(X,y,1,A$alpha*A$mu,A$alpha*A$mu2)- A$loglik
-    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = FALSE, prior_weights = NULL)
+    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = FALSE)
     d.copy = d$clone(T)
     B$fit(d.copy)
     B$compute_kl(d.copy)
@@ -15,7 +15,7 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     # Test estimated prior
     A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = "optim")
     kl = susieR:::SER_posterior_e_loglik(X,y,1,A$alpha*A$mu,A$alpha*A$mu2)- A$loglik
-    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = TRUE, prior_weights = NULL)
+    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = TRUE)
     d.copy = d$clone(T)
     B$fit(d.copy)
     B$compute_kl(d.copy)

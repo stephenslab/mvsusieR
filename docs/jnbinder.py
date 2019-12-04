@@ -1066,11 +1066,11 @@ def make_index_nb(path, exclude, long_description = False, reverse_alphabet = Fa
         try:
             source = [x.strip() for x in data["cells"][0]["source"] if x.strip()]
             if long_description and source[0].startswith('#') and len(source) >= 2 and not source[1].startswith('#'):
-                title = source[0].lstrip('#').strip()
-                description = source[1].lstrip('#').strip()
+                title = source[0].lstrip('#').strip().replace('"','\\"')
+                description = source[1].lstrip('#').strip().replace('"','\\"')
             else:
-                title = name.strip()
-                description = source[0].lstrip('#').strip()
+                title = name.strip().replace('"','\\"')
+                description = source[0].lstrip('#').strip().replace('"','\\"')
         except IndexError:
             continue
         if add_date_section:

@@ -6,6 +6,7 @@ MashRegression <- R6Class("MashRegression",
   inherit = BayesianSimpleRegression,
   public = list(
     initialize = function(J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) {
+      private$J = J
       private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance

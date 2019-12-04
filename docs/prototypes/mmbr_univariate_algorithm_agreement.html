@@ -237,7 +237,8 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Check-for-agreement-of-methods-in-VEM-updates">Check for agreement of methods in VEM updates<a class="anchor-link" href="#Check-for-agreement-of-methods-in-VEM-updates">&#182;</a></h1>
+<h1 id="Single-effect-model-sanity-check">Single effect model sanity check<a class="anchor-link" href="#Single-effect-model-sanity-check">&#182;</a></h1><p>Check for agreement of different regression methods in VEM updates.</p>
+
 </div>
 </div>
 </div>
@@ -300,13 +301,14 @@ Loading required package: ashr
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
-	<tr><td>-19.1055307</td></tr>
-	<tr><td> 17.5706879</td></tr>
-	<tr><td> 17.0295614</td></tr>
-	<tr><td>  0.8703052</td></tr>
-	<tr><td>  2.1676791</td></tr>
-	<tr><td> 34.5852265</td></tr>
+	<tr><td>-12.871105</td></tr>
+	<tr><td> 45.080954</td></tr>
+	<tr><td>-32.900723</td></tr>
+	<tr><td>-41.838878</td></tr>
+	<tr><td>  5.995901</td></tr>
+	<tr><td> 27.611879</td></tr>
 </tbody>
 </table>
 
@@ -342,13 +344,14 @@ Loading required package: ashr
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
-	<tr><td>-19.1055307</td></tr>
-	<tr><td> 17.5706879</td></tr>
-	<tr><td> 17.0295614</td></tr>
-	<tr><td>  0.8703052</td></tr>
-	<tr><td>  2.1676791</td></tr>
-	<tr><td> 34.5852265</td></tr>
+	<tr><td>-12.871105</td></tr>
+	<tr><td> 45.080954</td></tr>
+	<tr><td>-32.900723</td></tr>
+	<tr><td>-41.838878</td></tr>
+	<tr><td>  5.995901</td></tr>
+	<tr><td> 27.611879</td></tr>
 </tbody>
 </table>
 
@@ -375,7 +378,7 @@ Loading required package: ashr
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span>prior_var <span class="o">=</span> <span class="m">0.2</span> <span class="o">*</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
 residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
-m1 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectRegression<span class="p">(</span>mmbr<span class="o">:::</span>BayesianMultipleRegression<span class="p">)</span><span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
+m1 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectModel<span class="p">(</span>mmbr<span class="o">:::</span>BayesianSimpleRegression<span class="p">)</span><span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
 </pre></div>
 
 </div>
@@ -396,10 +399,9 @@ m1 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectRegression
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>null_weight <span class="o">=</span> <span class="m">0</span>
-prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> cov<span class="p">(</span>y<span class="p">)),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span> <span class="o">-</span> null_weight<span class="p">,</span> null_weight<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> cov<span class="p">(</span>y<span class="p">)),</span> <span class="m">1</span><span class="p">,</span> alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
 residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
-m2 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectRegression<span class="p">(</span>mmbr<span class="o">:::</span>MashMultipleRegression<span class="p">)</span><span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> prior_covar<span class="p">)</span>
+m2 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectModel<span class="p">(</span>mmbr<span class="o">:::</span>MashRegression<span class="p">)</span><span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> prior_covar<span class="p">)</span>
 </pre></div>
 
 </div>
@@ -469,13 +471,14 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
-	<tr><td>-1.6934785</td></tr>
-	<tr><td>-2.2006215</td></tr>
-	<tr><td>-1.4716909</td></tr>
-	<tr><td> 1.0318666</td></tr>
-	<tr><td>-3.2399663</td></tr>
-	<tr><td>-0.6101992</td></tr>
+	<tr><td>-1.0398057</td></tr>
+	<tr><td>-1.6085843</td></tr>
+	<tr><td>-1.2046758</td></tr>
+	<tr><td> 0.3079497</td></tr>
+	<tr><td>-2.3593036</td></tr>
+	<tr><td>-0.6760712</td></tr>
 </tbody>
 </table>
 
@@ -511,13 +514,14 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
-	<tr><td>-1.6934785</td></tr>
-	<tr><td>-2.2006215</td></tr>
-	<tr><td>-1.4716909</td></tr>
-	<tr><td> 1.0318666</td></tr>
-	<tr><td>-3.2399663</td></tr>
-	<tr><td>-0.6101992</td></tr>
+	<tr><td>-1.0398057</td></tr>
+	<tr><td>-1.6085843</td></tr>
+	<tr><td>-1.2046758</td></tr>
+	<tr><td> 0.3079497</td></tr>
+	<tr><td>-2.3593036</td></tr>
+	<tr><td>-0.6760712</td></tr>
 </tbody>
 </table>
 
@@ -553,6 +557,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>0</td></tr>
 	<tr><td>0</td></tr>
@@ -595,6 +600,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>0</td></tr>
 	<tr><td>0</td></tr>
@@ -637,12 +643,12 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <ol class=list-inline>
-	<li>2.15161037561075e-24</li>
-	<li>2.01667714955575e-24</li>
-	<li>1.97369978919485e-24</li>
-	<li>1.41499124543721e-24</li>
-	<li>1.42142232776834e-24</li>
-	<li>5.59813582492777e-24</li>
+	<li>4.21011575314195e-12</li>
+	<li>9.40264176321943e-12</li>
+	<li>6.24717097586617e-12</li>
+	<li>8.32853795168513e-12</li>
+	<li>3.98148063418841e-12</li>
+	<li>5.44318785610723e-12</li>
 </ol>
 
 </div>
@@ -677,12 +683,12 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <ol class=list-inline>
-	<li>2.15161037561076e-24</li>
-	<li>2.01667714955577e-24</li>
-	<li>1.97369978919487e-24</li>
-	<li>1.41499124543722e-24</li>
-	<li>1.42142232776835e-24</li>
-	<li>5.59813582492781e-24</li>
+	<li>4.21011575314196e-12</li>
+	<li>9.40264176321945e-12</li>
+	<li>6.24717097586618e-12</li>
+	<li>8.32853795168514e-12</li>
+	<li>3.98148063418842e-12</li>
+	<li>5.44318785610724e-12</li>
 </ol>
 
 </div>
@@ -717,13 +723,14 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
-	<tr><td>-0.093654562</td></tr>
-	<tr><td> 0.086130823</td></tr>
-	<tr><td> 0.083478242</td></tr>
-	<tr><td> 0.004266202</td></tr>
-	<tr><td> 0.010625878</td></tr>
-	<tr><td> 0.169535424</td></tr>
+	<tr><td>-0.06309365</td></tr>
+	<tr><td> 0.22098507</td></tr>
+	<tr><td>-0.16127805</td></tr>
+	<tr><td>-0.20509254</td></tr>
+	<tr><td> 0.02939167</td></tr>
+	<tr><td> 0.13535235</td></tr>
 </tbody>
 </table>
 
@@ -759,13 +766,14 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
-	<tr><td>-0.093654562</td></tr>
-	<tr><td> 0.086130823</td></tr>
-	<tr><td> 0.083478242</td></tr>
-	<tr><td> 0.004266202</td></tr>
-	<tr><td> 0.010625878</td></tr>
-	<tr><td> 0.169535424</td></tr>
+	<tr><td>-0.06309365</td></tr>
+	<tr><td> 0.22098507</td></tr>
+	<tr><td>-0.16127805</td></tr>
+	<tr><td>-0.20509254</td></tr>
+	<tr><td> 0.02939167</td></tr>
+	<tr><td> 0.13535235</td></tr>
 </tbody>
 </table>
 
@@ -779,10 +787,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf_single_effect
+<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf
 </pre></div>
 
 </div>
@@ -800,7 +808,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 
 <div class="output_html rendered_html output_subarea ">
-46.8468411890052
+18.1958934544426
 </div>
 
 </div>
@@ -811,10 +819,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf_single_effect
+<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf
 </pre></div>
 
 </div>
@@ -832,7 +840,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 
 <div class="output_html rendered_html output_subarea ">
-46.8468411890052
+18.1958934544426
 </div>
 
 </div>
@@ -1216,7 +1224,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[28]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf_single_effect
+<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf
 </pre></div>
 
 </div>
@@ -1248,7 +1256,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[29]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf_single_effect
+<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf
 </pre></div>
 
 </div>
@@ -1456,7 +1464,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[36]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf_single_effect
+<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf
 </pre></div>
 
 </div>
@@ -1488,7 +1496,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[37]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf_single_effect
+<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf
 </pre></div>
 
 </div>
@@ -1543,7 +1551,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span>residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
 scaled_prior_var <span class="o">=</span> V<span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">]</span> <span class="o">/</span> residual_var
-A <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>scaled_prior_var<span class="p">,</span>
+A <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>scaled_prior_var<span class="p">,</span>
           compute_objective<span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
 </pre></div>
 
@@ -1558,8 +1566,8 @@ A <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span>residual_cov <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
-m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
-B <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
+m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> alpha <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
+B <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
 </pre></div>
 
 </div>

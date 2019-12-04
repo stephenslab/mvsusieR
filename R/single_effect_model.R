@@ -6,15 +6,16 @@ SingleEffectModel <- function(base)
     R6Class("SingleEffectModel",
     inherit = base,
     public = list(
-        initialize = function(J, residual_variance, prior_variance, estimate_prior_variance=FALSE, prior_weights=NULL) {
+        initialize = function(J, residual_variance, prior_variance, estimate_prior_variance=FALSE) {
             super$initialize(J, residual_variance, prior_variance, estimate_prior_variance)
-            if (is.null(prior_weights)) private$prior_weights = rep(1/private$J,private$J)
-            else private$prior_weights = prior_weights
             private$.pip = rep(0, J)
         },
-        fit = function(d) {
-            super$fit(d, use_residual = TRUE, prior_weights = private$prior_weights)
-            ws = safe_compute_weight(private$.lbf, private$prior_weights, log = TRUE)
+        fit = function(d, prior_weights=NULL) {
+            if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
+            super$fit(d, use_residual = TRUE, prior_weights = prior_weights)
+            #print(private$.lbf)
+            ws = safe_compute_weight(private$.lbf, prior_weights, log = TRUE)
+            #print(ws$alpha)
             private$.pip = ws$alpha
             private$lbf_single_effect = ws$log_total
         },
@@ -28,7 +29,6 @@ SingleEffectModel <- function(base)
         }
     ),
     private = list(
-        prior_weights = NULL, # prior on gamma
         .pip = NULL, # posterior inclusion probability, alpha
         lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
         .kl = NULL,

@@ -122,10 +122,10 @@ msusie = function(X,Y,L=10,
     if ((data$Y_has_missing && !is_diag_mat(residual_variance)) || precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance)
   }
   # Below are the core computations
-  SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance, prior_weights)
+  SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, ncol(X), ncol(Y))
-  SuSiE_model$fit(data)
+  SuSiE_model$fit(data, prior_weights, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   ## END new mmbr code
   s$walltime = proc.time() - ptm 
