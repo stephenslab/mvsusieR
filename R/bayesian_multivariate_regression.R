@@ -1,5 +1,6 @@
 #' @title Multiviate regression object
 #' @importFrom R6 R6Class
+#' @importFrom mvtnorm dmvnorm
 #' @keywords internal
 BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
@@ -8,8 +9,8 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$.prior_variance = prior_variance
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
-      private$estimate_prior_variance = estimate_prior_variance
-      private$.prior_variance_scale = 1
+      private$to_estimate_prior_variance = estimate_prior_variance
+      private$prior_variance_scale = 1
       tryCatch({
         private$.residual_variance_inv = solve(residual_variance)
       }, error = function(e) {
@@ -32,12 +33,12 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         private$.sbhat = sqrt(do.call(cbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
       }
       # deal with prior variance: can be "estimated" across effects
-      if(private$estimate_prior_variance) {
+      if(private$to_estimate_prior_variance) {
           if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-        private$.prior_variance_scale = est.prior.variance.scale(bhat,sbhat2,private$.prior_variance,prior_weights)
+        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights)
       }
       # posterior
-      post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$.prior_variance_scale)
+      post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scale)
       private$.posterior_b1 = post$b1
       private$.posterior_b2 = post$b2
       private$.lbf = post$lbf
@@ -46,15 +47,35 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   ),
   active = list(
     residual_variance_inv = function() private$.residual_variance_inv,
-    prior_variance = function() private$.prior_variance_scale
+    prior_variance = function() private$prior_variance_scale
   ),
   private = list(
     .residual_variance_inv = NULL,
-    prior_variance_scale = NULL
+    prior_variance_scale = NULL,
+    loglik = function(bhat,S,scalar,prior_weights) {
+      U = private$.prior_variance * scalar
+      lbf = sapply(1:length(S), function(j) dmvnorm(x = bhat[j,],sigma = S[[j]] + U,log = T) - dmvnorm(x = bhat[j,],sigma = S[[j]],log = T))
+      lbf[which(is.nan(lbf))] = 0
+      maxlbf = max(lbf)
+      w = exp(lbf-maxlbf)
+      w_weighted = w * prior_weights
+      weighted_sum_w = sum(w_weighted)
+      return(log(weighted_sum_w)+ maxlbf)
+    },
+    neg_loglik_logscale = function(lV, bhat, S, prior_weights) {
+      return(-1 * private$loglik(bhat, S, exp(lV), prior_weights))
+    },
+    estimate_prior_variance = function(bhat, sbhat2, prior_weights) {
+      # dont constrain on values of `lV` -- as a scalar it does not have to be between 0 and 1 (unlike the case with SuSiE)
+      lV = optim(par=log(1), fn=private$neg_loglik_logscale, bhat=bhat, S=sbhat2, prior_weights = prior_weights, method='BFGS')$par
+      V = exp(lV)
+      if(private$loglik(bhat, sbhat2, 0, prior_weights) >= private$loglik(bhat, sbhat2, V, prior_weights)) V=0 # set V exactly 0 if that beats the numerical value
+      return(V)
+    }
   )
 )
 
-#' @title Multiviate regression core
+#' @title Multiviate regression calculations 
 #' @importFrom abind abind
 #' @keywords internal
 multivariate_regression = function(bhat, S, U) {
@@ -66,28 +87,4 @@ multivariate_regression = function(bhat, S, U) {
   lbf[which(is.nan(lbf))] = 0
   post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[,j]) + post_cov[[j]])
   return(list(b1 = t(post_b1), b2 = aperm(abind(post_b2, along = 3), c(2,1,3)), lbf = lbf))
-}
-
-#' @title Multiviate loglik
-#' @importFrom mvtnorm dmvnorm
-#' @keywords internal
-loglik.mv = function(bhat,S,U,scalar,prior_weights) {
-  U = U * scalar
-  lbf = sapply(1:length(S), function(j) dmvnorm(x = bhat[j,],sigma = S[[j]] + U,log = T) - dmvnorm(x = bhat[j,],sigma = S[[j]],log = T))
-  lbf[which(is.nan(lbf))] = 0
-  maxlbf = max(lbf)
-  w = exp(lbf-maxlbf)
-  w_weighted = w * prior_weights
-  weighted_sum_w = sum(w_weighted)
-  return(log(weighted_sum_w)+ maxlbf)
-}
-
-neg.loglik.logscale.mv = function(lV,bhat,S,U,prior_weights) {
-  return(-loglik.mv(bhat,S,U,exp(lV),prior_weights))
-}
-
-est.prior.variance.scale = function(bhat,sbhat2,U,prior_weights) {
-    # dont constrain on values of `lV` -- as a scalar it does not have to be between 0 and 1 (unlike the case with SuSiE)
-    lV = optim(par=log(1), fn=neg.loglik.logscale.mv, bhat=bhat, S=sbhat2, U=U, prior_weights = prior_weights, method='BFGS')$par
-    return(exp(lV))
 }

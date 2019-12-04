@@ -2,11 +2,11 @@
 % Please edit documentation in R/bayesian_multivariate_regression.R
 \name{multivariate_regression}
 \alias{multivariate_regression}
-\title{Multiviate regression core}
+\title{Multiviate regression calculations}
 \usage{
 multivariate_regression(bhat, S, U)
 }
 \description{
-Multiviate regression core
+Multiviate regression calculations
 }
 \keyword{internal}

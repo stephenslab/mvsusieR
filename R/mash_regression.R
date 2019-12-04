@@ -22,7 +22,7 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       # Though possible to estimate from MASH model on given variables
       # we insist that the information should be provided beforehand
-      private$estimate_prior_variance = FALSE
+      private$to_estimate_prior_variance = FALSE
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
       # d: data object

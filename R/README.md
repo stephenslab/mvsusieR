@@ -33,3 +33,5 @@ I use the following convention in my code:
     - By default active bindings for private variables are read-only, appear as `function()`; an attempt to assign values to them will raise an error.
     - Some active bindings will allow setting values of variables, and appear as `function(v)`.
     - Private members to be exposed to `active`, for the time being, will follow the convention of `.<name>` and the corresponding exposed variable will be `<name>`. This is the annoying constraint I was referring to above. Hopefully the R6 developers can change the behavior or convince me to believe it is good idea.
+
+Otherwise, the only downside as I found using `R6` is that the trace back for errors is not as clear as without using it. But R language in general doesn't have good error trace back (compared to Python which can point to you the exact lines of codes that are problematic), so `R6` is not making it that much worse.

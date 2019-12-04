@@ -11,4 +11,4 @@ SSData
 \description{
 Sufficient statistics object
 }
-\keyword{datasets}
+\keyword{internal}

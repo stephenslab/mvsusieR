@@ -22,8 +22,8 @@ SuSiE <- R6Class("SuSiE",
         private$.niter = max_iter
         private$tol = tol
 
-        if (track_pip) private$pip_history = list()
-        if (track_lbf) private$lbf_history = list()
+        if (track_pip) private$.pip_history = list()
+        if (track_lbf) private$.lbf_history = list()
     },
     init_coef = function(coef_index, coef_value, p, r) {
         L = length(coef_index)
@@ -77,9 +77,7 @@ SuSiE <- R6Class("SuSiE",
         }
         if (dump) return(private$elbo)
         else return(private$elbo[private$.niter])
-    },
-    get_pip_history = function() private$pip_history,
-    get_lbf_history = function() private$lbf_history
+    }
   ),
   active = list(
     niter = function() private$.niter,
@@ -94,6 +92,8 @@ SuSiE <- R6Class("SuSiE",
     # posterior inclusion probability, J by L matrix
     pip = function() do.call(cbind, lapply(1:private$L, function(l) private$SER[[l]]$pip)),
     lbf = function() sapply(1:private$L, function(l) private$SER[[l]]$lbf),
+    pip_history = function() private$.pip_history,
+    lbf_history = function() private$.lbf_history,
     posterior_b1 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),
     posterior_b2 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b2),
     lfsr = function() lapply(1:private$L, function(l) private$SER[[l]]$lfsr),
@@ -108,8 +108,8 @@ SuSiE <- R6Class("SuSiE",
     null_index = NULL, # index of null effect intentially added
     .niter = NULL,
     .convergence = NULL,
-    pip_history = NULL, # keep track of pip
-    lbf_history = NULL, # keep track of lbf
+    .pip_history = NULL, # keep track of pip
+    .lbf_history = NULL, # keep track of lbf
     tol = NULL, # tolerance level for convergence
     sigma2 = NULL, # residual variance
     essr = NULL,
@@ -120,22 +120,17 @@ SuSiE <- R6Class("SuSiE",
             if (private$to_compute_objective)
                 delta = private$elbo[n] - private$elbo[n-1]
             else
-                delta = max(abs(private$pip_history[[n]] - private$pip_history[[n-1]]))
+                delta = max(abs(private$.pip_history[[n]] - private$.pip_history[[n-1]]))
             return (list(delta=delta, converged=(delta < private$tol)))
         }
     },
     compute_objective = function(d) {
         if (private$to_compute_objective) {
             v_inv = private$SER[[1]]$residual_variance_inv
+            # FIXME: should improve the way to identify univariate vs multivariate
             if (is.null(v_inv)) {
                 # univeriate case
-                # FIXME: should improve the way to identify univariate vs multivariate
-                if (is.null(private$essr)) {
-                    essr = compute_expected_sum_squared_residuals(d,self$posterior_b1,self$posterior_b2)
-                } else {
-                    essr = private$essr
-                }
-                expected_loglik = compute_expected_loglik(d$n_sample, private$sigma2, essr)
+                expected_loglik = private$compute_expected_loglik(d)
             } else {
                 expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
                 # a version not expanding the math
@@ -163,41 +158,44 @@ SuSiE <- R6Class("SuSiE",
     },
     estimate_residual_variance = function(d) {
         if (private$to_estimate_residual_variance) {
-            private$essr = compute_expected_sum_squared_residuals(d,self$posterior_b1,self$posterior_b2)
+            private$essr = private$compute_expected_sum_squared_residuals(d)
             # FIXME: should we bother with it being N - 1 (or N - 2)?
             private$sigma2 = private$essr / d$n_sample
         }
     },
-    save_history = function() {
-        if (!is.null(private$pip_history)) {
-            private$pip_history[[length(private$pip_history) + 1]] = self$pip
+    # expected squared residuals
+    compute_expected_sum_squared_residuals = function(d) {
+        Eb1 = t(do.call(cbind, self$posterior_b1))
+        Eb2 = t(do.call(cbind, self$posterior_b2))
+        if (inherits(d, c("DenseData","SparseData"))) {
+            Xr = d$compute_MXt(Eb1)
+            Xrsum = colSums(Xr)
+            return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
+        } else {
+            XB2 = sum((Eb1%*%d$XtX) * Eb1)
+            betabar = colSums(Eb1)
+            return(d$YtY - 2*sum(betabar * d$XtY) + sum(betabar * (d$XtX %*% betabar)) -
+               XB2 + sum(d$X2_sum*t(Eb2)))
         }
-        if (!is.null(private$lbf_history)) {
-            private$lbf_history[[length(private$lbf_history) + 1]] = self$pip
+    },
+    # expected loglikelihood for a susie fit
+    compute_expected_loglik = function(d) {
+        n = d$n_sample
+        residual_variance = private$sigma2
+        if (is.null(private$essr)) {
+            essr = private$compute_expected_sum_squared_residuals(d)
+        } else {
+            essr = private$essr
+        }
+        return(-(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr)
+    },
+    save_history = function() {
+        if (!is.null(private$.pip_history)) {
+            private$.pip_history[[length(private$.pip_history) + 1]] = self$pip
+        }
+        if (!is.null(private$.lbf_history)) {
+            private$.lbf_history[[length(private$.lbf_history) + 1]] = self$pip
         }
     }
   )
 )
-
-# expected squared residuals
-compute_expected_sum_squared_residuals = function(d, Eb1, Eb2) {
-    if (inherits(d, c("DenseData","SparseData", "SSData"))) {
-        Eb1 = t(do.call(cbind, Eb1))
-        Eb2 = t(do.call(cbind, Eb2))
-    }
-    if (inherits(d, c("DenseData","SparseData"))) {
-        Xr = d$compute_MXt(Eb1)
-        Xrsum = colSums(Xr)
-        return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
-    } else {
-        XB2 = sum((Eb1%*%d$XtX) * Eb1)
-        betabar = colSums(Eb1)
-        return(d$YtY - 2*sum(betabar * d$XtY) + sum(betabar * (d$XtX %*% betabar)) -
-           XB2 + sum(d$X2_sum*t(Eb2)))
-    }
-}
-
-# expected loglikelihood for a susie fit
-compute_expected_loglik = function(n, residual_variance, essr) {
-    -(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr
-}

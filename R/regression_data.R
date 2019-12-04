@@ -117,6 +117,7 @@ DenseData <- R6Class("DenseData",
 # X and Y have to be centered
 # before computing these sufficient statistics
 #' @importFrom R6 R6Class
+#' @keywords internal
 SSData <- R6Class("SSData",
   public = list(
     initialize = function(XtX,XtY,YtY,N,scale=TRUE) {
