@@ -48,7 +48,7 @@ SuSiE <- R6Class("SuSiE",
             d$compute_residual(fitted)
             for (l in 1:private$L) {
                 d$add_to_residual(private$SER[[l]]$predict(d))
-                private$SER[[l]]$residual_variance = private$sigma2
+                if (private$to_estimate_residual_variance) private$SER[[l]]$residual_variance = private$sigma2
                 private$SER[[l]]$fit(d)
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
                 d$remove_from_residual(private$SER[[l]]$predict(d))
@@ -157,11 +157,9 @@ SuSiE <- R6Class("SuSiE",
         private$elbo = c(private$elbo, elbo)
     },
     estimate_residual_variance = function(d) {
-        if (private$to_estimate_residual_variance) {
-            private$essr = private$compute_expected_sum_squared_residuals(d)
-            # FIXME: should we bother with it being N - 1 (or N - 2)?
-            private$sigma2 = private$essr / d$n_sample
-        }
+        private$essr = private$compute_expected_sum_squared_residuals(d)
+        # FIXME: should we bother with it being N - 1 (or N - 2)?
+        private$sigma2 = private$essr / d$n_sample
     },
     # expected squared residuals
     compute_expected_sum_squared_residuals = function(d) {

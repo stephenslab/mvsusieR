@@ -133,7 +133,11 @@ MashRegression <- R6Class("MashRegression",
     mixture_posterior_weights = function() private$.mixture_posterior_weights,
     lfsr = function() private$.lfsr,
     residual_variance_inv = function() private$.residual_variance_inv,
-    prior_variance = function() NA
+    prior_variance = function() NA,
+    residual_variance = function(v) {
+      if (missing(v)) private$.residual_variance
+      else warning(paste("residual variance cannot be changed for object", "MashRegression"))
+    }
   ),
   private = list(
     residual_correlation = NULL,

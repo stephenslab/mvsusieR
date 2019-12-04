@@ -47,6 +47,10 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   ),
   active = list(
     residual_variance_inv = function() private$.residual_variance_inv,
+    residual_variance = function(v) {
+      if (missing(v)) private$.residual_variance
+      else warning(paste("residual variance cannot be changed for object", "BayesianMultivariateRegression"))
+    },
     prior_variance = function() private$prior_variance_scale
   ),
   private = list(
