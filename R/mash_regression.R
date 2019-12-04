@@ -172,6 +172,8 @@ MashInitializer <- R6Class("MashInitializer",
             }
           }
           xUlist = expand_cov(Ulist, grid, usepointmass=TRUE)
+        } else {
+          if (!all(xUlist[[1]] == 0)) xUlist = c(list(matrix(0, nrow(xUlist[[1]]), ncol(xUlist[[1]]))), xUlist)
         }
         plen = length(xUlist) - 1
         if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
