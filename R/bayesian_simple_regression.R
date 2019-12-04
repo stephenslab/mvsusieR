@@ -1,7 +1,7 @@
 #' @title Bayesian multiple regression object
 #' @importFrom R6 R6Class
 #' @keywords internal
-BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
+BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
   public = list(
     initialize = function(J, residual_variance, prior_variance, estimate_prior_variance = FALSE) {
       private$J = J
@@ -9,7 +9,6 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, 1)
       private$estimate_prior_variance = estimate_prior_variance
-
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
       # d: data object
@@ -18,8 +17,8 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
-      bhat = 1/d$d * XtY
-      sbhat2 = private$.residual_variance / d$d
+      bhat = 1/d$X2_sum * XtY
+      sbhat2 = private$.residual_variance / d$X2_sum
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(sbhat2)
@@ -30,7 +29,7 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
         private$.prior_variance = est.prior.variance(bhat,sbhat2,prior_weights,method='optim')
       }
       # posterior
-      post_var = (1/private$.prior_variance + d$d/private$.residual_variance)^(-1) # posterior variance
+      post_var = (1/private$.prior_variance + d$X2_sum/private$.residual_variance)^(-1) # posterior variance
       private$.posterior_b1 = (1/private$.residual_variance) * post_var * XtY
       private$.posterior_b2 = post_var + private$.posterior_b1^2 # second moment
       # Bayes factor
@@ -45,6 +44,19 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
       }
     }
   ),
+  active = list(
+    loglik_null = function() private$.loglik_null,
+    posterior_b1 = function() private$.posterior_b1,
+    posterior_b2 = function() private$.posterior_b2,
+    lbf = function() private$.lbf,
+    bhat = function() private$.bhat,
+    sbhat = function() private$.sbhat,
+    prior_variance = function() private$.prior_variance,
+    residual_variance = function(v) {
+      if (missing(v)) private$.residual_variance
+      else private$.residual_variance = v
+    }
+  ),
   private = list(
     estimate_prior_variance = NULL,
     J = NULL,
@@ -55,50 +67,9 @@ BayesianMultipleRegression <- R6Class("BayesianMultipleRegression",
     .loglik_null = NULL,
     .lbf = NULL, # log Bayes factor
     .posterior_b1 = NULL, # posterior first moment
-    .posterior_b2 = NULL, # posterior second moment
-    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE)
-  ),
-  active = list(
-    loglik_null = function(v) {
-      if (missing(v)) private$.loglik_null
-      else private$denied('loglik_null')
-    },
-    posterior_b1 = function(v) {
-      if (missing(v)) private$.posterior_b1
-      else private$denied('posterior_b1')
-    },
-    posterior_b2 = function(v) {
-      if (missing(v)) private$.posterior_b2
-      else private$denied('posterior_b2')
-    },
-    lbf = function(v) {
-      if (missing(v)) private$.lbf
-      else private$denied('lbf')
-    },
-    bhat = function(v) {
-      if (missing(v)) private$.bhat
-      else private$denied('bhat')
-    },
-    sbhat = function(v) {
-      if (missing(v)) private$.sbhat
-      else private$denied('sbhat')
-    },
-    prior_variance = function(v) {
-      if (missing(v)) {
-        private$.prior_variance
-      } else {
-        if (length(v) != 2) stop('need argument of length 2')
-        private$.prior_variance = v[1]
-        private$estimate_prior_variance = v[2]
-      }
-    },
-    residual_variance = function(v) {
-      if (missing(v)) private$.residual_variance
-      else private$.residual_variance = v
-    }
+    .posterior_b2 = NULL # posterior second moment
   )
 )
-
 
 loglik = function(V,betahat,shat2,prior_weights) {
   lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)

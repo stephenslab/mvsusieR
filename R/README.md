@@ -5,17 +5,31 @@
 ## Model
 
 Implementation of SuSiE model falls roughly in the structure of the SuSiE manuscript. 
-That is, we introduce Bayesian multiple regression model (BMR), 
-followed by Single Effect BMR (SER), and finally the SuSiE model.
+That is, we introduce Bayesian regression model,
+followed by Single Effect Regression (SER), and finally the SuSiE model.
 Implementation-wise,
 
-1. `bayesian_multiple_regression.R` implements several classes for BMR models using different priors.
-    - A conventional univariate multiple regression with normal prior
-    - A multivariate regression with fixed multivariate normal prior (the MASH model)
-2. `single_effect_regression.R` implements the SER model. It inherits BMR models.
-3. `susie_regression.R` implements the SuSiE model and algorithm.
+1. `*_regression.R` implements several classes for Bayesian regression models using different priors.
+    - A conventional univariate multiple regression with normal prior.
+    - A multivariate regression with fixed multivariate normal prior (prototype not optimized for production).
+    - A multivariate regression with fixed multivariate normal mixture prior (the MASH model).
+2. `single_effect_model.R` implements the SER model. It inherits Bayesian regression models.
+3. `ibss_algorithm.R` implements the IBSS algorithm for SuSiE model.
 
 ## Misc
 
-- `main.R` implements interface.
+- `msusie.R` implements interface `msusie()` function.
 - `utils.R` contains some utility functions.
+
+## A note on `R6` class
+
+`R6` is pretty [easy to learn](https://r6.r-lib.org/articles/Introduction.html) just by the length of its documentation.
+However the constraint that [`private` cannot have same name as `public` and `active`](https://github.com/r-lib/R6/issues/200) is annoying.
+
+I use the following convention in my code:
+
+1. There is no `public` member variable. All variables are private.
+2. For variables meant to be used outside class I expose them to `active`.
+    - By default active bindings for private variables are read-only, appear as `function()`; an attempt to assign values to them will raise an error.
+    - Some active bindings will allow setting values of variables, and appear as `function(v)`.
+    - Private members to be exposed to `active`, for the time being, will follow the convention of `.<name>` and the corresponding exposed variable will be `<name>`. This is the annoying constraint I was referring to above. Hopefully the R6 developers can change the behavior or convince me to believe it is good idea.

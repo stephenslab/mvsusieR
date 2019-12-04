@@ -15,7 +15,7 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     sbhat1 = res$sbhat0
     # code for regular computation
     sigma2 = diag(residual_variance)
-    sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+    sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
     sbhat = sbhat0 ^ (1-a)
     common_sbhat = is_mat_common(sbhat)
     if (common_sbhat) svs2 = sbhat[1,] * t(V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
@@ -31,7 +31,7 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     sbhat1 = res$sbhat0
     # code for regular computation
     sigma2 = diag(residual_variance)
-    sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+    sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
     sbhat = sbhat0 ^ (1-a)
     common_sbhat = is_mat_common(sbhat)
     if (common_sbhat) svs2 = sbhat[1,] * t(V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)

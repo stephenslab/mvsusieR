@@ -35,12 +35,6 @@ DenseData <- R6Class("DenseData",
     compute_residual = function(fitted) {
       private$residual = private$.Y - fitted
     },
-    X_has_missing = function() {
-      any(is.na(private$.X))
-    },
-    Y_has_missing = function() {
-      private$.Y_has_missing
-    },
     rescale_coef = function(b) {
       coefs = b/private$csd
       if (is.null(dim(coefs))) {
@@ -56,10 +50,29 @@ DenseData <- R6Class("DenseData",
       }
     }
   ),
+  active = list(
+    X = function() private$.X,
+    Y = function() private$.Y,
+    X2_sum = function() private$d,
+    XtY = function() {
+      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$.Y[private$Y_non_missing[,r],r]))
+      else crossprod(private$.X, private$.Y)
+    },
+    XtX = function() crossprod(private$.X, private$.X),
+    XtR = function() {
+      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$residual[private$Y_non_missing[,r],r]))
+      else crossprod(private$.X, private$residual)
+    },
+    n_sample = function() private$N,
+    n_condition = function() private$R,
+    n_effect = function() private$J,
+    X_has_missing = function() any(is.na(private$.X)),
+    Y_has_missing = function() private$.Y_has_missing
+  ),
   private = list(
     .X = NULL,
     .Y = NULL,
-    .d = NULL,
+    d = NULL,
     N = NULL,
     J = NULL,
     R = NULL,
@@ -93,50 +106,9 @@ DenseData <- R6Class("DenseData",
       private$.X = t( (t(private$.X) - private$cm) / private$csd )
       # For non-missing Y, d is a J vector
       # For missing Y, d is a J by R matrix
-      if (!private$.Y_has_missing) private$.d = colSums(private$.X ^ 2)
-      else private$.d = sapply(1:private$R, function(r) colSums(private$.X[private$Y_non_missing[,r],]^2))
-    },
-    denied = function(v) stop(paste0('$', v, ' is read-only'), call. = FALSE)
-  ),
-  active = list(
-    X = function(value) {
-      if (missing(value)) private$.X
-      else private$denied('X')
-    },
-    Y = function(value) {
-      if (missing(value)) private$.Y
-      else private$denied('Y')
-    },
-    d = function(value) {
-      if (missing(value)) private$.d
-      else private$denied('d')
-    },
-    XtY = function(value) {
-      if (missing(value)) {
-        if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$.Y[private$Y_non_missing[,r],r]))
-        else crossprod(private$.X, private$.Y)
-      } else {
-        private$denied('XtY')
-      }
-    },
-    XtX = function(value) {
-      if (missing(value)) {
-        crossprod(private$.X, private$.X)
-      } else {
-        private$denied('XtX')
-      }
-    },
-    XtR = function(value) {
-      if (missing(value)) {
-        if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$residual[private$Y_non_missing[,r],r]))
-        else crossprod(private$.X, private$residual)
-      } else {
-        private$denied('XtR')
-      }
-    },
-    n_sample = function(value) private$N,
-    n_condition = function(value) private$R,
-    n_effect = function(value) private$J
+      if (!private$.Y_has_missing) private$d = colSums(private$.X ^ 2)
+      else private$d = sapply(1:private$R, function(r) colSums(private$.X[private$Y_non_missing[,r],]^2))
+    }
   )
 )
 
@@ -174,11 +146,21 @@ SSData <- R6Class("SSData",
       c(0, b/private$csd)
     }
   ),
+  active = list(
+    XtX = function() private$.XtX,
+    XtY = function() private$.XtY,
+    YtY = function() private$.YtY,
+    X2_sum = function() private$d,
+    XtR = function() private$residual,
+    n_sample = function() private$N,
+    n_condition = function() private$R,
+    n_effect = function() private$J
+  ),
   private = list(
     .XtX = NULL,
     .XtY = NULL,
     .YtY = NULL,
-    .d = NULL,
+    d = NULL,
     N = NULL,
     J = NULL,
     R = NULL,
@@ -194,32 +176,47 @@ SSData <- R6Class("SSData",
       } else {
           private$csd = rep(1, length = private$J)
       }
-      private$.d = diag(private$.XtX)
+      private$d = diag(private$.XtX)
     }
-  ),
-  active = list(
-    XtX = function(value) {
-      if (missing(value)) private$.XtX
-      else private$.XtX = value
-    },
-    XtY = function(value) {
-      if (missing(value)) private$.XtY
-      else private$.XtY = value
-    },
-    YtY = function(value) {
-      if (missing(value)) private$.YtY
-      else private$.YtY = value
-    },
-    d = function(value) {
-      if (missing(value)) private$.d
-      else private$denied('d')
-    },
-    XtR = function(value) {
-      if (missing(value)) private$residual
-      else private$denied('XtR')
-    },
-    n_sample = function(value) private$N,
-    n_condition = function(value) private$R,
-    n_effect = function(value) private$J
   )
 )
+
+#' @title Compute multivariate summary statistics in the presence of missing data
+#' @keywords internal
+get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlation, alpha) {
+  J = ncol(X)
+  R = ncol(Y)
+  M = !is.na(Y)
+  # this is same as DenseData$new()$Xty
+  # recomputed here for clarity
+  Xty = sapply(1:R, function(r) crossprod(X[M[,r],], Y[M[,r],r]) ) # J by R
+  # this is same as DenseData$new()$d
+  # recomputed here for clarity
+  X2 = sapply(1:R, function(r) colSums(X[M[,r],]^2 )) # J by R
+  bhat = Xty/X2
+  S = lapply(1:J, function(j) diag(1/X2[j,]) * residual_variances)
+  sbhat0 = sqrt(do.call(rbind, lapply(1:length(S), function(j) diag(S[[j]]))))
+  bhat[which(is.nan(bhat))] = 0
+  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
+  Sigma = sqrt(residual_variances ^ (1 - alpha)) * t(sqrt(residual_variances ^ (1 - alpha)) * residual_correlation)
+  # this is for MASH EE and EZ model
+  if (alpha != 0) {
+    for (j in 1:J) diag(S[[j]]) = diag(S[[j]]) ^ (1 - alpha)
+  }
+  # FIXME: may want to do this in parallel
+  for(j in 1:J){
+    S[[j]][which(is.nan(S[[j]]) | is.infinite(S[[j]]))] = 1E6
+    for(r in 1:(R-1)){
+      for(d in (r+1):R){
+        common = as.logical(M[,r] * M[,d])
+        S[[j]][r,d] = Sigma[r,d] * ifelse(X2[j,r]*X2[j,d] != 0, sum((X[common,j])^2)/(X2[j,r]*X2[j,d]), 0) ^ (1 - alpha)
+        S[[j]][d,r] = S[[j]][r,d]
+      }
+    }
+    if (alpha == 1) {
+      S = S[[1]]
+      break
+    }
+  }
+  return(list(svs=S, sbhat0=sbhat0, bhat=bhat))
+}

@@ -2,7 +2,7 @@ context("Test check for convergence using ELBO or not")
 
 test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(), {
     # Do not estimate prior variance
-    SER = SingleEffectRegression(BayesianMultipleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = FALSE, prior_weights = NULL)
+    SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = FALSE, prior_weights = NULL)
     A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, tol = 1E-6)
     d.copy = d$clone(T)
     A$fit(d.copy)
@@ -13,7 +13,7 @@ test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(
     B = report_susie_model(d.copy, B) 
     expect_susie_equal(A,B,F,F,tol=1E-3)
     # Estimate prior variance
-    SER = SingleEffectRegression(BayesianMultipleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = TRUE, prior_weights = NULL)
+    SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V, estimate_prior_variance = TRUE, prior_weights = NULL)
     A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, tol = 1E-6)
     d.copy = d$clone(T)
     A$fit(d.copy)

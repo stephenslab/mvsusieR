@@ -93,7 +93,7 @@ msusie = function(X,Y,L=10,
   ## BEGIN mmbr code
   data = DenseData$new(X, Y, intercept, standardize)
   # FIXME: this is because of issue #5
-  if (data$X_has_missing()) stop("Missing data in input matrix X is not allowed at this point.")
+  if (data$X_has_missing) stop("Missing data in input matrix X is not allowed at this point.")
   if (is.null(residual_variance)) {
     #if (dim(Y)[2] > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
     # FIXME: either need better initialization method, or just quit on error for unspecified residual variance
@@ -111,18 +111,18 @@ msusie = function(X,Y,L=10,
     if (is.matrix(prior_variance)) {
       base = BayesianMultivariateRegression
     } else {
-      base = BayesianMultipleRegression
+      base = BayesianSimpleRegression
       # Here prior variance is scaled prior variance
       prior_variance = prior_variance * residual_variance
     }
   } else {
     # FIXME: check prior_variance is valid MASH object
     if (prior_variance$n_condition != ncol(Y)) stop("Dimension mismatch between input prior covariance and response data.")
-    base = MashMultipleRegression
-    if ((data$Y_has_missing() && !is_diag_mat(residual_variance)) || precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance)
+    base = MashRegression
+    if ((data$Y_has_missing && !is_diag_mat(residual_variance)) || precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance)
   }
   # Below are the core computations
-  SER_model = SingleEffectRegression(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance, prior_weights)
+  SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance, prior_weights)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, ncol(X), ncol(Y))
   SuSiE_model$fit(data)

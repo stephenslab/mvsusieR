@@ -14,7 +14,6 @@ tr = function (m) {
     return(sum(diag(m), na.rm = TRUE))
 }
 
-
 #' @title compute value_j * weight_j / sum(value_j * weight_j)
 #' @keywords internal
 safe_compute_weight = function(value, weight, log = TRUE) {
@@ -70,8 +69,8 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         V = m$prior_variance,
         sigma2 = m$residual_variance,
         elbo = m$get_objective(dump=TRUE),
-        niter = m$get_niter(),
-        convergence = m$get_convergence(),
+        niter = m$niter,
+        convergence = m$convergence,
         coef = d$rescale_coef(b),
         null_index = -9,
         mixture_weights = mixture_weights,
@@ -99,7 +98,7 @@ mmbr_get_pip_per_condition = function(m, prior_obj) {
 #' @title Compute condition specific posterior inclusion probability per effect
 #' @keywords internal
 mmbr_get_alpha_per_condition = function(m, prior_obj) {
-  condition_indicator = do.call(rbind, lapply(1:length(prior_obj$prior_covariance$xUlist), function(i) as.integer(diag(prior_obj$prior_covariance$xUlist[[i]]) != 0)))
+  condition_indicator = do.call(rbind, lapply(1:length(prior_obj$prior_variance$xUlist), function(i) as.integer(diag(prior_obj$prior_variance$xUlist[[i]]) != 0)))
   condition_pip = array(0, dim=dim(m$b1))
   for (r in 1:dim(condition_pip)[3]) {
     for (p in 1:length(condition_indicator[,r])) {
@@ -334,46 +333,6 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
             }
         }
     return(mats)
-}
-
-#' @title Compute multivariate summary statistics in the presence of missing data
-#' @keywords internal
-get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlation, alpha) {
-  J = ncol(X)
-  R = ncol(Y)
-  M = !is.na(Y)
-  # this is same as DenseData$new()$Xty
-  # recomputed here for clarity
-  Xty = sapply(1:R, function(r) crossprod(X[M[,r],], Y[M[,r],r]) ) # J by R
-  # this is same as DenseData$new()$d
-  # recomputed here for clarity
-  X2 = sapply(1:R, function(r) colSums(X[M[,r],]^2 )) # J by R
-  bhat = Xty/X2
-  S = lapply(1:J, function(j) diag(1/X2[j,]) * residual_variances)
-  sbhat0 = sqrt(do.call(rbind, lapply(1:length(S), function(j) diag(S[[j]]))))
-  bhat[which(is.nan(bhat))] = 0
-  sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
-  Sigma = sqrt(residual_variances ^ (1 - alpha)) * t(sqrt(residual_variances ^ (1 - alpha)) * residual_correlation)
-  # this is for MASH EE and EZ model
-  if (alpha != 0) {
-    for (j in 1:J) diag(S[[j]]) = diag(S[[j]]) ^ (1 - alpha)
-  }
-  # FIXME: may want to do this in parallel
-  for(j in 1:J){
-    S[[j]][which(is.nan(S[[j]]) | is.infinite(S[[j]]))] = 1E6
-    for(r in 1:(R-1)){
-      for(d in (r+1):R){
-        common = as.logical(M[,r] * M[,d])
-        S[[j]][r,d] = Sigma[r,d] * ifelse(X2[j,r]*X2[j,d] != 0, sum((X[common,j])^2)/(X2[j,r]*X2[j,d]), 0) ^ (1 - alpha)
-        S[[j]][d,r] = S[[j]][r,d]
-      }
-    }
-    if (alpha == 1) {
-      S = S[[1]]
-      break
-    }
-  }
-  return(list(svs=S, sbhat0=sbhat0, bhat=bhat))
 }
 
 #' @title Check if matrix is diag

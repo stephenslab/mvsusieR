@@ -2,7 +2,7 @@
 #' @importFrom R6 R6Class
 #' @keywords internal
 BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
-  inherit = BayesianMultipleRegression,
+  inherit = BayesianSimpleRegression,
   public = list(
     initialize = function(J, residual_variance, prior_variance, estimate_prior_variance = FALSE) {
       private$.prior_variance = prior_variance
@@ -20,13 +20,13 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
-      if (d$Y_has_missing()) stop("Cannot work with missing data in Bayesian Multivariate Regression module.")
+      if (d$Y_has_missing) stop("Cannot work with missing data in Bayesian Multivariate Regression module.")
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
       # bhat is J by R
-      bhat = XtY / d$d
-      sbhat2 = lapply(1:length(d$d), function(j) private$.residual_variance / d$d[j])
+      bhat = XtY / d$X2_sum
+      sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(do.call(cbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
@@ -40,28 +40,17 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$.prior_variance_scale)
       private$.posterior_b1 = post$b1
       private$.posterior_b2 = post$b2
-      # Bayes factor
       private$.lbf = post$lbf
-      private$.lbf[which(is.nan(private$.lbf))] == 0
     },
     compute_loglik_null = function(d) {}
   ),
+  active = list(
+    residual_variance_inv = function() private$.residual_variance_inv,
+    prior_variance = function() private$.prior_variance_scale
+  ),
   private = list(
     .residual_variance_inv = NULL,
-    .prior_variance_scale = NULL
-  ),
-  active = list(
-    residual_variance_inv = function(v) {
-      if (missing(v)) private$.residual_variance_inv
-      else private$.residual_variance_inv = v
-    },
-    prior_variance = function(v) {
-      if (missing(v)) {
-        private$.prior_variance_scale
-      } else {
-        private$denied('prior_variance')
-      }
-    }
+    prior_variance_scale = NULL
   )
 )
 
@@ -74,6 +63,7 @@ multivariate_regression = function(bhat, S, U) {
   post_b1 = do.call(cbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
   #lbf = sapply(1:length(S), function(j) dmvnorm(x = bhat[j,],sigma = S[[j]] + U,log = T) - dmvnorm(x = bhat[j,],sigma = S[[j]],log = T))
   lbf = log(sapply(1:length(S), function(j) sqrt(det(S[[j]])/det(S[[j]]+U))*exp(0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])))
+  lbf[which(is.nan(lbf))] = 0
   post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[,j]) + post_cov[[j]])
   return(list(b1 = t(post_b1), b2 = aperm(abind(post_b2, along = 3), c(2,1,3)), lbf = lbf))
 }

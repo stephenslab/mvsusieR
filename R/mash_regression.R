@@ -1,11 +1,12 @@
 #' @title MASH multiple regression object
 #' @importFrom R6 R6Class
+#' @importFrom ashr compute_lfsr
 #' @keywords internal
-MashMultipleRegression <- R6Class("MashMultipleRegression",
-  inherit = BayesianMultipleRegression,
+MashRegression <- R6Class("MashRegression",
+  inherit = BayesianSimpleRegression,
   public = list(
     initialize = function(J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) {
-      private$.prior_variance = mash_initializer$prior_covariance
+      private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
       # FIXME: not sure if this is the best way to handle
@@ -31,16 +32,16 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       else XtY = d$XtY
       # OLS estimates
       # bhat is J by R
-      bhat = XtY / d$d
+      bhat = XtY / d$X2_sum
       if (!is.null(private$precomputed_cov_matrices)) {
         sbhat = private$precomputed_cov_matrices$sbhat
       } else {
         # sbhat is R by R
-        # for non-missing Y d$d is a J vector
+        # for non-missing Y d$X2_sum is a J vector
         # for missing Y it is a J by R matrix
         sigma2 = diag(private$.residual_variance)
-        if (d$Y_has_missing()) sbhat = sqrt(do.call(rbind, lapply(1:nrow(d$d), function(j) sigma2 / d$d[j,])))
-        else sbhat = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+        if (d$Y_has_missing) sbhat = sqrt(do.call(rbind, lapply(1:nrow(d$X2_sum), function(j) sigma2 / d$X2_sum[j,])))
+        else sbhat = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
         sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E6
       }
       if (save_summary_stats) {
@@ -113,7 +114,7 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
       #}
       private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
       # 4. lfsr
-      private$.lfsr = ashr::compute_lfsr(post$post_neg, post$post_zero)
+      private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
       # 5. loglik under the alternative
       loglik_alt = log(exp(llik_mat[,-1,drop=FALSE]) %*% (private$.prior_variance$pi[-1]/(1-private$.prior_variance$pi[1]))) + lfactors
       # 6. adjust with alpha the EE vs EZ model
@@ -128,6 +129,12 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
     },
     compute_loglik_null = function(d) {}
   ),
+  active = list(
+    mixture_posterior_weights = function() private$.mixture_posterior_weights,
+    lfsr = function() private$.lfsr,
+    residual_variance_inv = function() private$.residual_variance_inv,
+    prior_variance = function() NA
+  ),
   private = list(
     residual_correlation = NULL,
     precomputed_cov_matrices = NULL,
@@ -135,12 +142,6 @@ MashMultipleRegression <- R6Class("MashMultipleRegression",
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     .residual_variance_inv = NULL
-  ),
-  active = list(
-    residual_variance_inv = function(v) {
-      if (missing(v)) private$.residual_variance_inv
-      else private$.residual_variance_inv = v
-    }
   )
 )
 
@@ -216,14 +217,14 @@ MashInitializer <- R6Class("MashInitializer",
       # FIXME: did not use alpha information
       V = cov2cor(residual_covariance)
       sigma2 = diag(residual_covariance)
-      if (d$Y_has_missing()) {
+      if (d$Y_has_missing) {
         res = get_sumstats_missing_data(d$X, d$Y, sigma2, V, private$a)
         svs = res$svs
         sbhat0 = res$sbhat0
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
       } else {
-        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$d), function(j) sigma2 / d$d[j])))
+        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
         sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
         sbhat = sbhat0 ^ (1 - private$a)
         common_sbhat = is_mat_common(sbhat)
@@ -277,21 +278,17 @@ MashInitializer <- R6Class("MashInitializer",
                               sigma_rooti = simplify2array(sigma_rooti), sbhat = sbhat0, common_sbhat = common_sbhat)
     }
   ),
+  active = list(
+      n_condition = function() nrow(private$xU$xUlist[[1]]),
+      prior_variance = function() private$xU,
+      mash_prior = function() private$U,
+      precomputed = function() private$inv_mats,
+      alpha = function() private$a
+  ),
   private = list(
       U = NULL,
       xU = NULL,
       a = NULL,
       inv_mats = NULL
-  ),
-  active = list(
-      n_condition = function(v) nrow(private$xU$xUlist[[1]]),
-      prior_variance = function() NULL,
-      prior_covariance = function() private$xU,
-      mash_prior = function() private$U,
-      precomputed = function() private$inv_mats,
-      alpha = function(value) {
-        if (missing(value)) return(private$a)
-        else private$a = value
-      }
   )
 )
