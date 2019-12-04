@@ -289,8 +289,8 @@ $(document).ready(function () {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="prototypes/multivariate_est_prior.html"><strong>multivariate est prior</strong></a><br>
-&nbsp; &nbsp;Multivariate regression simple prior with estimated scalar</p>
+<p><a href="prototypes/multivariate_est_prior.html"><strong>Multivariate regression simple prior with estimated scalar</strong></a><br>
+&nbsp; &nbsp;Here I use multivariate prior (not mash mixture) for <code>msusie</code> call, but allow for the scalar of prior to be estimated. That is, I have implemeted <code>estimate_prior_variance</code> for <a href="https://github.com/gaow/mmbr/blob/1c9b14283aa9615436447738932618c81388bd41/R/bayesian_multivariate_regression.R#L7">this class</a>.</p>
 
 </div>
 </div>
@@ -299,8 +299,8 @@ $(document).ready(function () {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="prototypes/multivariate_regression.html"><strong>multivariate regression</strong></a><br>
-&nbsp; &nbsp;Improving calculation of multivariate multiple regression</p>
+<p><a href="prototypes/multivariate_regression.html"><strong>Improving calculation of multivariate multiple regression</strong></a><br>
+&nbsp; &nbsp;A prototype for multivariate multiple regression computation assuming fixed residual covariance matrix.</p>
 
 </div>
 </div>
@@ -309,8 +309,8 @@ $(document).ready(function () {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="prototypes/output_visualization.html"><strong>output visualization</strong></a><br>
-&nbsp; &nbsp;Visualization of M&amp;M output</p>
+<p><a href="prototypes/output_visualization.html"><strong>Visualization of M&amp;M output</strong></a><br>
+&nbsp; &nbsp;A prototype to plot various M&amp;M output information.</p>
 
 </div>
 </div>
@@ -319,8 +319,8 @@ $(document).ready(function () {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><a href="prototypes/precomputed_quantities_mash.html"><strong>precomputed quantities mash</strong></a><br>
-&nbsp; &nbsp;Pre-computing various second-moment related quantities</p>
+<p><a href="prototypes/precomputed_quantities_mash.html"><strong>Pre-computing various second-moment related quantities</strong></a><br>
+&nbsp; &nbsp;This saves computation for M&amp;M by precomputing and re-using quantitaties shared between iterations. It mostly saves $O(R^3)$ computations. This vignette shows results agree with the original version. Cannot use unit test due to numerical discrepency between <code>chol</code> of amardillo and R -- this has been shown problematic for some computations. I'll have to improve <code>mashr</code> for it.</p>
 
 </div>
 </div>

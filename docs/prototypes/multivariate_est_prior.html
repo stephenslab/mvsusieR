@@ -237,15 +237,7 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Multivariate-regression-simple-prior-with-estimated-scalar">Multivariate regression simple prior with estimated scalar<a class="anchor-link" href="#Multivariate-regression-simple-prior-with-estimated-scalar">&#182;</a></h1>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Here I use multivariate prior (not mash mixture) for <code>msusie</code> call, but allow for the scalar of prior to be estimated. That is, I have implemeted <code>estimate_prior_variance</code> for <a href="https://github.com/gaow/mmbr/blob/1c9b14283aa9615436447738932618c81388bd41/R/bayesian_multivariate_regression.R#L7">this class</a>.</p>
+<h1 id="Multivariate-regression-simple-prior-with-estimated-scalar">Multivariate regression simple prior with estimated scalar<a class="anchor-link" href="#Multivariate-regression-simple-prior-with-estimated-scalar">&#182;</a></h1><p>Here I use multivariate prior (not mash mixture) for <code>msusie</code> call, but allow for the scalar of prior to be estimated. That is, I have implemeted <code>estimate_prior_variance</code> for <a href="https://github.com/gaow/mmbr/blob/1c9b14283aa9615436447738932618c81388bd41/R/bayesian_multivariate_regression.R#L7">this class</a>.</p>
 
 </div>
 </div>
@@ -272,9 +264,28 @@ body {
 <div class="prompt"></div>
 
 
+
+<div class="output_html rendered_html output_subarea ">
+<div class="sos_logging sos_error">ERROR: scratch_0 (id=4345111693050915635) returns an error.</div>
+</div>
+
+</div>
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
 <div class="output_subarea output_stream output_stderr output_text">
-<pre>Loading required package: mashr
-Loading required package: ashr
+<pre>[0]: 
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+script_1706594645186695720 in &lt;module&gt;
+----&gt; library(mmbr)
+      set.seed(2)
+      
+
+NameError: name &#39;library&#39; is not defined
 </pre>
 </div>
 </div>

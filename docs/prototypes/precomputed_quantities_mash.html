@@ -237,15 +237,7 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Pre-computing-various-second-moment-related-quantities">Pre-computing various second-moment related quantities<a class="anchor-link" href="#Pre-computing-various-second-moment-related-quantities">&#182;</a></h1>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>This saves computation for M&amp;M by precomputing and re-using quantitaties shared between iterations. It mostly saves $O(R^3)$ computations. This vignette shows results agree with the original version. Cannot use unit test due to numerical discrepency between <code>chol</code> of amardillo and R -- this has been shown problematic for some computations. I'll have to improve <code>mashr</code> for it.</p>
+<h1 id="Pre-computing-various-second-moment-related-quantities">Pre-computing various second-moment related quantities<a class="anchor-link" href="#Pre-computing-various-second-moment-related-quantities">&#182;</a></h1><p>This saves computation for M&amp;M by precomputing and re-using quantitaties shared between iterations. It mostly saves $O(R^3)$ computations. This vignette shows results agree with the original version. Cannot use unit test due to numerical discrepency between <code>chol</code> of amardillo and R -- this has been shown problematic for some computations. I'll have to improve <code>mashr</code> for it.</p>
 
 </div>
 </div>
@@ -664,7 +656,7 @@ U0 <span class="o">=</span> <span class="kt">list</span><span class="p">()</span
 <div class=" highlight hl-r"><pre><span></span>prior_var <span class="o">=</span> V<span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">]</span>
 residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
 data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class="o">$</span>new<span class="p">(</span>X<span class="p">,</span>y<span class="p">)</span>
-A <span class="o">=</span> mmbr<span class="o">:::</span>BayesianMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
+A <span class="o">=</span> mmbr<span class="o">:::</span>BayesianSimpleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
 A<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
 null_weight <span class="o">=</span> <span class="m">0</span>
 mash_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span> <span class="o">-</span> null_weight<span class="p">,</span> null_weight<span class="p">)</span>
@@ -713,7 +705,7 @@ mash_init<span class="o">$</span>precompute_cov_matrices<span class="p">(</span>
 <div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>B <span class="o">=</span> mmbr<span class="o">:::</span>MashMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> mash_init<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>B <span class="o">=</span> mmbr<span class="o">:::</span>MashRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> mash_init<span class="p">)</span>
 </pre></div>
 
 </div>

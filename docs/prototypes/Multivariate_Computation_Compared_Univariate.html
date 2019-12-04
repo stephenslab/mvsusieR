@@ -407,10 +407,10 @@ bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</
 
 <div class="output_html rendered_html output_subarea ">
 <ol class=list-inline>
-	<li>0.647417870323723</li>
-	<li>0.362699234898158</li>
-	<li>1.969718455384e-11</li>
-	<li>0.819350687144191</li>
+	<li>0.647417870851173</li>
+	<li>0.36269923511188</li>
+	<li>1.96971842692566e-11</li>
+	<li>0.81935068763822</li>
 </ol>
 
 </div>
@@ -445,10 +445,10 @@ bhat2 <span class="o">=</span> coef<span class="p">(</span>m2<span class="p">)</
 
 <div class="output_html rendered_html output_subarea ">
 <ol class=list-inline>
-	<li>3.72946390015414e-13</li>
-	<li>0.38634239597973</li>
-	<li>0.743487419984576</li>
-	<li>0.735604609664396</li>
+	<li>3.72946361975251e-13</li>
+	<li>0.386342397093021</li>
+	<li>0.743487420194007</li>
+	<li>0.735604609996565</li>
 </ol>
 
 </div>
@@ -488,7 +488,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>prior_var<span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="m">0</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>prior_var<span class="p">),</span> <span class="m">1</span><span class="p">,</span> alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -501,28 +501,10 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>X<span class="p">,</span> y<span class="p">,</span> L<span class="o">=</span><span class="m">10</span><span class="p">,</span> V<span class="o">=</span>prior_covar<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>m <span class="o">=</span> mmbr<span class="o">::</span>msusie<span class="p">(</span>X<span class="p">,</span> y<span class="p">,</span> L<span class="o">=</span><span class="m">10</span><span class="p">,</span> prior_variance<span class="o">=</span>prior_covar<span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>[1] 1
-</pre>
-</div>
-</div>
-
 </div>
 </div>
 
@@ -532,7 +514,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">length</span><span class="p">(</span>m<span class="o">$</span>coef<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="kp">dim</span><span class="p">(</span>m<span class="o">$</span>coef<span class="p">)</span>
 </pre></div>
 
 </div>
@@ -550,7 +532,11 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 
 <div class="output_html rendered_html output_subarea ">
-1002
+<ol class=list-inline>
+	<li>1001</li>
+	<li>2</li>
+</ol>
+
 </div>
 
 </div>
@@ -591,11 +577,12 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 10 × 2 of type dbl[,2]</caption>
 <tbody>
 	<tr><td>0.000000e+00</td><td>0.000000e+00</td></tr>
-	<tr><td>1.198719e-04</td><td>0.000000e+00</td></tr>
-	<tr><td>0.000000e+00</td><td>5.209887e-05</td></tr>
-	<tr><td>5.884182e-15</td><td>0.000000e+00</td></tr>
+	<tr><td>1.347289e-04</td><td>0.000000e+00</td></tr>
+	<tr><td>0.000000e+00</td><td>5.686698e-05</td></tr>
+	<tr><td>6.439294e-15</td><td>1.110223e-16</td></tr>
 	<tr><td>1.000000e+00</td><td>1.000000e+00</td></tr>
 	<tr><td>1.000000e+00</td><td>1.000000e+00</td></tr>
 	<tr><td>1.000000e+00</td><td>1.000000e+00</td></tr>
@@ -623,7 +610,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span>pip_cond <span class="o">=</span> mmbr<span class="o">:::</span>mmbr_get_pip_per_condition<span class="p">(</span>m<span class="p">,</span> prior_covar<span class="p">)</span>
@@ -636,7 +623,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="kp">dim</span><span class="p">(</span>pip_cond<span class="p">)</span>
@@ -672,7 +659,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pip_cond<span class="p">)</span>
@@ -694,13 +681,14 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_html rendered_html output_subarea ">
 <table>
+<caption>A matrix: 6 × 2 of type dbl[,2]</caption>
 <tbody>
 	<tr><td>1.000000000</td><td>1.000000000</td></tr>
 	<tr><td>1.000000000</td><td>1.000000000</td></tr>
 	<tr><td>1.000000000</td><td>1.000000000</td></tr>
 	<tr><td>1.000000000</td><td>1.000000000</td></tr>
-	<tr><td>0.004774091</td><td>0.004774091</td></tr>
-	<tr><td>0.015642346</td><td>0.015642346</td></tr>
+	<tr><td>0.003590118</td><td>0.003590118</td></tr>
+	<tr><td>0.008441830</td><td>0.008441830</td></tr>
 </tbody>
 </table>
 
