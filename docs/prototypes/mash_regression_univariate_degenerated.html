@@ -237,15 +237,7 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Running-&quot;degenerated&quot;-MASH-computation">Running "degenerated" MASH computation<a class="anchor-link" href="#Running-&quot;degenerated&quot;-MASH-computation">&#182;</a></h1>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>The goal is to verify implementation of mash computation is correct, by comparing it to univariate case when $Y$ has one column and prior covariance matrices is fixed. It should later become part of a unit test.</p>
+<h1 id="Running-&quot;degenerated&quot;-MASH-computation">Running "degenerated" MASH computation<a class="anchor-link" href="#Running-&quot;degenerated&quot;-MASH-computation">&#182;</a></h1><p>This is prototype to a unit test to verify implementation of mash computation is correct, by comparing it to univariate case when $Y$ has one column and prior covariance matrices is fixed.</p>
 
 </div>
 </div>
@@ -390,7 +382,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1 <span class="o">=</span> mmbr<span class="o">:::</span>BayesianMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>m1 <span class="o">=</span> mmbr<span class="o">:::</span>BayesianSimpleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
 m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
@@ -442,7 +434,7 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 
 <div class="output_html rendered_html output_subarea ">
 <table>
-<caption>A matrix: 6 × 1 of type dbl</caption>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td> 1.17582479</td></tr>
 	<tr><td> 1.10571117</td></tr>
@@ -485,7 +477,7 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;BayesianMultipleRegression&gt;
+<pre>&lt;BayesianSimpleRegression&gt;
   Public:
     bhat: active binding
     clone: function (deep = FALSE) 
@@ -508,9 +500,14 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
     .prior_variance: 1.14963360755715
     .residual_variance: 5.74816803778574
     .sbhat: 0.0758546106689995 0.0758546106689995 0.0758546106689995 ...
-    denied: function (v) 
-    estimate_prior_variance: FALSE
-    J: 1000</pre>
+    estimate_prior_variance: function (betahat, shat2, prior_weights, method = c(&#34;optim&#34;, 
+    J: 1000
+    lbf_grad: function (V, sbhat2, T2) 
+    loglik: function (V, betahat, shat2, prior_weights) 
+    loglik_grad: function (V, bhat, sbhat2, prior_weights) 
+    neg_loglik_logscale: function (lV, betahat, shat2, prior_weights) 
+    negloglik_grad_logscale: function (lV, betahat, shat2, prior_weights) 
+    to_estimate_prior_variance: FALSE</pre>
 </div>
 
 </div>
@@ -536,7 +533,7 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 <span class="c1"># This will lead to some shrinkage</span>
 <span class="c1"># null_weight = 1 - 1 / ncol(X)</span>
 null_weight <span class="o">=</span> <span class="m">0</span>
-prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> cov<span class="p">(</span>y<span class="p">)),</span> <span class="m">1</span><span class="p">,</span> <span class="m">1</span> <span class="o">-</span> null_weight<span class="p">,</span> null_weight<span class="p">,</span> alpha <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
+prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> cov<span class="p">(</span>y<span class="p">)),</span> <span class="m">1</span><span class="p">,</span> prior_weights<span class="o">=</span><span class="m">1</span> <span class="o">-</span> null_weight<span class="p">,</span> null_weight<span class="o">=</span>null_weight<span class="p">,</span> alpha <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
 residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
 </pre></div>
 
@@ -550,7 +547,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_covar<span class="o">$</span>prior_covariance
+<div class=" highlight hl-r"><pre><span></span>prior_covar<span class="o">$</span>prior_variance
 </pre></div>
 
 </div>
@@ -579,7 +576,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 		<dd><dl>
 	<dt>$null</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>0</td></tr>
 </tbody>
@@ -587,7 +584,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 </dd>
 	<dt>$`.1`</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1.149634</td></tr>
 </tbody>
@@ -629,7 +626,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_html rendered_html output_subarea ">
 <table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>5.748168</td></tr>
 </tbody>
@@ -648,7 +645,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2 <span class="o">=</span> mmbr<span class="o">:::</span>MashMultipleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> prior_covar<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span>m2 <span class="o">=</span> mmbr<span class="o">:::</span>MashRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> prior_covar<span class="p">)</span>
 </pre></div>
 
 </div>
@@ -693,7 +690,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_html rendered_html output_subarea ">
 <table>
-<caption>A matrix: 6 × 1 of type dbl</caption>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td> 1.17582479</td></tr>
 	<tr><td> 1.10571117</td></tr>
@@ -736,8 +733,8 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;MashMultipleRegression&gt;
-  Inherits from: &lt;BayesianMultipleRegression&gt;
+<pre>&lt;MashRegression&gt;
+  Inherits from: &lt;BayesianSimpleRegression&gt;
   Public:
     bhat: active binding
     clone: function (deep = FALSE) 
@@ -745,7 +742,9 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
     fit: function (d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) 
     initialize: function (J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) 
     lbf: active binding
+    lfsr: active binding
     loglik_null: active binding
+    mixture_posterior_weights: active binding
     posterior_b1: active binding
     posterior_b2: active binding
     prior_variance: active binding
@@ -765,11 +764,16 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
     .residual_variance_inv: 0.173968470202414
     .sbhat: 0.0758546106689995 0.0758546106689995 0.0758546106689995 ...
     alpha: 0
-    denied: function (v) 
-    estimate_prior_variance: FALSE
+    estimate_prior_variance: function (betahat, shat2, prior_weights, method = c(&#34;optim&#34;, 
     J: NULL
-    null_correlation: 1
-    precomputed_cov_matrices: NULL</pre>
+    lbf_grad: function (V, sbhat2, T2) 
+    loglik: function (V, betahat, shat2, prior_weights) 
+    loglik_grad: function (V, bhat, sbhat2, prior_weights) 
+    neg_loglik_logscale: function (lV, betahat, shat2, prior_weights) 
+    negloglik_grad_logscale: function (lV, betahat, shat2, prior_weights) 
+    precomputed_cov_matrices: NULL
+    residual_correlation: 1
+    to_estimate_prior_variance: FALSE</pre>
 </div>
 
 </div>
@@ -838,8 +842,8 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 	<li>1.10666645474003</li>
 	<li>1.12082441998294</li>
 	<li>1.07722197094866</li>
-	<li>-0.000161974819598887</li>
-	<li>-3.79185831359806e-05</li>
+	<li>-0.000161974838377648</li>
+	<li>-3.79185875354948e-05</li>
 </ol>
 
 </div>
@@ -891,7 +895,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 	<dt>$Ulist</dt>
 		<dd><ol>
 	<li><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1.149634</td></tr>
 </tbody>
@@ -963,61 +967,6 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m.c<span class="o">$</span>fitted_g
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt"></div>
-
-
-
-<div class="output_html rendered_html output_subarea ">
-<dl>
-	<dt>$pi</dt>
-		<dd><ol class=list-inline>
-	<li>0</li>
-	<li>1</li>
-</ol>
-</dd>
-	<dt>$Ulist</dt>
-		<dd><ol>
-	<li><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
-<tbody>
-	<tr><td>1.149634</td></tr>
-</tbody>
-</table>
-</li>
-</ol>
-</dd>
-	<dt>$grid</dt>
-		<dd>1</dd>
-	<dt>$usepointmass</dt>
-		<dd>TRUE</dd>
-</dl>
-
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
 <div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="inner_cell">
     <div class="input_area">
@@ -1040,7 +989,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_html rendered_html output_subarea ">
 <table>
-<caption>A matrix: 6 × 1 of type dbl</caption>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td> 1.17582479</td></tr>
 	<tr><td> 1.10571117</td></tr>
@@ -1126,7 +1075,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 <pre> - Computing 1000 x 109 likelihood matrix.
  - Likelihood calculations took 0.01 seconds.
  - Fitting model with 109 mixture components.
- - Model fitting took 0.13 seconds.
+ - Model fitting took 0.17 seconds.
  - Computing posterior matrices.
  - Computation allocated took 0.00 seconds.
 </pre>
@@ -1161,7 +1110,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_html rendered_html output_subarea ">
 <table>
-<caption>A matrix: 6 × 1 of type dbl</caption>
+<caption>A matrix: 6 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td> 1.176841e+00</td></tr>
 	<tr><td> 1.106666e+00</td></tr>
@@ -1207,230 +1156,230 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 	<dt>$pi</dt>
 		<dd><dl class=dl-horizontal>
 	<dt>null</dt>
-		<dd>0.995204680070225</dd>
+		<dd>0.995204679826406</dd>
 	<dt>identity.1</dt>
-		<dd>0</dd>
+		<dd>7.95271687980721e-11</dd>
 	<dt>singletons_1.1</dt>
-		<dd>0</dd>
+		<dd>1.92337562326512e-18</dd>
 	<dt>equal_effects.1</dt>
-		<dd>0</dd>
+		<dd>1.92337562326512e-18</dd>
 	<dt>simple_het_1.1</dt>
-		<dd>0</dd>
+		<dd>1.92337562326512e-18</dd>
 	<dt>simple_het_2.1</dt>
-		<dd>0</dd>
+		<dd>1.92337562326512e-18</dd>
 	<dt>simple_het_3.1</dt>
-		<dd>0</dd>
+		<dd>1.92337562326512e-18</dd>
 	<dt>identity.2</dt>
-		<dd>0</dd>
+		<dd>1.91640242800725e-18</dd>
 	<dt>singletons_1.2</dt>
-		<dd>0</dd>
+		<dd>1.91640242800727e-18</dd>
 	<dt>equal_effects.2</dt>
-		<dd>0</dd>
+		<dd>1.91640242800725e-18</dd>
 	<dt>simple_het_1.2</dt>
-		<dd>0</dd>
+		<dd>1.91640242800725e-18</dd>
 	<dt>simple_het_2.2</dt>
-		<dd>0</dd>
+		<dd>1.91640242800725e-18</dd>
 	<dt>simple_het_3.2</dt>
-		<dd>0</dd>
+		<dd>1.91640242800725e-18</dd>
 	<dt>identity.3</dt>
-		<dd>0</dd>
+		<dd>1.90255267138468e-18</dd>
 	<dt>singletons_1.3</dt>
-		<dd>0</dd>
+		<dd>1.90255267138468e-18</dd>
 	<dt>equal_effects.3</dt>
-		<dd>0</dd>
+		<dd>1.90255267138468e-18</dd>
 	<dt>simple_het_1.3</dt>
-		<dd>0</dd>
+		<dd>1.90255267138468e-18</dd>
 	<dt>simple_het_2.3</dt>
-		<dd>0</dd>
+		<dd>1.90255267138468e-18</dd>
 	<dt>simple_het_3.3</dt>
-		<dd>0</dd>
+		<dd>1.90255267138468e-18</dd>
 	<dt>identity.4</dt>
-		<dd>0</dd>
+		<dd>7.05488713855198e-12</dd>
 	<dt>singletons_1.4</dt>
-		<dd>0</dd>
+		<dd>8.57096558015708e-12</dd>
 	<dt>equal_effects.4</dt>
-		<dd>0</dd>
+		<dd>8.53584198125e-12</dd>
 	<dt>simple_het_1.4</dt>
-		<dd>0</dd>
+		<dd>8.53866029373803e-12</dd>
 	<dt>simple_het_2.4</dt>
-		<dd>0</dd>
+		<dd>8.53902464905407e-12</dd>
 	<dt>simple_het_3.4</dt>
-		<dd>0</dd>
+		<dd>8.50320944549281e-12</dd>
 	<dt>identity.5</dt>
-		<dd>0</dd>
+		<dd>1.82210469493815e-18</dd>
 	<dt>singletons_1.5</dt>
-		<dd>0</dd>
+		<dd>1.82210469493815e-18</dd>
 	<dt>equal_effects.5</dt>
-		<dd>0</dd>
+		<dd>1.82210469493815e-18</dd>
 	<dt>simple_het_1.5</dt>
-		<dd>0</dd>
+		<dd>1.82210469493815e-18</dd>
 	<dt>simple_het_2.5</dt>
-		<dd>0</dd>
+		<dd>1.82210469493815e-18</dd>
 	<dt>simple_het_3.5</dt>
-		<dd>0</dd>
+		<dd>1.82210469493815e-18</dd>
 	<dt>identity.6</dt>
-		<dd>0</dd>
+		<dd>1.72160299319065e-18</dd>
 	<dt>singletons_1.6</dt>
-		<dd>0</dd>
+		<dd>1.72160299319057e-18</dd>
 	<dt>equal_effects.6</dt>
-		<dd>0</dd>
+		<dd>1.72160299319057e-18</dd>
 	<dt>simple_het_1.6</dt>
-		<dd>0</dd>
+		<dd>1.72160299319057e-18</dd>
 	<dt>simple_het_2.6</dt>
-		<dd>0</dd>
+		<dd>1.72160299319057e-18</dd>
 	<dt>simple_het_3.6</dt>
-		<dd>0</dd>
+		<dd>1.72160299319057e-18</dd>
 	<dt>identity.7</dt>
-		<dd>0</dd>
+		<dd>1.54166429607594e-18</dd>
 	<dt>singletons_1.7</dt>
-		<dd>0</dd>
+		<dd>1.54166429607594e-18</dd>
 	<dt>equal_effects.7</dt>
-		<dd>0</dd>
+		<dd>1.54166429607594e-18</dd>
 	<dt>simple_het_1.7</dt>
-		<dd>0</dd>
+		<dd>1.54166429607594e-18</dd>
 	<dt>simple_het_2.7</dt>
-		<dd>0</dd>
+		<dd>1.54166429607594e-18</dd>
 	<dt>simple_het_3.7</dt>
-		<dd>0</dd>
+		<dd>1.54166429607594e-18</dd>
 	<dt>identity.8</dt>
-		<dd>0</dd>
+		<dd>1.25157437790948e-18</dd>
 	<dt>singletons_1.8</dt>
-		<dd>0</dd>
+		<dd>1.25157437790948e-18</dd>
 	<dt>equal_effects.8</dt>
-		<dd>0</dd>
+		<dd>1.25157437790948e-18</dd>
 	<dt>simple_het_1.8</dt>
-		<dd>0</dd>
+		<dd>1.25157437790948e-18</dd>
 	<dt>simple_het_2.8</dt>
-		<dd>0</dd>
+		<dd>1.25157437790948e-18</dd>
 	<dt>simple_het_3.8</dt>
-		<dd>0</dd>
+		<dd>1.25157437790948e-18</dd>
 	<dt>identity.9</dt>
-		<dd>0</dd>
+		<dd>8.63417008698988e-19</dd>
 	<dt>singletons_1.9</dt>
-		<dd>0</dd>
+		<dd>8.63417008698988e-19</dd>
 	<dt>equal_effects.9</dt>
-		<dd>0</dd>
+		<dd>8.63417008698988e-19</dd>
 	<dt>simple_het_1.9</dt>
-		<dd>0</dd>
+		<dd>8.63417008698988e-19</dd>
 	<dt>simple_het_2.9</dt>
-		<dd>0</dd>
+		<dd>8.63417008698988e-19</dd>
 	<dt>simple_het_3.9</dt>
-		<dd>0</dd>
+		<dd>8.63417008698988e-19</dd>
 	<dt>identity.10</dt>
-		<dd>0</dd>
+		<dd>4.74457879337841e-19</dd>
 	<dt>singletons_1.10</dt>
-		<dd>0</dd>
+		<dd>4.74457879337841e-19</dd>
 	<dt>equal_effects.10</dt>
-		<dd>0</dd>
+		<dd>4.74457879337841e-19</dd>
 	<dt>simple_het_1.10</dt>
-		<dd>0</dd>
+		<dd>4.74457879337841e-19</dd>
 	<dt>simple_het_2.10</dt>
-		<dd>0</dd>
+		<dd>4.74457879337841e-19</dd>
 	<dt>simple_het_3.10</dt>
-		<dd>0</dd>
+		<dd>4.74457879337841e-19</dd>
 	<dt>identity.11</dt>
-		<dd>0</dd>
+		<dd>2.03257357510353e-19</dd>
 	<dt>singletons_1.11</dt>
-		<dd>0</dd>
+		<dd>2.03257357510353e-19</dd>
 	<dt>equal_effects.11</dt>
-		<dd>0</dd>
+		<dd>2.03257357510353e-19</dd>
 	<dt>simple_het_1.11</dt>
-		<dd>0</dd>
+		<dd>2.03257357510353e-19</dd>
 	<dt>simple_het_2.11</dt>
-		<dd>0</dd>
+		<dd>2.03257357510353e-19</dd>
 	<dt>simple_het_3.11</dt>
-		<dd>0</dd>
+		<dd>2.03257357510353e-19</dd>
 	<dt>identity.12</dt>
-		<dd>0</dd>
+		<dd>7.17188935208766e-20</dd>
 	<dt>singletons_1.12</dt>
-		<dd>0</dd>
+		<dd>7.17188935208766e-20</dd>
 	<dt>equal_effects.12</dt>
-		<dd>0</dd>
+		<dd>7.17188935208766e-20</dd>
 	<dt>simple_het_1.12</dt>
-		<dd>0</dd>
+		<dd>7.17188935208766e-20</dd>
 	<dt>simple_het_2.12</dt>
-		<dd>0</dd>
+		<dd>7.17188935208766e-20</dd>
 	<dt>simple_het_3.12</dt>
-		<dd>0</dd>
+		<dd>7.17188935208766e-20</dd>
 	<dt>identity.13</dt>
-		<dd>0</dd>
+		<dd>3.11041956192117e-20</dd>
 	<dt>singletons_1.13</dt>
-		<dd>0</dd>
+		<dd>3.11041956192117e-20</dd>
 	<dt>equal_effects.13</dt>
-		<dd>0</dd>
+		<dd>3.11041956192117e-20</dd>
 	<dt>simple_het_1.13</dt>
-		<dd>0</dd>
+		<dd>3.11041956192117e-20</dd>
 	<dt>simple_het_2.13</dt>
-		<dd>0</dd>
+		<dd>3.11041956192117e-20</dd>
 	<dt>simple_het_3.13</dt>
-		<dd>0</dd>
+		<dd>3.11041956192117e-20</dd>
 	<dt>identity.14</dt>
-		<dd>0</dd>
+		<dd>2.85540249574286e-20</dd>
 	<dt>singletons_1.14</dt>
-		<dd>0</dd>
+		<dd>2.85540249574286e-20</dd>
 	<dt>equal_effects.14</dt>
-		<dd>0</dd>
+		<dd>2.85540249574286e-20</dd>
 	<dt>simple_het_1.14</dt>
-		<dd>0</dd>
+		<dd>2.85540249574286e-20</dd>
 	<dt>simple_het_2.14</dt>
-		<dd>0</dd>
+		<dd>2.85540249574286e-20</dd>
 	<dt>simple_het_3.14</dt>
-		<dd>0</dd>
+		<dd>2.85540249574286e-20</dd>
 	<dt>identity.15</dt>
-		<dd>0</dd>
+		<dd>2.66109962906175e-20</dd>
 	<dt>singletons_1.15</dt>
-		<dd>0</dd>
+		<dd>5.15481860006988e-14</dd>
 	<dt>equal_effects.15</dt>
-		<dd>0</dd>
+		<dd>5.63610430010078e-14</dd>
 	<dt>simple_het_1.15</dt>
-		<dd>0</dd>
+		<dd>4.27368970777414e-14</dd>
 	<dt>simple_het_2.15</dt>
-		<dd>0</dd>
+		<dd>3.67144166887171e-13</dd>
 	<dt>simple_het_3.15</dt>
-		<dd>0</dd>
+		<dd>2.66109962906175e-20</dd>
 	<dt>identity.16</dt>
-		<dd>0.00479531992977486</dd>
+		<dd>0.0047953200438066</dd>
 	<dt>singletons_1.16</dt>
-		<dd>0</dd>
+		<dd>1.57699152796768e-20</dd>
 	<dt>equal_effects.16</dt>
-		<dd>0</dd>
+		<dd>1.57699152796768e-20</dd>
 	<dt>simple_het_1.16</dt>
-		<dd>0</dd>
+		<dd>1.57699152796768e-20</dd>
 	<dt>simple_het_2.16</dt>
-		<dd>0</dd>
+		<dd>1.57699152796768e-20</dd>
 	<dt>simple_het_3.16</dt>
-		<dd>0</dd>
+		<dd>1.57699152796768e-20</dd>
 	<dt>identity.17</dt>
-		<dd>0</dd>
+		<dd>6.3974500564993e-21</dd>
 	<dt>singletons_1.17</dt>
-		<dd>0</dd>
+		<dd>6.3974500564993e-21</dd>
 	<dt>equal_effects.17</dt>
-		<dd>0</dd>
+		<dd>6.3974500564993e-21</dd>
 	<dt>simple_het_1.17</dt>
-		<dd>0</dd>
+		<dd>6.3974500564993e-21</dd>
 	<dt>simple_het_2.17</dt>
-		<dd>0</dd>
+		<dd>6.3974500564993e-21</dd>
 	<dt>simple_het_3.17</dt>
-		<dd>0</dd>
+		<dd>6.3974500564993e-21</dd>
 	<dt>identity.18</dt>
-		<dd>0</dd>
+		<dd>2.0642370841958e-21</dd>
 	<dt>singletons_1.18</dt>
-		<dd>0</dd>
+		<dd>2.0642370841958e-21</dd>
 	<dt>equal_effects.18</dt>
-		<dd>0</dd>
+		<dd>2.0642370841958e-21</dd>
 	<dt>simple_het_1.18</dt>
-		<dd>0</dd>
+		<dd>2.0642370841958e-21</dd>
 	<dt>simple_het_2.18</dt>
-		<dd>0</dd>
+		<dd>2.0642370841958e-21</dd>
 	<dt>simple_het_3.18</dt>
-		<dd>0</dd>
+		<dd>2.0642370841958e-21</dd>
 </dl>
 </dd>
 	<dt>$Ulist</dt>
 		<dd><dl>
 	<dt>$identity</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1</td></tr>
 </tbody>
@@ -1438,7 +1387,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 </dd>
 	<dt>$singletons_1</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1</td></tr>
 </tbody>
@@ -1446,7 +1395,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 </dd>
 	<dt>$equal_effects</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1</td></tr>
 </tbody>
@@ -1454,7 +1403,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 </dd>
 	<dt>$simple_het_1</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1</td></tr>
 </tbody>
@@ -1462,7 +1411,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 </dd>
 	<dt>$simple_het_2</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1</td></tr>
 </tbody>
@@ -1470,7 +1419,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 </dd>
 	<dt>$simple_het_3</dt>
 		<dd><table>
-<caption>A matrix: 1 × 1 of type dbl</caption>
+<caption>A matrix: 1 × 1 of type dbl[,1]</caption>
 <tbody>
 	<tr><td>1</td></tr>
 </tbody>

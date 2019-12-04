@@ -26,6 +26,11 @@ Implementation-wise,
 `R6` is pretty [easy to learn](https://r6.r-lib.org/articles/Introduction.html) just by the length of its documentation.
 However the constraint that [`private` cannot have same name as `public` and `active`](https://github.com/r-lib/R6/issues/200) is annoying.
 
+Two quick pointers on `R6` class if you dont want to bother reading its documentation:
+
+1. Convention `private$<name>` refers to private member (ie, variable) or method (ie, function); convention `self$<name>` refers to public member or method, or, active bindings. Please be careful which to use.
+2. If you've got a class `A` to set `B` via `B=A` then modify `B`, you will also be modifying `A`! To prevent this from happening you've got to use this: `B=A$clone(deep=TRUE)`.
+
 I use the following convention in my code:
 
 1. There is no `public` member variable. All variables are private.
