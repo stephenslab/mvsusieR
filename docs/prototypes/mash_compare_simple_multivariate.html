@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -233,7 +234,8 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Comparing-MASH-analysis-with-simple-multivariate-analysis">Comparing MASH analysis with simple multivariate analysis<a class="anchor-link" href="#Comparing-MASH-analysis-with-simple-multivariate-analysis">&#182;</a></h1><p>Previously we showed that even though univariate analysis with degenerated MASH model gives identical results to SuSiE as expected (with non-decreasing ELBO), in multivariate calculations the ELBO is not always non-decreasing. To investigate the issue we will 1) further simplify the problem and 2) isolate the problem to posterior calculation versus ELBO calculations and check which part is problematic. The best way to achieve both is to implement a simple Bayesian multivariate regression model with prior $b \sim MVN(0, U)$ where $U$ is known, instead of using MASH prior for $b$.</p>
 
@@ -241,7 +243,8 @@ body {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>This feature is now implemented in the <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_multivariate_regression.R"><code>BayesianMultivariateRegression</code> class</a> with an interface added to the main function such that the code will be triggered <a href="https://github.com/gaow/mmbr/blob/dccc26cfbba0cfd3e6f20b37e06d4db6305b834f/R/main.R#L110">when prior variance is a matrix</a>.</p>
 <p>With this feature (and with Yuxin's sharp eyes!!) we were able to identify an issue caused by inconsistent interface between <code>mmbr::susie</code> and <code>mmbr::MashInitializer</code> in handling residual variances. After patching the issue (interface fix still needs to be finalized) we are able to get consistent result between simple Bayesian multivariate regression and MASH; and MASH ELBO now increases.</p>
@@ -250,7 +253,8 @@ body {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Test-the-calculation-agree-with-univariate-code">Test the calculation agree with univariate code<a class="anchor-link" href="#Test-the-calculation-agree-with-univariate-code">&#182;</a></h2>
 </div>
@@ -266,7 +270,7 @@ body {
 L <span class="o">=</span> <span class="m">5</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -276,7 +280,7 @@ L <span class="o">=</span> <span class="m">5</span>
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -298,13 +302,14 @@ Loading required package: ashr
 <div class=" highlight hl-r"><pre><span></span>dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">1</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Run the simulated univariate data with SuSiE,</p>
 
@@ -320,7 +325,7 @@ Loading required package: ashr
 res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -330,7 +335,7 @@ res<span class="o">$</span>elbo
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -352,7 +357,8 @@ res<span class="o">$</span>elbo
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Now run it with multivariate simple prior implementation in <code>mmbr</code>,</p>
 
@@ -368,7 +374,7 @@ res<span class="o">$</span>elbo
 res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -378,7 +384,7 @@ res<span class="o">$</span>elbo
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -400,7 +406,8 @@ res<span class="o">$</span>elbo
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>So it is confirmed that this implementation produces identical results as SuSiE runs.</p>
 
@@ -408,7 +415,8 @@ res<span class="o">$</span>elbo
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Test-multivariate-analysis">Test multivariate analysis<a class="anchor-link" href="#Test-multivariate-analysis">&#182;</a></h2>
 </div>
@@ -423,7 +431,7 @@ res<span class="o">$</span>elbo
 dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">5</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -437,7 +445,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -447,7 +455,7 @@ res<span class="o">$</span>elbo
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -477,7 +485,8 @@ res<span class="o">$</span>elbo
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here the ELBO is non-decreasing, as expected.</p>
 
@@ -485,7 +494,8 @@ res<span class="o">$</span>elbo
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Compare-with-MASH-based-model">Compare with MASH based model<a class="anchor-link" href="#Compare-with-MASH-based-model">&#182;</a></h2>
 </div>
@@ -499,7 +509,7 @@ res<span class="o">$</span>elbo
 <div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>dat<span class="o">$</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> prior_weight<span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -513,7 +523,7 @@ res<span class="o">$</span>elbo
 res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -523,7 +533,7 @@ res<span class="o">$</span>elbo
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -553,7 +563,8 @@ res<span class="o">$</span>elbo
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The result agree with above. Now we use a different prior choice -- a diagonal prior covariance. We analyze with simple Bayesian multivariate regression,</p>
 
@@ -569,7 +580,7 @@ res<span class="o">$</span>elbo
 res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -579,7 +590,7 @@ res<span class="o">$</span>elbo
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -604,7 +615,8 @@ res<span class="o">$</span>elbo
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>and with MASH based regression,</p>
 
@@ -619,7 +631,7 @@ res<span class="o">$</span>elbo
 <div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span><span class="o">*</span><span class="kp">diag</span><span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>dat<span class="o">$</span>y<span class="p">))),</span> <span class="m">1</span><span class="p">,</span> prior_weight<span class="o">=</span><span class="m">1</span><span class="p">,</span> null_weight<span class="o">=</span><span class="m">0</span><span class="p">,</span>alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -633,7 +645,7 @@ res<span class="o">$</span>elbo
 res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -643,7 +655,7 @@ res<span class="o">$</span>elbo
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -668,7 +680,8 @@ res<span class="o">$</span>elbo
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>So we are comfortable at this point that ELBO for multivariate analysis is done correctly.</p>
 

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -233,14 +234,16 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Improving-calculation-of-multivariate-multiple-regression">Improving calculation of multivariate multiple regression<a class="anchor-link" href="#Improving-calculation-of-multivariate-multiple-regression">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>A small prototype for multivariate multiple regression computation assuming fixed residual covariance matrix.</p>
 
@@ -255,13 +258,14 @@ body {
 <div class=" highlight hl-r"><pre><span></span>data <span class="o">=</span> mmbr<span class="o">::</span>mmbr_sim2<span class="p">(</span><span class="m">1000</span><span class="p">,</span><span class="m">7000</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">0.8</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here we do not use an existing R routine because <code>lm</code> is very slow (even using <code>.lm.fit</code> compared to providing pre-computed <code>d</code> as done below).</p>
 
@@ -282,7 +286,7 @@ body {
 <span class="p">}</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -295,7 +299,7 @@ body {
 <div class=" highlight hl-r"><pre><span></span>method <span class="o">=</span> method_1
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -308,13 +312,14 @@ body {
 <div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> <span class="kp">with</span><span class="p">(</span>data<span class="p">,</span> method<span class="p">(</span>d<span class="p">,</span>X<span class="p">,</span>y<span class="p">,</span><span class="kp">diag</span><span class="p">(</span>r<span class="p">),</span>p<span class="p">))</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The speed is decent but the code seems ugly. Must be a more elegant matrix representation (and hopefully faster)?</p>
 

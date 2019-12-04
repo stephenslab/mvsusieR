@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -233,7 +234,8 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="ELBO-implementation-and-comparisons">ELBO implementation and comparisons<a class="anchor-link" href="#ELBO-implementation-and-comparisons">&#182;</a></h1><p>I have implemented ELBO for M&amp;M model based on write up in <a href="https://www.overleaf.com/project/5bd111aaa3ec8118d7b1cfa8">this document</a>. See Section 8 for derivation details; also Section B for an independent re-derivation from Yuxin Zou in checking my work.</p>
 <p>(the analytic form are not identical due to different simplifications but I coded both up and checked they agree).</p>
@@ -242,7 +244,8 @@ body {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="susieR-implementation-in-univariate-case"><code>susieR</code> implementation in univariate case<a class="anchor-link" href="#susieR-implementation-in-univariate-case">&#182;</a></h2><p>Here I simulate one trait and run with <code>susieR::susie</code> as well as <code>mmbr::susie</code> to check if the elbo agree.</p>
 
@@ -258,7 +261,7 @@ body {
 <span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -268,7 +271,7 @@ body {
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -283,7 +286,8 @@ Loading required package: ashr
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>I pick <code>L=5</code> and simulate a univariate trait,</p>
 
@@ -299,13 +303,14 @@ Loading required package: ashr
 dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">1</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Then run SuSiE and get the ELBO,</p>
 
@@ -320,7 +325,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 <div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> susieR<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>scaled_prior_variance<span class="o">=</span><span class="m">0.2</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -333,7 +338,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 <div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -343,7 +348,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -365,14 +370,16 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Compare-mmbr's-Bayesian-multivariate-regression-module-with-SuSiE">Compare <code>mmbr</code>'s Bayesian multivariate regression module with SuSiE<a class="anchor-link" href="#Compare-mmbr's-Bayesian-multivariate-regression-module-with-SuSiE">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>I have implemented the multiple regression <a href="https://github.com/gaow/mmbr/blob/master/R/bayesian_multiple_regression.R">in this class in <code>mmbr</code> package</a>. On the <code>mmbr</code> interface this is triggered by setting prior <code>V</code> as a scalar and make input <code>Y</code> a one column matrix,</p>
 
@@ -387,7 +394,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 <div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span><span class="m">0.2</span><span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">,</span>estimate_prior_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -400,7 +407,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 <div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -410,7 +417,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -432,7 +439,8 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The output is identical to using <code>susieR</code>.</p>
 
@@ -440,14 +448,16 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Compare-mmbr's-MASH-regression-module-with-SuSiE">Compare <code>mmbr</code>'s MASH regression module with SuSiE<a class="anchor-link" href="#Compare-mmbr's-MASH-regression-module-with-SuSiE">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here I create a degenerated <a href="https://github.com/gaow/mmbr/blob/master/R/mash_multiple_regression.R">MASH regression module implemented in <code>mmbr</code></a>. "Degenerated" means it has only one phenotype, and the prior is also a trivial one-component 1 by 1 matrix of <code>0.2 * var(Y)</code>. Here we use <code>EE</code> model in MASH (<code>alpha = 0</code>).</p>
 
@@ -455,7 +465,8 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The difference in code between this and previous section in computing ELBO can be found in this function for computing the L-th KL: <a href="https://github.com/gaow/mmbr/blob/7eead885b914efcb44e97acfb26a1b81bec6ab64/R/single_effect_regression.R#L37">compute_expected_loglik_partial()</a> and this function: <a href="https://github.com/gaow/mmbr/blob/7eead885b914efcb44e97acfb26a1b81bec6ab64/R/susie_regression.R#L111">compute_objective()</a> for finalizing the ELBO. The univariate and multivariate cases are distinguished by <code>if ... else</code> statement.</p>
 
@@ -471,7 +482,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span>r<span class="o">=
 m_init<span class="o">$</span>mash_prior
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -481,7 +492,7 @@ m_init<span class="o">$</span>mash_prior
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -526,7 +537,7 @@ m_init<span class="o">$</span>mash_prior
 <div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -539,7 +550,7 @@ m_init<span class="o">$</span>mash_prior
 <div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -549,7 +560,7 @@ m_init<span class="o">$</span>mash_prior
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -571,7 +582,8 @@ m_init<span class="o">$</span>mash_prior
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The output is also the same as previous calculations.</p>
 
@@ -579,14 +591,16 @@ m_init<span class="o">$</span>mash_prior
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Problem-with-multivariate-calculation">Problem with multivariate calculation<a class="anchor-link" href="#Problem-with-multivariate-calculation">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Now using the same code, but more phenotypes, <code>R = 5</code>, and still using a very simple prior for the MASH part,</p>
 
@@ -604,7 +618,7 @@ m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<sp
 m_init<span class="o">$</span>mash_prior
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -614,7 +628,7 @@ m_init<span class="o">$</span>mash_prior
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -656,7 +670,8 @@ m_init<span class="o">$</span>mash_prior
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>But the ELBO now is problematic,</p>
 
@@ -671,7 +686,7 @@ m_init<span class="o">$</span>mash_prior
 <div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>V<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="bp">T</span><span class="p">,</span>estimate_residual_variance<span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -681,7 +696,7 @@ m_init<span class="o">$</span>mash_prior
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -702,7 +717,7 @@ m_init<span class="o">$</span>mash_prior
 <div class=" highlight hl-r"><pre><span></span>res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -712,7 +727,7 @@ m_init<span class="o">$</span>mash_prior
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -737,7 +752,8 @@ m_init<span class="o">$</span>mash_prior
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>although it is not always reproduced, eg with a different seed:</p>
 
@@ -756,7 +772,7 @@ res <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(
 res<span class="o">$</span>elbo
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -766,7 +782,7 @@ res<span class="o">$</span>elbo
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 

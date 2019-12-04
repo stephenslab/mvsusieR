@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -233,14 +234,16 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Investigating-behavior-of-lfsr-for-condition-specific-CS">Investigating behavior of lfsr for condition specific CS<a class="anchor-link" href="#Investigating-behavior-of-lfsr-for-condition-specific-CS">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here I investigate behavior of lfsr of CS per condition, using singleton simulation setting.</p>
 
@@ -248,7 +251,8 @@ body {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Load-data">Load data<a class="anchor-link" href="#Load-data">&#182;</a></h2>
 </div>
@@ -262,7 +266,7 @@ body {
 <div class=" highlight hl-r"><pre><span></span>Y <span class="o">=</span> dscrutils<span class="o">::</span>read_dsc<span class="p">(</span><span class="s">&#39;small_data_1_singleton_1.pkl&#39;</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -275,7 +279,7 @@ body {
 <div class=" highlight hl-r"><pre><span></span><span class="kp">names</span><span class="p">(</span>Y<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -285,7 +289,7 @@ body {
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -314,7 +318,7 @@ body {
 <div class=" highlight hl-r"><pre><span></span>X <span class="o">=</span> <span class="kp">readRDS</span><span class="p">(</span><span class="s">&#39;small_data_1.rds&#39;</span><span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -327,7 +331,7 @@ body {
 <div class=" highlight hl-r"><pre><span></span><span class="kp">names</span><span class="p">(</span>X<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -337,7 +341,7 @@ body {
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -367,7 +371,7 @@ body {
 <span class="kp">names</span><span class="p">(</span>prior<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -377,7 +381,7 @@ body {
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -397,7 +401,8 @@ body {
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Setup-M&amp;M-model">Setup M&amp;M model<a class="anchor-link" href="#Setup-M&amp;M-model">&#182;</a></h2>
 </div>
@@ -412,7 +417,7 @@ body {
 result <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p">(</span>X<span class="o">$</span>X<span class="p">,</span> Y<span class="o">$</span>Y<span class="p">,</span> L<span class="o">=</span><span class="m">10</span><span class="p">,</span> V<span class="o">=</span>m_init<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -426,7 +431,7 @@ result <span class="o">=</span> mmbr<span class="o">::</span>susie<span class="p
 Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[</span>true_idx<span class="p">,]</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -436,7 +441,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -465,7 +470,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 <div class=" highlight hl-r"><pre><span></span>true_idx
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -475,7 +480,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -497,7 +502,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 <div class=" highlight hl-r"><pre><span></span><span class="kp">names</span><span class="p">(</span>result<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -507,7 +512,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -547,7 +552,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 <div class=" highlight hl-r"><pre><span></span><span class="kp">dim</span><span class="p">(</span>result<span class="o">$</span>mixture_weights<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -557,7 +562,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -584,7 +589,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 <div class=" highlight hl-r"><pre><span></span>result<span class="o">$</span>pip<span class="p">[</span>true_idx<span class="p">]</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -594,7 +599,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -616,7 +621,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 <div class=" highlight hl-r"><pre><span></span>result<span class="o">$</span>sets
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -626,7 +631,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -671,7 +676,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 <div class=" highlight hl-r"><pre><span></span>pip <span class="o">=</span> mmbr<span class="o">::</span>mmbr_get_pip_per_condition<span class="p">(</span>result<span class="p">,</span> m_init<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -684,7 +689,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 <div class=" highlight hl-r"><pre><span></span>pip<span class="p">[</span>true_idx<span class="p">,]</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -694,7 +699,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -716,7 +721,8 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>This looks perfectly Okay.</p>
 
@@ -732,7 +738,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 lfsr
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -742,7 +748,7 @@ lfsr
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -771,7 +777,8 @@ lfsr
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>This also looks good.</p>
 
@@ -779,14 +786,16 @@ lfsr
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Another-dataset">Another dataset<a class="anchor-link" href="#Another-dataset">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Now let me try another data-set,</p>
 
@@ -807,7 +816,7 @@ true_idx <span class="o">=</span> <span class="kp">which</span><span class="p">(
 Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[</span>true_idx<span class="p">,]</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -817,7 +826,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -847,7 +856,7 @@ Y<span class="o">$</span>meta<span class="o">$</span>true_coef<span class="p">[<
 pip<span class="p">[</span>true_idx<span class="p">,]</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -857,7 +866,7 @@ pip<span class="p">[</span>true_idx<span class="p">,]</span>
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -879,7 +888,8 @@ pip<span class="p">[</span>true_idx<span class="p">,]</span>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>This looks good.</p>
 
@@ -887,7 +897,8 @@ pip<span class="p">[</span>true_idx<span class="p">,]</span>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="lfsr-extraction">lfsr extraction<a class="anchor-link" href="#lfsr-extraction">&#182;</a></h2>
 </div>
@@ -901,7 +912,7 @@ pip<span class="p">[</span>true_idx<span class="p">,]</span>
 <div class=" highlight hl-r"><pre><span></span>lfsr <span class="o">=</span> mmbr<span class="o">::</span>mmbr_get_lfsr<span class="p">(</span>result<span class="p">,</span> m_init<span class="p">)</span>
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -914,7 +925,7 @@ pip<span class="p">[</span>true_idx<span class="p">,]</span>
 <div class=" highlight hl-r"><pre><span></span>lfsr
 </pre></div>
 
-    </div>
+</div>
 </div>
 </div>
 
@@ -924,7 +935,7 @@ pip<span class="p">[</span>true_idx<span class="p">,]</span>
 
 <div class="output_area">
 
-    <div class="prompt"></div>
+<div class="prompt"></div>
 
 
 
@@ -953,7 +964,8 @@ pip<span class="p">[</span>true_idx<span class="p">,]</span>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
+</div>
+<div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>This also looks good.</p>
 
