@@ -110,7 +110,7 @@ DenseData <- R6Class("DenseData",
     Y = function() private$.Y,
     X2_sum = function() private$d,
     XtY = function() {
-      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$.Y[private$Y_non_missing[,r],r]))
+      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$X_for_Y_missing[private$Y_non_missing[,r],,r], private$.Y[private$Y_non_missing[,r],r]))
       else crossprod(private$.X, private$.Y)
     },
     XtX = function() {
@@ -121,7 +121,7 @@ DenseData <- R6Class("DenseData",
       }
     },
     XtR = function() {
-      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$residual[private$Y_non_missing[,r],r]))
+      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$X_for_Y_missing[private$Y_non_missing[,r],,r], private$residual[private$Y_non_missing[,r],r]))
       else crossprod(private$.X, private$residual)
     },
     n_sample = function() private$N,
