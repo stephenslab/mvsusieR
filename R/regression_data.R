@@ -5,26 +5,40 @@
 DenseData <- R6Class("DenseData",
   public = list(
     initialize = function(X,Y,center=TRUE,scale=TRUE) {
-      private$.X = X
       if (is.null(dim(Y))) private$.Y = matrix(Y,length(Y),1)
       else private$.Y = Y
       if (any(dim(X) == 0)) stop('X input dimension is invalid.')
       private$R = ncol(private$.Y)
       private$N = nrow(private$.Y)
-      private$J = ncol(private$.X)
+      private$J = ncol(X)
       Y_missing = is.na(Y)
       private$Y_non_missing = !Y_missing
       private$.Y_has_missing = any(Y_missing)
+      private$.X = X
+      if(private$.Y_has_missing){
+        private$.X_for_Y_missing = array(X, dim = c(private$N, private$J, private$R))
+        for(r in 1:private$R){
+          private$.X_for_Y_missing[Y_missing[,r],,r] = NA
+        }
+      }
       private$standardize(center,scale)
       private$residual = private$.Y
     },
     compute_Xb = function(b) {
       # tcrossprod(A,B) performs A%*%t(B) but faster
-      tcrossprod(private$.X,t(b))
+      if(private$.Y_has_missing){
+        sapply(1:private$R, function(r) private$.X_for_Y_missing[,,r] %*% b[,r])
+      }else{
+        tcrossprod(private$.X,t(b))
+      }
     },
     compute_MXt = function(M) {
       # tcrossprod(A,B) performs A%*%t(B) but faster
-      tcrossprod(M,private$.X)
+      if(private$.Y_has_missing){
+        t(sapply(1:private$R, function(r) private$.X_for_Y_missing[,,r] %*% M[r,]))
+      }else{
+        tcrossprod(M, private$.X)
+      }
     },
     remove_from_residual = function(value) {
       private$residual = private$residual - value
@@ -55,12 +69,18 @@ DenseData <- R6Class("DenseData",
     Y = function() private$.Y,
     X2_sum = function() private$d,
     XtY = function() {
-      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$.Y[private$Y_non_missing[,r],r]))
+      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X_for_Y_missing[private$Y_non_missing[,r],,r], private$.Y[private$Y_non_missing[,r],r]))
       else crossprod(private$.X, private$.Y)
     },
-    XtX = function() crossprod(private$.X, private$.X),
+    XtX = function() {
+      if(private$.Y_has_missing){
+        sapply(1:private$R, function(r) crossprod(private$.X_for_Y_missing[private$Y_non_missing[,r],,r]), simplify = "array")
+      }else{
+        crossprod(private$.X)
+      }
+    },
     XtR = function() {
-      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X[private$Y_non_missing[,r],], private$residual[private$Y_non_missing[,r],r]))
+      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$.X_for_Y_missing[private$Y_non_missing[,r],,r], private$residual[private$Y_non_missing[,r],r]))
       else crossprod(private$.X, private$residual)
     },
     n_sample = function() private$N,
@@ -71,6 +91,7 @@ DenseData <- R6Class("DenseData",
   ),
   private = list(
     .X = NULL,
+    .X_for_Y_missing = NULL,
     .Y = NULL,
     d = NULL,
     N = NULL,
@@ -87,27 +108,43 @@ DenseData <- R6Class("DenseData",
       # https://www.r-bloggers.com/a-faster-scale-function/
       # The only change from that code is its treatment of columns with 0 variance.
       # This "safe" version scales those columns by 1 instead of 0.
-      private$cm = colMeans(private$.X, na.rm = TRUE)
+      if(center){
+        # center X
+        private$cm = colMeans(private$.X, na.rm=T)
+        # center Y
+        if (private$R == 1) private$Y_mean = mean(private$.Y, na.rm = TRUE)
+        else private$Y_mean = colMeans(private$.Y, na.rm = TRUE)
+        private$.Y = t(t(private$.Y) - private$Y_mean)
+      }else{
+        private$cm = rep(0, length = private$J)
+      }
+      # scale X
+      private$csd = rep(1, length = private$J)
       if (scale) {
         private$csd = colSds(private$.X, center = private$cm)
         private$csd[private$csd==0] = 1
-      } else {
-        # just divide by 1 if not
-        private$csd = rep(1, length = private$J)
-      }
-      if (!center) {
-        # just subtract 0
-        private$cm = rep(0, length = private$J)
-      } else {
-        if (private$R == 1) private$Y_mean = mean(private$.Y, na.rm = TRUE)
-        else private$Y_mean = colMeans(private$.Y, na.rm = TRUE)
-        private$.Y = private$.Y - private$Y_mean
       }
       private$.X = t( (t(private$.X) - private$cm) / private$csd )
       # For non-missing Y, d is a J vector
-      # For missing Y, d is a J by R matrix
-      if (!private$.Y_has_missing) private$d = colSums(private$.X ^ 2)
-      else private$d = sapply(1:private$R, function(r) colSums(private$.X[private$Y_non_missing[,r],]^2))
+      private$d = colSums(private$.X ^ 2)
+      
+      if(private$.Y_has_missing){
+        if(center){
+          private$cm = colMeans(private$.X_for_Y_missing, na.rm=T) # J by R
+        }else{
+          private$cm = matrix(0, private$J, private$R) # J by R
+        }
+        private$csd = matrix(1, private$J, private$R)
+        for(r in 1:private$R){
+          if (scale) {
+            private$csd[,r] = colSds(private$.X_for_Y_missing[,,r], center = private$cm[,r], na.rm = TRUE)
+            private$csd[private$csd[,r]==0, r] = 1
+          }
+          private$.X_for_Y_missing[,,r] = t( (t(private$.X_for_Y_missing[,,r]) - private$cm[,r]) / private$csd[,r] )
+        }
+        # For missing Y, d is a J by R matrix
+        private$d = sapply(1:private$R, function(r) colSums(private$.X_for_Y_missing[,,r]^2, na.rm = T))
+      }
     }
   )
 )
