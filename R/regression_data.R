@@ -4,7 +4,7 @@
 #' @keywords internal
 DenseData <- R6Class("DenseData",
   public = list(
-    initialize = function(X,Y,center=TRUE,scale=TRUE,missing_code=NULL) {
+    initialize = function(X,Y,center=TRUE,scale=TRUE,missing_code=NA) {
       if (any(dim(X) == 0)) stop('X input dimension is invalid.')
       private$.X = X
       if (is.null(dim(Y))) private$.Y = matrix(Y,length(Y),1)
@@ -12,11 +12,12 @@ DenseData <- R6Class("DenseData",
       private$R = ncol(private$.Y)
       private$N = nrow(private$.Y)
       private$J = ncol(X)
-      if (is.null(missing_code)) Y_missing = is.na(Y)
+      if (is.na(missing_code) || is.null(missing_code)) Y_missing = is.na(Y)
       else Y_missing = (Y == missing_code)
       private$Y_non_missing = !Y_missing
       private$.Y_has_missing = any(Y_missing)
-      if (!is.null(missing_code) && missing_code=='test') private$.Y_has_missing = TRUE
+      # a backdoor to set Y missing status always to true, to compare computational routines
+      if (is.null(missing_code)) private$.Y_has_missing = TRUE
       if(private$.Y_has_missing){
         private$X_for_Y_missing = array(X, dim = c(private$N, private$J, private$R))
         for(r in 1:private$R){

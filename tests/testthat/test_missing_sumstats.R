@@ -6,9 +6,9 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     # V = diag(ncol(y))
     # mix-up X and don't scale it such that sbhat will be different
     X = matrix(runif(ncol(X) * nrow(X)), nrow(X), ncol(X))
-    # set one y to be zero and missing code to zero to trick data object into thinking and using
     # missing value computations, for a test.
-    d1 = DenseData$new(X,y,scale=F,missing_code='test')
+    # set `missing_code` to NULL to force using missing data computation routines
+    d1 = DenseData$new(X,y,scale=F,missing_code=NULL)
     d2 = DenseData$new(X,y,scale=F)
     # use alpha = 0
     a = 0
