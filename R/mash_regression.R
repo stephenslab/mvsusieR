@@ -223,21 +223,8 @@ MashInitializer <- R6Class("MashInitializer",
       # d[j,] can be different for different conditions due to missing Y data
       # FIXME: did not use alpha information
       V = cov2cor(residual_covariance)
-      sigma2 = diag(residual_covariance)
-      if (d$Y_has_missing) {
-        res = get_sumstats_missing_data(d$X, d$Y, sigma2, V, private$a)
-        svs = res$svs
-        sbhat0 = res$sbhat0
-        sbhat = sbhat0 ^ (1 - private$a)
-        common_sbhat = is_mat_common(sbhat)
-      } else {
-        sbhat0 = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
-        sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
-        sbhat = sbhat0 ^ (1 - private$a)
-        common_sbhat = is_mat_common(sbhat)
-        if (common_sbhat) svs = sbhat[1,] * t(V * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
-        else svs = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(V * sbhat[j,]))
-      }
+      res = d$get_sumstats(diag(residual_covariance), V, private$a)
+      svs = res$svs
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
       # FIXME: compute this in parallel in the future
       algorithm = match.arg(algorithm)
@@ -282,7 +269,9 @@ MashInitializer <- R6Class("MashInitializer",
           }
       }
       private$inv_mats = list(Vinv = simplify2array(Vinv), U0 = simplify2array(U0),
-                              sigma_rooti = simplify2array(sigma_rooti), sbhat = sbhat0, common_sbhat = common_sbhat)
+                              sigma_rooti = simplify2array(sigma_rooti),
+                              sbhat = res$sbhat0,
+                              common_sbhat = res$is_common_sbhat)
     }
   ),
   active = list(

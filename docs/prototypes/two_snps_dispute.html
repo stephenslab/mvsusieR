@@ -237,7 +237,8 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Proof-of-concept:-the-Two-SNP-example">Proof of concept: the Two-SNP example<a class="anchor-link" href="#Proof-of-concept:-the-Two-SNP-example">&#182;</a></h1>
+<h1 id="Linkage-vs-pleiotropy:-the-Two-SNP-example">Linkage vs pleiotropy: the Two-SNP example<a class="anchor-link" href="#Linkage-vs-pleiotropy:-the-Two-SNP-example">&#182;</a></h1><p>Here I pick up a particular data-set and make a specific simulation case of linkage vs pleiotropy.</p>
+
 </div>
 </div>
 </div>
@@ -245,9 +246,8 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Here I pick up a particular data-set and make a very specific simulation case:</p>
 <ol>
-<li>In data I find SNPs with -0.8 correlations</li>
+<li>In a data-set I identify SNPs with -0.8 correlations</li>
 <li>I then simulate for one SNP to be associated with 3 phenotypes, and the other to be associated with the rest, both with fixed positive effect size</li>
 </ol>
 <p><a href="https://github.com/stephenslab/gtexresults/blob/master/workflows/2SNP.ipynb">See here</a> for motivation of the analysis.</p>
@@ -654,8 +654,8 @@ chr16:4544669-4544670</code></pre>
 <div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-sos"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">susie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span>
-                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">V</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
+<div class=" highlight hl-sos"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">msusie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span>
+                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
                   <span class="n">compute_objective</span><span class="o">=</span><span class="n">FALSE</span><span class="p">)</span>
 </pre></div>
 

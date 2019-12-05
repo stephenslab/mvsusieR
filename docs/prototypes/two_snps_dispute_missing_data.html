@@ -237,7 +237,8 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Proof-of-concept:-the-Two-SNP-example-with-missing-data">Proof of concept: the Two-SNP example with missing data<a class="anchor-link" href="#Proof-of-concept:-the-Two-SNP-example-with-missing-data">&#182;</a></h1>
+<h1 id="Linkage-vs-pleiotropy:-the-Two-SNP-example-with-missing-data">Linkage vs pleiotropy: the Two-SNP example with missing data<a class="anchor-link" href="#Linkage-vs-pleiotropy:-the-Two-SNP-example-with-missing-data">&#182;</a></h1><p>This is continuation of notebook <code>two_snps_dispute.ipynb</code>.</p>
+
 </div>
 </div>
 </div>
@@ -245,7 +246,7 @@ body {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>This is the same notebook as the <code>two_snps_dispute.ipynb</code> but here I:</p>
+<p>Here I:</p>
 <ol>
 <li>Add in a couple of missing values in <code>Y</code></li>
 <li>Use precomputed inverse matrices</li>
@@ -687,8 +688,8 @@ body {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-sos"><pre><span></span><span class="n">start_time</span> <span class="o">&lt;-</span> <span class="n">Sys</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">susie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span>
-                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">V</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">msusie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span>
+                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
                   <span class="n">precompute_covariances</span><span class="o">=</span><span class="n">FALSE</span><span class="p">,</span>
                   <span class="n">compute_objective</span><span class="o">=</span><span class="n">FALSE</span><span class="p">)</span>
 <span class="n">end_time</span> <span class="o">&lt;-</span> <span class="n">Sys</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -734,8 +735,8 @@ body {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-sos"><pre><span></span><span class="n">start_time</span> <span class="o">&lt;-</span> <span class="n">Sys</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">susie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span>
-                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">V</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">msusie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span>
+                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
                   <span class="n">precompute_covariances</span><span class="o">=</span><span class="n">TRUE</span><span class="p">,</span>
                   <span class="n">compute_objective</span><span class="o">=</span><span class="n">FALSE</span><span class="p">)</span>
 <span class="n">end_time</span> <span class="o">&lt;-</span> <span class="n">Sys</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -1048,9 +1049,8 @@ body {
 <div class="prompt input_prompt">In&nbsp;[27]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-sos"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">susie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y2</span><span class="p">,</span>
-                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">V</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
-                  <span class="n">precompute_covariances</span><span class="o">=</span><span class="n">TRUE</span><span class="p">,</span>
+<div class=" highlight hl-sos"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">::</span><span class="n">msusie</span><span class="p">(</span><span class="n">genotype</span><span class="p">,</span><span class="n">Y2</span><span class="p">,</span>
+                  <span class="n">L</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">mash_init</span><span class="p">,</span>
                   <span class="n">compute_objective</span><span class="o">=</span><span class="n">FALSE</span><span class="p">)</span>
 </pre></div>
 
