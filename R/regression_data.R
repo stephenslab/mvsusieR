@@ -57,7 +57,7 @@ DenseData <- R6Class("DenseData",
         c(intercept, coefs)
       } else {
         if (!is.null(private$Y_mean)) intercept = private$Y_mean - colSums(private$cm * coefs)
-        else intercept = c(0,0)
+        else intercept = 0
         mat = as.matrix(rbind(intercept, coefs))
         rownames(mat) = NULL
         return(mat)
@@ -228,7 +228,7 @@ get_sumstats_missing_data = function(X, Y, residual_variances, residual_correlat
   # this is same as DenseData$new()$Xty
   # recomputed here for clarity
   Xty = sapply(1:R, function(r) crossprod(X[M[,r],], Y[M[,r],r]) ) # J by R
-  # this is same as DenseData$new()$d
+  # this is same as DenseData$new()$X2_sum
   # recomputed here for clarity
   X2 = sapply(1:R, function(r) colSums(X[M[,r],]^2 )) # J by R
   bhat = Xty/X2
