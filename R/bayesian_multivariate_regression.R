@@ -1,6 +1,5 @@
 #' @title Multiviate regression object
 #' @importFrom R6 R6Class
-#' @importFrom mvtnorm dmvnorm
 #' @keywords internal
 BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
@@ -60,8 +59,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     prior_variance_scale = NULL,
     loglik = function(bhat,S,scalar,prior_weights) {
       U = private$.prior_variance * scalar
-      lbf = sapply(1:length(S), function(j) dmvnorm(x = bhat[j,],sigma = S[[j]] + U,log = T) - dmvnorm(x = bhat[j,],sigma = S[[j]],log = T))
-      lbf[which(is.nan(lbf))] = 0
+      lbf = multivariate_lbf(bhat, S, U)
       maxlbf = max(lbf)
       w = exp(lbf-maxlbf)
       w_weighted = w * prior_weights
@@ -87,10 +85,19 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
 multivariate_regression = function(bhat, S, U) {
   S_inv = lapply(1:length(S), function(j) solve(S[[j]]))
   post_cov = lapply(1:length(S), function(j) U %*% solve(diag(nrow(U)) + S_inv[[j]] %*% U))
-  post_b1 = do.call(cbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
-  #lbf = sapply(1:length(S), function(j) dmvnorm(x = bhat[j,],sigma = S[[j]] + U,log = T) - dmvnorm(x = bhat[j,],sigma = S[[j]],log = T))
   lbf = log(sapply(1:length(S), function(j) sqrt(det(S[[j]])/det(S[[j]]+U))*exp(0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])))
-  lbf[which(is.nan(lbf))] = 0
+  lbf[which(is.infinite(lbf))] = 0
+  # lbf = multivariate_lbf(bhat, S, U)
+  post_b1 = do.call(cbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
   post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[,j]) + post_cov[[j]])
   return(list(b1 = t(post_b1), b2 = aperm(abind(post_b2, along = 3), c(2,1,3)), lbf = lbf))
+}
+
+#' @title Multiviate logBF
+#' @importFrom mvtnorm dmvnorm
+#' @keywords internal
+multivariate_lbf = function(bhat, S, U) {
+  lbf = sapply(1:length(S), function(j) dmvnorm(x = bhat[j,],sigma = S[[j]] + U,log = T) - dmvnorm(x = bhat[j,],sigma = S[[j]],log = T))
+  lbf[which(is.nan(lbf))] = 0
+  return(lbf)
 }
