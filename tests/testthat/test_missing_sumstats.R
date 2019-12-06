@@ -12,10 +12,10 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     d2 = DenseData$new(X,y,scale=F)
     # use alpha = 0
     a = 0
-    # code for missing data
+    # for missing data
     expect_equal(d1$Y_has_missing, TRUE)
     res1 = d1$get_sumstats(diag(residual_variance), V, a)
-    # code for complete data regular computation
+    # for complete data regular computation
     expect_equal(d2$Y_has_missing, FALSE)
     res2 = d2$get_sumstats(diag(residual_variance), V, a)
     expect_equal(res1$sbhat0, res2$sbhat0)
@@ -24,10 +24,10 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     expect_equal(res2$is_common_sbhat, ifelse(a, T, F))
     # use alpha = 1
     a = 1
-    # code for missing data
+    # for missing data
     expect_equal(d1$Y_has_missing, TRUE)
     res1 = d1$get_sumstats(diag(residual_variance), V, a)
-    # code for complete data regular computation
+    # for complete data regular computation
     expect_equal(d2$Y_has_missing, FALSE)
     res2 = d2$get_sumstats(diag(residual_variance), V, a)
     expect_equal(res1$sbhat0, res2$sbhat0)

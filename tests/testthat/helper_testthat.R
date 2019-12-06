@@ -39,11 +39,16 @@ simulate_univariate = function(n=100, p=200, sparse=F) {
   return(list(X=X, X.sparse=X.sparse, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
 }
 
-simulate_multivariate = function(n=100,p=100,r=2) {
+simulate_multivariate = function(n=100,p=100,r=2,center_scale=TRUE,y_missing=0) {
   set.seed(1)
-  res = mmbr_sim1(n,p,r,4,center_scale=TRUE)
+  res = mmbr_sim1(n,p,r,4,center_scale=center_scale,y_missing=y_missing)
   res$L = 10
   return(res)
+}
+
+compute_cov_diag <- function(Y){
+  covar <- diag(apply(Y, 2, var, na.rm=T))
+  return(covar)
 }
 
 expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-8) {

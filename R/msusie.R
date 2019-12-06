@@ -140,7 +140,7 @@ msusie = function(X,Y,L=10,
     if (!is.null(null_weight) && null_weight != 0) {
       X = X[,1:(ncol(X)-1)]
     }
-    s$z = calc_z(X,Y,centered=intercept)
+    s$z = susieR:::calc_z(X,Y,center=intercept,scale=standardize)
   }
   return(s)
 }

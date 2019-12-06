@@ -52,7 +52,7 @@ test_that("Single component mash regression is identical to multivariate BR", wi
     expect_equal(A$bhat, B$bhat)
     expect_equal(A$sbhat, B$sbhat)
     expect_equal(A$posterior_b1, B$posterior_b1)
-    # expect_equal cannot propoerly compare posterior_b2 a 3D array
+    # expect_equal cannot properly compare posterior_b2 a 3D array
     expect_equal(as.vector(A$posterior_b2), as.vector(B$posterior_b2))
     expect_equal(A$lbf, B$lbf)
 }))

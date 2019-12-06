@@ -4,7 +4,8 @@
 \alias{mmbr_sim1}
 \title{A simple simulation function to simulate some test data}
 \usage{
-mmbr_sim1(n = 200, p = 500, r = 2, s = 4, center_scale = FALSE)
+mmbr_sim1(n = 200, p = 500, r = 2, s = 4, center_scale = FALSE,
+  y_missing = NULL)
 }
 \arguments{
 \item{n}{number of samples}
