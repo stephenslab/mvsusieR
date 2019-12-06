@@ -35,3 +35,7 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     expect_equal(res1$is_common_sbhat, ifelse(a, T, F))
     expect_equal(res2$is_common_sbhat, ifelse(a, T, F))
 }))
+
+test_that("marginal statistics agree between mmbr and R's `.lm.fit` when there is missing data", with(simulate_multivariate(r=3), {
+    
+}))
