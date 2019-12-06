@@ -125,7 +125,9 @@ MashRegression <- R6Class("MashRegression",
       }
       # 7. Bayes factor
       private$.lbf = loglik_alt - private$.loglik_null
-      # FIXME: NA situation
+      if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
+        private$.lbf = as.vector(private$.lbf)
+      # Inf - Inf above can cause NaN
       private$.lbf[which(is.na(private$.lbf))] = 0
     },
     compute_loglik_null = function(d) {}

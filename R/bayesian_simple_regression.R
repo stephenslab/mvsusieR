@@ -36,7 +36,9 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       private$.posterior_b2 = post_var + private$.posterior_b1^2 # second moment
       # Bayes factor
       private$.lbf = dnorm(bhat,0,sqrt(private$.prior_variance+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
-      private$.lbf[sbhat2==Inf] == 0
+      if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
+        private$.lbf = as.vector(private$.lbf)
+      private$.lbf[sbhat2==Inf] = 0
     },
     compute_loglik_null = function(d) {
       if (inherits(d, "DenseData")) {
