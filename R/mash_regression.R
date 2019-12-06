@@ -34,6 +34,7 @@ MashRegression <- R6Class("MashRegression",
       # OLS estimates
       # bhat is J by R
       bhat = XtY / d$X2_sum
+      bhat[which(is.nan(bhat))] = 0
       if (!is.null(private$precomputed_cov_matrices)) {
         sbhat = private$precomputed_cov_matrices$sbhat
       } else {
@@ -56,7 +57,6 @@ MashRegression <- R6Class("MashRegression",
       } else {
         s_alpha = matrix(0,0,0)
       }
-      bhat[which(is.nan(bhat))] = 0
       # Fit MASH model
       if (!is.null(private$precomputed_cov_matrices)) is_common_cov = private$precomputed_cov_matrices$common_sbhat
       else is_common_cov = is_mat_common(sbhat)

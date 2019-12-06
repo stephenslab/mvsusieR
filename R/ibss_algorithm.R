@@ -125,6 +125,10 @@ SuSiE <- R6Class("SuSiE",
         }
     },
     compute_objective = function(d) {
+        if (d$Y_has_missing && private$to_compute_objective) {
+            warning("ELBO calculation with missing data in Y has not been implemented.")
+            private$to_compute_objective = FALSE
+        }
         if (private$to_compute_objective) {
             v_inv = private$SER[[1]]$residual_variance_inv
             # FIXME: should improve the way to identify univariate vs multivariate

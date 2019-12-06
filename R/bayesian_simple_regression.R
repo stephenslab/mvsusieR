@@ -17,11 +17,13 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
-      bhat = 1/d$X2_sum * XtY
+      bhat = XtY / d$X2_sum
+      bhat[which(is.nan(bhat))] = 0
       sbhat2 = private$.residual_variance / d$X2_sum
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(sbhat2)
+        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E6
       }
       # deal with prior variance: can be "estimated" across effects
       if(private$to_estimate_prior_variance) {

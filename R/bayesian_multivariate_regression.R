@@ -27,10 +27,12 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # OLS estimates
       # bhat is J by R
       bhat = XtY / d$X2_sum
+      bhat[which(is.nan(bhat))] = 0
       sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(do.call(cbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
+        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E6
       }
       # deal with prior variance: can be "estimated" across effects
       if(private$to_estimate_prior_variance) {
