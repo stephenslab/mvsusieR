@@ -85,8 +85,8 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
 multivariate_regression = function(bhat, S, U) {
   S_inv = lapply(1:length(S), function(j) solve(S[[j]]))
   post_cov = lapply(1:length(S), function(j) U %*% solve(diag(nrow(U)) + S_inv[[j]] %*% U))
-  lbf = log(sapply(1:length(S), function(j) sqrt(det(S[[j]])/det(S[[j]]+U))*exp(0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])))
-  lbf[which(is.infinite(lbf))] = 0
+  lbf = sapply(1:length(S), function(j) 0.5 * (log(det(S[[j]])) - log(det(S[[j]]+U))) + 0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])
+  lbf[which(is.nan(lbf))] = 0
   # lbf = multivariate_lbf(bhat, S, U)
   post_b1 = do.call(cbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
   post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[,j]) + post_cov[[j]])
