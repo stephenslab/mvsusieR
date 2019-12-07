@@ -74,8 +74,10 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         coef = d$rescale_coef(b),
         null_index = -9,
         mixture_weights = mixture_weights,
-        lfsr = lfsr 
+        lfsr = lfsr
         )
+    if (!is.null(m$pip_history)) s$alpha_history = m$pip_history
+    if (!is.null(m$lbf_history)) s$lbf_history = m$lbf_history
     # FIXME: need to check scaling issue for the fitted
     s$fitted = d$compute_Xb(b)
     if (is.null(dim(s$coef))) s$intercept = s$coef[1]
