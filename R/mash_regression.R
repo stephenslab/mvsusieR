@@ -62,31 +62,30 @@ MashRegression <- R6Class("MashRegression",
       else is_common_cov = is_mat_common(sbhat)
       # 1.1 compute log-likelihood matrix given current estimates
       if (is.null(private$precomputed_cov_matrices) || ncol(bhat) == 1) {
-        llik_mat = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation, 
+        llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation,
                                          matrix(0,0,0),
                                          private$.prior_variance$xUlist,
                                          TRUE,
                                          is_common_cov)$data
       } else {
-        llik_mat = mashr:::calc_lik_rooti_rcpp(t(bhat), 
+        llik = mashr:::calc_lik_rooti_rcpp(t(bhat),
                                          private$precomputed_cov_matrices$sigma_rooti,
                                          TRUE,
                                          is_common_cov)$data
       }
 
       # 1.2 give a warning if any columns have -Inf likelihoods.
-      rows <- which(apply(llik_mat,2,function (x) any(is.infinite(x))))
+      rows <- which(apply(llik,2,function (x) any(is.infinite(x))))
       if (length(rows) > 0)
         warning(paste("Some mixture components result in non-finite likelihoods,",
                           "either\n","due to numerical underflow/overflow,",
                           "or due to invalid covariance matrices",
                           paste(rows,collapse=", "), "\n"))
-      private$.loglik_null = llik_mat[,1]
       # 1.3 get relative loglik
-      lfactors = apply(llik_mat,1,max)
-      llik_mat = llik_mat - lfactors
+      lfactors = apply(llik,1,max)
+      llik = list(loglik_matrix=llik-lfactors, lfactors=lfactors)
       # 2. compute posterior weights
-      private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik_mat))
+      private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik$loglik_matrix))
       # 3. posterior
       ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
       ## we can get away with checking for convergence by PIP not by ELBO
@@ -116,21 +115,17 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
       # 4. lfsr
       private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
-      # 5. loglik under the alternative
-      loglik_alt = log(exp(llik_mat[,-1,drop=FALSE]) %*% (private$.prior_variance$pi[-1]/(1-private$.prior_variance$pi[1]))) + lfactors
-      # 6. adjust with alpha the EE vs EZ model
-      if (nrow(s_alpha) > 0) {
-        private$.loglik_null = private$.loglik_null - rowSums(log(s_alpha))
-        loglik_alt = loglik_alt - rowSums(log(s_alpha))
-      }
-      # 7. Bayes factor
+      # 5. lbf
+      # using mashr functions have to ensure s_alpha has valid log and rowSums
+      if (nrow(s_alpha) == 0) s_alpha = matrix(1,1,1)
+      private$.loglik_null = mashr:::compute_null_loglik_from_matrix(llik, s_alpha)
+      loglik_alt = mashr:::compute_alt_loglik_from_matrix_and_pi(private$.prior_variance$pi, llik, s_alpha)
       private$.lbf = loglik_alt - private$.loglik_null
       if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
         private$.lbf = as.vector(private$.lbf)
       # Inf - Inf above can cause NaN
       private$.lbf[which(is.na(private$.lbf))] = 0
-    },
-    compute_loglik_null = function(d) {}
+    }
   ),
   active = list(
     mixture_posterior_weights = function() private$.mixture_posterior_weights,
