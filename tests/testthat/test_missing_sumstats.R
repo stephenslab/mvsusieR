@@ -36,6 +36,37 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     expect_equal(res2$is_common_sbhat, ifelse(a, T, F))
 }))
 
-test_that("marginal statistics agree between mmbr and R's `.lm.fit` when there is missing data", with(simulate_multivariate(r=3), {
-    
+test_that("marginal statistics agree between mmbr and R's `.lm.fit` when there is missing data", with(simulate_multivariate(r=3,center_scale=F,y_missing=0.5), {
+   resid_Y <- compute_cov_diag(y)
+   resid_Y_miss <- compute_cov_diag(y_missing)
+   alpha = 0
+   # can only compare bhat not sbhat
+   # full data, center and scale
+   d = DenseData$new(X, y,scale=T)
+   res = d$get_sumstats(diag(resid_Y), cov2cor(resid_Y), alpha)
+   b = res$bhat
+   for (i in 1:ncol(b)) {
+       expect_equal(b[,i], susieR:::univariate_regression(X, y[,i], scale=T)$betahat)
+   }
+   # missing data center and scale
+   d = DenseData$new(X, y_missing, scale=T)
+   res = d$get_sumstats(diag(resid_Y_miss), cov2cor(resid_Y_miss), alpha)
+   b = res$bhat
+   for (i in 1:ncol(b)) {
+       expect_equal(b[,i], susieR:::univariate_regression(X, y_missing[,i], scale=T)$betahat)
+   }
+   # full data not scale
+   d = DenseData$new(X, y, scale=F)
+   res = d$get_sumstats(diag(resid_Y), cov2cor(resid_Y), alpha)
+   b = res$bhat
+   for (i in 1:ncol(b)) {
+       expect_equal(b[,i], susieR:::univariate_regression(X, y[,i], scale=F)$betahat)
+   } 
+   # missing data not scale
+   d = DenseData$new(X, y_missing, scale=F)
+   res = d$get_sumstats(diag(resid_Y_miss), cov2cor(resid_Y_miss), alpha)
+   b = res$bhat
+   for (i in 1:ncol(b)) {
+       expect_equal(b[,i], susieR:::univariate_regression(X, y_missing[,i], scale=F)$betahat)
+   }
 }))

@@ -239,6 +239,16 @@ $(document).ready(function () {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="prototypes/marginal_stats_compare.html"><strong>Comparing marginal statistics with Linear regression</strong></a><br>
+&nbsp; &nbsp;For prototyping <code>get_sumstats()</code> function in data object.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/mash_compare_simple_multivariate.html"><strong>Comparing MASH analysis with simple multivariate analysis</strong></a><br>
 &nbsp; &nbsp;Previously we showed that even though univariate analysis with degenerated MASH model gives identical results to SuSiE as expected (with non-decreasing ELBO), in multivariate calculations the ELBO is not always non-decreasing. To investigate the issue we will 1) further simplify the problem and 2) isolate the problem to posterior calculation versus ELBO calculations and check which part is problematic. The best way to achieve both is to implement a simple Bayesian multivariate regression model with prior $b \sim MVN(0, U)$ where $U$ is known, instead of using MASH prior for $b$.</p>
 
