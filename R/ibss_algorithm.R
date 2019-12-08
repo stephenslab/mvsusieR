@@ -196,7 +196,7 @@ SuSiE <- R6Class("SuSiE",
             private$.pip_history[[length(private$.pip_history) + 1]] = self$pip
         }
         if (!is.null(private$.lbf_history)) {
-            private$.lbf_history[[length(private$.lbf_history) + 1]] = self$pip
+            private$.lbf_history[[length(private$.lbf_history) + 1]] = self$lbf
         }
     }
   )
