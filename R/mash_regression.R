@@ -173,28 +173,27 @@ MashInitializer <- R6Class("MashInitializer",
         if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
         if (length(prior_weights) != plen)
           stop(paste("Invalid prior_weights setting: expect length", plen, "but input is of length", length(prior_weights)))
-        weights = c(null_weight, prior_weights)
-        weights = weights / sum(weights)
         # Filter by weights lower bound
         # Have to keep the first null component
-        which.comp = which(weights[-1] > weights_tol)
-        which.comp = c(1, which.comp + 1)
-        filtered_weights = weights[which.comp]
-        xUlist = xUlist[which.comp]
+        if (weights_tol > 0) {
+          which.comp = which(prior_weights > weights_tol)
+          prior_weights = prior_weights[which.comp]
+          xUlist = xUlist[c(1, which.comp + 1)]
+        }
         # There are all zero priors, after some conditions are removed
         # we will have to adjust the prior weights based on it
         # This is a not very efficient yet safe and clear way to do it
         if (length(which(all_zeros))>0) {
-          non_zeros = which(sapply(1:length(xUlist), function(l) !all(xUlist[[l]] == 0)))
-          xUlist = xUlist[c(1, non_zeros[-1])]
-          filtered_weights = filtered_weights[c(1, non_zeros[-1])]
+          # must exclude first xUlist which is always null here
+          which.comp = which(sapply(2:length(xUlist), function(l) !all(xUlist[[l]] == 0)))
+          prior_weights = prior_weights[which.comp]
+          xUlist = xUlist[c(1, which.comp + 1)]
         }
         # Filter for top weights: we only keep top weights
-        if (top_mixtures > 0 && top_mixtures < length(filtered_weights)) {
-          which.comp = head(sort(filtered_weights[-1], index.return=T, decreasing=T)$ix, top_mixtures)
-          which.comp = c(1, which.comp + 1)
-          filtered_weights = weights[which.comp]
-          xUlist = xUlist[which.comp]
+        if (top_mixtures > 0 && top_mixtures < length(prior_weights)) {
+          which.comp = head(sort(prior_weights, index.return=T, decreasing=T)$ix, top_mixtures)
+          prior_weights = prior_weights[which.comp]
+          xUlist = xUlist[c(1, which.comp + 1)]
         }
         # Check on xUlist
         u_rows = vector()
@@ -203,7 +202,8 @@ MashInitializer <- R6Class("MashInitializer",
           u_rows[i] = nrow(xUlist[[i]])
         }
         if (length(unique(u_rows)) > 1) stop("Ulist contains matrices of different dimensions.")
-        private$xU = list(pi = filtered_weights / sum(filtered_weights), xUlist = xUlist)
+        prior_weights = prior_weights / sum(prior_weights)
+        private$xU = list(pi = c(null_weight, prior_weights * (1 - null_weight)), xUlist = xUlist)
         private$a = alpha
       },
     precompute_cov_matrices = function(d, residual_covariance, algorithm = c('R', 'cpp')) {

@@ -344,6 +344,68 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
     return(mats)
 }
 
+#' @title Create mash prior object
+#' @param fitted_g from mashr::mash
+#' @param mixture_prior a list of (weights = vector(), matrices = list()) where  matrices is a list of prior matrices and have same length as weights.
+#' @param sample_data a list of (X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to allow for automatically determine canonical priors with equal weights 
+#' @param null_weight whether or not to add a weight for null in single effect models. By default it takes the null weight from fitted_g
+#' if available. Use `null_weight = 0` to override the behavior. 
+#' @param alpha 0 for EE, 1 for EZ model. See mashr::mash() for details.
+#' @param weights_tol filter out priors with weights smaller than weights_tol
+#' @param mixture_length only keep the top priors by weight so that the list of mixture prior is of mixture_length.
+#' Use `mixture_length=-1` to include all input weights after weights_tol filtering. Default is set to length 40.
+#' @param include_indices postprocess input prior to only include conditions from this indices
+#' @return mash prior object for use with msusie() function
+#' @details ...
+#' @examples
+#' @export
+create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL, 
+                             null_weight = NULL, alpha = 0, 
+                             weights_tol = 1E-10, mixture_length = 40, include_indices = NULL) {
+  if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 1)
+    stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
+  if (!is.null(fitted_g)) {
+    # fitted_g: list(pi=pi_s, Ulist=Ulist, grid=grid, usepointmass=usepointmass)
+    for (item in c('pi', 'Ulist', 'grid', 'usepointmass')) {
+      if (!(item %in% names(fitted_g))) stop(paste("Cannot find", item, "in fitted_g input"))
+    }
+    if (fitted_g$usepointmass) {
+      prior_weights = fitted_g$pi[-1]
+      if (is.null(null_weight)) null_weight = fitted_g$pi[1]
+    } else {
+      prior_weights = mash$fitted_g$pi
+    }
+    return(MashInitializer$new(fitted_g$Ulist, fitted_g$grid, 
+                               prior_weights=prior_weights, null_weight=null_weight, 
+                               alpha=alpha, weights_tol=weights_tol, top_mixtures=mixture_length, 
+                               include_conditions=include_indices))
+  }
+  if (!is.null(mixture_prior)) {
+    for (item in c('weights', 'matrices')) {
+      if (!(item %in% names(mixture_prior))) stop(paste("Cannot find", item, "in mixture_prior input"))
+    }
+    return(MashInitializer$new(NULL, NULL, xUlist=mixture_prior$matrices, prior_weights=mixture_prior$weights,
+                               null_weight=null_weight, 
+                               alpha=alpha, weights_tol=weights_tol, top_mixtures=mixture_length, 
+                               include_conditions=include_indices))
+  }
+  if (!is.null(sample_data)) {
+    for (item in c('X', 'Y', 'center', 'scale', 'residual_variance')) {
+      if (!(item %in% names(sample_data))) stop(paste("Cannot find", item, "in sample_data input"))
+    }
+    # compute grid
+    d = DenseData$new(sample_data$X, sample_data$Y, sample_data$center, sample_data$scale)
+    res = d$get_sumstats(diag(sample_data$residual_variance), cov2cor(sample_data$residual_variance), alpha)
+    grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(2))
+    # compute canonical covariances
+    Ulist = create_cov_canonical(ncol(sample_data$Y))
+    return(MashInitializer$new(Ulist, grid,
+                               prior_weights=prior_weights, null_weight=null_weight, 
+                               alpha=alpha, weights_tol=weights_tol, top_mixtures=mixture_length, 
+                               include_conditions=include_indices))
+  }
+}
+
 #' @title Check if matrix is diag
 #' @keywords internal
 is_diag_mat = function(x, tol=1E-10) {
