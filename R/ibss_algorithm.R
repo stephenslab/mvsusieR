@@ -38,7 +38,7 @@ SuSiE <- R6Class("SuSiE",
             private$SER[[i]]$mu = mu
         }
     },
-    fit = function(d, prior_weights=NULL, verbose=TRUE) {
+    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, verbose=TRUE) {
         if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
                                     clear = TRUE, total = private$.niter, show_after = .5)
         else pb = null_progress_bar$new()
@@ -49,7 +49,7 @@ SuSiE <- R6Class("SuSiE",
             for (l in 1:private$L) {
                 d$add_to_residual(private$SER[[l]]$predict(d))
                 if (private$to_estimate_residual_variance) private$SER[[l]]$residual_variance = private$sigma2
-                private$SER[[l]]$fit(d, prior_weights=prior_weights)
+                private$SER[[l]]$fit(d, prior_weights=prior_weights, estimate_prior_variance_method=estimate_prior_variance_method)
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
                 d$remove_from_residual(private$SER[[l]]$predict(d))
             }

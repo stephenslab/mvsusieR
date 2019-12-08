@@ -5,7 +5,7 @@
 MashRegression <- R6Class("MashRegression",
   inherit = BayesianSimpleRegression,
   public = list(
-    initialize = function(J, residual_variance, mash_initializer, estimate_prior_variance = FALSE) {
+    initialize = function(J, residual_variance, mash_initializer) {
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
@@ -21,11 +21,8 @@ MashRegression <- R6Class("MashRegression",
       private$alpha = mash_initializer$alpha
       private$precomputed_cov_matrices = mash_initializer$precomputed
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
-      # Though possible to estimate from MASH model on given variables
-      # we insist that the information should be provided beforehand
-      private$to_estimate_prior_variance = FALSE
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, estimate_prior_variance_method = NULL) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm

@@ -7,10 +7,11 @@
 msusie(X, Y, L = 10, prior_variance = 0.2, residual_variance = NULL,
   prior_weights = NULL, null_weight = NULL, standardize = TRUE,
   intercept = TRUE, estimate_residual_variance = TRUE,
-  estimate_prior_variance = FALSE, compute_objective = FALSE,
-  s_init = NULL, coverage = 0.95, min_abs_corr = 0.5,
-  compute_univariate_zscore = FALSE, precompute_covariances = FALSE,
-  max_iter = 100, tol = 0.001, verbose = TRUE, track_fit = FALSE)
+  estimate_prior_variance = FALSE, estimate_prior_method = "optim",
+  compute_objective = FALSE, s_init = NULL, coverage = 0.95,
+  min_abs_corr = 0.5, compute_univariate_zscore = FALSE,
+  precompute_covariances = FALSE, max_iter = 100, tol = 0.001,
+  verbose = TRUE, track_fit = FALSE)
 }
 \arguments{
 \item{X}{an n by p matrix of covariates}
@@ -39,6 +40,8 @@ Any column of X that has zero variance is not standardized, but left as is.}
 \item{estimate_residual_variance}{indicates whether to estimate residual variance}
 
 \item{estimate_prior_variance}{indicates whether to estimate prior (currently not recommended as not fully tested and assessed)}
+
+\item{estimate_prior_method}{the method used for estimating prior variance.}
 
 \item{s_init}{a previous susie fit with which to initialize}
 

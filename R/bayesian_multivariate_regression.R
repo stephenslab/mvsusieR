@@ -4,11 +4,10 @@
 BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
   public = list(
-    initialize = function(J, residual_variance, prior_variance, estimate_prior_variance = FALSE) {
+    initialize = function(J, residual_variance, prior_variance) {
       private$.prior_variance = prior_variance
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
-      private$to_estimate_prior_variance = estimate_prior_variance
       private$prior_variance_scale = 1
       tryCatch({
         private$.residual_variance_inv = solve(residual_variance)
@@ -16,7 +15,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
       })
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, estimate_prior_variance_method = NULL) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -34,9 +33,9 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E6
       }
       # deal with prior variance: can be "estimated" across effects
-      if(private$to_estimate_prior_variance) {
+      if(!is.null(estimate_prior_variance_method)) {
           if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights)
+        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
       }
       # posterior
       post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scale)
@@ -69,10 +68,15 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     neg_loglik_logscale = function(lV, bhat, S, prior_weights) {
       return(-1 * private$loglik(bhat, S, exp(lV), prior_weights))
     },
-    estimate_prior_variance = function(bhat, sbhat2, prior_weights) {
-      # dont constrain on values of `lV` -- as a scalar it does not have to be between 0 and 1 (unlike the case with SuSiE)
-      lV = optim(par=log(1), fn=private$neg_loglik_logscale, bhat=bhat, S=sbhat2, prior_weights = prior_weights, method='BFGS')$par
-      V = exp(lV)
+    estimate_prior_variance = function(bhat, sbhat2, prior_weights, method=c('optim','simple')) {
+      if (method == 'optim') {
+        # dont constrain on values of `lV` -- as a scalar it does not have to be between 0 and 1 (unlike the case with SuSiE)
+        lV = optim(par=log(1), fn=private$neg_loglik_logscale, bhat=bhat, S=sbhat2, prior_weights = prior_weights, method='BFGS')$par
+        V = exp(lV)
+      } else {
+        # just use 1 the default, and to be compared with 0 below
+        V = 1
+      }
       if(private$loglik(bhat, sbhat2, 0, prior_weights) >= private$loglik(bhat, sbhat2, V, prior_weights)) V=0 # set V exactly 0 if that beats the numerical value
       return(V)
     }

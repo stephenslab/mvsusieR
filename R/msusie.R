@@ -21,6 +21,7 @@
 #' @param intercept Should intercept be fitted (default=TRUE) or set to zero (FALSE). The latter is generally not recommended.
 #' @param estimate_residual_variance indicates whether to estimate residual variance
 #' @param estimate_prior_variance indicates whether to estimate prior (currently not recommended as not fully tested and assessed)
+#' @param estimate_prior_method the method used for estimating prior variance.
 #' @param s_init a previous susie fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
@@ -63,6 +64,7 @@ msusie = function(X,Y,L=10,
                  standardize=TRUE,intercept=TRUE,
                  estimate_residual_variance=TRUE,
                  estimate_prior_variance=FALSE,
+                 estimate_prior_method='optim',
                  compute_objective=FALSE,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
@@ -121,11 +123,12 @@ msusie = function(X,Y,L=10,
     base = MashRegression
     if ((data$Y_has_missing && !is_diag_mat(residual_variance)) || precompute_covariances) prior_variance$precompute_cov_matrices(data, residual_variance)
   }
+  if (!estimate_prior_variance) estimate_prior_method = NULL
   # Below are the core computations
-  SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance, estimate_prior_variance)
+  SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, ncol(X), ncol(Y))
-  SuSiE_model$fit(data, prior_weights, verbose)
+  SuSiE_model$fit(data, prior_weights, estimate_prior_method, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   ## END new mmbr code
   s$walltime = proc.time() - ptm 

@@ -6,13 +6,13 @@ SingleEffectModel <- function(base)
     R6Class("SingleEffectModel",
     inherit = base,
     public = list(
-        initialize = function(J, residual_variance, prior_variance, estimate_prior_variance=FALSE) {
-            super$initialize(J, residual_variance, prior_variance, estimate_prior_variance)
+        initialize = function(J, residual_variance, prior_variance) {
+            super$initialize(J, residual_variance, prior_variance)
             private$.pip = rep(0, J)
         },
-        fit = function(d, prior_weights=NULL) {
+        fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL) {
             if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-            super$fit(d, use_residual = TRUE, prior_weights = prior_weights)
+            super$fit(d, use_residual = TRUE, prior_weights = prior_weights, estimate_prior_variance_method=estimate_prior_variance_method)
             #print(private$.lbf)
             ws = safe_compute_weight(private$.lbf, prior_weights, log = TRUE)
             #print(ws$alpha)

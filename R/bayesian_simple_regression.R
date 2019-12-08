@@ -3,14 +3,13 @@
 #' @keywords internal
 BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
   public = list(
-    initialize = function(J, residual_variance, prior_variance, estimate_prior_variance = FALSE) {
+    initialize = function(J, residual_variance, prior_variance) {
       private$J = J
       private$.prior_variance = prior_variance
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, 1)
-      private$to_estimate_prior_variance = estimate_prior_variance
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, estimate_prior_variance_method = NULL) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -26,9 +25,9 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
         private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E6
       }
       # deal with prior variance: can be "estimated" across effects
-      if(private$to_estimate_prior_variance) {
+      if(!is.null(estimate_prior_variance_method)) {
           if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-        private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method='optim')
+        private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
       }
       # posterior
       post_var = (1/private$.prior_variance + d$X2_sum/private$.residual_variance)^(-1) # posterior variance
@@ -62,7 +61,6 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     }
   ),
   private = list(
-    to_estimate_prior_variance = NULL,
     J = NULL,
     .bhat = NULL,
     .sbhat = NULL,
