@@ -362,7 +362,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL, 
                              null_weight = NULL, alpha = 0, 
                              weights_tol = 1E-10, mixture_length = 40, include_indices = NULL) {
-  if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 1)
+  if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 2)
     stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
   if (!is.null(fitted_g)) {
     # fitted_g: list(pi=pi_s, Ulist=Ulist, grid=grid, usepointmass=usepointmass)
@@ -400,7 +400,7 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     # compute canonical covariances
     Ulist = create_cov_canonical(ncol(sample_data$Y))
     return(MashInitializer$new(Ulist, grid,
-                               prior_weights=prior_weights, null_weight=null_weight, 
+                               prior_weights=NULL, null_weight=null_weight, 
                                alpha=alpha, weights_tol=weights_tol, top_mixtures=mixture_length, 
                                include_conditions=include_indices))
   }

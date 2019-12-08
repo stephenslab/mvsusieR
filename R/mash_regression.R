@@ -158,7 +158,6 @@ MashInitializer <- R6Class("MashInitializer",
               stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
           }
           if (any(grid<=0)) stop("grid values should be greater than zero")
-          private$U = list(pi = c(0,prior_weights), Ulist = Ulist, grid = grid, usepointmass = TRUE)
           if (!is.null(include_conditions)) {
             for (l in 1:length(Ulist)) {
               Ulist[[l]] = Ulist[[l]][include_conditions, include_conditions]
@@ -271,7 +270,6 @@ MashInitializer <- R6Class("MashInitializer",
   active = list(
       n_condition = function() nrow(private$xU$xUlist[[1]]),
       prior_variance = function() private$xU,
-      mash_prior = function() private$U,
       precomputed = function() private$inv_mats,
       alpha = function() private$a
   ),
