@@ -63,7 +63,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.210</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.232</span>
       </span>
     </div>
 
@@ -110,10 +110,11 @@
     <pre class="usage"><span class='fu'>msusie</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='kw'>L</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>prior_variance</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>residual_variance</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>prior_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>null_weight</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>standardize</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>intercept</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>estimate_residual_variance</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>estimate_prior_variance</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>compute_objective</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>s_init</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>coverage</span> <span class='kw'>=</span> <span class='fl'>0.95</span>, <span class='kw'>min_abs_corr</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
-  <span class='kw'>compute_univariate_zscore</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>precompute_covariances</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>max_iter</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.001</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>track_fit</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+  <span class='kw'>estimate_prior_variance</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>estimate_prior_method</span> <span class='kw'>=</span> <span class='st'>"optim"</span>,
+  <span class='kw'>compute_objective</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>s_init</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>coverage</span> <span class='kw'>=</span> <span class='fl'>0.95</span>,
+  <span class='kw'>min_abs_corr</span> <span class='kw'>=</span> <span class='fl'>0.5</span>, <span class='kw'>compute_univariate_zscore</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>precompute_covariances</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>max_iter</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.001</span>,
+  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>track_fit</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -166,6 +167,10 @@ Any column of X that has zero variance is not standardized, but left as is.</p><
     <tr>
       <th>estimate_prior_variance</th>
       <td><p>indicates whether to estimate prior (currently not recommended as not fully tested and assessed)</p></td>
+    </tr>
+    <tr>
+      <th>estimate_prior_method</th>
+      <td><p>the method used for estimating prior variance.</p></td>
     </tr>
     <tr>
       <th>s_init</th>

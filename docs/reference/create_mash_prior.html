@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • mmbr</title>
+<title>Create mash prior object — create_mash_prior • mmbr</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,7 +30,10 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Create mash prior object — create_mash_prior" />
+
+<meta property="og:description" content="Create mash prior object" />
+<meta name="twitter:card" content="summary" />
 
 
 
@@ -47,7 +50,7 @@
   </head>
 
   <body>
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -91,78 +94,82 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Create mash prior object</h1>
+    <small class="dont-index">Source: <a href='https://github.com/gaow/mmbr/blob/master/R/utils.R'><code>R/utils.R</code></a></small>
+    <div class="hidden name"><code>create_mash_prior.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    
+    <p>Create mash prior object</p>
+    
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
-
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      <tr>
-        
-        <td>
-          <p><code><a href="create_mash_prior.html">create_mash_prior()</a></code> </p>
-        </td>
-        <td><p>Create mash prior object</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_get_cs_lfsr.html">mmbr_get_cs_lfsr()</a></code> </p>
-        </td>
-        <td><p>Local false sign rate (lfsr) for credible sets</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_get_lfsr.html">mmbr_get_lfsr()</a></code> </p>
-        </td>
-        <td><p>Local false sign rate (lfsr) for variables</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_plot.html">mmbr_plot()</a></code> </p>
-        </td>
-        <td><p>Make bubble heatmap to display mmbr result</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mmbr_sim1.html">mmbr_sim1()</a></code> </p>
-        </td>
-        <td><p>A simple simulation function to simulate some test data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="msusie.html">msusie()</a></code> </p>
-        </td>
-        <td><p>SUm of Single Effect (SuSiE) Regression of multivariate Y on X</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="predict.mmbr.html">predict(<i>&lt;mmbr&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Predict future observations or extract coefficients from susie fit</p></td>
-      </tr>
-    </tbody>
+    <pre class="usage"><span class='fu'>create_mash_prior</span>(<span class='kw'>fitted_g</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>mixture_prior</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sample_data</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>null_weight</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>weights_tol</span> <span class='kw'>=</span> <span class='fl'>1e-10</span>, <span class='kw'>max_mixture_len</span> <span class='kw'>=</span> <span class='fl'>40</span>, <span class='kw'>include_indices</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>fitted_g</th>
+      <td><p>from mashr::mash</p></td>
+    </tr>
+    <tr>
+      <th>mixture_prior</th>
+      <td><p>a list of (weights = vector(), matrices = list()) where  matrices is a list of prior matrices and have same length as weights.</p></td>
+    </tr>
+    <tr>
+      <th>sample_data</th>
+      <td><p>a list of (X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to allow for automatically determine canonical priors with equal weights</p></td>
+    </tr>
+    <tr>
+      <th>null_weight</th>
+      <td><p>whether or not to add a weight for null in single effect models. By default it takes the null weight from fitted_g
+if available. Use `null_weight = 0` to override the behavior.</p></td>
+    </tr>
+    <tr>
+      <th>alpha</th>
+      <td><p>0 for EE, 1 for EZ model. See mashr::mash() for details.</p></td>
+    </tr>
+    <tr>
+      <th>weights_tol</th>
+      <td><p>filter out priors with weights smaller than weights_tol</p></td>
+    </tr>
+    <tr>
+      <th>max_mixture_len</th>
+      <td><p>only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
+Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.</p></td>
+    </tr>
+    <tr>
+      <th>include_indices</th>
+      <td><p>postprocess input prior to only include conditions from this indices</p></td>
+    </tr>
     </table>
-  </div>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
+    <p>mash prior object for use with msusie() function</p>
+    
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>...</p>
+    
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
-    </ul>
+      <li><a href="#arguments">Arguments</a></li>
+      
+      <li><a href="#value">Value</a></li>
+
+      <li><a href="#details">Details</a></li>
+          </ul>
+
   </div>
 </div>
 

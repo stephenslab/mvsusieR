@@ -72,7 +72,6 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         niter = m$niter,
         convergence = m$convergence,
         coef = d$rescale_coef(b),
-        null_index = -9,
         mixture_weights = mixture_weights,
         lfsr = lfsr
         )
@@ -357,7 +356,6 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' @param include_indices postprocess input prior to only include conditions from this indices
 #' @return mash prior object for use with msusie() function
 #' @details ...
-#' @examples
 #' @export
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL, 
                              null_weight = NULL, alpha = 0, 
@@ -384,24 +382,35 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     for (item in c('weights', 'matrices')) {
       if (!(item %in% names(mixture_prior))) stop(paste("Cannot find", item, "in mixture_prior input"))
     }
+    if (is.null(null_weight)) null_weight = 0
     return(MashInitializer$new(NULL, NULL, xUlist=mixture_prior$matrices, prior_weights=mixture_prior$weights,
                                null_weight=null_weight, 
                                alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 
                                include_conditions=include_indices))
   }
   if (!is.null(sample_data)) {
-    for (item in c('X', 'Y', 'center', 'scale', 'residual_variance')) {
+    for (item in c('X', 'Y', 'residual_variance')) {
       if (!(item %in% names(sample_data))) stop(paste("Cannot find", item, "in sample_data input"))
+    }
+    if (is.null(sample_data$center)) {
+      write("Assuming intercept is fitted (otherwise please set 'sample_data$center=F')", stderr())
+      sample_data$center = T
+    }
+    if (is.null(sample_data$scale)) {
+      write("Assuming X is not yet scaled and will scale X (otherwise please set 'sample_data$scale=F')", stderr())
+      sample_data$scale = T
     }
     # compute grid
     d = DenseData$new(sample_data$X, sample_data$Y, sample_data$center, sample_data$scale)
     res = d$get_sumstats(diag(sample_data$residual_variance), cov2cor(sample_data$residual_variance), alpha)
-    grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(2))
+    ## Use sqrt(3) giving a coarser grid than mash default in exchange for less walltime
+    grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(3))
     # compute canonical covariances
     Ulist = create_cov_canonical(ncol(sample_data$Y))
     comp_len = length(grid) * length(Ulist)
     if (max_mixture_len<comp_len && max_mixture_len>0) 
-      warning(paste0('Automatically generated uniform mixture prior is of length ', comp_len, 'and is greater than currently specified max_mixture_len ', max_mixture_len, ". Please set max_mixture_len=-1 to allow using all of them (although computational speed will suffer)."))
+      warning(paste0('Automatically generated uniform mixture prior is of length ', comp_len, ' and is greater than currently specified max_mixture_len ', max_mixture_len, ". Please set max_mixture_len=-1 to allow using all of them (although computational speed will suffer)."))
+    if (is.null(null_weight)) null_weight = 0
     return(MashInitializer$new(Ulist, grid,
                                prior_weights=NULL, null_weight=null_weight,
                                alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 

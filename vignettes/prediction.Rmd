@@ -59,20 +59,19 @@ head(beta3)
 ## Prediction with `mmbr`
 
 For starters, we assume there are at most 10 causal variables (i.e., set `L = 10`), select the first 100 individuals as the training set,
-and compute the prior canonical covariance matrices.
+and derive the prior from data:
 
 ```{r}
 L <- 10
 test_num <- 1:100
-prior_var <- mmbr:::create_cov_canonical(3)
-prior_covar <- mmbr:::MashInitializer$new(prior_var, 0.2)
+y <- cbind(y1[-test_num], y2[-test_num], y3[-test_num])
+prior_covar <- create_mash_prior(sample_data = list(X=X[-test_num, ],Y=y,residual_variance=cov(y)), max_mixture_len=-1)
 ```
 
 Then, we fit the `mmbr` model to the training set.
 
 ```{r}
-y <- cbind(y1[-test_num], y2[-test_num], y3[-test_num])
-m <- mmbr::msusie(X[-test_num, ], y, L=L, prior_variance=prior_covar)
+m <- msusie(X[-test_num, ], y, L=L, prior_variance=prior_covar)
 ```
 
 Finally, we use the parameter estimates from the training set to predict phenotypes in the test set. The accuracy of prediction is calculated as the correlation between true and predicted phenotypes.

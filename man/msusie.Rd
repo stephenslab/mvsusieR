@@ -5,13 +5,12 @@
 \title{SUm of Single Effect (SuSiE) Regression of multivariate Y on X}
 \usage{
 msusie(X, Y, L = 10, prior_variance = 0.2, residual_variance = NULL,
-  prior_weights = NULL, null_weight = NULL, standardize = TRUE,
-  intercept = TRUE, estimate_residual_variance = TRUE,
-  estimate_prior_variance = FALSE, estimate_prior_method = "optim",
-  compute_objective = FALSE, s_init = NULL, coverage = 0.95,
-  min_abs_corr = 0.5, compute_univariate_zscore = FALSE,
-  precompute_covariances = FALSE, max_iter = 100, tol = 0.001,
-  verbose = TRUE, track_fit = FALSE)
+  prior_weights = NULL, standardize = TRUE, intercept = TRUE,
+  estimate_residual_variance = TRUE, estimate_prior_variance = FALSE,
+  estimate_prior_method = "optim", compute_objective = FALSE,
+  s_init = NULL, coverage = 0.95, min_abs_corr = 0.5,
+  compute_univariate_zscore = FALSE, precompute_covariances = FALSE,
+  max_iter = 100, tol = 0.001, verbose = TRUE, track_fit = FALSE)
 }
 \arguments{
 \item{X}{an n by p matrix of covariates}
@@ -26,22 +25,19 @@ msusie(X, Y, L = 10, prior_variance = 0.2, residual_variance = NULL,
 
 \item{prior_weights}{a p vector of prior probability that each element is non-zero}
 
-\item{null_weight}{probability of no effect, for each single effect model}
-
 \item{standardize}{logical flag (default=TRUE) for whether to standardize columns of X to unit variance prior to fitting.
-Note that `scaled_prior_variance` specifies the prior on the coefficients of X *after* standardization (if performed).
 If you do not standardize you may need
-to think more carefully about specifying
-`scaled_prior_variance`. Whatever the value of standardize, the coefficients (returned from `coef`) are for X on the original input scale.
+to think more carefully about specifying the scale of prior variance.
+Whatever the value of standardize, the coefficients (returned from `coef`) are for X on the original input scale.
 Any column of X that has zero variance is not standardized, but left as is.}
 
 \item{intercept}{Should intercept be fitted (default=TRUE) or set to zero (FALSE). The latter is generally not recommended.}
 
-\item{estimate_residual_variance}{indicates whether to estimate residual variance}
+\item{estimate_residual_variance}{indicates whether to estimate residual variance (currently only works for univariate Y input)}
 
-\item{estimate_prior_variance}{indicates whether to estimate prior (currently not recommended as not fully tested and assessed)}
+\item{estimate_prior_variance}{indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)}
 
-\item{estimate_prior_method}{the method used for estimating prior variance.}
+\item{estimate_prior_method}{the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.}
 
 \item{s_init}{a previous susie fit with which to initialize}
 
@@ -51,29 +47,33 @@ Any column of X that has zero variance is not standardized, but left as is.}
 Default set to 0.5 to correspond to squared correlation of 0.25,
 a commonly used threshold for genotype data in genetics studies.}
 
-\item{compute_univariate_zscore}{if true, outputs z-score from per variable univariate regression}
+\item{compute_univariate_zscore}{if TRUE outputs z-score from per variable univariate regression}
 
-\item{precompute_covariances}{if true, precomputes various covariance quantities to speed up computations at the cost of increased memory usage}
+\item{precompute_covariances}{if TRUE, precomputes various covariance quantities to speed up computations at the cost of increased memory usage}
 
 \item{max_iter}{maximum number of iterations to perform}
 
 \item{tol}{convergence tolerance}
 
-\item{verbose}{if true outputs some progress messages}
+\item{verbose}{if TRUE outputs some progress messages}
 
-\item{track_fit}{add an attribute \code{trace} to output that saves current values of all iterations}
+\item{track_fit}{add an attribute \code{trace} to output that saves some current quantities of all iterations}
 }
 \value{
 a susie fit, which is a list with some or all of the following elements\cr
 \item{alpha}{an L by p matrix of posterior inclusion probabilites}
-\item{mu}{an L by p matrix of posterior means (conditional on inclusion)}
-\item{mu2}{an L by p matrix of posterior second moments (conditional on inclusion)}
-\item{Xr}{an n vector of fitted values, equal to X times colSums(alpha*mu))}
+\item{b1}{an L by p matrix of posterior means (conditional on inclusion)}
+\item{b2}{an L by p matrix of posterior second moments (conditional on inclusion)}
+\item{KL}{an L vector of KL divergence}
+\item{lbf}{an L vector of logBF}
 \item{sigma2}{residual variance}
 \item{V}{prior variance}
 \item{elbo}{a vector of values of elbo achieved (objective function)}
+\item{niter}{number of iterations took for convergence}
+\item{convergence}{convergence status}
 \item{sets}{a list of `cs`, `purity` and selected `cs_index`}
 \item{pip}{a vector of posterior inclusion probability}
+\item{walltime}{records runtime of the fitting algorithm}
 \item{z}{a vector of univariate z-scores}
 }
 \description{
