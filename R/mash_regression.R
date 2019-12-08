@@ -153,7 +153,6 @@ MashInitializer <- R6Class("MashInitializer",
       initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
         all_zeros = vector()
         if (is.null(xUlist)) {
-          # FIXME: mashr::: namespace
           for (l in 1:length(Ulist)) {
               if (all(Ulist[[l]] == 0))
               stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
@@ -266,7 +265,8 @@ MashInitializer <- R6Class("MashInitializer",
                               sigma_rooti = simplify2array(sigma_rooti),
                               sbhat = res$sbhat0,
                               common_sbhat = res$is_common_sbhat)
-    }
+    },
+    remove_precomputed = function() private$inv_mats = NULL
   ),
   active = list(
       n_condition = function() nrow(private$xU$xUlist[[1]]),
