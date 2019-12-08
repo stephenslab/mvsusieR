@@ -352,8 +352,8 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' if available. Use `null_weight = 0` to override the behavior. 
 #' @param alpha 0 for EE, 1 for EZ model. See mashr::mash() for details.
 #' @param weights_tol filter out priors with weights smaller than weights_tol
-#' @param mixture_length only keep the top priors by weight so that the list of mixture prior is of mixture_length.
-#' Use `mixture_length=-1` to include all input weights after weights_tol filtering. Default is set to length 40.
+#' @param max_mixture_len only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
+#' Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.
 #' @param include_indices postprocess input prior to only include conditions from this indices
 #' @return mash prior object for use with msusie() function
 #' @details ...
@@ -361,7 +361,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' @export
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL, 
                              null_weight = NULL, alpha = 0, 
-                             weights_tol = 1E-10, mixture_length = 40, include_indices = NULL) {
+                             weights_tol = 1E-10, max_mixture_len = 40, include_indices = NULL) {
   if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 2)
     stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
   if (!is.null(fitted_g)) {
@@ -377,7 +377,7 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     }
     return(MashInitializer$new(fitted_g$Ulist, fitted_g$grid, 
                                prior_weights=prior_weights, null_weight=null_weight, 
-                               alpha=alpha, weights_tol=weights_tol, top_mixtures=mixture_length, 
+                               alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 
                                include_conditions=include_indices))
   }
   if (!is.null(mixture_prior)) {
@@ -386,7 +386,7 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     }
     return(MashInitializer$new(NULL, NULL, xUlist=mixture_prior$matrices, prior_weights=mixture_prior$weights,
                                null_weight=null_weight, 
-                               alpha=alpha, weights_tol=weights_tol, top_mixtures=mixture_length, 
+                               alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 
                                include_conditions=include_indices))
   }
   if (!is.null(sample_data)) {
@@ -399,9 +399,12 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(2))
     # compute canonical covariances
     Ulist = create_cov_canonical(ncol(sample_data$Y))
+    comp_len = length(grid) * length(Ulist)
+    if (max_mixture_len<comp_len && max_mixture_len>0) 
+      warning(paste0('Automatically generated uniform mixture prior is of length ', comp_len, 'and is greater than currently specified max_mixture_len ', max_mixture_len, ". Please set max_mixture_len=-1 to allow using all of them (although computational speed will suffer)."))
     return(MashInitializer$new(Ulist, grid,
-                               prior_weights=NULL, null_weight=null_weight, 
-                               alpha=alpha, weights_tol=weights_tol, top_mixtures=mixture_length, 
+                               prior_weights=NULL, null_weight=null_weight,
+                               alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 
                                include_conditions=include_indices))
   }
 }

@@ -6,7 +6,7 @@
 \usage{
 create_mash_prior(fitted_g = NULL, mixture_prior = NULL,
   sample_data = NULL, null_weight = NULL, alpha = 0,
-  weights_tol = 1e-10, mixture_length = 40, include_indices = NULL)
+  weights_tol = 1e-10, max_mixture_len = 40, include_indices = NULL)
 }
 \arguments{
 \item{fitted_g}{from mashr::mash}
@@ -22,8 +22,8 @@ if available. Use `null_weight = 0` to override the behavior.}
 
 \item{weights_tol}{filter out priors with weights smaller than weights_tol}
 
-\item{mixture_length}{only keep the top priors by weight so that the list of mixture prior is of mixture_length.
-Use `mixture_length=-1` to include all input weights after weights_tol filtering. Default is set to length 40.}
+\item{max_mixture_len}{only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
+Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.}
 
 \item{include_indices}{postprocess input prior to only include conditions from this indices}
 }

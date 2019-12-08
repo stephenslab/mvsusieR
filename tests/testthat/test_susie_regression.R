@@ -64,7 +64,7 @@ test_that("customized initialization interface", with(simulate_multivariate(r=3)
     A = msusie(X,y,L=L,prior_variance=m_init,s_init=list(coef_index=c(2,3,4),coef_value=matrix(1,3,3)),compute_objective=FALSE)
     # let's just test of null is null ...
     null_weight = 0.2
-    prior = create_mash_prior(sample_data = list(X=X,Y=y,center=T,scale=T,residual_variance=cov(y)),
-                              alpha = 0, null_weight = null_weight)
-    expect_equal(prior$prior_variance$pi[1], null_weight)
+    m_init = create_mash_prior(sample_data = list(X=X,Y=y,center=T,scale=T,residual_variance=cov(y)),
+                              alpha = 0, null_weight = null_weight, max_mixture_len=-1)
+    expect_equal(m_init$prior_variance$pi[1], null_weight)
 }))
