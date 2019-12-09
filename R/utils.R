@@ -16,13 +16,13 @@ tr = function (m) {
 
 #' @title compute value_j * weight_j / sum(value_j * weight_j)
 #' @keywords internal
-safe_compute_weight = function(value, weight, log = TRUE) {
+compute_weighted_sum = function(value, weight, log = TRUE) {
     if (!log) value = log(value)
     mvalue = max(value)
     w = exp(value-mvalue)
     w_weighted = w * weight
     weighted_sum_w = sum(w_weighted)
-    return(list(alpha = as.vector(w_weighted / weighted_sum_w), log_total = log(weighted_sum_w) + mvalue))
+    return(list(weights = as.vector(w_weighted / weighted_sum_w), log_sum = log(weighted_sum_w) + mvalue))
 }
 
 #' @title SuSiE model extractor

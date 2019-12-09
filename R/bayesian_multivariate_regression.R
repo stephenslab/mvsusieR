@@ -59,11 +59,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     loglik = function(bhat,S,scalar,prior_weights) {
       U = private$.prior_variance * scalar
       lbf = multivariate_lbf(bhat, S, U)
-      maxlbf = max(lbf)
-      w = exp(lbf-maxlbf)
-      w_weighted = w * prior_weights
-      weighted_sum_w = sum(w_weighted)
-      return(log(weighted_sum_w)+ maxlbf)
+      return(compute_weighted_sum(lbf, prior_weights)$log_sum)
     },
     neg_loglik_logscale = function(lV, bhat, S, prior_weights) {
       return(-1 * private$loglik(bhat, S, exp(lV), prior_weights))
