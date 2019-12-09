@@ -121,7 +121,7 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
   start_time = proc.time()
   if (is.matrix(residual_variance))
     mashr:::check_positive_definite(residual_variance)
-  # for now the type of prior_variance controls the type of regression 
+  # for now the type of prior_variance controls the type of regression
   if (is.numeric(prior_variance)) {
     if (data$n_condition > 1 && !is.matrix(prior_variance))
       stop(paste("prior variance cannot be a number for multivariate analysis with", data$n_condition, "response variables."))
@@ -130,6 +130,11 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
     } else {
       base = BayesianSimpleRegression
       # Here prior variance is scaled prior variance
+      if (is.matrix(residual_variance)) {
+        if (!(nrow(residual_variance) == 1 && (ncol(residual_variance))))
+          stop("residual_variance should be a scalar.")
+        residual_variance = residual_variance[1,1]
+      }
       prior_variance = prior_variance * residual_variance
     }
   } else {

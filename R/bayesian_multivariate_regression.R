@@ -26,12 +26,14 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # bhat is J by R
       bhat = XtY / d$X2_sum
       bhat[which(is.nan(bhat))] = 0
-      sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
+      if (d$Y_has_missing) sbhat2 = lapply(1:nrow(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j,])
+      else sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(do.call(rbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
         private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E6
       }
+      if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
           if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
