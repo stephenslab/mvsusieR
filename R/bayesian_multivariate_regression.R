@@ -31,7 +31,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(do.call(rbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
-        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E6
+        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E3
       }
       if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       # deal with prior variance: can be "estimated" across effects
@@ -81,7 +81,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   )
 )
 
-#' @title Multiviate regression calculations 
+#' @title Multiviate regression calculations
 #' @importFrom abind abind
 #' @keywords internal
 multivariate_regression = function(bhat, S, U) {

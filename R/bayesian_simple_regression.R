@@ -22,7 +22,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(sbhat2)
-        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E6
+        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E3
       }
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {

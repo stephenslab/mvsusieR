@@ -75,7 +75,7 @@ DenseData <- R6Class("DenseData",
       if (private$.Y_has_missing) {
         S = lapply(1:private$J, function(j) diag(1/private$d[j,]) * residual_variances)
         sbhat0 = sqrt(do.call(rbind, lapply(1:length(S), function(j) diag(S[[j]]))))
-        sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
+        sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E3
         sbhat = sbhat0 ^ (1 - alpha)
         is_common_sbhat = is_mat_common(sbhat)
         Sigma = sqrt(residual_variances ^ (1 - alpha)) * t(sqrt(residual_variances ^ (1 - alpha)) * residual_correlation)
@@ -97,7 +97,7 @@ DenseData <- R6Class("DenseData",
         }
       } else {
         sbhat0 = sqrt(do.call(rbind, lapply(1:length(private$d), function(j) residual_variances / private$d[j])))
-        sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E6
+        sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E3
         sbhat = sbhat0 ^ (1 - alpha)
         is_common_sbhat = is_mat_common(sbhat)
         if (is_common_sbhat) S = sbhat[1,] * t(residual_correlation * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
@@ -188,76 +188,6 @@ DenseData <- R6Class("DenseData",
         # For non-missing Y, d is a J vector
         private$d = colSums(private$.X ^ 2)
       }
-    }
-  )
-)
-
-#' @title Sufficient statistics object
-# XtX, XtY, YtY and N
-# X and Y have to be centered
-# before computing these sufficient statistics
-#' @importFrom R6 R6Class
-#' @keywords internal
-SSData <- R6Class("SSData",
-  public = list(
-    initialize = function(XtX,XtY,YtY,N,scale=TRUE) {
-      private$.XtX = XtX
-      private$.XtY = XtY
-      private$.YtY = YtY
-      private$N = N
-      private$J = nrow(XtX)
-      if (is.null(dim(YtY))) private$R = 1
-      else private$R = nrow(YtY)
-      private$standardize(scale)
-      private$residual = private$.XtY
-    },
-    compute_Xb = function(b) {
-      tcrossprod(private$.XtX,t(b))
-    },
-    remove_from_residual = function(value) {
-      private$residual = private$residual - value
-    },
-    add_to_residual = function(value) {
-      private$residual = private$residual + value
-    },
-    compute_residual = function(fitted) {
-      private$residual = private$.XtY - fitted
-    },
-    rescale_coef = function(b) {
-      c(0, b/private$csd)
-    }
-  ),
-  active = list(
-    XtX = function() private$.XtX,
-    XtY = function() private$.XtY,
-    YtY = function() private$.YtY,
-    X2_sum = function() private$d,
-    XtR = function() private$residual,
-    n_sample = function() private$N,
-    n_condition = function() private$R,
-    n_effect = function() private$J
-  ),
-  private = list(
-    .XtX = NULL,
-    .XtY = NULL,
-    .YtY = NULL,
-    d = NULL,
-    N = NULL,
-    J = NULL,
-    R = NULL,
-    residual = NULL,
-    csd = NULL,
-    standardize = function(scale) {
-      if (scale) {
-          d = diag(private$.XtX)
-          private$csd = sqrt(d/(private$N-1))
-          private$csd[private$csd == 0] = 1
-          private$.XtX = (1/private$csd) * t((1/private$csd) * private$.XtX)
-          private$.XtY = (1/private$csd) * private$.XtY
-      } else {
-          private$csd = rep(1, length = private$J)
-      }
-      private$d = diag(private$.XtX)
     }
   )
 )

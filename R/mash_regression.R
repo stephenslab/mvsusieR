@@ -42,7 +42,7 @@ MashRegression <- R6Class("MashRegression",
         sigma2 = diag(private$.residual_variance)
         if (d$Y_has_missing) sbhat = sqrt(do.call(rbind, lapply(1:nrow(d$X2_sum), function(j) sigma2 / d$X2_sum[j,])))
         else sbhat = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
-        sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E6
+        sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E3
       }
       if (save_summary_stats) {
         private$.bhat = bhat
