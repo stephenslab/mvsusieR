@@ -54,6 +54,13 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     expect_susie_equal(A,B,F,F)
 }))
 
+test_that("mash regression in SuSiE agrees with BMR using one component prior matrix", with(simulate_multivariate(r=3), {
+    m_init = create_mash_prior(mixture_prior = list(matrices=list(V)))
+    A = msusie(X,y,L=L,prior_variance=m_init)
+    B = msusie(X,y,L=L,prior_variance=V)
+    expect_susie_equal(A,B,F,F)
+}))
+
 test_that("customized initialization interface", with(simulate_multivariate(r=3), {
     # not sure what to test here ...
     m_init = create_mash_prior(mixture_prior = list(matrices = list(V), weights = 1), null_weight=0)

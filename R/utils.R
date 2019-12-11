@@ -389,9 +389,10 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
                                include_conditions=include_indices))
   }
   if (!is.null(mixture_prior)) {
-    for (item in c('weights', 'matrices')) {
+    for (item in c('matrices')) {
       if (!(item %in% names(mixture_prior))) stop(paste("Cannot find", item, "in mixture_prior input"))
     }
+    if (is.null(mixture_prior$weights)) mixture_prior$weights = rep(1/length(mixture_prior$matrices), length(mixture_prior$matrices))
     if (is.null(null_weight)) null_weight = 0
     return(MashInitializer$new(NULL, NULL, xUlist=mixture_prior$matrices, prior_weights=mixture_prior$weights,
                                null_weight=null_weight,
