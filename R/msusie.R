@@ -73,27 +73,16 @@ msusie = function(X,Y,L=10,
                  precompute_covariances = FALSE,
                  max_iter=100,tol=1e-3,
                  verbose=TRUE,track_fit=FALSE) {
-  # FIXME: this main function code needs to be examined and cleaned up
-  # to make it more elegant and robust
-  # Check input X.
-  if (!(is.double(X) & is.matrix(X)) & !inherits(X,"CsparseMatrix"))
-    stop("Input X must be a double-precision matrix, or a sparse matrix.")
-  if (any(is.na(X))) {
-    stop("Input X must not contain missing values.")
-  }
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
 
   data = DenseData$new(X, Y, intercept, standardize)
-  # FIXME: this is because of issue #5
-  if (data$X_has_missing) stop("Missing data in input matrix X is not allowed at this point.")
   if (is.null(residual_variance)) {
-    #if (data$n_condition > 1) residual_variance = diag(apply(Y, 2, function(x) var(x, na.rm=T)))
-    # FIXME: either need better initialization method, or just quit on error for unspecified residual variance
-    if (data$n_condition > 1) residual_variance = cov(Y, use = "pairwise.complete.obs")
+    if (data$n_condition > 1) {
+      if (!data$Y_has_missing) residual_variance = cov(Y)
+      else stop("Unspecified residual_variance is not allowed in the presence of missing data in Y")
+    }
     else residual_variance = var(Y, na.rm=T)
-    if (is.numeric(prior_variance) && !is.matrix(prior_variance)) residual_variance = as.numeric(residual_variance)
-    residual_variance[which(is.na(residual_variance))] = 0
   }
   #
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
@@ -119,8 +108,17 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method,
             precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose) {
   start_time = proc.time()
-  if (is.matrix(residual_variance))
+  if (is.numeric(prior_variance) && !is.matrix(prior_variance))
+    residual_variance = as.numeric(residual_variance)
+  if (is.matrix(residual_variance)) {
+    if (any(is.na(diag(residual_variance))))
+      stop("Diagonal of residual_variance cannot be NA")
+    residual_variance[which(is.na(residual_variance))] = 0
     mashr:::check_positive_definite(residual_variance)
+  } else {
+    if (is.na(residual_variance) || is.infinite(residual_variance))
+      stop("Invalid residual_variance")
+  }
   # for now the type of prior_variance controls the type of regression
   if (is.numeric(prior_variance)) {
     if (data$n_condition > 1 && !is.matrix(prior_variance))

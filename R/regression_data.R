@@ -5,8 +5,19 @@
 DenseData <- R6Class("DenseData",
   public = list(
     initialize = function(X,Y,center=TRUE,scale=TRUE,missing_code=NA) {
+      # Check input X.
+      if (!(is.double(X) & is.matrix(X)) & !inherits(X,"CsparseMatrix"))
+        stop("Input X must be a double-precision matrix, or a sparse matrix.")
+      if (any(is.na(X))) {
+        stop("Input X must not contain missing values.")
+      }
       if (any(dim(X) == 0)) stop('X input dimension is invalid.')
       private$.X = X
+      private$.X_has_missing = any(is.na(private$.X))
+      # FIXME: might want to allow for missing in X later?
+      # see gaow/mmbr/#5
+      if (private$.X_has_missing)
+        stop("Missing data in input matrix X is not allowed at this point.")
       if (is.null(dim(Y))) private$.Y = matrix(Y,length(Y),1)
       else private$.Y = Y
       private$R = ncol(private$.Y)
@@ -68,21 +79,19 @@ DenseData <- R6Class("DenseData",
     },
     # Compute multivariate summary statistics in the presence of missing data
     get_sumstats = function(residual_variances, residual_correlation=NULL) {
-      # compute and assign Xty
       if (is.null(residual_correlation)) {
         if (!is.matrix(residual_variances))
           stop("residual variance has to be a matrix if residual correlation is not specified")
         residual_correlation = cov2cor(residual_variances)
         residual_variances = diag(residual_variances)
       }
-      Xty = self$XtY
-      bhat = Xty/private$d
+      # private$d is either vector or matrix
+      bhat = self$XtY/private$d
       bhat[which(is.nan(bhat))] = 0
       if (private$.Y_has_missing) {
         Sigma = sqrt(residual_variances) * t(sqrt(residual_variances) * residual_correlation)
         SVS = list()
         XtX_inv = list()
-        # FIXME: may want to do this in parallel
         for(j in 1:private$J) {
           SVS[[j]] = matrix(NA, private$R, private$R)
           XtX_inv[[j]] = matrix(NA, private$R, private$R)
@@ -90,6 +99,8 @@ DenseData <- R6Class("DenseData",
             for(r2 in r1:private$R){
               common = as.logical(private$Y_non_missing[,r1] * private$Y_non_missing[,r2])
               # if `common` is all FALSE the sum below will return zero
+              # FIXME: here X_for_Y_missing, after scaling per column, is not 100% correct on the numerator.
+              # not sure what to do for now.
               XtX_inv[[j]][r1,r2] = ifelse(private$d[j,r1]*private$d[j,r2] != 0, sum(private$X_for_Y_missing[common,j,r1] * private$X_for_Y_missing[common,j,r2])/(private$d[j,r1]*private$d[j,r2]), ifelse(r1==r2, 1E6, 0))
               SVS[[j]][r1,r2] = Sigma[r1,r2] * XtX_inv[[j]][r1,r2]
               if (r1 != r2) SVS[[j]][r2,r1] = SVS[[j]][r1,r2]
@@ -133,7 +144,7 @@ DenseData <- R6Class("DenseData",
     n_sample = function() private$N,
     n_condition = function() private$R,
     n_effect = function() private$J,
-    X_has_missing = function() any(is.na(private$.X)),
+    X_has_missing = function() private$.X_has_missing,
     Y_has_missing = function() private$.Y_has_missing
   ),
   private = list(
@@ -150,6 +161,7 @@ DenseData <- R6Class("DenseData",
     Y_mean = NULL,
     Y_non_missing = NULL,
     .Y_has_missing = NULL,
+    .X_has_missing = NULL,
     standardize = function(center, scale) {
       # Credit: This is heavily based on code from
       # https://www.r-bloggers.com/a-faster-scale-function/

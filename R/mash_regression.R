@@ -6,18 +6,18 @@ MashRegression <- R6Class("MashRegression",
   inherit = BayesianSimpleRegression,
   public = list(
     initialize = function(J, residual_variance, mash_initializer) {
+      if (!is.matrix(residual_variance))
+        stop("residual_variance must be a matrix")
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
-      # FIXME: not sure if this is the best way to handle
       tryCatch({
         private$.residual_variance_inv = solve(residual_variance)
       }, error = function(e) {
-        warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
+        stop(paste0('Cannot compute inverse for residual_variance:\n', e))
       })
-      if (is.matrix(residual_variance)) private$residual_correlation = cov2cor(residual_variance)
-      else private$residual_correlation = diag(1)
+      private$residual_correlation = cov2cor(residual_variance)
       private$precomputed_cov_matrices = mash_initializer$precomputed
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
@@ -34,7 +34,7 @@ MashRegression <- R6Class("MashRegression",
       bhat[which(is.nan(bhat))] = 0
       if (!is.null(private$precomputed_cov_matrices)) {
         # we dont need sbhat, when we have precomputed quantities
-        sbhat = NA
+        sbhat = private$precomputed_cov_matrices$sbhat
         is_common_cov = private$precomputed_cov_matrices$common_sbhat
       } else {
         # sbhat is R by R
@@ -56,7 +56,7 @@ MashRegression <- R6Class("MashRegression",
       }
       # Fit MASH model
       # 1.1 compute log-likelihood matrix given current estimates
-      if (!identical(sbhat, NA)) {
+      if (is.null(private$precomputed_cov_matrices)) {
         llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation,
                                          matrix(0,0,0),
                                          private$.prior_variance$xUlist,
@@ -98,14 +98,21 @@ MashRegression <- R6Class("MashRegression",
       # 3. compute posterior weights
       private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik$loglik_matrix))
       # 4. posterior
-      ## FIXME: we might not need to compute second moment at all if we do not need to estimate residual variance
-      ## we can get away with checking for convergence by PIP not by ELBO
-      ## but let's set report_type = 4 and compute posterior covariance for now
-      if (is.null(private$precomputed_cov_matrices) || ncol(bhat) == 1 || private$prior_variance_scale != 1) {
+      ## FIXME: we do not need to compute second moment unless:
+      # 1. need ELBO to check for convergence
+      # 2. need ELBO to estimate residual variance
+      ## but let's set report_type = 4 and compute posterior covariance for now regardless of if ELBO is needed.
+      if (is.null(private$precomputed_cov_matrices) || private$prior_variance_scale != 1) {
         if (private$prior_variance_scale != 1)
           xUlist = private$.prior_variance$xUlist * private$prior_variance_scale
         else
           xUlist = private$.prior_variance$xUlist
+        if (identical(sbhat, NA)) {
+          if (private$prior_variance_scale == 0)
+            sbhat = matrix(0,0,0)
+          else
+            stop("Cannot compute posteror with prior variance updates in the presence of missing data.")
+        }
         post = mashr:::calc_post_rcpp(t(bhat), t(sbhat),
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
