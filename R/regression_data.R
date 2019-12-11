@@ -73,25 +73,29 @@ DenseData <- R6Class("DenseData",
       bhat = Xty/private$d
       bhat[which(is.nan(bhat))] = 0
       if (private$.Y_has_missing) {
-        S = lapply(1:private$J, function(j) diag(1/private$d[j,]) * residual_variances)
-        sbhat0 = sqrt(do.call(rbind, lapply(1:length(S), function(j) diag(S[[j]]))))
+        SVS = lapply(1:private$J, function(j) diag(1/private$d[j,]) * residual_variances)
+        sbhat0 = sqrt(do.call(rbind, lapply(1:length(SVS), function(j) diag(SVS[[j]]))))
         sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E3
         sbhat = sbhat0 ^ (1 - alpha)
         is_common_sbhat = is_mat_common(sbhat)
         Sigma = sqrt(residual_variances ^ (1 - alpha)) * t(sqrt(residual_variances ^ (1 - alpha)) * residual_correlation)
+        SVS = list()
+        XtX_inv = list()
         # FIXME: may want to do this in parallel
         for(j in 1:private$J){
-          if (alpha != 0) diag(S[[j]]) = diag(S[[j]]) ^ (1 - alpha)
-          S[[j]][which(is.nan(S[[j]]) | is.infinite(S[[j]]))] = 1E6
-          for(r in 1:(private$R-1)){
-            for(p in (r+1):private$R){
-              common = as.logical(private$Y_non_missing[,r] * private$Y_non_missing[,p])
-              S[[j]][r,p] = Sigma[r,p] * ifelse(private$d[j,r]*private$d[j,p] != 0, sum((private$.X[common,j])^2)/(private$d[j,r]*private$d[j,p]), 0) ^ (1 - alpha)
-              S[[j]][p,r] = S[[j]][r,p]
+          SVS[[j]] = matrix(NA, private$R, private$R)
+          XtX_inv[[j]] = matrix(NA, private$R, private$R)
+          for(r1 in 1:private$R){
+            for(r2 in r1:private$R){
+              common = as.logical(private$Y_non_missing[,r1] * private$Y_non_missing[,r2])
+              # if `common` is all FALSE the sum below will return zero
+              XtX_inv[[j]][r1,r2] = ifelse(private$d[j,r1]*private$d[j,r2] != 0, sum(private$X_for_Y_missing[common,j,r1] * private$X_for_Y_missing[common,j,r2])/(private$d[j,r1]*private$d[j,r2]), ifelse(r1==r2, 1E6, 0)) ^ (1 - alpha)
+              SVS[[j]][r1,r2] = Sigma[r1,r2] * XtX_inv[[j]][r1,r2]
+              SVS[[j]][r2,r1] = SVS[[j]][r1,r2]
             }
           }
           if (is_common_sbhat) {
-            S = S[[1]]
+            SVS = SVS[[1]]
             break
           }
         }
@@ -100,10 +104,10 @@ DenseData <- R6Class("DenseData",
         sbhat0[which(is.nan(sbhat0) | is.infinite(sbhat0))] = 1E3
         sbhat = sbhat0 ^ (1 - alpha)
         is_common_sbhat = is_mat_common(sbhat)
-        if (is_common_sbhat) S = sbhat[1,] * t(residual_correlation * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
-        else S = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(residual_correlation * sbhat[j,]))
+        if (is_common_sbhat) SVS = sbhat[1,] * t(residual_correlation * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
+        else SVS = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(residual_correlation * sbhat[j,]))
       }
-      return(list(svs=S, sbhat0=sbhat0, sbhat=sbhat, is_common_sbhat = is_common_sbhat, bhat=bhat))
+      return(list(svs=SVS, sbhat0=sbhat0, sbhat=sbhat, is_common_sbhat = is_common_sbhat, bhat=bhat))
     }
   ),
   active = list(
