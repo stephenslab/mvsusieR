@@ -12,8 +12,8 @@ create_cov_canonical(R, singletons = T, hetgrid = c(0, 0.25, 0.5, 0.75,
 
 \item{singletons}{a logical value indicating whether the singleton matrices are computed}
 
-\item{hetgrid}{a vector of numbers between -1 and 1, each representing the off-diagonal elements of matrices with 1s on the diagonal. 
-If 0 is included, the identity matrix will be returned which corresponds to assuming effects are independent across conditions. 
+\item{hetgrid}{a vector of numbers between -1 and 1, each representing the off-diagonal elements of matrices with 1s on the diagonal.
+If 0 is included, the identity matrix will be returned which corresponds to assuming effects are independent across conditions.
 IF NULL, these matrices are not computed.}
 }
 \value{

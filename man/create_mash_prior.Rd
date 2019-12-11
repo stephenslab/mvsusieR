@@ -5,8 +5,8 @@
 \title{Create mash prior object}
 \usage{
 create_mash_prior(fitted_g = NULL, mixture_prior = NULL,
-  sample_data = NULL, null_weight = NULL, alpha = 0,
-  weights_tol = 1e-10, max_mixture_len = 40, include_indices = NULL)
+  sample_data = NULL, null_weight = NULL, weights_tol = 1e-10,
+  max_mixture_len = 40, include_indices = NULL)
 }
 \arguments{
 \item{fitted_g}{from mashr::mash}
@@ -17,8 +17,6 @@ create_mash_prior(fitted_g = NULL, mixture_prior = NULL,
 
 \item{null_weight}{whether or not to add a weight for null in single effect models. By default it takes the null weight from fitted_g
 if available. Use `null_weight = 0` to override the behavior.}
-
-\item{alpha}{0 for EE, 1 for EZ model. See mashr::mash() for details.}
 
 \item{weights_tol}{filter out priors with weights smaller than weights_tol}
 

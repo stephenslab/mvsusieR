@@ -18,7 +18,6 @@ MashRegression <- R6Class("MashRegression",
       })
       if (is.matrix(residual_variance)) private$residual_correlation = cov2cor(residual_variance)
       else private$residual_correlation = diag(1)
-      private$alpha = mash_initializer$alpha
       private$precomputed_cov_matrices = mash_initializer$precomputed
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
@@ -34,32 +33,30 @@ MashRegression <- R6Class("MashRegression",
       bhat = XtY / d$X2_sum
       bhat[which(is.nan(bhat))] = 0
       if (!is.null(private$precomputed_cov_matrices)) {
-        sbhat = private$precomputed_cov_matrices$sbhat
+        # we dont need sbhat, when we have precomputed quantities
+        sbhat = NA
+        is_common_cov = private$precomputed_cov_matrices$common_sbhat
       } else {
         # sbhat is R by R
         # for non-missing Y d$X2_sum is a J vector
-        # for missing Y it is a J by R matrix
-        sigma2 = diag(private$.residual_variance)
-        if (d$Y_has_missing) sbhat = sqrt(do.call(rbind, lapply(1:nrow(d$X2_sum), function(j) sigma2 / d$X2_sum[j,])))
-        else sbhat = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
-        sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E3
+        # for missing Y it is a J list of R by R matrix that I'm not sure how to compute.
+        # however with precomputed cov_mats there is no need to use sbhat anyways.
+        if (d$Y_has_missing) {
+          stop("Please use precomputed_covariances() in MASH initializer function to avoid computing sbhat in the presence of missing data.")
+        } else {
+          sigma2 = diag(private$.residual_variance)
+          sbhat = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
+          sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E3
+          is_common_cov = is_mat_common(sbhat)
+        }
       }
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sbhat
       }
-      if (private$alpha != 0 && !all(sbhat == 1)) {
-        s_alpha = sbhat ^ private$alpha
-        bhat =  bhat / s_alpha
-        sbhat = sbhat ^ (1 - private$alpha)
-      } else {
-        s_alpha = matrix(0,0,0)
-      }
       # Fit MASH model
-      if (!is.null(private$precomputed_cov_matrices)) is_common_cov = private$precomputed_cov_matrices$common_sbhat
-      else is_common_cov = is_mat_common(sbhat)
       # 1.1 compute log-likelihood matrix given current estimates
-      if (is.null(private$precomputed_cov_matrices) || ncol(bhat) == 1) {
+      if (!identical(sbhat, NA)) {
         llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation,
                                          matrix(0,0,0),
                                          private$.prior_variance$xUlist,
@@ -71,7 +68,6 @@ MashRegression <- R6Class("MashRegression",
                                          TRUE,
                                          is_common_cov)$data
       }
-
       # 1.2 give a warning if any columns have -Inf likelihoods.
       rows <- which(apply(llik,2,function (x) any(is.infinite(x))))
       if (length(rows) > 0)
@@ -83,7 +79,7 @@ MashRegression <- R6Class("MashRegression",
       lfactors = apply(llik,1,max)
       llik = list(loglik_matrix=llik-lfactors, lfactors=lfactors)
       # 2. lbf
-      lbf_obj = private$compute_lbf(llik, s_alpha)
+      lbf_obj = private$compute_lbf(llik)
       private$.lbf = lbf_obj$lbf
       private$.loglik_null = lbf_obj$loglik_null
       if (!is.null(estimate_prior_variance_method)) {
@@ -110,14 +106,19 @@ MashRegression <- R6Class("MashRegression",
           xUlist = private$.prior_variance$xUlist * private$prior_variance_scale
         else
           xUlist = private$.prior_variance$xUlist
-        post = mashr:::calc_post_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0),
+        post = mashr:::calc_post_rcpp(t(bhat), t(sbhat),
+                              matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
                               matrix(0,0,0), matrix(0,0,0),
                               xUlist,
                               t(private$.mixture_posterior_weights),
                               is_common_cov, 4)
       } else {
-        post = mashr:::calc_post_precision_rcpp(t(bhat), t(sbhat), t(s_alpha), matrix(0,0,0),
+        # Posterior calculation does not need sbhat when there is Vinv etc
+        # But mashr code needs it for scaling back EE / EZ models
+        # So we just put in an an empty matrix here.
+        post = mashr:::calc_post_precision_rcpp(t(bhat), matrix(0,0,0),
+                              matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
                               matrix(0,0,0), matrix(0,0,0),
                               private$precomputed_cov_matrices$Vinv,
@@ -149,14 +150,13 @@ MashRegression <- R6Class("MashRegression",
   private = list(
     residual_correlation = NULL,
     precomputed_cov_matrices = NULL,
-    alpha = NULL,
     prior_variance_scale = NULL,
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     .residual_variance_inv = NULL,
-    compute_lbf = function(llik, s) {
-      # using mashr functions have to ensure s_alpha has valid log and rowSums
-      if (nrow(s) == 0) s = matrix(1,1,1)
+    compute_lbf = function(llik, s = NULL) {
+      # using mashr functions have to ensure input s_alpha parameter has valid log and rowSums
+      if (is.null(s) || (is.matrix(s) && nrow(s) == 0)) s = matrix(1,1,1)
         loglik_null = mashr:::compute_null_loglik_from_matrix(llik, s)
         loglik_alt = mashr:::compute_alt_loglik_from_matrix_and_pi(private$.prior_variance$pi, llik, s)
         lbf = loglik_alt - loglik_null
@@ -175,7 +175,7 @@ MashRegression <- R6Class("MashRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, alpha = 1, weights_tol = 1E-10, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, weights_tol = 1E-10, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
         all_zeros = vector()
         if (is.null(xUlist)) {
           for (l in 1:length(Ulist)) {
@@ -228,7 +228,6 @@ MashInitializer <- R6Class("MashInitializer",
         if (length(unique(u_rows)) > 1) stop("Ulist contains matrices of different dimensions.")
         prior_weights = prior_weights / sum(prior_weights)
         private$xU = list(pi = c(null_weight, prior_weights * (1 - null_weight)), xUlist = xUlist)
-        private$a = alpha
       },
     precompute_cov_matrices = function(d, residual_covariance, algorithm = c('R', 'cpp')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
@@ -238,9 +237,7 @@ MashInitializer <- R6Class("MashInitializer",
       # calc_post_precision_rcpp()
       # The input should be sbhat data matrix
       # d[j,] can be different for different conditions due to missing Y data
-      # FIXME: did not use alpha information
-      V = cov2cor(residual_covariance)
-      res = d$get_sumstats(diag(residual_covariance), V, private$a)
+      res = d$get_sumstats(residual_covariance)
       svs = res$svs
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
       # FIXME: compute this in parallel in the future
@@ -287,7 +284,7 @@ MashInitializer <- R6Class("MashInitializer",
       }
       private$inv_mats = list(Vinv = simplify2array(Vinv), U0 = simplify2array(U0),
                               sigma_rooti = simplify2array(sigma_rooti),
-                              sbhat = res$sbhat0,
+                              sbhat = res$sbhat,
                               common_sbhat = res$is_common_sbhat)
     },
     remove_precomputed = function() private$inv_mats = NULL
@@ -295,13 +292,11 @@ MashInitializer <- R6Class("MashInitializer",
   active = list(
       n_condition = function() nrow(private$xU$xUlist[[1]]),
       prior_variance = function() private$xU,
-      precomputed = function() private$inv_mats,
-      alpha = function() private$a
+      precomputed = function() private$inv_mats
   ),
   private = list(
       U = NULL,
       xU = NULL,
-      a = NULL,
       inv_mats = NULL
   )
 )

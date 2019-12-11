@@ -9,7 +9,7 @@ muffled_chol = function(x, ...)
 #' @title Find trace of diag matrix
 #' @keywords internal
 tr = function (m) {
-    if (!is.matrix(m) | (dim(m)[1] != dim(m)[2])) 
+    if (!is.matrix(m) | (dim(m)[1] != dim(m)[2]))
         stop("Input to tr() function must be a square matrix")
     return(sum(diag(m), na.rm = TRUE))
 }
@@ -113,11 +113,16 @@ mmbr_get_alpha_per_condition = function(m, prior_obj) {
 # Cannot use `unique` directly here -- for perfectly identical rows (by computation)
 # due to possible numerical issues, `unique` (and `duplicated`) function reports
 # that they are not identical.
-almost.unique.rows <- function(x,  tolerance = sqrt(.Machine$double.eps), ...)
+almost.unique <- function(x,  tolerance = sqrt(.Machine$double.eps), ...)
 {
-  y <- round(x/tolerance, 0)
+  if (is.matrix(x)) {
+    y <- round(x/tolerance, 0)
+  } else {
+    y <- lapply(1:length(x), function(i) round(x[[i]]/tolerance, 0))
+  }
   d <- duplicated(y, ...)
-  x[!d,,drop=F]
+  if (is.matrix(x)) x[!d,,drop=F]
+  else x[!d]
 }
 
 #' @title A null progressbar, because currently `progressbar_enabled` feature does not work for `progress_bar`
@@ -128,7 +133,13 @@ null_progress_bar = R6Class('null_progress_bar', public = list(tick = function(.
 #' @title check if all elements are the same in matrix of J by R, J >> R
 #' @keywords internal
 is_mat_common = function(mat) {
-  nrow(almost.unique.rows(mat)) == 1
+  nrow(almost.unique(mat)) == 1
+}
+
+#' @title check if all elements are the same in list
+#' @keywords internal
+is_list_common = function(lst) {
+  length(almost.unique(lst)) == 1
 }
 
 #' @title A simple simulation function to simulate some test data
@@ -265,16 +276,16 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
     }
   }
   library(ggplot2)
-  p = ggplot(table) + 
+  p = ggplot(table) +
     geom_point(aes(x = x, y = y, colour = effect_size , size = mlog10lfsr)) +
-    scale_x_discrete(limits = unique(table$x)) + 
-    scale_y_discrete(limits = unique(table$y)) + 
-    scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))), low="#022968", mid="white", high="#800000", space="Lab") + 
-    labs(size=paste0("-log10(", ifelse(original_sumstat, "p", "lfsr"), ")"), colour="Effect size") + 
-    theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(), 
+    scale_x_discrete(limits = unique(table$x)) +
+    scale_y_discrete(limits = unique(table$y)) +
+    scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))), low="#022968", mid="white", high="#800000", space="Lab") +
+    labs(size=paste0("-log10(", ifelse(original_sumstat, "p", "lfsr"), ")"), colour="Effect size") +
+    theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
         axis.text.y = element_text(size = 15, color = "black"),
-        axis.title.x = element_blank(), 
+        axis.title.x = element_blank(),
         axis.title.y = element_blank())
   w = length(unique(table$x)) * 0.5
   h = length(unique(table$y)) * 0.9
@@ -283,8 +294,8 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
 }
 
 #' @title Predict future observations or extract coefficients from susie fit
-#' @param object a susie fit 
-#' @param newx a new value for X at which to do predictions 
+#' @param object a susie fit
+#' @param newx a new value for X at which to do predictions
 #' @return a matrix of predicted values for each condition
 #' @details This function computes predicted values from a susie fit and a new value of X
 #' @export predict.mmbr
@@ -302,9 +313,9 @@ predict.mmbr <- function (object, newx) {
 #' @title Compute a list of canonical covariance matrices
 #' @param R an integer indicating the number of conditions
 #' @param singletons a logical value indicating whether the singleton matrices are computed
-#' @param hetgrid a vector of numbers between -1 and 1, each representing the off-diagonal elements of matrices with 1s on the diagonal. 
-#' If 0 is included, the identity matrix will be returned which corresponds to assuming effects are independent across conditions. 
-#' IF NULL, these matrices are not computed. 
+#' @param hetgrid a vector of numbers between -1 and 1, each representing the off-diagonal elements of matrices with 1s on the diagonal.
+#' If 0 is included, the identity matrix will be returned which corresponds to assuming effects are independent across conditions.
+#' IF NULL, these matrices are not computed.
 #' @return a list of canonical covariance matrices
 #' @details This function computes canonical covariance matrices to be provided to mash
 #' @examples
@@ -314,14 +325,14 @@ predict.mmbr <- function (object, newx) {
 #' @keywords internal
 create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
       mats <- list()
-  
+
   ###Singleton matrices
   if((singletons==T)){
           for(i in 1:R){
                     mats[[i]] <- matrix(0, nrow=R, ncol=R)
         mats[[i]][i, i] <- 1
             }
-      
+
       ###Heterogeneity matrices
       if(!is.null(hetgrid)){
                 for(j in 1:length(hetgrid)){
@@ -346,10 +357,9 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' @title Create mash prior object
 #' @param fitted_g from mashr::mash
 #' @param mixture_prior a list of (weights = vector(), matrices = list()) where  matrices is a list of prior matrices and have same length as weights.
-#' @param sample_data a list of (X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to allow for automatically determine canonical priors with equal weights 
+#' @param sample_data a list of (X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to allow for automatically determine canonical priors with equal weights
 #' @param null_weight whether or not to add a weight for null in single effect models. By default it takes the null weight from fitted_g
-#' if available. Use `null_weight = 0` to override the behavior. 
-#' @param alpha 0 for EE, 1 for EZ model. See mashr::mash() for details.
+#' if available. Use `null_weight = 0` to override the behavior.
 #' @param weights_tol filter out priors with weights smaller than weights_tol
 #' @param max_mixture_len only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
 #' Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.
@@ -357,9 +367,9 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' @return mash prior object for use with msusie() function
 #' @details ...
 #' @export
-create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL, 
-                             null_weight = NULL, alpha = 0, 
-                             weights_tol = 1E-10, max_mixture_len = 40, include_indices = NULL) {
+create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL,
+                             null_weight = NULL, weights_tol = 1E-10, max_mixture_len = 40,
+                             include_indices = NULL) {
   if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 2)
     stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
   if (!is.null(fitted_g)) {
@@ -373,9 +383,9 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     } else {
       prior_weights = mash$fitted_g$pi
     }
-    return(MashInitializer$new(fitted_g$Ulist, fitted_g$grid, 
-                               prior_weights=prior_weights, null_weight=null_weight, 
-                               alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 
+    return(MashInitializer$new(fitted_g$Ulist, fitted_g$grid,
+                               prior_weights=prior_weights, null_weight=null_weight,
+                               weights_tol=weights_tol, top_mixtures=max_mixture_len,
                                include_conditions=include_indices))
   }
   if (!is.null(mixture_prior)) {
@@ -384,8 +394,8 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     }
     if (is.null(null_weight)) null_weight = 0
     return(MashInitializer$new(NULL, NULL, xUlist=mixture_prior$matrices, prior_weights=mixture_prior$weights,
-                               null_weight=null_weight, 
-                               alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 
+                               null_weight=null_weight,
+                               weights_tol=weights_tol, top_mixtures=max_mixture_len,
                                include_conditions=include_indices))
   }
   if (!is.null(sample_data)) {
@@ -402,18 +412,18 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     }
     # compute grid
     d = DenseData$new(sample_data$X, sample_data$Y, sample_data$center, sample_data$scale)
-    res = d$get_sumstats(diag(sample_data$residual_variance), cov2cor(sample_data$residual_variance), alpha)
+    res = d$get_sumstats(diag(sample_data$residual_variance), cov2cor(sample_data$residual_variance))
     ## Use sqrt(3) giving a coarser grid than mash default in exchange for less walltime
     grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(3))
     # compute canonical covariances
     Ulist = create_cov_canonical(ncol(sample_data$Y))
     comp_len = length(grid) * length(Ulist)
-    if (max_mixture_len<comp_len && max_mixture_len>0) 
+    if (max_mixture_len<comp_len && max_mixture_len>0)
       warning(paste0('Automatically generated uniform mixture prior is of length ', comp_len, ' and is greater than currently specified max_mixture_len ', max_mixture_len, ". Please set max_mixture_len=-1 to allow using all of them (although computational speed will suffer)."))
     if (is.null(null_weight)) null_weight = 0
     return(MashInitializer$new(Ulist, grid,
                                prior_weights=NULL, null_weight=null_weight,
-                               alpha=alpha, weights_tol=weights_tol, top_mixtures=max_mixture_len, 
+                               weights_tol=weights_tol, top_mixtures=max_mixture_len,
                                include_conditions=include_indices))
   }
 }

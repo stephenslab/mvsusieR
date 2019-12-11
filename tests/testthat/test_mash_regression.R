@@ -10,7 +10,7 @@ test_that("Degenerated mash regression is identical to univariate BR", with(simu
     # Run MASH BMR
     # null_weight = 1 - 1 / ncol(X)
     null_weight = 0
-    mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight, alpha = 0)
+    mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
     residual_covar = cov(y)
     B = MashRegression$new(ncol(X), residual_covar, mash_init)
     B$fit(data, save_summary_stats = T)
@@ -29,7 +29,7 @@ test_that("Single component mash regression is identical to multivariate BR", wi
     A = BayesianMultivariateRegression$new(ncol(X), residual_var, V)
     A$fit(data, save_summary_stats = T)
     # Run MASH regression EE model
-    mash_init = MashInitializer$new(list(V), 1, alpha = 0)
+    mash_init = MashInitializer$new(list(V), 1)
     B = MashRegression$new(ncol(X), residual_var, mash_init)
     B$fit(data, save_summary_stats = T)
     # compare result
@@ -45,7 +45,7 @@ test_that("Single component mash regression is identical to multivariate BR", wi
     A = BayesianMultivariateRegression$new(ncol(X), residual_var, V)
     A$fit(data, save_summary_stats = T)
     # Run MASH regression EE model
-    mash_init = MashInitializer$new(list(V), 1, alpha = 0)
+    mash_init = MashInitializer$new(list(V), 1)
     B = MashRegression$new(ncol(X), residual_var, mash_init)
     B$fit(data, save_summary_stats = T)
     # compare result
@@ -63,31 +63,16 @@ test_that("Mash regression + precomputed cov is identical to not precompute", wi
     data = DenseData$new(X,y)
     null_weight = 0
     residual_covar = cov(y)
-    #
-    A_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight, alpha = 1)
+
+    A_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
     A = MashRegression$new(ncol(X), residual_covar, A_init)
     A$fit(data, save_summary_stats = T)
-    B_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight, alpha = 1)
+    B_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
     B_init$precompute_cov_matrices(data, residual_covar, algorithm = 'cpp')
     B = MashRegression$new(ncol(X), residual_covar, B_init)
     B$fit(data, save_summary_stats = T)
     # compare result
     expect_equal(A$bhat, B$bhat)
-    expect_equal(A$sbhat, B$sbhat)
-    expect_equal(A$posterior_b1, B$posterior_b1)
-    expect_equal(A$posterior_b2, B$posterior_b2)
-    expect_equal(A$lbf, B$lbf)
-    #
-    A_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight, alpha = 0)
-    A = MashRegression$new(ncol(X), residual_covar, A_init)
-    A$fit(data, save_summary_stats = T)
-    B_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight, alpha = 0)
-    B_init$precompute_cov_matrices(data, residual_covar, algorithm = 'cpp')
-    B = MashRegression$new(ncol(X), residual_covar, B_init)
-    B$fit(data, save_summary_stats = T)
-    # compare result
-    expect_equal(A$bhat, B$bhat)
-    expect_equal(A$sbhat, B$sbhat)
     expect_equal(A$posterior_b1, B$posterior_b1)
     expect_equal(A$posterior_b2, B$posterior_b2)
     expect_equal(A$lbf, B$lbf)
