@@ -33,25 +33,28 @@ SingleEffectModel <- function(base)
         .vbxxb = NULL,
         # This is the expected loglik minus the loglik_null, that is, N(R|B,V) - N(R|0,V)
         compute_expected_loglik_partial = function(d) {
-            if (inherits(d, c("DenseData", "SSData", "SparseData"))) {
-                if (is.null(private$.residual_variance_inv)) {
-                    return(- (0.5/private$.residual_variance) * (- 2*sum(self$posterior_b1*d$XtR) + sum(d$X2_sum*as.vector(self$posterior_b2))))
-                } else {
-                    # FIXME: Currently this computation does not work for case with missing data
-                    E1 = tr(private$.residual_variance_inv %*% t(self$posterior_b1) %*% d$XtR)
-                    # posterior variance covariance matrix, weighted by PIP
-                    if (length(dim(private$.posterior_b2)) == 3) {
-                        S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * private$.posterior_b2[,,j] - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
-                    } else {
-                        S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]) - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
-                    }
-                    private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]])))
-                    private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
-                    return(E1 - private$.vbxxb / 2)
-                }
+            if (is.matrix(private$.residual_variance)) {
+                private$compute_expected_loglik_partial_multivariate(d)
             } else {
-                stop("compute_expected_loglik_partial not implemented for given data type")
+                private$compute_expected_loglik_partial_univariate(d)
             }
+        },
+        compute_expected_loglik_partial_univariate = function(d) {
+            return(- (0.5/private$.residual_variance) * (- 2*sum(self$posterior_b1*d$XtR) + sum(d$X2_sum*as.vector(self$posterior_b2))))
+        },
+        compute_expected_loglik_partial_multivariate = function(d) {
+            # FIXME: Currently this computation does not work for case with missing data
+            if (d$Y_has_missing) stop("compute_expected_loglik_partial_multivariate cannot yet work with missing data")
+            E1 = tr(private$.residual_variance_inv %*% t(self$posterior_b1) %*% d$XtR)
+            # posterior variance covariance matrix, weighted by PIP
+            if (length(dim(private$.posterior_b2)) == 3) {
+                S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * private$.posterior_b2[,,j] - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
+            } else {
+                S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]) - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
+            }
+            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]])))
+            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
+            return(E1 - private$.vbxxb / 2)
         }
     ),
     active = list(
