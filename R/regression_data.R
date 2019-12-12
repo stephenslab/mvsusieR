@@ -111,6 +111,9 @@ DenseData <- R6Class("DenseData",
         if (is_common_sbhat) {
             SVS = SVS[[1]]
         }
+        # FIXME: haven't figured out how to compute it for missing data case ...
+        # but this will not have an impact later since we've computed SVS instead
+        # that can be used for likelihood and posterior calculations
         sbhat = NA
       } else {
         sbhat = sqrt(do.call(rbind, lapply(1:length(private$d), function(j) residual_variances / private$d[j])))
