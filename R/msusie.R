@@ -115,6 +115,10 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
       stop("Diagonal of residual_variance cannot be NA")
     residual_variance[which(is.na(residual_variance))] = 0
     mashr:::check_positive_definite(residual_variance)
+    if (estimate_residual_variance) {
+      warning("estimate_residual_variance is not yet supported for multivariate analysis")
+      estimate_residual_variance = FALSE
+    }
   } else {
     if (is.na(residual_variance) || is.infinite(residual_variance))
       stop("Invalid residual_variance")

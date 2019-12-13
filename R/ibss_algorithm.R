@@ -152,6 +152,7 @@ SuSiE <- R6Class("SuSiE",
         return(-(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr)
     },
     compute_expected_loglik_multivariate = function(d) {
+        v_inv = private$SER[[1]]$residual_variance_inv
         expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
         # a version not expanding the math
         resid = d$Y - d$X %*% Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1))
