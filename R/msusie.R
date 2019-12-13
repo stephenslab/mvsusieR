@@ -143,7 +143,7 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
     # FIXME: check prior_variance is valid MASH object
     if (prior_variance$n_condition != data$n_condition) stop("Dimension mismatch between input prior covariance and response variable data.")
     base = MashRegression
-    if ((data$Y_has_missing && !is_diag_mat(residual_variance)) || precompute_covariances)
+    if (data$Y_has_missing || precompute_covariances)
       prior_variance$precompute_cov_matrices(data, residual_variance)
   }
   if (!estimate_prior_variance) estimate_prior_method = NULL
