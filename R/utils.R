@@ -1,3 +1,4 @@
+#' @title chol decomposition without warning message
 #' @keywords internal
 muffled_chol = function(x, ...)
   withCallingHandlers(chol(x, ...),
@@ -5,6 +6,18 @@ muffled_chol = function(x, ...)
                         if (grepl("the matrix is either rank-deficient or indefinite", w$message))
                           invokeRestart("muffleWarning")
                       })
+
+#' @title Invert a symmetric, positive definite square matrix via its Choleski decomposition
+#' @keywords internal
+invert_via_chol = function(x) {
+  return(chol2inv(muffled_chol(x)))
+}
+
+#' @title Invert a triangular matrix
+#' @keywords internal
+invert_tri = function(x) {
+  return(t(backsolve(muffled_chol(x), diag(nrow(x)))))
+}
 
 #' @title Find trace of diag matrix
 #' @keywords internal

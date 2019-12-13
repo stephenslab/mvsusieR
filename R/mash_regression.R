@@ -13,7 +13,7 @@ MashRegression <- R6Class("MashRegression",
       private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
       tryCatch({
-        private$.residual_variance_inv = solve(residual_variance)
+        private$.residual_variance_inv = invert_via_chol(residual_variance)
       }, error = function(e) {
         stop(paste0('Cannot compute inverse for residual_variance:\n', e))
       })
@@ -254,12 +254,12 @@ MashInitializer <- R6Class("MashInitializer",
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()
         for (i in 1:length(private$xU$xUlist)) {
-          if (algorithm == 'R') sigma_rooti[[i]] = t(backsolve(muffled_chol(svs + private$xU$xUlist[[i]]), diag(nrow(svs))))
+          if (algorithm == 'R') sigma_rooti[[i]] = invert_tri(svs + private$xU$xUlist[[i]])
           else sigma_rooti[[i]] = mashr:::calc_rooti_rcpp(svs + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
         Vinv = list()
-        Vinv[[1]] = solve(svs)
+        Vinv[[1]] = invert_via_chol(svs)
         U0 = list()
         for (i in 1:length(private$xU$xUlist)) U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
       } else {
@@ -272,14 +272,14 @@ MashInitializer <- R6Class("MashInitializer",
           for (j in 1:length(svs)) {
             for (i in 1:length(private$xU$xUlist)) {
               if (algorithm == 'R') {
-                sigma_rooti[[k]] = t(backsolve(muffled_chol(svs[[j]] + private$xU$xUlist[[i]]), diag(nrow(svs[[j]]))))
+                sigma_rooti[[k]] = invert_tri(svs[[j]] + private$xU$xUlist[[i]])
               } else {
                 sigma_rooti[[k]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
               }
               k = k + 1
             }
           }
-          Vinv = lapply(1:length(svs), function(i) solve(svs[[i]]))
+          Vinv = lapply(1:length(svs), function(i) invert_via_chol(svs[[i]]))
           U0 = list()
           k = 1
           for (j in 1:length(svs)) {
