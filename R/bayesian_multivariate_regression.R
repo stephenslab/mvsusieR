@@ -10,7 +10,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
       private$prior_variance_scale = 1
       tryCatch({
-        private$.residual_variance_inv = solve(residual_variance)
+        private$.residual_variance_inv = invert_via_chol(residual_variance)
       }, error = function(e) {
         warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
       })
@@ -85,7 +85,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
 #' @importFrom abind abind
 #' @keywords internal
 multivariate_regression = function(bhat, S, U) {
-  S_inv = lapply(1:length(S), function(j) solve(S[[j]]))
+  S_inv = lapply(1:length(S), function(j) invert_via_chol(S[[j]]))
   post_cov = lapply(1:length(S), function(j) U %*% solve(diag(nrow(U)) + S_inv[[j]] %*% U))
   lbf = sapply(1:length(S), function(j) 0.5 * (log(det(S[[j]])) - log(det(S[[j]]+U))) + 0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])
   lbf[which(is.nan(lbf))] = 0
