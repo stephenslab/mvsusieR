@@ -212,3 +212,155 @@ DenseData <- R6Class("DenseData",
     }
   )
 )
+
+#' @title Summary statistics object
+# Z and R
+#' @importFrom R6 R6Class
+#' @keywords internal
+RSSData <- R6Class("RSSData",
+  public = list(
+    initialize = function(Z, R, tol) {
+      if(any(is.infinite(Z))){
+        stop('Z scores contain infinite value.')
+        }
+      # Check NA in R
+      if (any(is.na(R))) {
+        stop('R matrix contains missing values.')
+      }
+      # Check input R.
+      if (!susieR:::is_symmetric_matrix(R)) {
+        stop('R is not a symmetric matrix.')
+      }
+      if (!(is.double(R) &
+            is.matrix(R)) & !inherits(R, "CsparseMatrix"))
+        stop("Input R must be a double-precision matrix, or a sparse matrix.")
+      
+      if (is.null(dim(Z)))
+        Z = matrix(Z, length(Z), 1)
+      
+      if (nrow(R) != nrow(Z)) {
+        stop(paste0('The dimension of correlation matrix (',nrow(R),' by ',ncol(R),
+            ') does not agree with expected (',nrow(Z),' by ',nrow(Z),')'))
+      }
+      
+      # replace NA in z with 0
+      if (any(is.na(Z))) {
+        warning('NA values in Z-scores are replaced with 0.')
+        Z[is.na(Z)] = 0
+      }
+      private$.XtX = R
+      private$J = nrow(R)
+      if (is.null(dim(Z))) private$R = 1
+      else private$R = ncol(Z)
+      private$check_semi_pd(tol)
+      private$.X = t(private$eigenvectors[, private$eigenvalues !=0]) * private$eigenvalues[private$eigenvalues != 0] ^ (0.5)
+      private$.Y = (t(private$eigenvectors[, private$eigenvalues != 0]) * private$eigenvalues[private$eigenvalues != 0] ^ (-0.5)) %*% Z
+      private$.XtY = private$UUt %*% Z # = Z when Z is in eigen space of R
+      private$.residual = private$.Y
+    },
+    compute_Xb = function(Z) {
+      tcrossprod(private$.X, t(Z))
+    },
+    remove_from_residual = function(value) {
+      private$.residual = private$.residual - value
+    },
+    add_to_residual = function(value) {
+      private$.residual = private$.residual + value
+    },
+    compute_residual = function(fitted) {
+      private$.residual = private$.Y - fitted
+    },
+    rescale_coef = function(b) {
+      coefs = b / private$csd
+      if (is.null(dim(coefs))) {
+        return(c(0, coefs))
+      } else {
+        mat = as.matrix(rbind(0, coefs))
+        return(mat)
+      }
+    },
+    get_sumstats = function(residual_variances,residual_correlation = NULL) {
+      if (is.null(residual_correlation)) {
+        if (!is.matrix(residual_variances))
+          stop("residual variance has to be a matrix if residual correlation is not specified")
+        residual_correlation = cov2cor(residual_variances)
+        residual_variances = diag(residual_variances)
+      }
+      # private$d is either vector or matrix
+      bhat = self$XtY / private$d
+      bhat[which(is.nan(bhat))] = 0
+      sbhat = sqrt(do.call(rbind,lapply(1:length(private$d), function(j) residual_variances / private$d[j])))
+      sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E3
+      is_common_sbhat = is_mat_common(sbhat)
+      if (is_common_sbhat)
+        SVS = sbhat[1, ] * t(residual_correlation * sbhat[1, ]) # faster than diag(s) %*% V %*% diag(s)
+      else
+        SVS = lapply(1:nrow(sbhat), function(j) sbhat[j, ] * t(residual_correlation * sbhat[j, ]))
+      return(list(
+        svs = SVS,
+        sbhat = sbhat,
+        is_common_sbhat = is_common_sbhat,
+        bhat = bhat
+      ))
+    }
+  ),
+  active = list(
+    X = function() private$.X,
+    Y = function() private$.Y,
+    XtX = function() private$.XtX,
+    XtY = function() private$.XtY,
+    X2_sum = function() private$d,
+    XtR = function() {
+      crossprod(private$.X, private$.residual)
+      },
+    residual = function() private$.residual,
+    n_condition = function() private$R,
+    n_effect = function() private$J,
+    # n_sample doesn't mean sample size here, it means the number of non zero eigenvalues
+    n_sample = function() sum(private$eigenvalues > 0),
+    Y_has_missing = function() private$.Y_has_missing
+  ),
+  private = list(
+    .X = NULL,
+    .Y = NULL,
+    .XtX = NULL,
+    .XtY = NULL,
+    UUt = NULL,
+    eigenvectors = NULL,
+    eigenvalues = NULL,
+    d = NULL,
+    J = NULL,
+    R = NULL,
+    .residual = NULL,
+    csd = NULL,
+    .Y_has_missing = FALSE,
+    check_semi_pd = function(tol) {
+      eigenR = eigen(private$.XtX, symmetric = TRUE)
+      eigenR$values[abs(eigenR$values) < tol] = 0
+      if (any(eigenR$values < 0)) {
+        eigenR$values[eigenR$values < 0] = 0
+        warning('Negative eigenvalues are set to 0.')
+      }
+      tmp = eigenR$vectors %*% (t(eigenR$vectors) * eigenR$values)
+      if (all(abs(diag(tmp) - 1) < sqrt(.Machine$double.eps))) {
+        diag(tmp) = 1
+        private$.XtX = tmp
+      } else{
+        diagtmp_0.5 = diag(tmp) ^ (0.5)
+        diagtmp_0.5[diagtmp_0.5 == 0] = 1
+        normalize = apply(eigenR$vectors / diagtmp_0.5, 2, function(x)
+          sqrt(sum(x ^ 2)))
+        eigenR$values = normalize ^ 2 * eigenR$values
+        eigenR$vectors = t(t(eigenR$vectors / diagtmp_0.5) / normalize)
+        private$.XtX = eigenR$vectors %*% (t(eigenR$vectors) * eigenR$values)
+        diag(private$.XtX) = 1
+      }
+      private$csd = rep(1, length = private$J)
+      private$d = diag(private$.XtX)
+      
+      private$eigenvectors = eigenR$vectors
+      private$eigenvalues = eigenR$values
+      private$UUt = tcrossprod(private$eigenvectors[, which(private$eigenvalues > 0)])
+    }
+  )
+)
