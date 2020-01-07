@@ -3,7 +3,7 @@ context("Test check for convergence using ELBO or not")
 test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(), {
     # Do not estimate prior variance
     SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
-    A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, tol = 1E-6)
+    A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
     d.copy = d$clone(T)
     A$fit(d.copy)
     A = report_susie_model(d.copy, A)
@@ -14,7 +14,7 @@ test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(
     expect_susie_equal(A,B,F,F,tol=1E-3)
     # Estimate prior variance
     SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
-    A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, tol = 1E-6)
+    A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
     d.copy = d$clone(T)
     A$fit(d.copy, estimate_prior_variance_method='optim')
     A = report_susie_model(d.copy, A) 
@@ -23,4 +23,29 @@ test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(
     B$fit(d.copy, estimate_prior_variance_method='optim')
     B = report_susie_model(d.copy, B) 
     expect_susie_equal(A,B,T,F,tol=5E-4)
+}))
+
+test_that("mmbr get same result checking ELBO or not RSS", with(simulate_univariate(summary = T), {
+  # Do not estimate prior variance
+  SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
+  A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
+  d.copy = d$clone(T)
+  A$fit(d.copy)
+  A = report_susie_model(d.copy, A)
+  B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-6)
+  d.copy = d$clone(T)
+  B$fit(d.copy)
+  B = report_susie_model(d.copy, B) 
+  expect_susie_equal(A,B,F,F,tol=1E-3)
+  # Estimate prior variance
+  SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
+  A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
+  d.copy = d$clone(T)
+  A$fit(d.copy, estimate_prior_variance_method='optim')
+  A = report_susie_model(d.copy, A) 
+  B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-6)
+  d.copy = d$clone(T)
+  B$fit(d.copy, estimate_prior_variance_method='optim')
+  B = report_susie_model(d.copy, B) 
+  expect_susie_equal(A,B,T,F,tol=5E-4)
 }))

@@ -102,6 +102,97 @@ msusie = function(X,Y,L=10,
   return(s)
 }
 
+#' @title SUm of Single Effect (SuSiE) Regression using Summary Statistics Z and R
+#' @param Z a J by R matrix of z scores
+#' @param R a J by J LD matrix
+#' @param L maximum number of non-zero effects
+#' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
+#' @param residual_variance the residual variance (defaults to 1)
+#' @param prior_weights a p vector of prior probability that each element is non-zero
+#' @param estimate_residual_variance indicates whether to estimate residual variance (currently only works for univariate Y input)
+#' @param estimate_prior_variance indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)
+#' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
+#' @param s_init a previous susie fit with which to initialize
+#' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
+#' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
+#' Default set to 0.5 to correspond to squared correlation of 0.25,
+#' a commonly used threshold for genotype data in genetics studies.
+#' @param max_iter maximum number of iterations to perform
+#' @param tol convergence tolerance
+#' @param z_thresh the z score threshold below which to call an effect null
+#' @param verbose if TRUE outputs some progress messages
+#' @param track_fit add an attribute \code{trace} to output that saves some current quantities of all iterations
+#' @return a susie fit, which is a list with some or all of the following elements\cr
+#' \item{alpha}{an L by p matrix of posterior inclusion probabilites}
+#' \item{b1}{an L by p matrix of posterior means (conditional on inclusion)}
+#' \item{b2}{an L by p matrix of posterior second moments (conditional on inclusion)}
+#' \item{KL}{an L vector of KL divergence}
+#' \item{lbf}{an L vector of logBF}
+#' \item{sigma2}{residual variance}
+#' \item{V}{prior variance}
+#' \item{elbo}{a vector of values of elbo achieved (objective function)}
+#' \item{niter}{number of iterations took for convergence}
+#' \item{convergence}{convergence status}
+#' \item{sets}{a list of `cs`, `purity` and selected `cs_index`}
+#' \item{pip}{a vector of posterior inclusion probability}
+#' \item{walltime}{records runtime of the fitting algorithm}
+#' \item{z}{a vector of univariate z-scores}
+#' @examples
+#' set.seed(1)
+#' n = 1000
+#' p = 1000
+#' beta = rep(0,p)
+#' beta[1:4] = 1
+#' X = matrix(rnorm(n*p),nrow=n,ncol=p)
+#' y = X %*% beta + rnorm(n)
+#' res = msusie(X,y,L=10)
+#'
+#' @importFrom stats var
+#' @importFrom susieR susie_get_cs susie_get_pip is_symmetric_matrix
+#' @export
+msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
+                      prior_variance=50,
+                      residual_variance=NULL,
+                      prior_weights=NULL,
+                      estimate_residual_variance=TRUE,
+                      estimate_prior_variance=FALSE,
+                      estimate_prior_method='optim',
+                      compute_objective=FALSE,
+                      precompute_covariances = FALSE,
+                      s_init = NULL,coverage=0.95,min_abs_corr=0.5,
+                      max_iter=100,tol=1e-3,z_thresh = 2,
+                      verbose=TRUE,track_fit=FALSE) {
+  if (is.null(prior_weights)) prior_weights = c(rep(1/nrow(R), nrow(R)))
+  else prior_weights = prior_weights / sum(prior_weights)
+  
+  data = RSSData$new(Z, R, r_tol)
+  if (is.null(residual_variance)) {
+    if (data$n_condition > 1) {
+      max_absz = apply(abs(data$XtY),1, max)
+      nullish = which(max_absz < z_thresh)
+      if(length(nullish)<data$n_condition){
+        stop("not enough null data to estimate null correlation")
+      }
+      nullish_z = data$XtY[nullish,]
+      residual_variance = cor(nullish_z)
+    }
+    else residual_variance = 1
+  }
+  #
+  s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
+                estimate_residual_variance, estimate_prior_variance, estimate_prior_method,
+                precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
+  # CS and PIP
+  if (!is.null(coverage) && !is.null(min_abs_corr)) {
+    s$null_index = -9
+    s$sets = susie_get_cs(s, coverage=coverage, Xcorr=data$XtX, min_abs_corr=min_abs_corr)
+    s$pip = susie_get_pip(s)
+    s$null_index = NULL
+  }
+  return(s)
+}
+
+
 #' @title Core MMBR code
 #' @keywords internal
 mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_weights,
@@ -141,6 +232,7 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
     base = MashRegression
     if (data$Y_has_missing || precompute_covariances)
       prior_variance$precompute_cov_matrices(data, residual_variance)
+    residual_variance = as.matrix(residual_variance)
   }
   if (!estimate_prior_variance) estimate_prior_method = NULL
   # Below are the core computations
