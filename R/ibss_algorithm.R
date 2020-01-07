@@ -160,11 +160,12 @@ SuSiE <- R6Class("SuSiE",
       }
       return(expected_loglik - 0.5 * essr)
     },
-    
     estimate_residual_variance = function(d) {
         if (is.matrix(private$SER[[1]]$residual_variance)) {
             # FIXME: to implement estimating a vector of length R, or even a scalar
-            warning("Estimate residual variance feature has not yet been implemented for multivariate data.")
+          E1 = lapply(1:length(private$SER), function(l) t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1)
+          E1 = crossprod(d$residual) - Reduce('+', E1)
+          private$sigma2 = (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample
         } else {
             private$essr = private$compute_expected_sum_squared_residuals_univariate(d)
             private$sigma2 = private$essr / d$n_sample
@@ -180,7 +181,7 @@ SuSiE <- R6Class("SuSiE",
         return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
       } else {
         XB2 = sum((Eb1 %*% d$XtX) * Eb1)
-        return(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2)))
+        return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
       }
     },
     compute_expected_sum_squared_residuals_multivariate = function(d) {

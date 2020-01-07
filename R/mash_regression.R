@@ -151,7 +151,10 @@ MashRegression <- R6Class("MashRegression",
     prior_variance = function() private$prior_variance_scale,
     residual_variance = function(v) {
       if (missing(v)) private$.residual_variance
-      else warning(paste("residual variance cannot be changed for object", "MashRegression"))
+      else{
+        private$.residual_variance = v
+        private$.residual_variance_inv = invert_via_chol(v)
+      }
     }
   ),
   private = list(
