@@ -160,7 +160,6 @@ SuSiE <- R6Class("SuSiE",
       }
       return(expected_loglik - 0.5 * essr)
     },
-    
     estimate_residual_variance = function(d) {
         if (is.matrix(private$SER[[1]]$residual_variance)) {
             # FIXME: to implement estimating a vector of length R, or even a scalar

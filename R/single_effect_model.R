@@ -31,6 +31,7 @@ SingleEffectModel <- function(base)
         lbf_single_effect = NULL, # logBF for SER model: sum of logBF of all J effects
         .kl = NULL,
         .vbxxb = NULL,
+        .bxxb = NULL,
         # This is the expected loglik minus the loglik_null, that is, N(R|B,V) - N(R|0,V)
         compute_expected_loglik_partial = function(d) {
             if (is.matrix(private$.residual_variance)) {
@@ -53,7 +54,9 @@ SingleEffectModel <- function(base)
                 S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]) - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
             }
             private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]])))
+            private$.bxxb = Reduce('+', lapply(1:length(S), function(j) d$X2_sum[j] * S[[j]]))
             private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
+            private$.bxxb = Reduce('+', lapply(1:length(S), function(j) d$X2_sum[j] * tcrossprod(self$posterior_b1[j,]))) + private$.bxxb
             return(E1 - private$.vbxxb / 2)
         }
     ),
@@ -74,6 +77,7 @@ SingleEffectModel <- function(base)
         pip = function() private$.pip,
         lbf = function() private$lbf_single_effect,
         kl = function() private$.kl,
-        vbxxb = function() private$.vbxxb
+        vbxxb = function() private$.vbxxb,
+        bxxb = function() private$.bxxb
     )
   )
