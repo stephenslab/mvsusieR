@@ -44,8 +44,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$.posterior_b1 = post$b1
       private$.posterior_b2 = post$b2
       private$.lbf = post$lbf
-    },
-    compute_loglik_null = function(d) {}
+    }
   ),
   active = list(
     residual_variance_inv = function() private$.residual_variance_inv,

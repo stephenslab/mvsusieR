@@ -38,13 +38,6 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
         private$.lbf = as.vector(private$.lbf)
       private$.lbf[sbhat2==Inf] = 0
-    },
-    compute_loglik_null = function(d) {
-      if (inherits(d, "DenseData")) {
-        private$.loglik_null = dnorm(d$Y,0,sqrt(private$.residual_variance),log=TRUE)
-      } else {
-        private$.loglik_null = NA
-      }
     }
   ),
   active = list(
@@ -97,13 +90,15 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     negloglik_grad_logscale = function(lV,betahat,shat2,prior_weights) {
       -exp(lV)*private$loglik_grad(exp(lV),betahat,shat2,prior_weights)
     },
-    estimate_prior_variance = function(betahat,shat2,prior_weights, method=c('optim', 'uniroot')) {
+    estimate_prior_variance = function(betahat,shat2,prior_weights, method=c('optim', 'uniroot', 'simple')) {
       if(method=="optim"){
         lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, method='Brent', lower = -30, upper = 15)$par
         V = exp(lV)
-      } else {
+      } else if (method == 'uniroot'){
         V.u = uniroot(private$negloglik_grad_logscale,c(-10,10),extendInt = "upX",betahat=betahat,shat2=shat2,prior_weights=prior_weights)
         V = exp(V.u$root)
+      } else if (method == 'simple'){
+        V = private$.prior_variance
       }
       if(private$loglik(0,betahat,shat2,prior_weights) >= private$loglik(V,betahat,shat2,prior_weights)) V=0 # set V exactly 0 if that beats the numerical value
       return(V)
