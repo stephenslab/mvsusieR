@@ -36,7 +36,7 @@ DenseData <- R6Class("DenseData",
         }
       }
       private$standardize(center,scale)
-      private$residual = private$.Y
+      private$.residual = private$.Y
     },
     compute_Xb = function(b) {
       # tcrossprod(A,B) performs A%*%t(B) but faster
@@ -55,13 +55,13 @@ DenseData <- R6Class("DenseData",
       }
     },
     remove_from_residual = function(value) {
-      private$residual = private$residual - value
+      private$.residual = private$.residual - value
     },
     add_to_residual = function(value) {
-      private$residual = private$residual + value
+      private$.residual = private$.residual + value
     },
     compute_residual = function(fitted) {
-      private$residual = private$.Y - fitted
+      private$.residual = private$.Y - fitted
     },
     rescale_coef = function(b) {
       coefs = b/private$csd
@@ -141,9 +141,10 @@ DenseData <- R6Class("DenseData",
       }
     },
     XtR = function() {
-      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$X_for_Y_missing[private$Y_non_missing[,r],,r], private$residual[private$Y_non_missing[,r],r]))
-      else crossprod(private$.X, private$residual)
+      if (private$.Y_has_missing) sapply(1:private$R, function(r) crossprod(private$X_for_Y_missing[private$Y_non_missing[,r],,r], private$.residual[private$Y_non_missing[,r],r]))
+      else crossprod(private$.X, private$.residual)
     },
+    residual = function() private$.residual,
     n_sample = function() private$N,
     n_condition = function() private$R,
     n_effect = function() private$J,
@@ -158,7 +159,7 @@ DenseData <- R6Class("DenseData",
     N = NULL,
     J = NULL,
     R = NULL,
-    residual = NULL,
+    .residual = NULL,
     csd = NULL,
     cm = NULL,
     Y_mean = NULL,
