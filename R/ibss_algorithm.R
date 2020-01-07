@@ -167,7 +167,7 @@ SuSiE <- R6Class("SuSiE",
           E1 = crossprod(d$residual) - Reduce('+', E1)
           private$sigma2 = (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample
         } else {
-            private$essr = as.numeric(private$compute_expected_sum_squared_residuals_univariate(d))
+            private$essr = private$compute_expected_sum_squared_residuals_univariate(d)
             private$sigma2 = private$essr / d$n_sample
         }
     },
@@ -181,7 +181,7 @@ SuSiE <- R6Class("SuSiE",
         return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
       } else {
         XB2 = sum((Eb1 %*% d$XtX) * Eb1)
-        return(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2)))
+        return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
       }
     },
     compute_expected_sum_squared_residuals_multivariate = function(d) {
