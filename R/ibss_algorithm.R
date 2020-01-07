@@ -145,57 +145,49 @@ SuSiE <- R6Class("SuSiE",
         n = d$n_sample
         residual_variance = private$sigma2
         if (is.null(private$essr)) {
-            essr = private$compute_expected_sum_squared_residuals(d)
+            essr = private$compute_expected_sum_squared_residuals_univariate(d)
         } else {
             essr = private$essr
         }
         return(-(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr)
     },
     compute_expected_loglik_multivariate = function(d) {
-        v_inv = private$SER[[1]]$residual_variance_inv
-        expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
-        # a version not expanding the math
-        resid = d$Y - d$X %*% Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1))
-        E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
-        E1 = tr(v_inv%*%t(resid)%*%resid) - sum(E1)
-        # After expanding the math
-        #E1 = tr(v_inv%*%crossprod(d$Y, d$Y)) - 2 * tr(v_inv %*% t(d$Y) %*% d$X %*% Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$posterior_b1)))
-        #XtX = d$XtX
-        #for (l1 in 1:length(private$SER)) {
-        #    for (l2 in 1:length(private$SER)) {
-        #        if (l1 != l2) {
-        #            E1 = E1 + tr(v_inv %*% t(private$SER[[l1]]$posterior_b1) %*% XtX %*% private$SER[[l2]]$posterior_b1)
-        #        }
-        #    }
-        #}
-        scaled_essr = -0.5 * (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
-        return(expected_loglik + scaled_essr)
+      expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
+      if (is.null(private$essr)) {
+        essr = private$compute_expected_sum_squared_residuals_multivariate(d)
+      } else {
+        essr = private$essr
+      }
+      return(expected_loglik - 0.5 * essr)
     },
+    
     estimate_residual_variance = function(d) {
         if (is.matrix(private$SER[[1]]$residual_variance)) {
             # FIXME: to implement estimating a vector of length R, or even a scalar
             warning("Estimate residual variance feature has not yet been implemented for multivariate data.")
         } else {
-            private$essr = private$compute_expected_sum_squared_residuals(d)
+            private$essr = private$compute_expected_sum_squared_residuals_univariate(d)
             private$sigma2 = private$essr / d$n_sample
         }
     },
     # expected squared residuals
-    compute_expected_sum_squared_residuals = function(d) {
-        Eb1 = t(do.call(cbind, self$posterior_b1))
-        Eb2 = t(do.call(cbind, self$posterior_b2))
-        if (inherits(d, c("DenseData","SparseData"))) {
-            Xr = d$compute_MXt(Eb1)
-            Xrsum = colSums(Xr)
-            return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
-        } else {
-            XtX = d$XtX
-            XtY = d$XtY
-            XB2 = sum((Eb1%*%XtX) * Eb1)
-            betabar = colSums(Eb1)
-            return(d$YtY - 2*sum(betabar * XtY) + sum(betabar * (XtX %*% betabar)) -
-               XB2 + sum(d$X2_sum*t(Eb2)))
-        }
+    compute_expected_sum_squared_residuals_univariate = function(d) {
+      Eb1 = t(do.call(cbind, self$posterior_b1))
+      Eb2 = t(do.call(cbind, self$posterior_b2))
+      if (inherits(d, c("DenseData","SparseData"))) {
+        Xr = d$compute_MXt(Eb1)
+        Xrsum = colSums(Xr)
+        return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
+      } else {
+        XB2 = sum((Eb1 %*% d$XtX) * Eb1)
+        return(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2)))
+      }
+    },
+    compute_expected_sum_squared_residuals_multivariate = function(d) {
+      v_inv = private$SER[[1]]$residual_variance_inv
+      E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
+      E1 = tr(v_inv%*%crossprod(d$residual)) - sum(E1)
+      return(E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
     },
     save_history = function() {
         if (!is.null(private$.pip_history)) {
