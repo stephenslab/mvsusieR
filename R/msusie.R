@@ -215,7 +215,6 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
     if (data$n_condition > 1 && !is.matrix(prior_variance))
       stop(paste("prior variance cannot be a number for multivariate analysis with", data$n_condition, "response variables."))
     if (is.matrix(prior_variance)) {
-      print('in')
       base = BayesianMultivariateRegression
     } else {
       base = BayesianSimpleRegression
