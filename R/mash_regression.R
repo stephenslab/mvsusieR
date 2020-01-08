@@ -87,10 +87,10 @@ MashRegression <- R6Class("MashRegression",
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
         if (is.null(prior_weights))
           prior_weights = rep(1/private$J, private$J)
-        # the commented out line is consistent with comparing loglik for V=0 vs current V
-        # but is more agressive than checking if all `private$.lbf` are smaller than zero.
-        #if (compute_weighted_sum(private$.lbf, prior_weights)$log_sum <= 0) {
-        if (all(private$.lbf <= 0)) {
+        # simple method: comparing loglik for V=0 vs current V
+        if (compute_weighted_sum(private$.lbf, prior_weights)$log_sum <= 0) {
+        # as commented out below, alternatively and more conservative (but less principled?), we can checking if all `private$.lbf` are smaller than zero.
+        #if (all(private$.lbf <= 0)) {
           private$prior_variance_scale = 0
           private$.lbf = private$.lbf * 0
         }
