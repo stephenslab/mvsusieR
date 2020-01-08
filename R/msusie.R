@@ -145,10 +145,12 @@ msusie = function(X,Y,L=10,
 #' beta[1:4] = 1
 #' X = matrix(rnorm(n*p),nrow=n,ncol=p)
 #' y = X %*% beta + rnorm(n)
-#' res = msusie(X,y,L=10)
+#' R = t(X) %*% X
+#' z = susieR:::calc_z(X,y)
+#' res = msusie_rss(z,R,L=10)
 #'
 #' @importFrom stats var
-#' @importFrom susieR susie_get_cs susie_get_pip is_symmetric_matrix
+#' @importFrom susieR susie_get_cs susie_get_pip
 #' @export
 msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
                       prior_variance=50,
@@ -164,7 +166,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
                       verbose=TRUE,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/nrow(R), nrow(R)))
   else prior_weights = prior_weights / sum(prior_weights)
-  
+
   data = RSSData$new(Z, R, r_tol)
   if (is.null(residual_variance)) {
     if (data$n_condition > 1) {

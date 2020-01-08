@@ -77,6 +77,8 @@ beta = rep(0,p)
 beta[1:4] = 1
 X = matrix(rnorm(n*p),nrow=n,ncol=p)
 y = X \%*\% beta + rnorm(n)
-res = msusie(X,y,L=10)
+R = t(X) \%*\% X
+z = susieR:::calc_z(X,y)
+res = msusie_rss(z,R,L=10)
 
 }
