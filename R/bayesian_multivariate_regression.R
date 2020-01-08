@@ -5,6 +5,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
   public = list(
     initialize = function(J, residual_variance, prior_variance) {
+      private$J = J
       private$.prior_variance = prior_variance
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))

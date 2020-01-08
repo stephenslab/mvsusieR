@@ -30,6 +30,8 @@ tr = function (m) {
 #' @title compute value_j * weight_j / sum(value_j * weight_j)
 #' @keywords internal
 compute_weighted_sum = function(value, weight, log = TRUE) {
+    if (length(value)!=length(weight))
+      stop("Values and their weights should have equal length")
     if (!log) value = log(value)
     mvalue = max(value)
     w = exp(value-mvalue)
