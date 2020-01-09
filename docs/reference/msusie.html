@@ -16,13 +16,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/all.min.css" integrity="sha256-nAmazAk6vS34Xqo0BSrTb+abbtFlgsFK7NKSi6o7Y78=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.1/css/v4-shims.min.css" integrity="sha256-6qHlizsOWFskGlwVOKuns+D1nB6ssZrHQrNj1wGplHc=" crossorigin="anonymous" />
 
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script>
 
-<!-- sticky kit -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+<!-- headroom.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/headroom.min.js" integrity="sha256-DJFC1kqIhelURkuza0AvYal5RxMtpzLjFhsnVIeuk+U=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.9.4/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
@@ -47,6 +49,7 @@
 <![endif]-->
 
 
+
   </head>
 
   <body>
@@ -63,7 +66,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.232</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.277</span>
       </span>
     </div>
 
@@ -91,6 +94,7 @@
 </div><!--/.navbar -->
 
       
+
       </header>
 
 <div class="row">
@@ -108,13 +112,12 @@
     </div>
 
     <pre class="usage"><span class='fu'>msusie</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='kw'>L</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>prior_variance</span> <span class='kw'>=</span> <span class='fl'>0.2</span>, <span class='kw'>residual_variance</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>prior_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>null_weight</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>standardize</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>intercept</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>estimate_residual_variance</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>estimate_prior_variance</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>estimate_prior_method</span> <span class='kw'>=</span> <span class='st'>"optim"</span>,
-  <span class='kw'>compute_objective</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>s_init</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>coverage</span> <span class='kw'>=</span> <span class='fl'>0.95</span>,
-  <span class='kw'>min_abs_corr</span> <span class='kw'>=</span> <span class='fl'>0.5</span>, <span class='kw'>compute_univariate_zscore</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>precompute_covariances</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>max_iter</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.001</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>track_fit</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+  <span class='kw'>prior_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>standardize</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>intercept</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>estimate_residual_variance</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>estimate_prior_variance</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>estimate_prior_method</span> <span class='kw'>=</span> <span class='st'>"optim"</span>, <span class='kw'>compute_objective</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>s_init</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>coverage</span> <span class='kw'>=</span> <span class='fl'>0.95</span>, <span class='kw'>min_abs_corr</span> <span class='kw'>=</span> <span class='fl'>0.5</span>,
+  <span class='kw'>compute_univariate_zscore</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>precompute_covariances</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>max_iter</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>tol</span> <span class='kw'>=</span> <span class='fl'>0.001</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>track_fit</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -144,16 +147,11 @@
       <td><p>a p vector of prior probability that each element is non-zero</p></td>
     </tr>
     <tr>
-      <th>null_weight</th>
-      <td><p>probability of no effect, for each single effect model</p></td>
-    </tr>
-    <tr>
       <th>standardize</th>
       <td><p>logical flag (default=TRUE) for whether to standardize columns of X to unit variance prior to fitting.
-Note that `scaled_prior_variance` specifies the prior on the coefficients of X *after* standardization (if performed).
 If you do not standardize you may need
-to think more carefully about specifying
-`scaled_prior_variance`. Whatever the value of standardize, the coefficients (returned from `coef`) are for X on the original input scale.
+to think more carefully about specifying the scale of prior variance.
+Whatever the value of standardize, the coefficients (returned from `coef`) are for X on the original input scale.
 Any column of X that has zero variance is not standardized, but left as is.</p></td>
     </tr>
     <tr>
@@ -162,15 +160,15 @@ Any column of X that has zero variance is not standardized, but left as is.</p><
     </tr>
     <tr>
       <th>estimate_residual_variance</th>
-      <td><p>indicates whether to estimate residual variance</p></td>
+      <td><p>indicates whether to estimate residual variance (currently only works for univariate Y input)</p></td>
     </tr>
     <tr>
       <th>estimate_prior_variance</th>
-      <td><p>indicates whether to estimate prior (currently not recommended as not fully tested and assessed)</p></td>
+      <td><p>indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)</p></td>
     </tr>
     <tr>
       <th>estimate_prior_method</th>
-      <td><p>the method used for estimating prior variance.</p></td>
+      <td><p>the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.</p></td>
     </tr>
     <tr>
       <th>s_init</th>
@@ -188,11 +186,11 @@ a commonly used threshold for genotype data in genetics studies.</p></td>
     </tr>
     <tr>
       <th>compute_univariate_zscore</th>
-      <td><p>if true, outputs z-score from per variable univariate regression</p></td>
+      <td><p>if TRUE outputs z-score from per variable univariate regression</p></td>
     </tr>
     <tr>
       <th>precompute_covariances</th>
-      <td><p>if true, precomputes various covariance quantities to speed up computations at the cost of increased memory usage</p></td>
+      <td><p>if TRUE, precomputes various covariance quantities to speed up computations at the cost of increased memory usage</p></td>
     </tr>
     <tr>
       <th>max_iter</th>
@@ -204,11 +202,11 @@ a commonly used threshold for genotype data in genetics studies.</p></td>
     </tr>
     <tr>
       <th>verbose</th>
-      <td><p>if true outputs some progress messages</p></td>
+      <td><p>if TRUE outputs some progress messages</p></td>
     </tr>
     <tr>
       <th>track_fit</th>
-      <td><p>add an attribute <code>trace</code> to output that saves current values of all iterations</p></td>
+      <td><p>add an attribute <code>trace</code> to output that saves some current quantities of all iterations</p></td>
     </tr>
     </table>
     
@@ -216,14 +214,18 @@ a commonly used threshold for genotype data in genetics studies.</p></td>
 
     <p>a susie fit, which is a list with some or all of the following elements<br /></p>
 <dt>alpha</dt><dd><p>an L by p matrix of posterior inclusion probabilites</p></dd>
-<dt>mu</dt><dd><p>an L by p matrix of posterior means (conditional on inclusion)</p></dd>
-<dt>mu2</dt><dd><p>an L by p matrix of posterior second moments (conditional on inclusion)</p></dd>
-<dt>Xr</dt><dd><p>an n vector of fitted values, equal to X times colSums(alpha*mu))</p></dd>
+<dt>b1</dt><dd><p>an L by p matrix of posterior means (conditional on inclusion)</p></dd>
+<dt>b2</dt><dd><p>an L by p matrix of posterior second moments (conditional on inclusion)</p></dd>
+<dt>KL</dt><dd><p>an L vector of KL divergence</p></dd>
+<dt>lbf</dt><dd><p>an L vector of logBF</p></dd>
 <dt>sigma2</dt><dd><p>residual variance</p></dd>
 <dt>V</dt><dd><p>prior variance</p></dd>
 <dt>elbo</dt><dd><p>a vector of values of elbo achieved (objective function)</p></dd>
+<dt>niter</dt><dd><p>number of iterations took for convergence</p></dd>
+<dt>convergence</dt><dd><p>convergence status</p></dd>
 <dt>sets</dt><dd><p>a list of `cs`, `purity` and selected `cs_index`</p></dd>
 <dt>pip</dt><dd><p>a vector of posterior inclusion probability</p></dd>
+<dt>walltime</dt><dd><p>records runtime of the fitting algorithm</p></dd>
 <dt>z</dt><dd><p>a vector of univariate z-scores</p></dd>
 
     
@@ -238,17 +240,14 @@ equally likely to be non-zero.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='co'># NOT RUN {</span>
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>1</span>)
+    <pre class="examples"><span class='fu'><a href='https://rdrr.io/r/base/Random.html'>set.seed</a></span>(<span class='fl'>1</span>)
 <span class='no'>n</span> <span class='kw'>=</span> <span class='fl'>1000</span>
 <span class='no'>p</span> <span class='kw'>=</span> <span class='fl'>1000</span>
-<span class='no'>beta</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/rep'>rep</a></span>(<span class='fl'>0</span>,<span class='no'>p</span>)
+<span class='no'>beta</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>0</span>,<span class='no'>p</span>)
 <span class='no'>beta</span>[<span class='fl'>1</span>:<span class='fl'>4</span>] <span class='kw'>=</span> <span class='fl'>1</span>
-<span class='no'>X</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/matrix'>matrix</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Normal'>rnorm</a></span>(<span class='no'>n</span>*<span class='no'>p</span>),<span class='kw'>nrow</span><span class='kw'>=</span><span class='no'>n</span>,<span class='kw'>ncol</span><span class='kw'>=</span><span class='no'>p</span>)
-<span class='no'>y</span> <span class='kw'>=</span> <span class='no'>X</span> <span class='kw'>%*%</span> <span class='no'>beta</span> + <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/Normal'>rnorm</a></span>(<span class='no'>n</span>)
-<span class='no'>res</span> <span class='kw'>=</span> <span class='fu'>msusie</span>(<span class='no'>X</span>,<span class='no'>y</span>,<span class='kw'>L</span><span class='kw'>=</span><span class='fl'>10</span>)
-
-<span class='co'># }</span></pre>
+<span class='no'>X</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span>*<span class='no'>p</span>),<span class='kw'>nrow</span><span class='kw'>=</span><span class='no'>n</span>,<span class='kw'>ncol</span><span class='kw'>=</span><span class='no'>p</span>)
+<span class='no'>y</span> <span class='kw'>=</span> <span class='no'>X</span> <span class='kw'>%*%</span> <span class='no'>beta</span> + <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span>)
+<span class='no'>res</span> <span class='kw'>=</span> <span class='fu'>msusie</span>(<span class='no'>X</span>,<span class='no'>y</span>,<span class='kw'>L</span><span class='kw'>=</span><span class='fl'>10</span>)</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -265,19 +264,23 @@ equally likely to be non-zero.</p>
   </div>
 </div>
 
+
       <footer>
       <div class="copyright">
   <p>Developed by Gao Wang.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.4.1.</p>
 </div>
+
       </footer>
    </div>
 
   
 
+
   </body>
 </html>
+
 

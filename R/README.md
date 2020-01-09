@@ -4,7 +4,7 @@
 
 ## Model
 
-Implementation of SuSiE model falls roughly in the structure of the SuSiE manuscript. 
+Implementation of SuSiE model falls roughly in the structure of the SuSiE manuscript.
 That is, we introduce Bayesian regression model,
 followed by Single Effect Regression (SER), and finally the SuSiE model.
 Implementation-wise,
@@ -26,10 +26,11 @@ Implementation-wise,
 `R6` is pretty [easy to learn](https://r6.r-lib.org/articles/Introduction.html) just by the length of its documentation.
 However the constraint that [`private` cannot have same name as `public` and `active`](https://github.com/r-lib/R6/issues/200) is annoying.
 
-Two quick pointers on `R6` class if you dont want to bother reading its documentation:
+A couple of quick pointers on `R6` class if you don't want to bother reading its documentation:
 
 1. Convention `private$<name>` refers to private member (ie, variable) or method (ie, function); convention `self$<name>` refers to public member or method, or, active bindings. Please be careful which to use.
 2. If you've got a class `A` to set `B` via `B=A` then modify `B`, you will also be modifying `A`! To prevent this from happening you've got to use this: `B=A$clone(deep=TRUE)`.
+3. If class `A2` is inherited from `A1`, and suppose `a` is an instance of `A2`, then both `inherits(a, "A2")` and `inherits(a, "A1")` will be true. If `a` is instance of `A1` then only the latter is true.
 
 I use the following convention in my code:
 

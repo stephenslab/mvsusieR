@@ -64,7 +64,7 @@ SuSiE <- R6Class("SuSiE",
             }
             if (private$to_estimate_residual_variance)
               private$estimate_residual_variance(d)
-            
+
             pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },
@@ -166,13 +166,18 @@ SuSiE <- R6Class("SuSiE",
     compute_expected_sum_squared_residuals_univariate = function(d) {
       Eb1 = t(do.call(cbind, self$posterior_b1))
       Eb2 = t(do.call(cbind, self$posterior_b2))
-      if (inherits(d, c("DenseData","SparseData"))) {
+      if (inherits(d, "RSSData")) {
+        # RSSData is inherited from DenseData
+        # actually code below will also work for DenseData
+        # (that is why there is no need to treat them separately in multivarite computation)
+        # here we separate them out to agree with SuSiE RSS derivations as a test
+        XB2 = sum((Eb1 %*% d$XtX) * Eb1)
+        return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
+      } else {
+        # full data, DenseData object
         Xr = d$compute_MXt(Eb1)
         Xrsum = colSums(Xr)
         return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
-      } else {
-        XB2 = sum((Eb1 %*% d$XtX) * Eb1)
-        return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
       }
     },
     compute_expected_sum_squared_residuals_multivariate = function(d) {
