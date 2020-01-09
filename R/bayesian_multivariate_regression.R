@@ -93,7 +93,8 @@ multivariate_regression = function(bhat, S, U) {
   lbf = sapply(1:length(S), function(j) 0.5 * (log(det(S[[j]])) - log(det(S[[j]]+U))) + 0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])
   lbf[which(is.nan(lbf))] = 0
   # lbf = multivariate_lbf(bhat, S, U)
-  post_b1 = do.call(rbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
+  # using rbind here will end up with dimension issues for degenerated case on J; have to use t(...(cbind, )) instead
+  post_b1 = t(do.call(cbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,]))))
   post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[j,]) + post_cov[[j]])
   # deal with degerated case with 1 condition
   if (ncol(post_b1) == 1) {
