@@ -53,11 +53,8 @@ SuSiE <- R6Class("SuSiE",
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
                 d$remove_from_residual(private$SER[[l]]$predict(d))
             }
-            # FIXME: different logic for univariate and multivariate cases
-            if (private$to_estimate_residual_variance)
-                private$estimate_residual_variance(d)
             if (private$to_compute_objective)
-                private$compute_objective(d)
+              private$compute_objective(d)
             private$.convergence = private$check_convergence(i)
             if (private$.convergence$converged) {
                 private$save_history()
@@ -65,6 +62,9 @@ SuSiE <- R6Class("SuSiE",
                 private$.niter = i
                 break
             }
+            if (private$to_estimate_residual_variance)
+              private$estimate_residual_variance(d)
+            
             pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },
@@ -144,31 +144,22 @@ SuSiE <- R6Class("SuSiE",
     compute_expected_loglik_univariate = function(d) {
         n = d$n_sample
         residual_variance = private$sigma2
-        if (is.null(private$essr)) {
-            essr = private$compute_expected_sum_squared_residuals_univariate(d)
-        } else {
-            essr = private$essr
-        }
+        essr = private$compute_expected_sum_squared_residuals_univariate(d)
         return(-(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr)
     },
     compute_expected_loglik_multivariate = function(d) {
-      expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$SER[[1]]$residual_variance))
-      if (is.null(private$essr)) {
-        essr = private$compute_expected_sum_squared_residuals_multivariate(d)
-      } else {
-        essr = private$essr
-      }
+      expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$sigma2))
+      essr = private$compute_expected_sum_squared_residuals_multivariate(d)
       return(expected_loglik - 0.5 * essr)
     },
     estimate_residual_variance = function(d) {
         if (is.matrix(private$SER[[1]]$residual_variance)) {
             # FIXME: to implement estimating a vector of length R, or even a scalar
-          E1 = lapply(1:length(private$SER), function(l) t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1)
-          E1 = crossprod(d$residual) - Reduce('+', E1)
-          private$sigma2 = (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample
+            E1 = lapply(1:length(private$SER), function(l) t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1)
+            E1 = crossprod(d$residual) - Reduce('+', E1)
+            private$sigma2 = (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample
         } else {
-            private$essr = private$compute_expected_sum_squared_residuals_univariate(d)
-            private$sigma2 = private$essr / d$n_sample
+            private$sigma2 = private$compute_expected_sum_squared_residuals_univariate(d) / d$n_sample
         }
     },
     # expected squared residuals
