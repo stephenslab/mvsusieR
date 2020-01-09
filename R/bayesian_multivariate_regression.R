@@ -93,9 +93,15 @@ multivariate_regression = function(bhat, S, U) {
   lbf = sapply(1:length(S), function(j) 0.5 * (log(det(S[[j]])) - log(det(S[[j]]+U))) + 0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])
   lbf[which(is.nan(lbf))] = 0
   # lbf = multivariate_lbf(bhat, S, U)
-  post_b1 = do.call(cbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
-  post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[,j]) + post_cov[[j]])
-  return(list(b1 = t(post_b1), b2 = aperm(abind(post_b2, along = 3), c(2,1,3)), lbf = lbf))
+  post_b1 = do.call(rbind, lapply(1:length(S), function(j) post_cov[[j]] %*% (S_inv[[j]] %*% bhat[j,])))
+  post_b2 = lapply(1:length(post_cov), function(j) tcrossprod(post_b1[j,]) + post_cov[[j]])
+  # deal with degerated case with 1 condition
+  if (ncol(post_b1) == 1) {
+    post_b2 = matrix(unlist(post_b2), length(post_b2), 1)
+  } else {
+    post_b2 = aperm(abind(post_b2, along = 3), c(2,1,3))
+  }
+  return(list(b1 = post_b1, b2 = post_b2, lbf = lbf))
 }
 
 #' @title Multiviate logBF
