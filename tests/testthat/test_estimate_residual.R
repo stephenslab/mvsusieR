@@ -58,8 +58,8 @@ test_that("estimated residual variance in multivariate case is identical to univ
   d.copy = d$clone(T)
   B$fit(d.copy)
   BA = report_susie_model(d.copy, B)
-  # expect_susieR_equal(A, BA, F, F)
-  # expect_equal(A$sigma2, BA$sigma2)
+  expect_susieR_equal(A, BA, F, F)
+  expect_equal(A$sigma2, BA$sigma2)
   
   # BayesianMultivariateRegression
   SER.multi = SingleEffectModel(BayesianMultivariateRegression)$new(d$n_effect, cov(y), V)
