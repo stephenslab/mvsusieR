@@ -6,7 +6,7 @@
 \usage{
 create_mash_prior(fitted_g = NULL, mixture_prior = NULL,
   sample_data = NULL, null_weight = NULL, weights_tol = 1e-10,
-  max_mixture_len = 40, include_indices = NULL)
+  max_mixture_len = 40, include_indices = NULL, ...)
 }
 \arguments{
 \item{fitted_g}{from mashr::mash}
@@ -24,6 +24,8 @@ if available. Use `null_weight = 0` to override the behavior.}
 Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.}
 
 \item{include_indices}{postprocess input prior to only include conditions from this indices}
+
+\item{...}{other parameters, for mmbr:::create_cov_canonical}
 }
 \value{
 mash prior object for use with msusie() function

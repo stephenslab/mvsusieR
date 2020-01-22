@@ -108,7 +108,7 @@ test_that("Single component mash regression is identical to multivariate BR RSS"
   residual_var = cov(y)
   z = sapply(1:ncol(y), function(j){
     ss = susieR:::univariate_regression(X, y[,j])
-    ss$betahat/ss$sebetahat  
+    ss$betahat/ss$sebetahat
     })
   R = cor(X)
   data = RSSData$new(z,R, 1e-08)
@@ -129,7 +129,7 @@ test_that("Single component mash regression is identical to multivariate BR RSS"
   X = matrix(runif(ncol(X) * nrow(X)), nrow(X), ncol(X))
   z = sapply(1:ncol(y), function(j){
     ss = susieR:::univariate_regression(X, y[,j])
-    ss$betahat/ss$sebetahat  
+    ss$betahat/ss$sebetahat
   })
   R = cor(X)
   data = RSSData$new(z,R,1e-08)
@@ -153,13 +153,13 @@ test_that("Mash regression + precomputed cov is identical to not precompute (RSS
   prior_var = V[1,1]
   z = sapply(1:ncol(y), function(j){
     ss = susieR:::univariate_regression(X, y[,j])
-    ss$betahat/ss$sebetahat  
+    ss$betahat/ss$sebetahat
   })
   R = cor(X)
   data = RSSData$new(z,R,1e-08)
   null_weight = 0
   residual_covar = cov(y)
-  
+
   A_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
   A = MashRegression$new(ncol(X), residual_covar, A_init)
   A$fit(data, save_summary_stats = T)

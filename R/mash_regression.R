@@ -10,7 +10,7 @@ MashRegression <- R6Class("MashRegression",
         stop("residual_variance must be a matrix")
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
-      private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
+      private$.prior_variance$xUlist = matlist2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
       tryCatch({
         private$.residual_variance_inv = invert_via_chol(residual_variance)
@@ -134,12 +134,11 @@ MashRegression <- R6Class("MashRegression",
                               is_common_cov, 4)
       }
       private$.posterior_b1 = post$post_mean
-      # Format post_cov for degenerated case with R = 1
-      # (no need for it)
-      #if (ncol(private$.posterior_b1) == 1) {
-      #  post$post_cov = array(post$post_cov, c(1, 1, private$J))
-      #}
-      private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
+      private$.posterior_b2 = post$post_cov + matlist2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
+      # flatten posterior_b2 for degenerated case with R = 1
+      if (ncol(private$.posterior_b1) == 1) {
+        private$.posterior_b2 = as.matrix(apply(private$.posterior_b2,3,diag))
+      }
       # 5. lfsr
       private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
     }
@@ -292,8 +291,8 @@ MashInitializer <- R6Class("MashInitializer",
             }
           }
       }
-      private$inv_mats = list(Vinv = simplify2array(Vinv), U0 = simplify2array(U0),
-                              sigma_rooti = simplify2array(sigma_rooti),
+      private$inv_mats = list(Vinv = matlist2array(Vinv), U0 = matlist2array(U0),
+                              sigma_rooti = matlist2array(sigma_rooti),
                               sbhat = res$sbhat,
                               common_sbhat = res$is_common_sbhat)
     },
