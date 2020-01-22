@@ -169,8 +169,8 @@ SuSiE <- R6Class("SuSiE",
       if (inherits(d, "RSSData")) {
         # RSSData is inherited from DenseData
         # actually code below will also work for DenseData
-        # (that is why there is no need to treat them separately in multivarite computation)
-        # here we separate them out to agree with SuSiE RSS derivations as a test
+        # that is why there is no need to treat them separately in multivarite computation
+        # However, computational complexity may be different (depending on the dimension of XtX)
         XB2 = sum((Eb1 %*% d$XtX) * Eb1)
         return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
       } else {
