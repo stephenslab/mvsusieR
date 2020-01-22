@@ -6,7 +6,7 @@
 \usage{
 msusie_rss(Z, R, L = 10, r_tol = 1e-08, prior_variance = 50,
   residual_variance = NULL, prior_weights = NULL,
-  estimate_residual_variance = TRUE, estimate_prior_variance = TRUE,
+  estimate_residual_variance = FALSE, estimate_prior_variance = TRUE,
   estimate_prior_method = "simple", compute_objective = FALSE,
   precompute_covariances = FALSE, s_init = NULL, coverage = 0.95,
   min_abs_corr = 0.5, max_iter = 100, tol = 0.001, z_thresh = 2,
