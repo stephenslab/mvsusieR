@@ -15,7 +15,7 @@ msusie(X, Y, L = 10, prior_variance = 0.2, residual_variance = NULL,
 \arguments{
 \item{X}{an n by p matrix of covariates}
 
-\item{Y}{an n vector}
+\item{Y}{an n by r matrix of response variables}
 
 \item{L}{maximum number of non-zero effects}
 
