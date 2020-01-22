@@ -442,7 +442,8 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
       sample_data$scale = T
     }
     # compute grid
-    d = DenseData$new(sample_data$X, sample_data$Y, sample_data$center, sample_data$scale)
+    d = DenseData$new(sample_data$X, sample_data$Y)
+    d$standardize(sample_data$center, sample_data$scale)
     res = d$get_sumstats(diag(sample_data$residual_variance), cov2cor(sample_data$residual_variance))
     ## Use sqrt(3) giving a coarser grid than mash default in exchange for less walltime
     grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(3))

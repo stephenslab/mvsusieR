@@ -75,8 +75,12 @@ msusie = function(X,Y,L=10,
                  verbose=TRUE,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
-
-  data = DenseData$new(X, Y, intercept, standardize)
+  if (any(is.na(Y))) {
+    data = DenseDataYMissing$new(X, Y)
+  } else {
+    data = DenseData$new(X, Y)
+  }
+  data$standardize(intercept, standardize)
   if (is.null(residual_variance)) {
     if (data$n_condition > 1) {
       if (!data$Y_has_missing) residual_variance = cov(Y)

@@ -8,8 +8,10 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     X = matrix(runif(ncol(X) * nrow(X)), nrow(X), ncol(X))
     # missing value computations, for a test.
     # set `missing_code` to NULL to force using missing data computation routines
-    d1 = DenseData$new(X,y,scale=F,missing_code=NULL)
-    d2 = DenseData$new(X,y,scale=F)
+    d1 = expect_warning(DenseDataYMissing$new(X,y))
+    d1$standardize(TRUE,FALSE)
+    d2 = DenseData$new(X,y)
+    d2$standardize(TRUE,FALSE)
     # for missing data
     expect_equal(d1$Y_has_missing, TRUE)
     res1 = d1$get_sumstats(diag(residual_variance), V)
@@ -21,8 +23,10 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     expect_equal(res1$is_common_sbhat, F)
     expect_equal(res2$is_common_sbhat, F)
     # now test it when X is scaled
-    d1 = DenseData$new(X,y,missing_code=NULL)
-    d2 = DenseData$new(X,y,)
+    d1 = expect_warning(DenseDataYMissing$new(X,y))
+    d1$standardize(TRUE,TRUE)
+    d2 = DenseData$new(X,y)
+    d2$standardize(TRUE,TRUE)
     # for missing data
     expect_equal(d1$Y_has_missing, TRUE)
     res1 = d1$get_sumstats(diag(residual_variance), V)
@@ -40,28 +44,32 @@ test_that("marginal statistics agree between mmbr and R's `.lm.fit` when there i
    resid_Y_miss <- compute_cov_diag(y_missing)
    # can only compare bhat not sbhat
    # full data, center and scale
-   d = DenseData$new(X, y,scale=T)
+   d = DenseData$new(X, y)
+   d$standardize(TRUE,TRUE)
    res = d$get_sumstats(resid_Y)
    b = res$bhat
    for (i in 1:ncol(b)) {
        expect_equal(b[,i], susieR:::univariate_regression(X, y[,i], scale=T)$betahat)
    }
    # missing data center and scale
-   d = DenseData$new(X, y_missing, scale=T)
+   d = DenseDataYMissing$new(X, y_missing)
+   d$standardize(TRUE,TRUE)
    res = d$get_sumstats(resid_Y_miss)
    b = res$bhat
    for (i in 1:ncol(b)) {
        expect_equal(b[,i], susieR:::univariate_regression(X, y_missing[,i], scale=T)$betahat)
    }
    # full data not scale
-   d = DenseData$new(X, y, scale=F)
+   d = DenseData$new(X, y)
+   d$standardize(TRUE,FALSE)
    res = d$get_sumstats(resid_Y)
    b = res$bhat
    for (i in 1:ncol(b)) {
        expect_equal(b[,i], susieR:::univariate_regression(X, y[,i], scale=F)$betahat)
    }
    # missing data not scale
-   d = DenseData$new(X, y_missing, scale=F)
+   d = DenseDataYMissing$new(X, y_missing)
+   d$standardize(TRUE,FALSE)
    res = d$get_sumstats(resid_Y_miss)
    b = res$bhat
    for (i in 1:ncol(b)) {

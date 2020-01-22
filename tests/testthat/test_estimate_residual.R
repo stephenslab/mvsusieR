@@ -7,7 +7,7 @@ test_that("estimated residual variance in multivariate case is identical to univ
                     residual_variance = as.numeric(cov(y)), prior_weights = NULL,
                     estimate_residual_variance = T, estimate_prior_variance = FALSE)
   d = DenseData$new(X,y)
-
+  d$standardize(TRUE,TRUE)
   # BayesianSimpleRegression
   SER.simple = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, as.numeric(cov(y)), as.numeric(V))
   B = SuSiE$new(SER.simple, L, estimate_residual_variance = T)
