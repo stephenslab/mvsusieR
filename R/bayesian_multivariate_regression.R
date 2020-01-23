@@ -16,7 +16,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
       })
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, estimate_prior_variance_method = NULL) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -44,6 +44,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scale)
       private$.posterior_b1 = post$b1
       private$.posterior_b2 = post$b2
+      if (save_var) private$.posterior_variance = post$cov
       private$.lbf = post$lbf
     }
   ),
@@ -102,7 +103,7 @@ multivariate_regression = function(bhat, S, U) {
   } else {
     post_b2 = aperm(abind(post_b2, along = 3), c(2,1,3))
   }
-  return(list(b1 = post_b1, b2 = post_b2, lbf = lbf))
+  return(list(b1 = post_b1, b2 = post_b2, lbf = lbf, cov = post_cov))
 }
 
 #' @title Multiviate logBF

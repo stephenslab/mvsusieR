@@ -6,7 +6,7 @@
 #' The assumption is that each b_l has exactly one non-zero element, with all elements
 #' equally likely to be non-zero.
 #' @param X an n by p matrix of covariates
-#' @param Y an n by r matrix of response variables
+#' @param Y an n vector, or n by r matrix of response variables
 #' @param L maximum number of non-zero effects
 #' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
 #' @param residual_variance the residual variance (defaults to sample variance of Y)
