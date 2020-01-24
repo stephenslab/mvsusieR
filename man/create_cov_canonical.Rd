@@ -4,8 +4,7 @@
 \alias{create_cov_canonical}
 \title{Compute a list of canonical covariance matrices}
 \usage{
-create_cov_canonical(R, singletons = T, hetgrid = c(0, 0.25, 0.5, 0.75,
-  1))
+create_cov_canonical(R, singletons = T, hetgrid = c(0, 0.25, 0.5, 0.75, 1))
 }
 \arguments{
 \item{R}{an integer indicating the number of conditions}

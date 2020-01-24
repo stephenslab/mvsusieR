@@ -13,7 +13,7 @@ BugReports: https://github.com/gaow/mmbr/issues
 License: MIT + file LICENSE
 LazyData: true
 NeedsCompilation: no
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Depends: R (>= 3.0.0),
     mashr (>= 0.2.19)
 Imports:

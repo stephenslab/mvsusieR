@@ -4,9 +4,16 @@
 \alias{create_mash_prior}
 \title{Create mash prior object}
 \usage{
-create_mash_prior(fitted_g = NULL, mixture_prior = NULL,
-  sample_data = NULL, null_weight = NULL, weights_tol = 1e-10,
-  max_mixture_len = 40, include_indices = NULL, ...)
+create_mash_prior(
+  fitted_g = NULL,
+  mixture_prior = NULL,
+  sample_data = NULL,
+  null_weight = NULL,
+  weights_tol = 1e-10,
+  max_mixture_len = 40,
+  include_indices = NULL,
+  ...
+)
 }
 \arguments{
 \item{fitted_g}{from mashr::mash}
