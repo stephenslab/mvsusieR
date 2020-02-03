@@ -8,7 +8,7 @@ navbar:
       href: reference/index.html
   right:
     - text: "Source"
-      href: https://github.com/gaow/mmbr
+      href: https://github.com/stephenslab/mmbr
 
 articles:
   - title: "Vignettes"

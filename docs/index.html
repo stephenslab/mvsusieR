@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.277</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.290</span>
       </span>
     </div>
 
@@ -50,7 +50,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/gaow/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mmbr">Source</a>
 </li>
       </ul>
 </div>
@@ -71,12 +71,12 @@
 <h2 class="hasAnchor">
 <a href="#setup" class="anchor"></a>Setup</h2>
 <p>To automatically retrieve and install <code>mmbr</code> from this repository,</p>
-<p><code>R    devtools::install_github("gaow/mmbr")</code></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>devtools<span class="op">::</span><span class="kw"><a href="https://rdrr.io/pkg/devtools/man/remote-reexports.html">install_github</a></span>(<span class="st">"stephenslab/mmbr"</span>)</span></code></pre></div>
 </div>
 <div id="quick-start" class="section level2">
 <h2 class="hasAnchor">
 <a href="#quick-start" class="anchor"></a>Quick Start</h2>
-<p><a href="https://gaow.github.io/mmbr/articles/prediction.html">Here</a> is a quick document to show <code>mmbr</code> in action. For more documentation and examples please visit: <a href="https://gaow.github.io/mmbr" class="uri">https://gaow.github.io/mmbr</a></p>
+<p><a href="https://stephenslab.github.io/mmbr/articles/prediction.html">Here</a> is a quick document to show <code>mmbr</code> in action. For more documentation and examples please visit: <a href="https://stephenslab.github.io/mmbr" class="uri">https://stephenslab.github.io/mmbr</a></p>
 </div>
 <div id="developer-notes" class="section level2">
 <h2 class="hasAnchor">
@@ -85,10 +85,10 @@
 <li><p>When any changes are made to <code>roxygen2</code> markup, simply run <code><a href="https://rdrr.io/pkg/devtools/man/document.html">devtools::document()</a></code> to update package <code>NAMESPACE</code> and documentation files.</p></li>
 <li>
 <p>To install and test the package, run the following commands in the shell:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="va">VERSION=</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span><span class="fu">grep</span> Version DESCRIPTION <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">|</a></span> <span class="fu">awk</span> <span class="st">'{print $2}'</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span>
-<span class="ex">R</span> CMD build --resave-data --no-build-vignettes mmbr
-<span class="ex">R</span> CMD INSTALL mmbr_<span class="va">$VERSION</span>.tar.gz
-<span class="ex">R</span> CMD check --as-cran --ignore-vignettes mmbr_<span class="va">$VERSION</span>.tar.gz</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1"></a><span class="va">VERSION=</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span><span class="fu">grep</span> Version DESCRIPTION <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">|</a></span> <span class="fu">awk</span> <span class="st">'{print $2}'</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="ex">R</span> CMD build --resave-data --no-build-vignettes mmbr</span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="ex">R</span> CMD INSTALL mmbr_<span class="va">$VERSION</span>.tar.gz</span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="ex">R</span> CMD check --as-cran --ignore-vignettes mmbr_<span class="va">$VERSION</span>.tar.gz</span></code></pre></div>
 </li>
 <li><p>Run <code><a href="https://pkgdown.r-lib.org/reference/build_site.html">pkgdown::build_site(lazy=T,examples=F)</a></code> to build the website.</p></li>
 </ul>
@@ -100,9 +100,9 @@
     <div class="links">
 <h2>Links</h2>
 <ul class="list-unstyled">
-<li>Browse source code at <br><a href="https://github.com/gaow/mmbr">https://​github.com/​gaow/​mmbr</a>
+<li>Browse source code at <br><a href="https://github.com/stephenslab/mmbr">https://​github.com/​stephenslab/​mmbr</a>
 </li>
-<li>Report a bug at <br><a href="https://github.com/gaow/mmbr/issues">https://​github.com/​gaow/​mmbr/​issues</a>
+<li>Report a bug at <br><a href="https://github.com/stephenslab/mmbr/issues">https://​github.com/​stephenslab/​mmbr/​issues</a>
 </li>
 </ul>
 </div>

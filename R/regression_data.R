@@ -15,7 +15,7 @@ DenseData <- R6Class("DenseData",
       private$.X = X
       private$.X_has_missing = any(is.na(private$.X))
       # FIXME: might want to allow for missing in X later?
-      # see gaow/mmbr/#5
+      # see stephenslab/mmbr/#5
       if (private$.X_has_missing)
         stop("Missing data in input matrix X is not allowed at this point.")
       if (is.null(dim(Y))) private$.Y = matrix(Y,length(Y),1)

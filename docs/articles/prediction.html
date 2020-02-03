@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.277</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.290</span>
       </span>
     </div>
 
@@ -49,7 +49,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/gaow/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mmbr">Source</a>
 </li>
       </ul>
 </div>
@@ -61,15 +61,15 @@
 
       
 
-      </header><div class="row">
+      </header><script src="prediction_files/jquery-1.11.3/jquery.min.js"></script><script src="prediction_files/elevate-section-attrs-2.0/elevate-section-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1>Prediction example</h1>
                         <h4 class="author">Fabio Morgante</h4>
             
-            <h4 class="date">2020-01-09</h4>
+            <h4 class="date">2020-02-03</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/gaow/mmbr/blob/master/vignettes/prediction.Rmd"><code>vignettes/prediction.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/stephenslab/mmbr/blob/master/vignettes/prediction.Rmd"><code>vignettes/prediction.Rmd</code></a></small>
       <div class="hidden name"><code>prediction.Rmd</code></div>
 
     </div>
@@ -77,111 +77,108 @@
     
     
 <p>This vignette demonstrates <code>mmbr</code> in the context of prediction. We first simulate three phenotypes (<span class="math inline">\(y_1\)</span>, <span class="math inline">\(y_2\)</span>, <span class="math inline">\(y_3\)</span>) and genotypes at <span class="math inline">\(P = 1000\)</span> loci (<span class="math inline">\(X\)</span>) for <span class="math inline">\(N = 500\)</span> individuals. Then, the goal is to predict phenotypes from genotypes for <span class="math inline">\(N_{test} = 100\)</span> individuals, training our model on the remaining <span class="math inline">\(N_{training} = 400\)</span> individuals.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(mmbr)
-<span class="co"># Loading required package: mashr</span>
-<span class="co"># Loading required package: ashr</span>
-<span class="kw"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span>(<span class="dv">1234</span>)
-<span class="kw"><a href="https://rdrr.io/r/base/options.html">options</a></span>(<span class="dt">stringsAsFactors =</span> F)</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span>(mmbr)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="co"># Loading required package: mashr</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="co"># Loading required package: ashr</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span>(<span class="dv">1234</span>)</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw"><a href="https://rdrr.io/r/base/options.html">options</a></span>(<span class="dt">stringsAsFactors =</span> F)</span></code></pre></div>
 <div id="the-data-set" class="section level2">
 <h2 class="hasAnchor">
 <a href="#the-data-set" class="anchor"></a>The data-set</h2>
 <p>The first step involves simulating phenotypic and genotypic data.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">N =<span class="st"> </span><span class="dv">500</span>
-P =<span class="st"> </span><span class="dv">1000</span>
-true_eff &lt;-<span class="st"> </span><span class="dv">2</span>
-X =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/sample.html">sample</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="dt">size=</span>N*P, <span class="dt">replace=</span>T), <span class="dt">nrow=</span>N, <span class="dt">ncol=</span>P)
-beta1 =<span class="st"> </span>beta2 =<span class="st"> </span>beta3 =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="dv">0</span>, P)
-beta1[<span class="dv">1</span>:true_eff] =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(true_eff)
-beta2[<span class="dv">1</span>:true_eff] =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(true_eff)
-beta3[<span class="dv">1</span>:true_eff] =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(true_eff)
-y1 =<span class="st"> </span>X %*%<span class="st"> </span>beta1 +<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span>(N)
-y2 =<span class="st"> </span>X %*%<span class="st"> </span>beta2 +<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span>(N)
-y3 =<span class="st"> </span>X %*%<span class="st"> </span>beta3 +<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span>(N)</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>N =<span class="st"> </span><span class="dv">500</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>P =<span class="st"> </span><span class="dv">1000</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>true_eff &lt;-<span class="st"> </span><span class="dv">2</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>X =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/sample.html">sample</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>), <span class="dt">size=</span>N<span class="op">*</span>P, <span class="dt">replace=</span>T), <span class="dt">nrow=</span>N, <span class="dt">ncol=</span>P)</span>
+<span id="cb2-5"><a href="#cb2-5"></a>beta1 =<span class="st"> </span>beta2 =<span class="st"> </span>beta3 =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/rep.html">rep</a></span>(<span class="dv">0</span>, P)</span>
+<span id="cb2-6"><a href="#cb2-6"></a>beta1[<span class="dv">1</span><span class="op">:</span>true_eff] =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(true_eff)</span>
+<span id="cb2-7"><a href="#cb2-7"></a>beta2[<span class="dv">1</span><span class="op">:</span>true_eff] =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(true_eff)</span>
+<span id="cb2-8"><a href="#cb2-8"></a>beta3[<span class="dv">1</span><span class="op">:</span>true_eff] =<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span>(true_eff)</span>
+<span id="cb2-9"><a href="#cb2-9"></a>y1 =<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta1 <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span>(N)</span>
+<span id="cb2-10"><a href="#cb2-10"></a>y2 =<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta2 <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span>(N)</span>
+<span id="cb2-11"><a href="#cb2-11"></a>y3 =<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>beta3 <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span>(N)</span></code></pre></div>
 <p>The phenotypic data was simulated assuming the same 2 causal variables affect each of the traits with different effects.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/base/which.html">which</a></span>(beta1 !=<span class="st"> </span><span class="dv">0</span>)
-<span class="co"># [1] 1 2</span>
-<span class="kw"><a href="https://rdrr.io/r/base/which.html">which</a></span>(beta2 !=<span class="st"> </span><span class="dv">0</span>)
-<span class="co"># [1] 1 2</span>
-<span class="kw"><a href="https://rdrr.io/r/base/which.html">which</a></span>(beta3 !=<span class="st"> </span><span class="dv">0</span>)
-<span class="co"># [1] 1 2</span>
-
-<span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(beta1)
-<span class="co"># [1] 0.3910978 0.1355306 0.0000000 0.0000000 0.0000000 0.0000000</span>
-<span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(beta2)
-<span class="co"># [1] 0.8208315 0.1047051 0.0000000 0.0000000 0.0000000 0.0000000</span>
-<span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(beta3)
-<span class="co"># [1] 0.1543145 0.7113933 0.0000000 0.0000000 0.0000000 0.0000000</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw"><a href="https://rdrr.io/r/base/which.html">which</a></span>(beta1 <span class="op">!=</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="co"># [1] 1 2</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="kw"><a href="https://rdrr.io/r/base/which.html">which</a></span>(beta2 <span class="op">!=</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="co"># [1] 1 2</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="kw"><a href="https://rdrr.io/r/base/which.html">which</a></span>(beta3 <span class="op">!=</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="co"># [1] 1 2</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(beta1)</span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="co"># [1] 0.9679794 0.1423120 0.0000000 0.0000000 0.0000000 0.0000000</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(beta2)</span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="co"># [1] 0.3893104 0.9137142 0.0000000 0.0000000 0.0000000 0.0000000</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="kw"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(beta3)</span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="co"># [1] 0.3161626 0.9683988 0.0000000 0.0000000 0.0000000 0.0000000</span></span></code></pre></div>
 </div>
 <div id="prediction-with-mmbr" class="section level2">
 <h2 class="hasAnchor">
 <a href="#prediction-with-mmbr" class="anchor"></a>Prediction with <code>mmbr</code>
 </h2>
 <p>For starters, we assume there are at most 10 causal variables (i.e., set <code>L = 10</code>), select the first 100 individuals as the training set, and derive the prior from data:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">L &lt;-<span class="st"> </span><span class="dv">10</span>
-test_num &lt;-<span class="st"> </span><span class="dv">1</span>:<span class="dv">100</span>
-y &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span>(y1[-test_num], y2[-test_num], y3[-test_num])
-prior_covar &lt;-<span class="st"> </span><span class="kw"><a href="../reference/create_mash_prior.html">create_mash_prior</a></span>(<span class="dt">sample_data =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">X=</span>X[-test_num, ],<span class="dt">Y=</span>y,<span class="dt">residual_variance=</span><span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cov</a></span>(y)), <span class="dt">max_mixture_len=</span>-<span class="dv">1</span>)</code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>L &lt;-<span class="st"> </span><span class="dv">10</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>test_num &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">100</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>y &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span>(y1[<span class="op">-</span>test_num], y2[<span class="op">-</span>test_num], y3[<span class="op">-</span>test_num])</span>
+<span id="cb4-4"><a href="#cb4-4"></a>prior_covar &lt;-<span class="st"> </span><span class="kw"><a href="../reference/create_mash_prior.html">create_mash_prior</a></span>(<span class="dt">sample_data =</span> <span class="kw"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="dt">X=</span>X[<span class="op">-</span>test_num, ],<span class="dt">Y=</span>y,<span class="dt">residual_variance=</span><span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cov</a></span>(y)), <span class="dt">max_mixture_len=</span><span class="op">-</span><span class="dv">1</span>)</span></code></pre></div>
 <p>Then, we fit the <code>mmbr</code> model to the training set.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/msusie.html">msusie</a></span>(X[-test_num, ], y, <span class="dt">L=</span>L, <span class="dt">prior_variance=</span>prior_covar)</code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>m &lt;-<span class="st"> </span><span class="kw"><a href="../reference/msusie.html">msusie</a></span>(X[<span class="op">-</span>test_num, ], y, <span class="dt">L=</span>L, <span class="dt">prior_variance=</span>prior_covar)</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="co"># Warning in mmbr_core(data, s_init, L, residual_variance, prior_variance, :</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co"># precompute_covariances option is set to FALSE by default to save memory usage</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co"># with MASH prior. The computation will be a lot slower as a result. It is</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="co"># recommended that you try setting it to TRUE, see if there is a memory usage</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="co"># issue and only switch back if it is a problem.</span></span></code></pre></div>
 <p>Finally, we use the parameter estimates from the training set to predict phenotypes in the test set. The accuracy of prediction is calculated as the correlation between true and predicted phenotypes.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pred &lt;-<span class="st"> </span><span class="kw"><a href="../reference/predict.mmbr.html">predict.mmbr</a></span>(m, X[test_num, ])
-
-results &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">1</span>], y1[test_num, ]), <span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">2</span>], y2[test_num, ]), <span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">3</span>], y3[test_num, ])), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span><span class="dv">1</span>)
-results
-<span class="co">#           [,1]</span>
-<span class="co"># [1,] 0.2317512</span>
-<span class="co"># [2,] 0.6051717</span>
-<span class="co"># [3,] 0.5202479</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>pred &lt;-<span class="st"> </span><span class="kw"><a href="../reference/predict.mmbr.html">predict.mmbr</a></span>(m, X[test_num, ])</span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a>results &lt;-<span class="st"> </span><span class="kw"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span>(<span class="kw"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">1</span>], y1[test_num, ]), <span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">2</span>], y2[test_num, ]), <span class="kw"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span>(pred[, <span class="dv">3</span>], y3[test_num, ])), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span><span class="dv">1</span>)</span>
+<span id="cb6-4"><a href="#cb6-4"></a>results</span>
+<span id="cb6-5"><a href="#cb6-5"></a><span class="co">#           [,1]</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a><span class="co"># [1,] 0.6095370</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a><span class="co"># [2,] 0.5206075</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a><span class="co"># [3,] 0.7057251</span></span></code></pre></div>
 </div>
 <div id="session-information" class="section level2">
 <h2 class="hasAnchor">
 <a href="#session-information" class="anchor"></a>Session information</h2>
 <p>Here are some details about the computing environment, including the versions of R, and the R packages, used to generate these results.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://rdrr.io/r/utils/sessionInfo.html">sessionInfo</a></span>()
-<span class="co"># R version 3.5.3 (2019-03-11)</span>
-<span class="co"># Platform: x86_64-pc-linux-gnu (64-bit)</span>
-<span class="co"># Running under: LMDE 3 (cindy)</span>
-<span class="co"># </span>
-<span class="co"># Matrix products: default</span>
-<span class="co"># BLAS: /usr/lib/atlas-base/atlas/libblas.so.3.0</span>
-<span class="co"># LAPACK: /usr/lib/atlas-base/atlas/liblapack.so.3.0</span>
-<span class="co"># </span>
-<span class="co"># locale:</span>
-<span class="co">#  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              </span>
-<span class="co">#  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    </span>
-<span class="co">#  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   </span>
-<span class="co">#  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 </span>
-<span class="co">#  [9] LC_ADDRESS=C               LC_TELEPHONE=C            </span>
-<span class="co"># [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       </span>
-<span class="co"># </span>
-<span class="co"># attached base packages:</span>
-<span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
-<span class="co"># </span>
-<span class="co"># other attached packages:</span>
-<span class="co"># [1] mmbr_0.0.1.0277   mashr_0.2.21.0641 ashr_2.2-39      </span>
-<span class="co"># </span>
-<span class="co"># loaded via a namespace (and not attached):</span>
-<span class="co">#  [1] Rcpp_1.0.3         susieR_0.8.1.0564  pillar_1.3.1      </span>
-<span class="co">#  [4] compiler_3.5.3     plyr_1.8.5         prettyunits_1.0.2 </span>
-<span class="co">#  [7] progress_1.2.2     iterators_1.0.12   tools_3.5.3       </span>
-<span class="co"># [10] zeallot_0.1.0      digest_0.6.23      tibble_2.1.1      </span>
-<span class="co"># [13] evaluate_0.13      memoise_1.1.0      lattice_0.20-38   </span>
-<span class="co"># [16] pkgconfig_2.0.3    rlang_0.4.2        Matrix_1.2-16     </span>
-<span class="co"># [19] foreach_1.4.7      yaml_2.2.0         parallel_3.5.3    </span>
-<span class="co"># [22] mvtnorm_1.0-11     pkgdown_1.4.1      xfun_0.9          </span>
-<span class="co"># [25] stringr_1.4.0      knitr_1.25         vctrs_0.2.1       </span>
-<span class="co"># [28] hms_0.5.3          desc_1.2.0         fs_1.3.0          </span>
-<span class="co"># [31] rprojroot_1.3-2    grid_3.5.3         R6_2.4.1          </span>
-<span class="co"># [34] rmarkdown_1.15     mixsqp_0.2-2       rmeta_3.0         </span>
-<span class="co"># [37] magrittr_1.5       matrixStats_0.55.0 backports_1.1.5   </span>
-<span class="co"># [40] codetools_0.2-16   htmltools_0.3.6    MASS_7.3-51.1     </span>
-<span class="co"># [43] assertthat_0.2.1   abind_1.4-5        stringi_1.4.3     </span>
-<span class="co"># [46] doParallel_1.0.15  pscl_1.5.2         truncnorm_1.0-8   </span>
-<span class="co"># [49] SQUAREM_2017.10-1  crayon_1.3.4</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw"><a href="https://rdrr.io/r/utils/sessionInfo.html">sessionInfo</a></span>()</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="co"># R version 3.6.2 (2019-12-12)</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co"># Platform: x86_64-apple-darwin15.6.0 (64-bit)</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="co"># Running under: macOS Catalina 10.15.2</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="co"># </span></span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="co"># Matrix products: default</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a><span class="co"># BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co"># LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co"># </span></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="co"># locale:</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a><span class="co"># [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="co"># </span></span>
+<span id="cb7-13"><a href="#cb7-13"></a><span class="co"># attached base packages:</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a><span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span id="cb7-15"><a href="#cb7-15"></a><span class="co"># </span></span>
+<span id="cb7-16"><a href="#cb7-16"></a><span class="co"># other attached packages:</span></span>
+<span id="cb7-17"><a href="#cb7-17"></a><span class="co"># [1] mmbr_0.0.1.0290   mashr_0.2.21.0641 ashr_2.2-39      </span></span>
+<span id="cb7-18"><a href="#cb7-18"></a><span class="co"># </span></span>
+<span id="cb7-19"><a href="#cb7-19"></a><span class="co"># loaded via a namespace (and not attached):</span></span>
+<span id="cb7-20"><a href="#cb7-20"></a><span class="co">#  [1] Rcpp_1.0.3         susieR_0.9.0.0580  pillar_1.4.3       compiler_3.6.2    </span></span>
+<span id="cb7-21"><a href="#cb7-21"></a><span class="co">#  [5] plyr_1.8.5         prettyunits_1.1.1  progress_1.2.2     iterators_1.0.12  </span></span>
+<span id="cb7-22"><a href="#cb7-22"></a><span class="co">#  [9] tools_3.6.2        zeallot_0.1.0      digest_0.6.23      tibble_2.1.3      </span></span>
+<span id="cb7-23"><a href="#cb7-23"></a><span class="co"># [13] evaluate_0.14      memoise_1.1.0      lattice_0.20-38    pkgconfig_2.0.3   </span></span>
+<span id="cb7-24"><a href="#cb7-24"></a><span class="co"># [17] rlang_0.4.2        Matrix_1.2-18      foreach_1.4.7      yaml_2.2.0        </span></span>
+<span id="cb7-25"><a href="#cb7-25"></a><span class="co"># [21] parallel_3.6.2     mvtnorm_1.0-11     pkgdown_1.4.1      xfun_0.11         </span></span>
+<span id="cb7-26"><a href="#cb7-26"></a><span class="co"># [25] stringr_1.4.0      knitr_1.26         vctrs_0.2.1        hms_0.5.2         </span></span>
+<span id="cb7-27"><a href="#cb7-27"></a><span class="co"># [29] desc_1.2.0         fs_1.3.1           rprojroot_1.3-2    grid_3.6.2        </span></span>
+<span id="cb7-28"><a href="#cb7-28"></a><span class="co"># [33] R6_2.4.1           rmarkdown_2.0      mixsqp_0.3-17      irlba_2.3.3       </span></span>
+<span id="cb7-29"><a href="#cb7-29"></a><span class="co"># [37] rmeta_3.0          magrittr_1.5       matrixStats_0.55.0 backports_1.1.5   </span></span>
+<span id="cb7-30"><a href="#cb7-30"></a><span class="co"># [41] codetools_0.2-16   htmltools_0.4.0    MASS_7.3-51.4      assertthat_0.2.1  </span></span>
+<span id="cb7-31"><a href="#cb7-31"></a><span class="co"># [45] abind_1.4-5        stringi_1.4.3      doParallel_1.0.15  pscl_1.5.2        </span></span>
+<span id="cb7-32"><a href="#cb7-32"></a><span class="co"># [49] truncnorm_1.0-8    SQUAREM_2017.10-1  crayon_1.3.4</span></span></code></pre></div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+
         <div id="tocnav">
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
