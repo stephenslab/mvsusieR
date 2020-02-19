@@ -317,20 +317,7 @@ RSSData <- R6Class("RSSData",
         eigenR$values[eigenR$values < 0] = 0
         warning('Negative eigenvalues are set to 0.')
       }
-      tmp = eigenR$vectors %*% (t(eigenR$vectors) * eigenR$values)
-      if (all(abs(diag(tmp) - 1) < sqrt(.Machine$double.eps))) {
-        diag(tmp) = 1
-        private$.XtX = tmp
-      } else{
-        diagtmp_0.5 = diag(tmp) ^ (0.5)
-        diagtmp_0.5[diagtmp_0.5 == 0] = 1
-        normalize = apply(eigenR$vectors / diagtmp_0.5, 2, function(x)
-          sqrt(sum(x ^ 2)))
-        eigenR$values = normalize ^ 2 * eigenR$values
-        eigenR$vectors = t(t(eigenR$vectors / diagtmp_0.5) / normalize)
-        private$.XtX = eigenR$vectors %*% (t(eigenR$vectors) * eigenR$values)
-        diag(private$.XtX) = 1
-      }
+      private$.XtX = eigenR$vectors %*% (t(eigenR$vectors) * eigenR$values)
       private$csd = rep(1, length = private$J)
       private$d = diag(private$.XtX)
       private$eigenvectors = eigenR$vectors
