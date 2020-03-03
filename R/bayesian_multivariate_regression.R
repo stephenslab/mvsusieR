@@ -71,7 +71,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     },
     estimate_prior_variance = function(bhat, sbhat2, prior_weights, method=c('optim','simple')) {
       if (method == 'optim') {
-        # dont constrain on values of `lV` -- as a scalar it does not have to be between 0 and 1 (unlike the case with SuSiE)
+        # method BFGS is 1.5 times slower than Brent with upper 15 lower -15; but it does not require specifying upper/lower 
         lV = optim(par=log(1), fn=private$neg_loglik_logscale, bhat=bhat, S=sbhat2, prior_weights = prior_weights, method='BFGS')$par
         V = exp(lV)
       } else {
