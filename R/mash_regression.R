@@ -10,7 +10,7 @@ MashRegression <- R6Class("MashRegression",
         stop("residual_variance must be a matrix")
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
-      private$.prior_variance$xUlist = simplify2array(private$.prior_variance$xUlist)
+      private$.prior_variance$xUlist = matlist2array(private$.prior_variance$xUlist)
       private$.residual_variance = residual_variance
       tryCatch({
         private$.residual_variance_inv = invert_via_chol(residual_variance)
@@ -22,7 +22,7 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, estimate_prior_variance_method = NULL) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -134,12 +134,13 @@ MashRegression <- R6Class("MashRegression",
                               is_common_cov, 4)
       }
       private$.posterior_b1 = post$post_mean
-      # Format post_cov for degenerated case with R = 1
-      # (no need for it)
-      #if (ncol(private$.posterior_b1) == 1) {
-      #  post$post_cov = array(post$post_cov, c(1, 1, private$J))
-      #}
-      private$.posterior_b2 = post$post_cov + simplify2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
+      private$.posterior_b2 = post$post_cov + matlist2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
+      if (save_var) private$.posterior_variance = post$post_cov
+      # flatten posterior_b2 for degenerated case with R = 1
+      if (ncol(private$.posterior_b1) == 1) {
+        private$.posterior_b2 = as.matrix(apply(private$.posterior_b2,3,diag))
+        if (!is.null(private$.posterior_variance)) private$.posterior_variance = as.matrix(apply(private$.posterior_variance,3,diag))
+      }
       # 5. lfsr
       private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
     }
@@ -292,8 +293,8 @@ MashInitializer <- R6Class("MashInitializer",
             }
           }
       }
-      private$inv_mats = list(Vinv = simplify2array(Vinv), U0 = simplify2array(U0),
-                              sigma_rooti = simplify2array(sigma_rooti),
+      private$inv_mats = list(Vinv = matlist2array(Vinv), U0 = matlist2array(U0),
+                              sigma_rooti = matlist2array(sigma_rooti),
                               sbhat = res$sbhat,
                               common_sbhat = res$is_common_sbhat)
     },

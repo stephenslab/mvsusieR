@@ -68,7 +68,7 @@ SingleEffectModel <- function(base)
         },
         # posterior first moment, alpha * posterior_b1_reg
         posterior_b1 = function() private$.pip * private$.posterior_b1,
-        # posterior first moment, alpha * posterior_b2_reg
+        # posterior second moment, alpha * posterior_b2_reg
         posterior_b2 = function() {
             if (length(dim(private$.posterior_b2)) == 3) b2 = t(apply(private$.posterior_b2, 3, diag))
             else b2 = private$.posterior_b2

@@ -5,13 +5,14 @@
 To automatically retrieve and install `mmbr` from this repository,
 
    ```R
-   devtools::install_github("gaow/mmbr")
+   devtools::install_github("stephenslab/mmbr")
    ```
 
 ## Quick Start
 
-[Here](https://gaow.github.io/mmbr/articles/prediction.html) is a quick document to show `mmbr` in action.
-For more documentation and examples please visit: https://gaow.github.io/mmbr
+[Here](https://stephenslab.github.io/mmbr/articles/prediction.html) is
+a quick document to show `mmbr` in action.  For more documentation and
+examples please visit: https://stephenslab.github.io/mmbr
 
 ## Developer notes
 

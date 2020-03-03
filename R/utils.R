@@ -27,6 +27,16 @@ tr = function (m) {
     return(sum(diag(m), na.rm = TRUE))
 }
 
+#' @title Convert a list of matrices to array without losing dimension
+#' @keywords internal
+matlist2array = function(l) {
+  l = simplify2array(l)
+  if (is.null(dim(l))) {
+    l = array(l, c(1,1,length(l)))
+  }
+  return(l)
+}
+
 #' @title compute value_j * weight_j / sum(value_j * weight_j)
 #' @keywords internal
 compute_weighted_sum = function(value, weight, log = TRUE) {
@@ -203,7 +213,7 @@ mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
     for (i in 1:nrow(lfsr)) {
       if (i %in% sets$cs_index) {
        pos = sets$cs[[which(sets$cs_index == i)]]
-       zeroed = which(!(1:nrow(lfsr) %in% pos))
+       zeroed = which(!(1:ncol(lfsr) %in% pos))
        alpha[i, zeroed] = 0
        # normalize them to sum to one
        alpha[i,] = alpha[i,] / sum(alpha[i,])
@@ -383,12 +393,13 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' @param max_mixture_len only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
 #' Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.
 #' @param include_indices postprocess input prior to only include conditions from this indices
+#' @param ... other parameters, for mmbr:::create_cov_canonical
 #' @return mash prior object for use with msusie() function
 #' @details ...
 #' @export
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL,
                              null_weight = NULL, weights_tol = 1E-10, max_mixture_len = 40,
-                             include_indices = NULL) {
+                             include_indices = NULL, ...) {
   if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 2)
     stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
   if (!is.null(fitted_g)) {
@@ -431,12 +442,13 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
       sample_data$scale = T
     }
     # compute grid
-    d = DenseData$new(sample_data$X, sample_data$Y, sample_data$center, sample_data$scale)
+    d = DenseData$new(sample_data$X, sample_data$Y)
+    d$standardize(sample_data$center, sample_data$scale)
     res = d$get_sumstats(diag(sample_data$residual_variance), cov2cor(sample_data$residual_variance))
     ## Use sqrt(3) giving a coarser grid than mash default in exchange for less walltime
     grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(3))
     # compute canonical covariances
-    Ulist = create_cov_canonical(ncol(sample_data$Y))
+    Ulist = create_cov_canonical(ncol(sample_data$Y), ...)
     comp_len = length(grid) * length(Ulist)
     if (max_mixture_len<comp_len && max_mixture_len>0)
       warning(paste0('Automatically generated uniform mixture prior is of length ', comp_len, ' and is greater than currently specified max_mixture_len ', max_mixture_len, ". Please set max_mixture_len=-1 to allow using all of them (although computational speed will suffer)."))

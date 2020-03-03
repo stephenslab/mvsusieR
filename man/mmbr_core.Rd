@@ -4,10 +4,23 @@
 \alias{mmbr_core}
 \title{Core MMBR code}
 \usage{
-mmbr_core(data, s_init, L, residual_variance, prior_variance,
-  prior_weights, estimate_residual_variance, estimate_prior_variance,
-  estimate_prior_method, precompute_covariances, compute_objective,
-  max_iter, tol, track_fit, verbose)
+mmbr_core(
+  data,
+  s_init,
+  L,
+  residual_variance,
+  prior_variance,
+  prior_weights,
+  estimate_residual_variance,
+  estimate_prior_variance,
+  estimate_prior_method,
+  precompute_covariances,
+  compute_objective,
+  max_iter,
+  tol,
+  track_fit,
+  verbose
+)
 }
 \description{
 Core MMBR code

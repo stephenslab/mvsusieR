@@ -41,14 +41,15 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
   } else if(summary){
     data = RSSData$new(z, R, 1e-08)
   }else {
-    data = DenseData$new(X,y,TRUE,TRUE)
+    data = DenseData$new(X,y)
+    data$standardize(TRUE,TRUE)
   }
   if(summary){
     return(list(X=X, X.sparse=X.sparse, z = z, R = R, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
   }else{
     return(list(X=X, X.sparse=X.sparse, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
   }
-  
+
 }
 
 simulate_multivariate = function(n=100,p=100,r=2,center_scale=TRUE,y_missing=0) {

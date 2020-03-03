@@ -8,11 +8,13 @@
 
 <title>SUm of SIngle Effect (SuSiE) regression IBSS algorithm — SuSiE • mmbr</title>
 
+
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -32,10 +34,12 @@
 
 
 
-<meta property="og:title" content="SUm of SIngle Effect (SuSiE) regression IBSS algorithm — SuSiE" />
 
-<meta property="og:description" content="SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
+<meta property="og:title" content="SUm of SIngle Effect (SuSiE) regression IBSS algorithm — SuSiE" />
+<meta property="og:description" content="SUm of SIngle Effect (SuSiE) regression IBSS algorithm
+SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
 <meta name="twitter:card" content="summary" />
+
 
 
 
@@ -66,7 +70,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.277</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.290</span>
       </span>
     </div>
 
@@ -82,10 +86,9 @@
   <a href="../reference/index.html">Functions</a>
 </li>
       </ul>
-      
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/gaow/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mmbr">Source</a>
 </li>
       </ul>
       
@@ -101,30 +104,86 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>SUm of SIngle Effect (SuSiE) regression IBSS algorithm</h1>
-    <small class="dont-index">Source: <a href='https://github.com/gaow/mmbr/blob/master/R/ibss_algorithm.R'><code>R/ibss_algorithm.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mmbr/blob/master/R/ibss_algorithm.R'><code>R/ibss_algorithm.R</code></a></small>
     <div class="hidden name"><code>SuSiE.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    
     <p>SUm of SIngle Effect (SuSiE) regression IBSS algorithm</p>
-    
+<p>SUm of SIngle Effect (SuSiE) regression IBSS algorithm</p>
     </div>
 
-    <pre class="usage"><span class='no'>SuSiE</span></pre>
-        
-    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
-    <p>An object of class <code>R6ClassGenerator</code> of length 25.</p>
+
+    <h2 class="hasAnchor" id="methods"><a class="anchor" href="#methods"></a>Methods</h2>
+
     
+<h3>Public methods</h3>
+
+<ul>
+<li><p><a href='#method-new'><code>SuSiE$new()</code></a></p></li>
+<li><p><a href='#method-init_coef'><code>SuSiE$init_coef()</code></a></p></li>
+<li><p><a href='#method-fit'><code>SuSiE$fit()</code></a></p></li>
+<li><p><a href='#method-get_objective'><code>SuSiE$get_objective()</code></a></p></li>
+<li><p><a href='#method-clone'><code>SuSiE$clone()</code></a></p></li>
+</ul>
+<p><hr>
+<a id="method-new"></a></p><h3>Method <code>new()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre>SuSiE$new(
+  SER,
+  L,
+  estimate_residual_variance = FALSE,
+  compute_objective = TRUE,
+  max_iter = 100,
+  tol = 0.001,
+  track_pip = FALSE,
+  track_lbf = FALSE
+)</pre><p></div></p>
+
+<p><hr>
+<a id="method-init_coef"></a></p><h3>Method <code>init_coef()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre>SuSiE$init_coef(coef_index, coef_value, p, r)</pre><p></div></p>
+
+<p><hr>
+<a id="method-fit"></a></p><h3>Method <code>fit()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre>SuSiE$fit(
+  d,
+  prior_weights = NULL,
+  estimate_prior_variance_method = NULL,
+  verbose = TRUE
+)</pre><p></div></p>
+
+<p><hr>
+<a id="method-get_objective"></a></p><h3>Method <code>get_objective()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre>SuSiE$get_objective(dump = FALSE)</pre><p></div></p>
+
+<p><hr>
+<a id="method-clone"></a></p><h3>Method <code>clone()</code></h3>
+<p>The objects of this class are cloneable with this method.</p><h3>Usage</h3>
+<p><div class="r"></p><pre>SuSiE$clone(deep = FALSE)</pre><p></div></p>
+
+<h3>Arguments</h3>
+<p><div class="arguments"></p><dl class='dl-horizontal'>
+<dt><code>deep</code></dt><dd><p>Whether to make a deep clone.</p></dd>
+
+</dl><p></div></p>
+
+
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      
-      <li><a href="#format">Format</a></li>
-          </ul>
+      <li><a href="#methods">Methods</a></li>
+    </ul>
 
   </div>
 </div>
@@ -132,7 +191,7 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by Gao Wang.</p>
+  <p>Developed by Gao Wang, Yuxin Zou.</p>
 </div>
 
 <div class="pkgdown">

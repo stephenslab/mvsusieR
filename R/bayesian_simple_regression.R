@@ -9,7 +9,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, 1)
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, estimate_prior_variance_method = NULL) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -31,6 +31,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       }
       # posterior
       post_var = (1/private$.prior_variance + d$X2_sum/private$.residual_variance)^(-1) # posterior variance
+      if (save_var) private$.posterior_variance = post_var
       private$.posterior_b1 = (1/private$.residual_variance) * post_var * XtY
       private$.posterior_b2 = post_var + private$.posterior_b1^2 # second moment
       # Bayes factor
@@ -48,6 +49,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     bhat = function() private$.bhat,
     sbhat = function() private$.sbhat,
     prior_variance = function() private$.prior_variance,
+    posterior_variance = function() private$.posterior_variance,
     residual_variance = function(v) {
       if (missing(v)) private$.residual_variance
       else private$.residual_variance = v
@@ -63,6 +65,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     .lbf = NULL, # log Bayes factor
     .posterior_b1 = NULL, # posterior first moment
     .posterior_b2 = NULL, # posterior second moment
+    .posterior_variance = NULL, # posterior second moment
     loglik = function(V,betahat,shat2,prior_weights) {
       lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       #log(bf) on each SNP

@@ -4,18 +4,34 @@
 \alias{msusie}
 \title{SUm of Single Effect (SuSiE) Regression of multivariate Y on X}
 \usage{
-msusie(X, Y, L = 10, prior_variance = 0.2, residual_variance = NULL,
-  prior_weights = NULL, standardize = TRUE, intercept = TRUE,
-  estimate_residual_variance = TRUE, estimate_prior_variance = FALSE,
-  estimate_prior_method = "optim", compute_objective = FALSE,
-  s_init = NULL, coverage = 0.95, min_abs_corr = 0.5,
-  compute_univariate_zscore = FALSE, precompute_covariances = FALSE,
-  max_iter = 100, tol = 0.001, verbose = TRUE, track_fit = FALSE)
+msusie(
+  X,
+  Y,
+  L = 10,
+  prior_variance = 0.2,
+  residual_variance = NULL,
+  prior_weights = NULL,
+  standardize = TRUE,
+  intercept = TRUE,
+  estimate_residual_variance = FALSE,
+  estimate_prior_variance = TRUE,
+  estimate_prior_method = "simple",
+  compute_objective = FALSE,
+  s_init = NULL,
+  coverage = 0.95,
+  min_abs_corr = 0.5,
+  compute_univariate_zscore = FALSE,
+  precompute_covariances = FALSE,
+  max_iter = 100,
+  tol = 0.001,
+  verbose = TRUE,
+  track_fit = FALSE
+)
 }
 \arguments{
 \item{X}{an n by p matrix of covariates}
 
-\item{Y}{an n vector}
+\item{Y}{an n vector, or n by r matrix of response variables}
 
 \item{L}{maximum number of non-zero effects}
 

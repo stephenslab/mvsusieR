@@ -6,7 +6,7 @@
 #' The assumption is that each b_l has exactly one non-zero element, with all elements
 #' equally likely to be non-zero.
 #' @param X an n by p matrix of covariates
-#' @param Y an n vector
+#' @param Y an n vector, or n by r matrix of response variables
 #' @param L maximum number of non-zero effects
 #' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
 #' @param residual_variance the residual variance (defaults to sample variance of Y)
@@ -64,9 +64,9 @@ msusie = function(X,Y,L=10,
                  residual_variance=NULL,
                  prior_weights=NULL,
                  standardize=TRUE,intercept=TRUE,
-                 estimate_residual_variance=TRUE,
-                 estimate_prior_variance=FALSE,
-                 estimate_prior_method='optim',
+                 estimate_residual_variance=FALSE,
+                 estimate_prior_variance=TRUE,
+                 estimate_prior_method='simple',
                  compute_objective=FALSE,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
@@ -75,8 +75,12 @@ msusie = function(X,Y,L=10,
                  verbose=TRUE,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
-
-  data = DenseData$new(X, Y, intercept, standardize)
+  if (any(is.na(Y))) {
+    data = DenseDataYMissing$new(X, Y)
+  } else {
+    data = DenseData$new(X, Y)
+  }
+  data$standardize(intercept, standardize)
   if (is.null(residual_variance)) {
     if (data$n_condition > 1) {
       if (!data$Y_has_missing) residual_variance = cov(Y)
@@ -156,9 +160,9 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
                       prior_variance=50,
                       residual_variance=NULL,
                       prior_weights=NULL,
-                      estimate_residual_variance=TRUE,
-                      estimate_prior_variance=FALSE,
-                      estimate_prior_method='optim',
+                      estimate_residual_variance=FALSE,
+                      estimate_prior_variance=TRUE,
+                      estimate_prior_method='simple',
                       compute_objective=FALSE,
                       precompute_covariances = FALSE,
                       s_init = NULL,coverage=0.95,min_abs_corr=0.5,
@@ -178,7 +182,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
       nullish_z = data$XtY[nullish,]
       residual_variance = cor(nullish_z)
     }
-    else residual_variance = 1
+    else residual_variance = matrix(1)
   }
   #
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
@@ -235,6 +239,8 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
     if (data$Y_has_missing || precompute_covariances)
       prior_variance$precompute_cov_matrices(data, residual_variance)
     residual_variance = as.matrix(residual_variance)
+    if (!precompute_covariances)
+      warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation will be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
   }
   if (!estimate_prior_variance) estimate_prior_method = NULL
   # Below are the core computations

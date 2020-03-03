@@ -4,16 +4,19 @@ Package: mmbr
 Title: Multivariate Bayesian variable selection regression
 Description: A more general implementation of the Sum of SIngle Effects (SuSiE)
     regression for Bayesian variable selection
-Date: 2020-01-08
-Version: 0.0.1.0277
+Date: 2020-02-10
+Version: 0.0.1.0292
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
-                    email="gaow@uchicago.edu"))
-URL: https://github.com/gaow/mmbr
-BugReports: https://github.com/gaow/mmbr/issues
+                    email="gaow@uchicago.edu"),
+             person("Yuxin","Zou",role="aut"),
+             person("Peter","Carbonetto",role="aut"),
+             person("Matthew","Stephens",role="aut"))
+URL: https://github.com/stephenslab/mmbr
+BugReports: https://github.com/stephenslab/mmbr/issues
 License: MIT + file LICENSE
 LazyData: true
 NeedsCompilation: no
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Depends: R (>= 3.0.0),
     mashr (>= 0.2.19)
 Imports:
