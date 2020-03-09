@@ -86,7 +86,6 @@ MashRegression <- R6Class("MashRegression",
         if (estimate_prior_variance_method != 'simple')
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
         private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
-        if (private$prior_variance_scale == 0) private$.lbf = rep(0, private$J)
       }
       # 3. compute posterior weights
       private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik$loglik_matrix))
