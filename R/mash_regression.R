@@ -83,7 +83,7 @@ MashRegression <- R6Class("MashRegression",
       private$.lbf = lbf_obj$lbf
       private$.loglik_null = lbf_obj$loglik_null
       if (!is.null(estimate_prior_variance_method)) {
-        if (estimate_prior_variance_method != 'simple')
+        if (!(estimate_prior_variance_method %in% c('simple', 'EM')))
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
         if (is.null(prior_weights))
           prior_weights = rep(1/private$J, private$J)

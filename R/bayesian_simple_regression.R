@@ -66,22 +66,22 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     .posterior_b1 = NULL, # posterior first moment
     .posterior_b2 = NULL, # posterior second moment
     .posterior_variance = NULL, # posterior second moment
-    loglik = function(V,betahat,shat2,prior_weights) {
+    loglik = function(V, betahat, shat2, prior_weights) {
       lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       #log(bf) on each SNP
       lbf[shat2==Inf] = 0 # deal with special case of infinite shat2 (eg happens if X does not vary)
       return(compute_weighted_sum(lbf, prior_weights)$log_sum)
     },
-    neg_loglik_logscale = function(lV,betahat,shat2,prior_weights){
+    neg_loglik_logscale = function(lV, betahat, shat2, prior_weights){
       return(-1 * private$loglik(exp(lV),betahat,shat2,prior_weights))
     },
     # vector of gradients of logBF_j for each j, with respect to prior variance V
-    lbf_grad = function(V,sbhat2,T2){
+    lbf_grad = function(V, sbhat2, T2) {
       l = 0.5* (1/(V+sbhat2)) * ((sbhat2/(V+sbhat2))*T2-1)
       l[is.nan(l)] = 0
       return(l)
     },
-    loglik_grad = function(V,bhat,sbhat2,prior_weights) {
+    loglik_grad = function(V, bhat, sbhat2, prior_weights) {
       #log(bf) on each effect
       lbf = dnorm(bhat,0,sqrt(V+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
       lbf[sbhat2==Inf] = 0 # deal with special case of infinite sbhat2 (eg happens if X does not vary)
@@ -90,21 +90,30 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     },
     # define gradient as function of lV:=log(V)
     # to improve numerical optimization
-    negloglik_grad_logscale = function(lV,betahat,shat2,prior_weights) {
+    negloglik_grad_logscale = function(lV, betahat, shat2, prior_weights) {
       -exp(lV)*private$loglik_grad(exp(lV),betahat,shat2,prior_weights)
     },
-    estimate_prior_variance = function(betahat,shat2,prior_weights, method=c('optim', 'uniroot', 'simple')) {
+    estimate_prior_variance = function(betahat, shat2, prior_weights, post_b2=NULL, method=c('optim', 'uniroot', 'simple')) {
       if(method=="optim"){
-        lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, method='Brent', lower = -30, upper = 15)$par
-        V = exp(lV)
+        # method BFGS is 1.5 times slower than Brent with upper 15 lower -15 although it does not require specifying upper/lower
+        V = private$estimate_prior_variance_optim(betahat, shat2, prior_weights, method='Brent', lower = -30, upper = 15)
       } else if (method == 'uniroot'){
         V.u = uniroot(private$negloglik_grad_logscale,c(-10,10),extendInt = "upX",betahat=betahat,shat2=shat2,prior_weights=prior_weights)
         V = exp(V.u$root)
+      } else if (method == 'EM') {
+        V = private$estimate_prior_variance_em(post_b2, prior_weights)
       } else if (method == 'simple'){
-        V = private$.prior_variance
+        V = private$estimate_prior_variance_simple()
       }
-      if(private$loglik(0,betahat,shat2,prior_weights) >= private$loglik(V,betahat,shat2,prior_weights)) V=0 # set V exactly 0 if that beats the numerical value
+      # set V exactly 0 if that beats the numerical value by a loglik factor of 1.1
+      if(private$loglik(0,betahat,shat2,prior_weights) + 0.1 >= private$loglik(V,betahat,shat2,prior_weights)) V=0
       return(V)
-    }
+    },
+    estimate_prior_variance_optim = function(betahat, shat2, prior_weights, ...) {
+      lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
+      return(exp(lV))
+    },
+    estimate_prior_variance_em = function(post_b2, prior_weights) sum(prior_weights*post_b2),
+    estimate_prior_variance_simple = function() private$.prior_variance
   )
 )
