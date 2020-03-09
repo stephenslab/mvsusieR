@@ -26,7 +26,6 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       }
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
-          if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
         private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
       }
       # posterior
@@ -39,6 +38,9 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
         private$.lbf = as.vector(private$.lbf)
       private$.lbf[sbhat2==Inf] = 0
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
+        private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,private$.posterior_b2,method=estimate_prior_variance_method)
+      }
     }
   ),
   active = list(
@@ -94,6 +96,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       -exp(lV)*private$loglik_grad(exp(lV),betahat,shat2,prior_weights)
     },
     estimate_prior_variance = function(betahat, shat2, prior_weights, post_b2=NULL, method=c('optim', 'uniroot', 'simple')) {
+      if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
       if(method=="optim"){
         # method BFGS is 1.5 times slower than Brent with upper 15 lower -15 although it does not require specifying upper/lower
         V = private$estimate_prior_variance_optim(betahat, shat2, prior_weights, method='Brent', lower = -30, upper = 15)

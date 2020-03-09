@@ -37,18 +37,17 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
-          if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
         private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
       }
       # posterior
       post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scale)
       private$.posterior_b1 = post$b1
       private$.posterior_b2 = post$b2
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
-        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,post_b2,method=estimate_prior_variance_method)
-      }
       if (save_var) private$.posterior_variance = post$cov
       private$.lbf = post$lbf
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
+        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,private$.posterior_b2,method=estimate_prior_variance_method)
+      }
     }
   ),
   active = list(
