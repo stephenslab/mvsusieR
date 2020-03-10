@@ -1,6 +1,6 @@
 context("Test SuSiE regression")
 
-test_that("mmbr is identical to susieR", with(simulate_univariate(), {
+test_that("mmbr is identical to susieR when prior is a scalar", with(simulate_univariate(), {
     # Test fixed prior fixed residual
     A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = FALSE, estimate_prior_variance = FALSE)
     SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
@@ -26,11 +26,20 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     BA = report_susie_model(d.copy, B)
     expect_susieR_equal(A, BA, F, T)
     # Test estimated prior estimated residual
-    A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = TRUE, estimate_prior_variance = TRUE)
+    A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = TRUE, estimate_prior_variance = TRUE, estimate_prior_method='optim')
     SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
     B = SuSiE$new(SER, L, estimate_residual_variance = TRUE)
     d.copy = d$clone(T)
     B$fit(d.copy, estimate_prior_variance_method='optim')
+    BA = report_susie_model(d.copy, B)
+    # FIXME: have to use bigger tolerance level ...
+    expect_susieR_equal(A, BA, T, T, 1E-6)
+    # Test estimated prior using EM algorithm and estimated residual
+    A = susieR::susie(X, y, L = L, scaled_prior_variance = V/var(y), residual_variance = 1, prior_weights = NULL, estimate_residual_variance = TRUE, estimate_prior_variance = TRUE, estimate_prior_method='EM')
+    SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
+    B = SuSiE$new(SER, L, estimate_residual_variance = TRUE)
+    d.copy = d$clone(T)
+    B$fit(d.copy, estimate_prior_variance_method='EM')
     BA = report_susie_model(d.copy, B)
     # FIXME: have to use bigger tolerance level ...
     expect_susieR_equal(A, BA, T, T, 1E-6)

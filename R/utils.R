@@ -213,7 +213,7 @@ mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
     for (i in 1:nrow(lfsr)) {
       if (i %in% sets$cs_index) {
        pos = sets$cs[[which(sets$cs_index == i)]]
-       zeroed = which(!(1:nrow(lfsr) %in% pos))
+       zeroed = which(!(1:ncol(lfsr) %in% pos))
        alpha[i, zeroed] = 0
        # normalize them to sum to one
        alpha[i,] = alpha[i,] / sum(alpha[i,])

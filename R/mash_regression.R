@@ -82,18 +82,10 @@ MashRegression <- R6Class("MashRegression",
       lbf_obj = private$compute_lbf(llik)
       private$.lbf = lbf_obj$lbf
       private$.loglik_null = lbf_obj$loglik_null
-      if (!is.null(estimate_prior_variance_method)) {
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
         if (estimate_prior_variance_method != 'simple')
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
-        if (is.null(prior_weights))
-          prior_weights = rep(1/private$J, private$J)
-        # simple method: comparing loglik for V=0 vs current V
-        if (compute_weighted_sum(private$.lbf, prior_weights)$log_sum <= 0) {
-        # as commented out below, alternatively and more conservative (but less principled?), we can checking if all `private$.lbf` are smaller than zero.
-        #if (all(private$.lbf <= 0)) {
-          private$prior_variance_scale = 0
-          private$.lbf = private$.lbf * 0
-        }
+        private$prior_variance_scale = private$estimate_prior_variance(NULL,NULL,prior_weights,method=estimate_prior_variance_method)
       }
       # 3. compute posterior weights
       private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik$loglik_matrix))
@@ -176,7 +168,10 @@ MashRegression <- R6Class("MashRegression",
         # Inf - Inf above can cause NaN
         lbf[which(is.na(lbf))] = 0
         return(list(lbf=lbf, loglik_null=loglik_null))
-    }
+    },
+    loglik = function(V,B,S,prior_weights) ifelse(V==0, 0, compute_weighted_sum(private$.lbf, prior_weights)$log_sum),
+    estimate_prior_variance_em = function(post_b2, post_weights) Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[[j]])),
+    estimate_prior_variance_simple = function() 1
   ),
 )
 

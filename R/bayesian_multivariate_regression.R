@@ -29,15 +29,16 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       bhat[which(is.nan(bhat))] = 0
       if (d$Y_has_missing) sbhat2 = lapply(1:nrow(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j,])
       else sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
+      for (j in 1:length(sbhat2)) {
+        sbhat2[[j]][which(is.nan(sbhat2[[j]]) | is.infinite(sbhat2[[j]]))] = 1E6
+      }
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(do.call(rbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
-        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E3
       }
       if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       # deal with prior variance: can be "estimated" across effects
-      if(!is.null(estimate_prior_variance_method)) {
-          if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
+      if(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
         private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
       }
       # posterior
@@ -62,26 +63,18 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   private = list(
     .residual_variance_inv = NULL,
     prior_variance_scale = NULL,
-    loglik = function(bhat,S,scalar,prior_weights) {
+    loglik = function(scalar, bhat, S, prior_weights) {
       U = private$.prior_variance * scalar
       lbf = multivariate_lbf(bhat, S, U)
       return(compute_weighted_sum(lbf, prior_weights)$log_sum)
     },
-    neg_loglik_logscale = function(lV, bhat, S, prior_weights) {
-      return(-1 * private$loglik(bhat, S, exp(lV), prior_weights))
+    estimate_prior_variance_optim = function(betahat, shat2, prior_weights, ...) {
+      # log(1) = 0
+      lV = optim(par=0, fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
+      return(exp(lV))
     },
-    estimate_prior_variance = function(bhat, sbhat2, prior_weights, method=c('optim','simple')) {
-      if (method == 'optim') {
-        # dont constrain on values of `lV` -- as a scalar it does not have to be between 0 and 1 (unlike the case with SuSiE)
-        lV = optim(par=log(1), fn=private$neg_loglik_logscale, bhat=bhat, S=sbhat2, prior_weights = prior_weights, method='BFGS')$par
-        V = exp(lV)
-      } else {
-        # just use 1 the default, and to be compared with 0 below
-        V = 1
-      }
-      if(private$loglik(bhat, sbhat2, 0, prior_weights) >= private$loglik(bhat, sbhat2, V, prior_weights)) V=0 # set V exactly 0 if that beats the numerical value
-      return(V)
-    }
+    estimate_prior_variance_em = function(post_b2, post_weights) Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[[j]])),
+    estimate_prior_variance_simple = function() 1
   )
 )
 
