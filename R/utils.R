@@ -13,7 +13,7 @@ invert_via_chol = function(x) {
   return(chol2inv(muffled_chol(x)))
 }
 
-#' @title Invert a triangular matrix
+#' @title Invert SPD via triangular back-fitting
 #' @keywords internal
 invert_tri = function(x) {
   return(t(backsolve(muffled_chol(x), diag(nrow(x)))))

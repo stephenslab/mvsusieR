@@ -2,11 +2,11 @@
 % Please edit documentation in R/utils.R
 \name{invert_tri}
 \alias{invert_tri}
-\title{Invert a triangular matrix}
+\title{Invert SPD via triangular back-fitting}
 \usage{
 invert_tri(x)
 }
 \description{
-Invert a triangular matrix
+Invert SPD via triangular back-fitting
 }
 \keyword{internal}
