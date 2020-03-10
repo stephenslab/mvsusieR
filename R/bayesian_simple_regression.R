@@ -25,8 +25,12 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
         private$.sbhat = sqrt(sbhat2)
       }
       # deal with prior variance: can be "estimated" across effects
-      if(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
-        private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
+      if(!is.null(estimate_prior_variance_method)) {
+        if (estimate_prior_variance_method == "EM") {
+          private$cache = list(betahat = bhat, shat2 = sbhat2)
+        } else {
+          private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
+        }
       }
       # posterior
       post_var = (1/private$.prior_variance + d$X2_sum/private$.residual_variance)^(-1) # posterior variance
@@ -65,6 +69,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     .posterior_b1 = NULL, # posterior first moment
     .posterior_b2 = NULL, # posterior second moment
     .posterior_variance = NULL, # posterior second moment
+    cache = NULL, # some cached data
     loglik = function(V, betahat, shat2, prior_weights) {
       lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       #log(bf) on each SNP
@@ -92,7 +97,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     negloglik_grad_logscale = function(lV, betahat, shat2, prior_weights) {
       -exp(lV)*private$loglik_grad(exp(lV),betahat,shat2,prior_weights)
     },
-    estimate_prior_variance = function(betahat, shat2, prior_weights, method=c('optim', 'uniroot', 'simple')) {
+    estimate_prior_variance = function(betahat, shat2, prior_weights, method=c('optim', 'uniroot', 'simple'), check_null_tol = 0.1) {
       if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
       if(method=="optim") {
         # method BFGS is 1.5 times slower than Brent with upper 15 lower -15 although it does not require specifying upper/lower
@@ -105,15 +110,19 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       } else {
         stop("Optimization method not supported.")
       }
-      # set V exactly 0 if that beats the numerical value by a loglik factor of 1.1
-      if(private$loglik(0,betahat,shat2,prior_weights) + 0.1 >= private$loglik(V,betahat,shat2,prior_weights)) V=0
+      # set V exactly 0 if that beats the numerical value by a loglik factor of 1.1 by default check_null_tol = 0.1
+      if(private$loglik(0,betahat,shat2,prior_weights) + check_null_tol >= private$loglik(V,betahat,shat2,prior_weights)) V=0
       return(V)
     },
     estimate_prior_variance_optim = function(betahat, shat2, prior_weights, ...) {
       lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em = function(post_b2, post_weights) sum(post_weights*post_b2),
+    estimate_prior_variance_em = function(sumstats, prior_weights, post_b2, post_weights, check_null_tol = 0.1) {
+      V = sum(post_weights*post_b2)
+      if(private$loglik(0,sumstats$betahat,sumstats$shat2,prior_weights) + 0.1 >= private$loglik(V,sumstats$betahat,sumstats$shat2,prior_weights)) V=0
+      return(V)
+    },
     estimate_prior_variance_simple = function() private$.prior_variance
   )
 )

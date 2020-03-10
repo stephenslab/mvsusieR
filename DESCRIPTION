@@ -5,7 +5,7 @@ Title: Multivariate Bayesian variable selection regression
 Description: A more general implementation of the Sum of SIngle Effects (SuSiE)
     regression for Bayesian variable selection
 Date: 2020-03-10
-Version: 0.0.1.0293
+Version: 0.0.1.0304
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="gaow@uchicago.edu"),
              person("Yuxin","Zou",role="aut"),
