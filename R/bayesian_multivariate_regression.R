@@ -29,10 +29,12 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       bhat[which(is.nan(bhat))] = 0
       if (d$Y_has_missing) sbhat2 = lapply(1:nrow(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j,])
       else sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
+      for (j in 1:length(sbhat2)) {
+        sbhat2[[j]][which(is.nan(sbhat2[[j]]) | is.infinite(sbhat2[[j]]))] = 1E6
+      }
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(do.call(rbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
-        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E3
       }
       if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       # deal with prior variance: can be "estimated" across effects
@@ -45,9 +47,6 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$.posterior_b2 = post$b2
       if (save_var) private$.posterior_variance = post$cov
       private$.lbf = post$lbf
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
-        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,private$.posterior_b2,method=estimate_prior_variance_method)
-      }
     }
   ),
   active = list(
@@ -74,7 +73,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       lV = optim(par=0, fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em = function(post_b2, prior_weights) Reduce("+", lapply(1:length(prior_weights), function(j) prior_weights[j] * post_b2[[j]])),
+    estimate_prior_variance_em = function(post_b2, post_weights) Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[[j]])),
     estimate_prior_variance_simple = function() 1
   )
 )

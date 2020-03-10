@@ -16,6 +16,13 @@ SingleEffectModel <- function(base)
             ws = compute_weighted_sum(private$.lbf, prior_weights, log = TRUE)
             private$.pip = ws$weights
             private$lbf_single_effect = ws$log_sum
+            if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
+                private$.prior_variance = private$estimate_prior_variance_em(private$.posterior_b2, private$.pip)
+                #
+                if (private$lbf_single_effect <= 0.1) {
+                    private$.prior_variance = 0
+                }
+            }
         },
         predict = function(d) {
             d$compute_Xb(self$posterior_b1)

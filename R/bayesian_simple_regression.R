@@ -19,13 +19,13 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       bhat = XtY / d$X2_sum
       bhat[which(is.nan(bhat))] = 0
       sbhat2 = private$.residual_variance / d$X2_sum
+      sbhat2[which(is.nan(sbhat2) | is.infinite(sbhat2))] = 1E6
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sqrt(sbhat2)
-        private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E3
       }
       # deal with prior variance: can be "estimated" across effects
-      if(!is.null(estimate_prior_variance_method)) {
+      if(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
         private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
       }
       # posterior
@@ -38,9 +38,6 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
         private$.lbf = as.vector(private$.lbf)
       private$.lbf[sbhat2==Inf] = 0
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
-        private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,private$.posterior_b2,method=estimate_prior_variance_method)
-      }
     }
   ),
   active = list(
@@ -95,18 +92,18 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     negloglik_grad_logscale = function(lV, betahat, shat2, prior_weights) {
       -exp(lV)*private$loglik_grad(exp(lV),betahat,shat2,prior_weights)
     },
-    estimate_prior_variance = function(betahat, shat2, prior_weights, post_b2=NULL, method=c('optim', 'uniroot', 'simple')) {
+    estimate_prior_variance = function(betahat, shat2, prior_weights, method=c('optim', 'uniroot', 'simple')) {
       if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-      if(method=="optim"){
+      if(method=="optim") {
         # method BFGS is 1.5 times slower than Brent with upper 15 lower -15 although it does not require specifying upper/lower
         V = private$estimate_prior_variance_optim(betahat, shat2, prior_weights, method='Brent', lower = -30, upper = 15)
-      } else if (method == 'uniroot'){
+      } else if (method == 'uniroot') {
         V.u = uniroot(private$negloglik_grad_logscale,c(-10,10),extendInt = "upX",betahat=betahat,shat2=shat2,prior_weights=prior_weights)
         V = exp(V.u$root)
-      } else if (method == 'EM') {
-        V = private$estimate_prior_variance_em(post_b2, prior_weights)
-      } else if (method == 'simple'){
+      } else if (method == 'simple') {
         V = private$estimate_prior_variance_simple()
+      } else {
+        stop("Optimization method not supported.")
       }
       # set V exactly 0 if that beats the numerical value by a loglik factor of 1.1
       if(private$loglik(0,betahat,shat2,prior_weights) + 0.1 >= private$loglik(V,betahat,shat2,prior_weights)) V=0
@@ -116,7 +113,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em = function(post_b2, prior_weights) sum(prior_weights*post_b2),
+    estimate_prior_variance_em = function(post_b2, post_weights) sum(post_weights*post_b2),
     estimate_prior_variance_simple = function() private$.prior_variance
   )
 )

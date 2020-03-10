@@ -85,7 +85,7 @@ MashRegression <- R6Class("MashRegression",
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
         if (estimate_prior_variance_method != 'simple')
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
-        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
+        private$prior_variance_scale = private$estimate_prior_variance(NULL,NULL,prior_weights,method=estimate_prior_variance_method)
       }
       # 3. compute posterior weights
       private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik$loglik_matrix))
@@ -135,10 +135,6 @@ MashRegression <- R6Class("MashRegression",
       }
       # 5. lfsr
       private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
-      # 6. Update prior variance via EM
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
-        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,private$.posterior_b2,method=estimate_prior_variance_method)
-      }
     }
   ),
   active = list(
@@ -174,7 +170,7 @@ MashRegression <- R6Class("MashRegression",
         return(list(lbf=lbf, loglik_null=loglik_null))
     },
     loglik = function(V,B,S,prior_weights) ifelse(V==0, 0, compute_weighted_sum(private$.lbf, prior_weights)$log_sum),
-    estimate_prior_variance_em = function(post_b2, prior_weights) Reduce("+", lapply(1:length(prior_weights), function(j) prior_weights[j] * post_b2[[j]])),
+    estimate_prior_variance_em = function(post_b2, post_weights) Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[[j]])),
     estimate_prior_variance_simple = function() 1
   ),
 )
