@@ -253,7 +253,7 @@ MashInitializer <- R6Class("MashInitializer",
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         sigma_rooti = list()
         for (i in 1:length(private$xU$xUlist)) {
-          if (algorithm == 'R') sigma_rooti[[i]] = invert_tri(svs + private$xU$xUlist[[i]])
+          if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(svs + private$xU$xUlist[[i]])
           else sigma_rooti[[i]] = mashr:::calc_rooti_rcpp(svs + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
@@ -271,7 +271,7 @@ MashInitializer <- R6Class("MashInitializer",
           for (j in 1:length(svs)) {
             for (i in 1:length(private$xU$xUlist)) {
               if (algorithm == 'R') {
-                sigma_rooti[[k]] = invert_tri(svs[[j]] + private$xU$xUlist[[i]])
+                sigma_rooti[[k]] = invert_chol_tri(svs[[j]] + private$xU$xUlist[[i]])
               } else {
                 sigma_rooti[[k]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
               }

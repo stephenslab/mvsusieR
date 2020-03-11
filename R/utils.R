@@ -15,7 +15,7 @@ invert_via_chol = function(x) {
 
 #' @title Invert SPD via triangular back-fitting
 #' @keywords internal
-invert_tri = function(x) {
+invert_chol_tri = function(x) {
   return(t(backsolve(muffled_chol(x), diag(nrow(x)))))
 }
 
