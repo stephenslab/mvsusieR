@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -226,7 +225,7 @@ body {
         
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         
@@ -234,8 +233,7 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Single-effect-model-sanity-check">Single effect model sanity check<a class="anchor-link" href="#Single-effect-model-sanity-check">&#182;</a></h1><p>Check for agreement of different regression methods in VEM updates.</p>
 
@@ -247,12 +245,12 @@ body {
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>mmbr<span class="p">)</span>
-<span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
-<span class="kn">attach</span><span class="p">(</span>mmbr_sim1<span class="p">(</span>r<span class="o">=</span><span class="m">1</span><span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">mmbr</span><span class="p">)</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+<span class="nf">attach</span><span class="p">(</span><span class="nf">mmbr_sim1</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="m">1</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -262,7 +260,7 @@ body {
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -281,11 +279,11 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class="o">$</span>new<span class="p">(</span>X<span class="p">,</span>y<span class="p">)</span>
-<span class="kp">head</span><span class="p">(</span>data<span class="o">$</span>XtY<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">DenseData</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+<span class="nf">head</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">XtY</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -295,7 +293,7 @@ Loading required package: ashr
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -325,10 +323,10 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>data<span class="o">$</span>XtR<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">XtR</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -338,7 +336,7 @@ Loading required package: ashr
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -364,8 +362,7 @@ Loading required package: ashr
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Univariate-single-effect-regression">Univariate single effect regression<a class="anchor-link" href="#Univariate-single-effect-regression">&#182;</a></h2>
 </div>
@@ -376,19 +373,18 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_var <span class="o">=</span> <span class="m">0.2</span> <span class="o">*</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
-residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
-m1 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectModel<span class="p">(</span>mmbr<span class="o">:::</span>BayesianSimpleRegression<span class="p">)</span><span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">prior_var</span> <span class="o">=</span> <span class="m">0.2</span> <span class="o">*</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="nf">var</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+<span class="n">residual_var</span> <span class="o">=</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="nf">var</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+<span class="n">m1</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="nf">SingleEffectModel</span><span class="p">(</span><span class="n">mmbr</span><span class="o">:::</span><span class="n">BayesianSimpleRegression</span><span class="p">)</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">residual_var</span><span class="p">,</span> <span class="n">prior_var</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Multivariate-single-effect-regression">Multivariate single effect regression<a class="anchor-link" href="#Multivariate-single-effect-regression">&#182;</a></h2>
 </div>
@@ -399,19 +395,18 @@ m1 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectModel<span
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> cov<span class="p">(</span>y<span class="p">)),</span> <span class="m">1</span><span class="p">,</span> alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
-residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
-m2 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectModel<span class="p">(</span>mmbr<span class="o">:::</span>MashRegression<span class="p">)</span><span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> prior_covar<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">prior_covar</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> <span class="nf">cov</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span> <span class="m">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
+<span class="n">residual_covar</span> <span class="o">=</span> <span class="nf">cov</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="n">m2</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="nf">SingleEffectModel</span><span class="p">(</span><span class="n">mmbr</span><span class="o">:::</span><span class="n">MashRegression</span><span class="p">)</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">residual_covar</span><span class="p">,</span> <span class="n">prior_covar</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Predictions-after-one-fit">Predictions after one fit<a class="anchor-link" href="#Predictions-after-one-fit">&#182;</a></h2>
 </div>
@@ -422,12 +417,12 @@ m2 <span class="o">=</span> mmbr<span class="o">:::</span>SingleEffectModel<span
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>pred01 <span class="o">=</span> m1<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
-m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">)</span>
-pred1 <span class="o">=</span> m1<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">pred01</span> <span class="o">=</span> <span class="n">m1</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">m1</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">pred1</span> <span class="o">=</span> <span class="n">m1</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -437,12 +432,12 @@ pred1 <span class="o">=</span> m1<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>pred02 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
-m2<span class="o">$</span>fit<span class="p">(</span>data<span class="p">)</span>
-pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">pred02</span> <span class="o">=</span> <span class="n">m2</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">m2</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">pred2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -452,10 +447,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pred1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">pred1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -465,7 +460,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -495,10 +490,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pred2<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">pred2</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -508,7 +503,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -538,10 +533,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pred01<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">pred01</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -551,7 +546,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -581,10 +576,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pred02<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">pred02</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -594,7 +589,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -624,10 +619,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m1<span class="o">$</span>pip<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -637,7 +632,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -664,10 +659,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m2<span class="o">$</span>pip<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -677,7 +672,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -704,10 +699,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m1<span class="o">$</span>posterior_b1 <span class="o">/</span> m1<span class="o">$</span>pip<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">posterior_b1</span> <span class="o">/</span> <span class="n">m1</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -717,7 +712,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -747,10 +742,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m2<span class="o">$</span>posterior_b1 <span class="o">/</span> m2<span class="o">$</span>pip<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">posterior_b1</span> <span class="o">/</span> <span class="n">m2</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -760,7 +755,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -790,10 +785,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf
+<div class=" highlight hl-r"><pre><span></span><span class="n">m1</span><span class="o">$</span><span class="n">lbf</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -803,7 +798,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -822,10 +817,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span><span class="o">$</span><span class="n">lbf</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -835,7 +830,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -854,12 +849,12 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>data<span class="o">$</span>add_to_fitted<span class="p">(</span>pred1<span class="p">)</span>
-data<span class="o">$</span>compute_residual<span class="p">()</span>
-<span class="kp">head</span><span class="p">(</span>data<span class="o">$</span>XtY<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">data</span><span class="o">$</span><span class="nf">add_to_fitted</span><span class="p">(</span><span class="n">pred1</span><span class="p">)</span>
+<span class="n">data</span><span class="o">$</span><span class="nf">compute_residual</span><span class="p">()</span>
+<span class="nf">head</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">XtY</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -869,7 +864,7 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -898,10 +893,10 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 <div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>data<span class="o">$</span>XtR<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">XtR</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -911,7 +906,7 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -936,8 +931,7 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Predictions-after-two-fits">Predictions after two fits<a class="anchor-link" href="#Predictions-after-two-fits">&#182;</a></h2>
 </div>
@@ -948,11 +942,11 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 <div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">)</span>
-pred1 <span class="o">=</span> m1<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m1</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">pred1</span> <span class="o">=</span> <span class="n">m1</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -962,11 +956,11 @@ pred1 <span class="o">=</span> m1<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>fit<span class="p">(</span>data<span class="p">)</span>
-pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">pred2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -976,10 +970,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[22]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pred1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">pred1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -989,7 +983,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1018,10 +1012,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[23]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>pred2<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">pred2</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1031,7 +1025,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1060,10 +1054,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m1<span class="o">$</span>pip<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1073,7 +1067,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1100,10 +1094,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m2<span class="o">$</span>pip<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1113,7 +1107,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1140,10 +1134,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[26]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m1<span class="o">$</span>posterior_b1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">posterior_b1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1153,7 +1147,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1182,10 +1176,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[27]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m2<span class="o">$</span>posterior_b1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">posterior_b1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1195,7 +1189,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1224,10 +1218,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[28]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf
+<div class=" highlight hl-r"><pre><span></span><span class="n">m1</span><span class="o">$</span><span class="n">lbf</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1237,7 +1231,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1256,10 +1250,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[29]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span><span class="o">$</span><span class="n">lbf</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1269,7 +1263,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1288,11 +1282,11 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[30]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>data<span class="o">$</span>add_to_fitted<span class="p">(</span>pred1<span class="p">)</span>
-data<span class="o">$</span>compute_residual<span class="p">()</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">data</span><span class="o">$</span><span class="nf">add_to_fitted</span><span class="p">(</span><span class="n">pred1</span><span class="p">)</span>
+<span class="n">data</span><span class="o">$</span><span class="nf">compute_residual</span><span class="p">()</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1302,10 +1296,10 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 <div class="prompt input_prompt">In&nbsp;[31]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>data<span class="o">$</span>XtR<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">XtR</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1315,7 +1309,7 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1340,8 +1334,7 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Predictions-after-three-fits">Predictions after three fits<a class="anchor-link" href="#Predictions-after-three-fits">&#182;</a></h2>
 </div>
@@ -1352,11 +1345,11 @@ data<span class="o">$</span>compute_residual<span class="p">()</span>
 <div class="prompt input_prompt">In&nbsp;[32]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">)</span>
-pred1 <span class="o">=</span> m1<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m1</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">pred1</span> <span class="o">=</span> <span class="n">m1</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1366,11 +1359,11 @@ pred1 <span class="o">=</span> m1<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[33]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>fit<span class="p">(</span>data<span class="p">)</span>
-pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">(</span>data<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">pred2</span> <span class="o">=</span> <span class="n">m2</span><span class="o">$</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1380,10 +1373,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[34]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m1<span class="o">$</span>posterior_b1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">posterior_b1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1393,7 +1386,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1422,10 +1415,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[35]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m2<span class="o">$</span>posterior_b1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">posterior_b1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1435,7 +1428,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1464,10 +1457,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[36]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1<span class="o">$</span>lbf
+<div class=" highlight hl-r"><pre><span></span><span class="n">m1</span><span class="o">$</span><span class="n">lbf</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1477,7 +1470,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1496,10 +1489,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[37]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>lbf
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span><span class="o">$</span><span class="n">lbf</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1509,7 +1502,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1524,8 +1517,7 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Check-on-main-interface-call">Check on main interface call<a class="anchor-link" href="#Check-on-main-interface-call">&#182;</a></h2>
 </div>
@@ -1536,10 +1528,10 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[38]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>L <span class="o">=</span> <span class="m">10</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">L</span> <span class="o">=</span> <span class="m">10</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1549,13 +1541,13 @@ pred2 <span class="o">=</span> m2<span class="o">$</span>predict<span class="p">
 <div class="prompt input_prompt">In&nbsp;[39]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
-scaled_prior_var <span class="o">=</span> V<span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">]</span> <span class="o">/</span> residual_var
-A <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>scaled_prior_var<span class="p">,</span>
-          compute_objective<span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">residual_var</span> <span class="o">=</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="nf">var</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+<span class="n">scaled_prior_var</span> <span class="o">=</span> <span class="n">V[1</span><span class="p">,</span><span class="m">1</span><span class="n">]</span> <span class="o">/</span> <span class="n">residual_var</span>
+<span class="n">A</span> <span class="o">=</span> <span class="nf">susie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">scaled_prior_var</span><span class="p">,</span>
+          <span class="n">compute_objective</span><span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1565,12 +1557,12 @@ A <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span
 <div class="prompt input_prompt">In&nbsp;[40]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>residual_cov <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
-m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> alpha <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
-B <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">residual_cov</span> <span class="o">=</span> <span class="nf">cov</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="n">m_init</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
+<span class="n">B</span> <span class="o">=</span> <span class="nf">susie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">,</span><span class="n">compute_objective</span><span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1580,10 +1572,10 @@ B <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span
 <div class="prompt input_prompt">In&nbsp;[44]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">max</span><span class="p">(</span><span class="kp">abs</span><span class="p">(</span>A<span class="o">$</span>lbf <span class="o">-</span> B<span class="o">$</span>lbf<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">max</span><span class="p">(</span><span class="nf">abs</span><span class="p">(</span><span class="n">A</span><span class="o">$</span><span class="n">lbf</span> <span class="o">-</span> <span class="n">B</span><span class="o">$</span><span class="n">lbf</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1593,7 +1585,7 @@ B <span class="o">=</span> susie<span class="p">(</span>X<span class="p">,</span
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 

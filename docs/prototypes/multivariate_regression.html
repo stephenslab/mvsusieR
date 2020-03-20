@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -226,7 +225,7 @@ body {
         
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         
@@ -234,8 +233,7 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Improving-calculation-of-multivariate-multiple-regression">Improving calculation of multivariate multiple regression<a class="anchor-link" href="#Improving-calculation-of-multivariate-multiple-regression">&#182;</a></h1><p>A prototype for multivariate multiple regression computation assuming fixed residual covariance matrix.</p>
 
@@ -247,17 +245,16 @@ body {
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>data <span class="o">=</span> mmbr<span class="o">::</span>mmbr_sim2<span class="p">(</span><span class="m">1000</span><span class="p">,</span><span class="m">7000</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">0.8</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">::</span><span class="nf">mmbr_sim2</span><span class="p">(</span><span class="m">1000</span><span class="p">,</span><span class="m">7000</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">0.8</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here we do not use an existing R routine because <code>lm</code> is very slow (even using <code>.lm.fit</code> compared to providing pre-computed <code>d</code> as done below).</p>
 
@@ -269,16 +266,16 @@ body {
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>method_1 <span class="o">=</span> <span class="kr">function</span><span class="p">(</span>d<span class="p">,</span>X<span class="p">,</span>y<span class="p">,</span>residual_covar<span class="p">,</span>p<span class="p">)</span> <span class="p">{</span>
-    XtY<span class="o">=</span><span class="kp">t</span><span class="p">(</span>X<span class="p">)</span><span class="o">%*%</span>y
-    bhat <span class="o">=</span> <span class="kp">diag</span><span class="p">(</span><span class="m">1</span><span class="o">/</span>d<span class="p">)</span> <span class="o">%*%</span> XtY
-    s2 <span class="o">=</span> <span class="kp">diag</span><span class="p">(</span>residual_covar<span class="p">)</span>
-    sbhat <span class="o">=</span> <span class="kp">sqrt</span><span class="p">(</span><span class="kp">do.call</span><span class="p">(</span><span class="kp">rbind</span><span class="p">,</span> <span class="kp">lapply</span><span class="p">(</span><span class="m">1</span><span class="o">:</span>p<span class="p">,</span> <span class="kr">function</span><span class="p">(</span>j<span class="p">)</span> s2 <span class="o">/</span> d<span class="p">[</span>j<span class="p">])))</span>
-    <span class="kr">return</span><span class="p">(</span><span class="kt">list</span><span class="p">(</span>b<span class="o">=</span>bhat<span class="p">,</span>s<span class="o">=</span>sbhat<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">method_1</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">residual_covar</span><span class="p">,</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">XtY</span><span class="o">=</span><span class="nf">t</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">%*%</span><span class="n">y</span>
+    <span class="n">bhat</span> <span class="o">=</span> <span class="nf">diag</span><span class="p">(</span><span class="m">1</span><span class="o">/</span><span class="n">d</span><span class="p">)</span> <span class="o">%*%</span> <span class="n">XtY</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="nf">diag</span><span class="p">(</span><span class="n">residual_covar</span><span class="p">)</span>
+    <span class="n">sbhat</span> <span class="o">=</span> <span class="nf">sqrt</span><span class="p">(</span><span class="nf">do.call</span><span class="p">(</span><span class="n">rbind</span><span class="p">,</span> <span class="nf">lapply</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="n">p</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="n">s2</span> <span class="o">/</span> <span class="n">d[j]</span><span class="p">)))</span>
+    <span class="nf">return</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="n">bhat</span><span class="p">,</span><span class="n">s</span><span class="o">=</span><span class="n">sbhat</span><span class="p">))</span>
 <span class="p">}</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -288,10 +285,10 @@ body {
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>method <span class="o">=</span> method_1
+<div class=" highlight hl-r"><pre><span></span><span class="n">method</span> <span class="o">=</span> <span class="n">method_1</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -301,17 +298,16 @@ body {
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> <span class="kp">with</span><span class="p">(</span>data<span class="p">,</span> method<span class="p">(</span>d<span class="p">,</span>X<span class="p">,</span>y<span class="p">,</span><span class="kp">diag</span><span class="p">(</span>r<span class="p">),</span>p<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="nf">with</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nf">method</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="nf">diag</span><span class="p">(</span><span class="n">r</span><span class="p">),</span><span class="n">p</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The speed is decent but the code seems ugly. Must be a more elegant matrix representation (and hopefully faster)?</p>
 

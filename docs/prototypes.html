@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -190,7 +188,7 @@ $(document).ready(function () {
     
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         
@@ -198,16 +196,14 @@ $(document).ready(function () {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Prototypes">Prototypes<a class="anchor-link" href="#Prototypes">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/Multivariate_Computation_Compared_Univariate.html"><strong>Comparing multivariate MASH analysis using diagonal priors with univariate computations</strong></a><br>
 &nbsp; &nbsp;This is to verify that the mmbr implementation is correct for the truthly multivariate computations. Previously I have only compared it for the degenerated case where the prior matrix is 1 by 1.</p>
@@ -216,8 +212,16 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><a href="prototypes/Untitled.html"><strong>Untitled</strong></a><br>
+&nbsp; &nbsp;devtools::load_all('~/GIT/software/mmbr')</p>
+
 </div>
-<div class="inner_cell">
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/elbo_implementation.html"><strong>ELBO implementation and comparisons</strong></a><br>
 &nbsp; &nbsp;I have implemented ELBO for M&amp;M model based on write up in <a href="https://www.overleaf.com/project/5bd111aaa3ec8118d7b1cfa8">this document</a>. See Section 8 for derivation details; also Section B for an independent re-derivation from Yuxin Zou in checking my work.</p>
@@ -226,8 +230,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/lfsr_for_CS.html"><strong>Investigating behavior of lfsr for condition specific CS</strong></a><br>
 &nbsp; &nbsp;Here I investigate behavior of lfsr of CS per condition, using singleton simulation setting.</p>
@@ -236,8 +239,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/marginal_stats_compare.html"><strong>Comparing marginal statistics with Linear regression</strong></a><br>
 &nbsp; &nbsp;For prototyping <code>get_sumstats()</code> function in data object.</p>
@@ -246,8 +248,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/mash_compare_simple_multivariate.html"><strong>Comparing MASH analysis with simple multivariate analysis</strong></a><br>
 &nbsp; &nbsp;Previously we showed that even though univariate analysis with degenerated MASH model gives identical results to SuSiE as expected (with non-decreasing ELBO), in multivariate calculations the ELBO is not always non-decreasing. To investigate the issue we will 1) further simplify the problem and 2) isolate the problem to posterior calculation versus ELBO calculations and check which part is problematic. The best way to achieve both is to implement a simple Bayesian multivariate regression model with prior $b \sim MVN(0, U)$ where $U$ is known, instead of using MASH prior for $b$.</p>
@@ -256,8 +257,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/mash_regression_univariate_degenerated.html"><strong>Running "degenerated" MASH computation</strong></a><br>
 &nbsp; &nbsp;This is prototype to a unit test to verify implementation of mash computation is correct, by comparing it to univariate case when $Y$ has one column and prior covariance matrices is fixed.</p>
@@ -266,8 +266,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/missing_data_precomputed.html"><strong>Analysis with precomputed quantatities + missing data in Y</strong></a><br>
 &nbsp; &nbsp;Here we analyze <a href="http://shiny.stephenslab.uchicago.edu/gaow/GTExV7/Multi_Tissues.ENSG00000145214.RDS">an example of GTEx V7 cis-gene data-set</a>.</p>
@@ -276,8 +275,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/mmbr_mwe.html"><strong>A non-trivial toy example for multivariate regression with <code>mmbr</code></strong></a><br>
 &nbsp; &nbsp;Here I show with a toy simulation of 600 samples, 3000 variables phenotypes and 50 conditions of interest, just to see how the method works in terms of computational speed,</p>
@@ -286,8 +284,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/mmbr_univariate_algorithm_agreement.html"><strong>Single effect model sanity check</strong></a><br>
 &nbsp; &nbsp;Check for agreement of different regression methods in VEM updates.</p>
@@ -296,8 +293,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/multivariate_est_prior.html"><strong>Multivariate regression simple prior with estimated scalar</strong></a><br>
 &nbsp; &nbsp;Here I use multivariate prior (not mash mixture) for <code>msusie</code> call, but allow for the scalar of prior to be estimated. That is, I have implemeted <code>estimate_prior_variance</code> for <a href="https://github.com/gaow/mmbr/blob/1c9b14283aa9615436447738932618c81388bd41/R/bayesian_multivariate_regression.R#L7">this class</a>.</p>
@@ -306,8 +302,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/multivariate_regression.html"><strong>Improving calculation of multivariate multiple regression</strong></a><br>
 &nbsp; &nbsp;A prototype for multivariate multiple regression computation assuming fixed residual covariance matrix.</p>
@@ -316,8 +311,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/output_visualization.html"><strong>Visualization of M&amp;M output</strong></a><br>
 &nbsp; &nbsp;A prototype to plot various M&amp;M output information.</p>
@@ -326,8 +320,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/precomputed_quantities_mash.html"><strong>Pre-computing various second-moment related quantities</strong></a><br>
 &nbsp; &nbsp;This saves computation for M&amp;M by precomputing and re-using quantitaties shared between iterations. It mostly saves $O(R^3)$ computations. This vignette shows results agree with the original version. Cannot use unit test due to numerical discrepency between <code>chol</code> of amardillo and R -- this has been shown problematic for some computations. I'll have to improve <code>mashr</code> for it.</p>
@@ -336,8 +329,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/remove_all_neg_lbf.html"><strong>Filtering single effects by single effect logBF</strong></a><br>
 &nbsp; &nbsp;Implemented as option <code>simple</code> to "estimate" prior variance, I simply set the effect zero if all logBF are smaller than zero. It helps removing false discoveries as shown in this notebook.</p>
@@ -346,8 +338,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/two_snps_dispute.html"><strong>Linkage vs pleiotropy: the Two-SNP example</strong></a><br>
 &nbsp; &nbsp;Here I pick up a particular data-set and make a specific simulation case of linkage vs pleiotropy.</p>
@@ -356,8 +347,7 @@ $(document).ready(function () {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><a href="prototypes/two_snps_dispute_missing_data.html"><strong>Linkage vs pleiotropy: the Two-SNP example with missing data</strong></a><br>
 &nbsp; &nbsp;This is continuation of notebook <code>two_snps_dispute.ipynb</code>.</p>

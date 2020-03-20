@@ -58,6 +58,19 @@ test_that("mash regression in SuSiE is identical to univariate case", with(simul
     expect_susie_equal(A,B,F,F)
 }))
 
+test_that("multivariate regression in SuSiE is identical to univariate case", with(simulate_multivariate(r=1), {
+    # Test fixed prior fixed residual
+    residual_var = as.numeric(var(y))
+    scaled_prior_var = V[1,1] / residual_var
+    A = msusie(X,y,L=L,prior_variance=scaled_prior_var,
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=FALSE,
+                compute_objective=FALSE, precompute_covariances=TRUE)
+    m_init = MashInitializer$new(list(V), 1, 1, 0)
+    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+    expect_susie_equal(A,B,F,F)
+}))
+
 test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=3), {
     m_init = MashInitializer$new(list(V), 1, 1, 0)
     A = expect_warning(msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=FALSE))

@@ -64,7 +64,6 @@ SuSiE <- R6Class("SuSiE",
             }
             if (private$to_estimate_residual_variance)
               private$estimate_residual_variance(d)
-
             pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },

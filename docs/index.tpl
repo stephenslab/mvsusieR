@@ -193,7 +193,7 @@ $(document).ready(function () {
     
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         

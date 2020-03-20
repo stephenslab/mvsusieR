@@ -1,5 +1,6 @@
 #' @title Multiviate regression object
 #' @importFrom R6 R6Class
+#' @importFrom MASS ginv
 #' @keywords internal
 BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
@@ -40,7 +41,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
         if (estimate_prior_variance_method == "EM") {
-          private$cache = list(betahat = bhat, shat2 = sbhat2)
+          private$cache = list(betahat = bhat, shat2 = sbhat2, update_scale=T)
         } else {
           private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
         }
@@ -66,6 +67,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   ),
   private = list(
     .residual_variance_inv = NULL,
+    .prior_variance_inv = NULL,
     prior_variance_scale = NULL,
     loglik = function(scalar, bhat, S, prior_weights) {
       U = private$.prior_variance * scalar
@@ -78,10 +80,18 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       return(exp(lV))
     },
     estimate_prior_variance_em = function(sumstats, prior_weights, post_b2, post_weights, check_null_tol = 0.1) {
-      stop("Not implemented")
-      # FIXME: we only want to fit it to a scalar here, not like this where a matrix is returned.
-      V = Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[[j]]))
-      if(private$loglik(0,sumstats$betahat,sumstats$shat2,prior_weights) + 0.1 >= private$loglik(V,sumstats$betahat,sumstats$shat2,prior_weights)) V=0
+      if (length(dim(post_b2)) == 3) {
+        # when R > 1
+        mu2 = Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[,,j]))
+      } else {
+        # when R = 1 each post_b2 is a scalar.
+        # Now make it a matrix to be compatable with later computations.
+        if (ncol(post_b2) != 1) stop("Data dimension error for post_b2")
+        mu2 = matrix(sum(post_weights * post_b2[,1]), 1,1)
+      }
+      if (is.null(private$.prior_variance_inv)) private$.prior_variance_inv = ginv(private$.prior_variance)
+      V = sum(diag(private$.prior_variance_inv %*% mu2)) / nrow(private$.prior_variance)
+      if(private$loglik(0,sumstats$betahat,sumstats$shat2,prior_weights) + check_null_tol >= private$loglik(V,sumstats$betahat,sumstats$shat2,prior_weights)) V=0
       return(V)
     },
     estimate_prior_variance_simple = function() 1
@@ -92,6 +102,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
 #' @importFrom abind abind
 #' @keywords internal
 multivariate_regression = function(bhat, S, U) {
+  # FIXME: this can be pre-computed to save some computations
   S_inv = lapply(1:length(S), function(j) invert_via_chol(S[[j]]))
   post_cov = lapply(1:length(S), function(j) U %*% solve(diag(nrow(U)) + S_inv[[j]] %*% U))
   lbf = sapply(1:length(S), function(j) 0.5 * (log(det(S[[j]])) - log(det(S[[j]]+U))) + 0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])

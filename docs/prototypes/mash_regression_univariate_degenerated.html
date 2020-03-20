@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -226,7 +225,7 @@ body {
         
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         
@@ -234,8 +233,7 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Running-&quot;degenerated&quot;-MASH-computation">Running "degenerated" MASH computation<a class="anchor-link" href="#Running-&quot;degenerated&quot;-MASH-computation">&#182;</a></h1><p>This is prototype to a unit test to verify implementation of mash computation is correct, by comparing it to univariate case when $Y$ has one column and prior covariance matrices is fixed.</p>
 
@@ -243,8 +241,7 @@ body {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Simulate-data">Simulate data<a class="anchor-link" href="#Simulate-data">&#182;</a></h2>
 </div>
@@ -255,18 +252,18 @@ body {
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
-n <span class="o">=</span> <span class="m">1000</span>
-p <span class="o">=</span> <span class="m">1000</span>
-beta <span class="o">=</span> <span class="kp">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span>p<span class="p">)</span>
-<span class="kp">beta</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span> <span class="o">=</span> <span class="m">1</span>
-X <span class="o">=</span> <span class="kt">matrix</span><span class="p">(</span>rnorm<span class="p">(</span>n<span class="o">*</span>p<span class="p">),</span>nrow<span class="o">=</span>n<span class="p">,</span>ncol<span class="o">=</span>p<span class="p">)</span>
-y <span class="o">=</span> X <span class="o">%*%</span> beta <span class="o">+</span> rnorm<span class="p">(</span>n<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+<span class="n">n</span> <span class="o">=</span> <span class="m">1000</span>
+<span class="n">p</span> <span class="o">=</span> <span class="m">1000</span>
+<span class="n">beta</span> <span class="o">=</span> <span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
+<span class="n">beta[1</span><span class="o">:</span><span class="m">4</span><span class="n">]</span> <span class="o">=</span> <span class="m">1</span>
+<span class="n">X</span> <span class="o">=</span> <span class="nf">matrix</span><span class="p">(</span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">p</span><span class="p">),</span><span class="n">nrow</span><span class="o">=</span><span class="n">n</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">X</span> <span class="o">%*%</span> <span class="n">beta</span> <span class="o">+</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 <span class="c1">#&#39; res =susie(X,y,L=10)</span>
-<span class="kn">library</span><span class="p">(</span>mmbr<span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">mmbr</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -276,7 +273,7 @@ y <span class="o">=</span> X <span class="o">%*%</span> beta <span class="o">+</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -291,8 +288,7 @@ Loading required package: ashr
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Run-univariate-computation">Run univariate computation<a class="anchor-link" href="#Run-univariate-computation">&#182;</a></h2>
 </div>
@@ -303,12 +299,12 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_var <span class="o">=</span> <span class="m">0.2</span> <span class="o">*</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
-residual_var <span class="o">=</span> <span class="kp">as.numeric</span><span class="p">(</span>var<span class="p">(</span>y<span class="p">))</span>
-data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class="o">$</span>new<span class="p">(</span>X<span class="p">,</span>y<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">prior_var</span> <span class="o">=</span> <span class="m">0.2</span> <span class="o">*</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="nf">var</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+<span class="n">residual_var</span> <span class="o">=</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="nf">var</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">DenseData</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -318,10 +314,10 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>residual_var
+<div class=" highlight hl-r"><pre><span></span><span class="n">residual_var</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -331,7 +327,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -350,10 +346,10 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_var
+<div class=" highlight hl-r"><pre><span></span><span class="n">prior_var</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -363,7 +359,7 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -382,11 +378,11 @@ data <span class="o">=</span> mmbr<span class="o">:::</span>DenseData<span class
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1 <span class="o">=</span> mmbr<span class="o">:::</span>BayesianSimpleRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_var<span class="p">,</span> prior_var<span class="p">)</span>
-m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">BayesianSimpleRegression</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">residual_var</span><span class="p">,</span> <span class="n">prior_var</span><span class="p">)</span>
+<span class="n">m1</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">save_summary_stats</span> <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -396,7 +392,7 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -415,10 +411,10 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m1<span class="o">$</span>posterior_b1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">posterior_b1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -428,7 +424,7 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -458,10 +454,10 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m1
+<div class=" highlight hl-r"><pre><span></span><span class="n">m1</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -471,7 +467,7 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -517,8 +513,7 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Run-multivariate-computation">Run multivariate computation<a class="anchor-link" href="#Run-multivariate-computation">&#182;</a></h2>
 </div>
@@ -532,12 +527,12 @@ m1<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span
 <div class=" highlight hl-r"><pre><span></span><span class="c1"># Assuming 1 out of $J$ are causal, we place a null weight $1-1/J$ a priori.</span>
 <span class="c1"># This will lead to some shrinkage</span>
 <span class="c1"># null_weight = 1 - 1 / ncol(X)</span>
-null_weight <span class="o">=</span> <span class="m">0</span>
-prior_covar <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> cov<span class="p">(</span>y<span class="p">)),</span> <span class="m">1</span><span class="p">,</span> prior_weights<span class="o">=</span><span class="m">1</span> <span class="o">-</span> null_weight<span class="p">,</span> null_weight<span class="o">=</span>null_weight<span class="p">,</span> alpha <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
-residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class="p">)</span>
+<span class="n">null_weight</span> <span class="o">=</span> <span class="m">0</span>
+<span class="n">prior_covar</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="m">0.2</span> <span class="o">*</span> <span class="nf">cov</span><span class="p">(</span><span class="n">y</span><span class="p">)),</span> <span class="m">1</span><span class="p">,</span> <span class="n">prior_weights</span><span class="o">=</span><span class="m">1</span> <span class="o">-</span> <span class="n">null_weight</span><span class="p">,</span> <span class="n">null_weight</span><span class="o">=</span><span class="n">null_weight</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="m">0</span><span class="p">)</span>
+<span class="n">residual_covar</span> <span class="o">=</span> <span class="nf">cov</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -547,10 +542,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_covar<span class="o">$</span>prior_variance
+<div class=" highlight hl-r"><pre><span></span><span class="n">prior_covar</span><span class="o">$</span><span class="n">prior_variance</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -560,7 +555,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -607,10 +602,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>residual_covar
+<div class=" highlight hl-r"><pre><span></span><span class="n">residual_covar</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -620,7 +615,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -645,10 +640,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2 <span class="o">=</span> mmbr<span class="o">:::</span>MashRegression<span class="o">$</span>new<span class="p">(</span><span class="kp">ncol</span><span class="p">(</span>X<span class="p">),</span> residual_covar<span class="p">,</span> prior_covar<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">MashRegression</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">residual_covar</span><span class="p">,</span> <span class="n">prior_covar</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -658,10 +653,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2<span class="o">$</span>fit<span class="p">(</span>data<span class="p">,</span> save_summary_stats <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span><span class="o">$</span><span class="nf">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">save_summary_stats</span> <span class="o">=</span> <span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -671,10 +666,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>m2<span class="o">$</span>posterior_b1<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">posterior_b1</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -684,7 +679,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -714,10 +709,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m2
+<div class=" highlight hl-r"><pre><span></span><span class="n">m2</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -727,7 +722,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -783,8 +778,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>All quantities seem to agree now.</p>
 
@@ -792,8 +786,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Run-ASH-to-confirm">Run ASH to confirm<a class="anchor-link" href="#Run-ASH-to-confirm">&#182;</a></h2><p>ASH works well.</p>
 
@@ -805,10 +798,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>ashr<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">ashr</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -818,11 +811,11 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>a.out <span class="o">=</span> ash<span class="p">(</span><span class="kp">as.vector</span><span class="p">(</span>m1<span class="o">$</span>bhat<span class="p">),</span> <span class="kp">as.vector</span><span class="p">(</span>m1<span class="o">$</span>sbhat<span class="p">),</span> mixcompdist <span class="o">=</span> <span class="s">&#39;normal&#39;</span><span class="p">)</span>
-<span class="kp">head</span><span class="p">(</span>get_pm<span class="p">(</span>a.out<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">a.out</span> <span class="o">=</span> <span class="nf">ash</span><span class="p">(</span><span class="nf">as.vector</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">bhat</span><span class="p">),</span> <span class="nf">as.vector</span><span class="p">(</span><span class="n">m1</span><span class="o">$</span><span class="n">sbhat</span><span class="p">),</span> <span class="n">mixcompdist</span> <span class="o">=</span> <span class="s">&#39;normal&#39;</span><span class="p">)</span>
+<span class="nf">head</span><span class="p">(</span><span class="nf">get_pm</span><span class="p">(</span><span class="n">a.out</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -832,7 +825,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -855,8 +848,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Run-with-fixed-prior-directly-from-MASH">Run with fixed prior directly from MASH<a class="anchor-link" href="#Run-with-fixed-prior-directly-from-MASH">&#182;</a></h2>
 </div>
@@ -867,10 +859,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>prior_covar<span class="o">$</span>mash_prior
+<div class=" highlight hl-r"><pre><span></span><span class="n">prior_covar</span><span class="o">$</span><span class="n">mash_prior</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -880,7 +872,7 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -922,10 +914,10 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>mashr<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">mashr</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -935,11 +927,11 @@ residual_covar <span class="o">=</span> cov<span class="p">(</span>y<span class=
 <div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>data <span class="o">=</span> mash_set_data<span class="p">(</span>m2<span class="o">$</span>bhat<span class="p">,</span> m2<span class="o">$</span>sbhat<span class="p">)</span>
-m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</span> g <span class="o">=</span> prior_covar<span class="o">$</span>mash_prior<span class="p">,</span> fixg <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> algorithm <span class="o">=</span><span class="s">&#39;Rcpp&#39;</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="nf">mash_set_data</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">bhat</span><span class="p">,</span> <span class="n">m2</span><span class="o">$</span><span class="n">sbhat</span><span class="p">)</span>
+<span class="n">m.c</span> <span class="o">=</span> <span class="nf">mash</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">g</span> <span class="o">=</span> <span class="n">prior_covar</span><span class="o">$</span><span class="n">mash_prior</span><span class="p">,</span> <span class="n">fixg</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> <span class="n">algorithm</span> <span class="o">=</span><span class="s">&#39;Rcpp&#39;</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -949,7 +941,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stdout output_text">
@@ -970,10 +962,10 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 <div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>get_pm<span class="p">(</span>m.c<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="nf">get_pm</span><span class="p">(</span><span class="n">m.c</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -983,7 +975,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1009,8 +1001,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Run-from-MASH-with-canonical-priors-but-weights-learned-from-data">Run from MASH with canonical priors but weights learned from data<a class="anchor-link" href="#Run-from-MASH-with-canonical-priors-but-weights-learned-from-data">&#182;</a></h2><p>Very similiar results to what I got with fixed <code>g</code> earlier.</p>
 
@@ -1022,11 +1013,11 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 <div class="prompt input_prompt">In&nbsp;[22]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>U.c <span class="o">=</span> cov_canonical<span class="p">(</span>data<span class="p">)</span>
-<span class="kp">print</span><span class="p">(</span><span class="kp">names</span><span class="p">(</span>U.c<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">U.c</span> <span class="o">=</span> <span class="nf">cov_canonical</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="nf">print</span><span class="p">(</span><span class="nf">names</span><span class="p">(</span><span class="n">U.c</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1036,7 +1027,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stdout output_text">
@@ -1055,10 +1046,10 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 <div class="prompt input_prompt">In&nbsp;[23]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</span> U.c<span class="p">,</span> <span class="p">,</span> algorithm <span class="o">=</span><span class="s">&#39;Rcpp&#39;</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m.c</span> <span class="o">=</span> <span class="nf">mash</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">U.c</span><span class="p">,</span> <span class="p">,</span> <span class="n">algorithm</span> <span class="o">=</span><span class="s">&#39;Rcpp&#39;</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1068,7 +1059,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stdout output_text">
@@ -1091,10 +1082,10 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 <div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>get_pm<span class="p">(</span>m.c<span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="nf">get_pm</span><span class="p">(</span><span class="n">m.c</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1104,7 +1095,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1134,10 +1125,10 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 <div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m.c<span class="o">$</span>fitted_g
+<div class=" highlight hl-r"><pre><span></span><span class="n">m.c</span><span class="o">$</span><span class="n">fitted_g</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1147,7 +1138,7 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1457,6 +1448,19 @@ m.c <span class="o">=</span> mash<span class="p">(</span>data<span class="p">,</
 
 </div>
 
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>
+</pre></div>
+
+    </div>
 </div>
 </div>
 

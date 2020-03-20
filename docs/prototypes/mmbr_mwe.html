@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -226,7 +225,7 @@ body {
         
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         
@@ -234,8 +233,7 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="A-non-trivial-toy-example-for-multivariate-regression-with-mmbr">A non-trivial toy example for multivariate regression with <code>mmbr</code><a class="anchor-link" href="#A-non-trivial-toy-example-for-multivariate-regression-with-mmbr">&#182;</a></h1><p>Here I show with a toy simulation of 600 samples, 3000 variables phenotypes and 50 conditions of interest, just to see how the method works in terms of computational speed,
 and roughly how well it works.</p>
@@ -244,8 +242,7 @@ and roughly how well it works.</p>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The simulation parameters are set to mimic the scale of GTEx cis-QTL analysis. I simulated 1 random effect variables per condition for these 50 conditions considered.</p>
 
@@ -257,12 +254,12 @@ and roughly how well it works.</p>
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kn">library</span><span class="p">(</span>mmbr<span class="p">)</span>
-<span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
-<span class="kn">attach</span><span class="p">(</span>mmbr_sim1<span class="p">(</span>n<span class="o">=</span><span class="m">600</span><span class="p">,</span>p<span class="o">=</span><span class="m">3000</span><span class="p">,</span>r<span class="o">=</span><span class="m">50</span><span class="p">,</span>s<span class="o">=</span><span class="m">1</span><span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">mmbr</span><span class="p">)</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+<span class="nf">attach</span><span class="p">(</span><span class="nf">mmbr_sim1</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="m">600</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="m">3000</span><span class="p">,</span><span class="n">r</span><span class="o">=</span><span class="m">50</span><span class="p">,</span><span class="n">s</span><span class="o">=</span><span class="m">1</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -272,7 +269,7 @@ and roughly how well it works.</p>
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -287,16 +284,14 @@ Loading required package: ashr
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Multivariate-analysis">Multivariate analysis<a class="anchor-link" href="#Multivariate-analysis">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>From the simulation we know that the number of total effect variables is about 50 (exactly 50 if there are no overlaps). Here I let <code>mmbr</code> to discover only 10 of them:</p>
 
@@ -308,17 +303,16 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>L <span class="o">=</span> <span class="m">10</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">L</span> <span class="o">=</span> <span class="m">10</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>In practice the priors are to be specified using <code>mashr</code> output, which will take a few hours to compute. But once computed it can be applied to all test units.</p>
 
@@ -330,17 +324,16 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">m_init</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Here I'm only using one weight and one prior covariance which is a very much degenerated MASH result. In practice there can usually be dozens of prior matrices in the MASH mixture with non-trivial weight. But the computation can also be parallelled. Here I only use one CPU core to time it.</p>
 
@@ -352,12 +345,12 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>start_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span class="p">()</span>
-B <span class="o">=</span> msusie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
-end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span class="p">()</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">start_time</span> <span class="o">&lt;-</span> <span class="nf">Sys.time</span><span class="p">()</span>
+<span class="n">B</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">,</span><span class="n">compute_objective</span><span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="n">end_time</span> <span class="o">&lt;-</span> <span class="nf">Sys.time</span><span class="p">()</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -367,10 +360,10 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>end_time <span class="o">-</span> start_time
+<div class=" highlight hl-r"><pre><span></span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -380,7 +373,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -400,10 +393,10 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>B<span class="o">$</span>niter
+<div class=" highlight hl-r"><pre><span></span><span class="n">B</span><span class="o">$</span><span class="n">niter</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -413,7 +406,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -428,8 +421,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Not to bad in compute time. Now check the result:</p>
 
@@ -441,10 +433,10 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>b_all <span class="o">=</span> <span class="kp">as.integer</span><span class="p">(</span><span class="kp">apply</span><span class="p">(</span>b<span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="kp">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">b_all</span> <span class="o">=</span> <span class="nf">as.integer</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="n">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -454,10 +446,10 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>susieR<span class="o">::</span>susie_plot<span class="p">(</span>B<span class="p">,</span>y<span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span>b<span class="o">=</span>b_all<span class="p">,</span>add_legend<span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="n">b_all</span><span class="p">,</span><span class="n">add_legend</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -467,7 +459,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -889,8 +881,7 @@ sAMAAFAEwQ4AAEAR/w9ihlLJfVj3UwAAAABJRU5ErkJggg=="
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>I specified 10 CS but only see 9 here. I suspect there is signal overlap issue. But overall result is promising.</p>
 
@@ -898,8 +889,7 @@ sAMAAFAEwQ4AAEAR/w9ihlLJfVj3UwAAAABJRU5ErkJggg=="
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="A-simpler-case">A simpler case<a class="anchor-link" href="#A-simpler-case">&#182;</a></h2><p>Now I try it with 4 conditions each having 2 effect variables and see how it works:</p>
 
@@ -911,12 +901,12 @@ sAMAAFAEwQ4AAEAR/w9ihlLJfVj3UwAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">rm</span><span class="p">(</span><span class="kt">list</span><span class="o">=</span><span class="kp">ls</span><span class="p">())</span>
-<span class="kp">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
-<span class="kn">attach</span><span class="p">(</span>mmbr_sim1<span class="p">(</span><span class="m">600</span><span class="p">,</span><span class="m">3000</span><span class="p">,</span><span class="m">4</span><span class="p">,</span><span class="m">2</span><span class="p">))</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">rm</span><span class="p">(</span><span class="n">list</span><span class="o">=</span><span class="nf">ls</span><span class="p">())</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">2</span><span class="p">)</span>
+<span class="nf">attach</span><span class="p">(</span><span class="nf">mmbr_sim1</span><span class="p">(</span><span class="m">600</span><span class="p">,</span><span class="m">3000</span><span class="p">,</span><span class="m">4</span><span class="p">,</span><span class="m">2</span><span class="p">))</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -926,7 +916,7 @@ sAMAAFAEwQ4AAEAR/w9ihlLJfVj3UwAAAABJRU5ErkJggg=="
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -943,8 +933,7 @@ sAMAAFAEwQ4AAEAR/w9ihlLJfVj3UwAAAABJRU5ErkJggg=="
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>I still ask to look for 10 variables, hoping it will report back 8 correctly,</p>
 
@@ -956,14 +945,14 @@ sAMAAFAEwQ4AAEAR/w9ihlLJfVj3UwAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>L <span class="o">=</span> <span class="m">10</span>
-m_init <span class="o">=</span> mmbr<span class="o">:::</span>MashInitializer<span class="o">$</span>new<span class="p">(</span><span class="kt">list</span><span class="p">(</span>V<span class="p">),</span> <span class="m">1</span><span class="p">,</span> alpha<span class="o">=</span><span class="m">0</span><span class="p">)</span>
-start_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span class="p">()</span>
-B <span class="o">=</span> msusie<span class="p">(</span>X<span class="p">,</span>y<span class="p">,</span>L<span class="o">=</span>L<span class="p">,</span>prior_variance<span class="o">=</span>m_init<span class="p">,</span>compute_objective<span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
-end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span class="p">()</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">L</span> <span class="o">=</span> <span class="m">10</span>
+<span class="n">m_init</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="m">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
+<span class="n">start_time</span> <span class="o">&lt;-</span> <span class="nf">Sys.time</span><span class="p">()</span>
+<span class="n">B</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">,</span><span class="n">compute_objective</span><span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="n">end_time</span> <span class="o">&lt;-</span> <span class="nf">Sys.time</span><span class="p">()</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -973,10 +962,10 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>end_time <span class="o">-</span> start_time
+<div class=" highlight hl-r"><pre><span></span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -986,7 +975,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1006,10 +995,10 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>B<span class="o">$</span>niter
+<div class=" highlight hl-r"><pre><span></span><span class="n">B</span><span class="o">$</span><span class="n">niter</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1019,7 +1008,7 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1038,11 +1027,11 @@ end_time <span class="o">&lt;-</span> <span class="kp">Sys.time</span><span clas
 <div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>b_all <span class="o">=</span> <span class="kp">as.integer</span><span class="p">(</span><span class="kp">apply</span><span class="p">(</span>b<span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="kp">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
-susieR<span class="o">::</span>susie_plot<span class="p">(</span>B<span class="p">,</span>y<span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span>b<span class="o">=</span>b_all<span class="p">,</span>add_legend<span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">b_all</span> <span class="o">=</span> <span class="nf">as.integer</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="m">1</span><span class="p">,</span><span class="n">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
+<span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="n">b_all</span><span class="p">,</span><span class="n">add_legend</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1052,7 +1041,7 @@ susieR<span class="o">::</span>susie_plot<span class="p">(</span>B<span class="p
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1456,8 +1445,7 @@ HQAAgCIodgAAAIqg2AEAACji/wH0BMZPvwjgzgAAAABJRU5ErkJggg=="
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>which is indeed the case.</p>
 

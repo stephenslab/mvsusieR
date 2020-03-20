@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -226,7 +225,7 @@ body {
         
 <ul class="nav navbar-nav navbar-right">
 <li>
-   <a href="http://github.com/gaow/mmbr"> <span class="fa fa-github"></span> </a>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
 </li>
 </ul>
         
@@ -234,8 +233,7 @@ body {
   </div><!--/.container -->
 </div><!--/.navbar -->
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Comparing-marginal-statistics-with-Linear-regression">Comparing marginal statistics with Linear regression<a class="anchor-link" href="#Comparing-marginal-statistics-with-Linear-regression">&#182;</a></h1><p>For prototyping <code>get_sumstats()</code> function in data object.</p>
 
@@ -243,8 +241,7 @@ body {
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Data-simulation">Data simulation<a class="anchor-link" href="#Data-simulation">&#182;</a></h2><p>Here I allow for presence of missing data. I load all packages to access some private functions.</p>
 
@@ -256,11 +253,11 @@ body {
 <div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>devtools<span class="o">::</span>load_all<span class="p">(</span><span class="s">&quot;/home/gaow/Documents/GIT/software/susieR&quot;</span><span class="p">)</span>
-devtools<span class="o">::</span>load_all<span class="p">(</span><span class="s">&quot;/home/gaow/Documents/GIT/software/mmbr&quot;</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&quot;/home/gaow/Documents/GIT/software/susieR&quot;</span><span class="p">)</span>
+<span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&quot;/home/gaow/Documents/GIT/software/mmbr&quot;</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -270,7 +267,7 @@ devtools<span class="o">::</span>load_all<span class="p">(</span><span class="s"
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 <div class="output_subarea output_stream output_stderr output_text">
@@ -291,11 +288,11 @@ Loading required package: ashr
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
-dat <span class="o">=</span> mmbr_sim1<span class="p">(</span><span class="m">100</span><span class="p">,</span><span class="m">100</span><span class="p">,</span><span class="m">5</span><span class="p">,</span><span class="m">4</span><span class="p">,</span>center_scale<span class="o">=</span><span class="bp">F</span><span class="p">,</span>y_missing<span class="o">=</span><span class="m">0.5</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+<span class="n">dat</span> <span class="o">=</span> <span class="nf">mmbr_sim1</span><span class="p">(</span><span class="m">100</span><span class="p">,</span><span class="m">100</span><span class="p">,</span><span class="m">5</span><span class="p">,</span><span class="m">4</span><span class="p">,</span><span class="n">center_scale</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span><span class="n">y_missing</span><span class="o">=</span><span class="m">0.5</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -305,10 +302,10 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span><span class="m">10
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">names</span><span class="p">(</span>dat<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">names</span><span class="p">(</span><span class="n">dat</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -318,7 +315,7 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span><span class="m">10
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -348,27 +345,25 @@ dat <span class="o">=</span> mmbr_sim1<span class="p">(</span><span class="m">10
 <div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>resid_Y <span class="o">&lt;-</span> compute_cov_diag<span class="p">(</span>dat<span class="o">$</span>y<span class="p">)</span>
-resid_Y_miss <span class="o">&lt;-</span> compute_cov_diag<span class="p">(</span>dat<span class="o">$</span>y_missing<span class="p">)</span>
-alpha <span class="o">=</span> <span class="m">0</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">resid_Y</span> <span class="o">&lt;-</span> <span class="nf">compute_cov_diag</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">)</span>
+<span class="n">resid_Y_miss</span> <span class="o">&lt;-</span> <span class="nf">compute_cov_diag</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">y_missing</span><span class="p">)</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="m">0</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Marginal-stats-with-mmbr">Marginal stats with mmbr<a class="anchor-link" href="#Marginal-stats-with-mmbr">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Without and with missing data:</p>
 
@@ -380,12 +375,12 @@ alpha <span class="o">=</span> <span class="m">0</span>
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>d1 <span class="o">=</span> DenseData<span class="o">$</span>new<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span> dat<span class="o">$</span>y<span class="p">,</span>center<span class="o">=</span><span class="bp">T</span><span class="p">,</span>scale<span class="o">=</span><span class="bp">T</span><span class="p">)</span>
-res1 <span class="o">=</span> d1<span class="o">$</span>get_sumstats<span class="p">(</span><span class="kp">diag</span><span class="p">(</span>resid_Y<span class="p">),</span> cov2cor<span class="p">(</span>resid_Y<span class="p">),</span> alpha<span class="p">)</span>
-z1 <span class="o">=</span> res1<span class="o">$</span>bhat<span class="o">/</span>res1<span class="o">$</span>sbhat0
+<div class=" highlight hl-r"><pre><span></span><span class="n">d1</span> <span class="o">=</span> <span class="n">DenseData</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span> <span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<span class="n">res1</span> <span class="o">=</span> <span class="n">d1</span><span class="o">$</span><span class="nf">get_sumstats</span><span class="p">(</span><span class="nf">diag</span><span class="p">(</span><span class="n">resid_Y</span><span class="p">),</span> <span class="nf">cov2cor</span><span class="p">(</span><span class="n">resid_Y</span><span class="p">),</span> <span class="n">alpha</span><span class="p">)</span>
+<span class="n">z1</span> <span class="o">=</span> <span class="n">res1</span><span class="o">$</span><span class="n">bhat</span><span class="o">/</span><span class="n">res1</span><span class="o">$</span><span class="n">sbhat0</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -395,19 +390,18 @@ z1 <span class="o">=</span> res1<span class="o">$</span>bhat<span class="o">/</s
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>d2 <span class="o">=</span> DenseData<span class="o">$</span>new<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span> dat<span class="o">$</span>y_missing<span class="p">,</span>center<span class="o">=</span><span class="bp">T</span><span class="p">,</span>scale<span class="o">=</span><span class="bp">T</span><span class="p">)</span>
-res2 <span class="o">=</span> d2<span class="o">$</span>get_sumstats<span class="p">(</span><span class="kp">diag</span><span class="p">(</span>resid_Y_miss<span class="p">),</span> cov2cor<span class="p">(</span>resid_Y_miss<span class="p">),</span> alpha<span class="p">)</span>
-z2 <span class="o">=</span> res2<span class="o">$</span>bhat<span class="o">/</span>res2<span class="o">$</span>sbhat0
+<div class=" highlight hl-r"><pre><span></span><span class="n">d2</span> <span class="o">=</span> <span class="n">DenseData</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span> <span class="n">dat</span><span class="o">$</span><span class="n">y_missing</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<span class="n">res2</span> <span class="o">=</span> <span class="n">d2</span><span class="o">$</span><span class="nf">get_sumstats</span><span class="p">(</span><span class="nf">diag</span><span class="p">(</span><span class="n">resid_Y_miss</span><span class="p">),</span> <span class="nf">cov2cor</span><span class="p">(</span><span class="n">resid_Y_miss</span><span class="p">),</span> <span class="n">alpha</span><span class="p">)</span>
+<span class="n">z2</span> <span class="o">=</span> <span class="n">res2</span><span class="o">$</span><span class="n">bhat</span><span class="o">/</span><span class="n">res2</span><span class="o">$</span><span class="n">sbhat0</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Marginal-stats-with-lm.fit">Marginal stats with <code>lm.fit</code><a class="anchor-link" href="#Marginal-stats-with-lm.fit">&#182;</a></h2>
 </div>
@@ -418,10 +412,10 @@ z2 <span class="o">=</span> res2<span class="o">$</span>bhat<span class="o">/</s
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>z3 <span class="o">=</span> susieR<span class="o">:::</span>calc_z<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span> dat<span class="o">$</span>y<span class="p">,</span>center<span class="o">=</span><span class="bp">T</span><span class="p">,</span>scale<span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">z3</span> <span class="o">=</span> <span class="n">susieR</span><span class="o">:::</span><span class="nf">calc_z</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span> <span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -431,10 +425,10 @@ z2 <span class="o">=</span> res2<span class="o">$</span>bhat<span class="o">/</s
 <div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>z4 <span class="o">=</span> susieR<span class="o">:::</span>calc_z<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span> dat<span class="o">$</span>y_missing<span class="p">,</span>center<span class="o">=</span><span class="bp">T</span><span class="p">,</span>scale<span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">z4</span> <span class="o">=</span> <span class="n">susieR</span><span class="o">:::</span><span class="nf">calc_z</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span> <span class="n">dat</span><span class="o">$</span><span class="n">y_missing</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -444,10 +438,10 @@ z2 <span class="o">=</span> res2<span class="o">$</span>bhat<span class="o">/</s
 <div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>plot<span class="p">(</span>z1<span class="p">,</span>z3<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">plot</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span><span class="n">z3</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -457,7 +451,7 @@ z2 <span class="o">=</span> res2<span class="o">$</span>bhat<span class="o">/</s
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1040,10 +1034,10 @@ AABU4v8BhQNLkNPwSA0AAAAASUVORK5CYII="
 <div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>plot<span class="p">(</span>z2<span class="p">,</span>z4<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">plot</span><span class="p">(</span><span class="n">z2</span><span class="p">,</span><span class="n">z4</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1053,7 +1047,7 @@ AABU4v8BhQNLkNPwSA0AAAAASUVORK5CYII="
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1615,8 +1609,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The are not exactly identical because here residual variance I put in is variance of <code>y</code> so it's going to be more conservative. Looking at one <code>y</code> for example and check <code>bhat</code> agreement:</p>
 
@@ -1628,11 +1621,11 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span>res <span class="o">=</span> univariate_regression<span class="p">(</span>dat<span class="o">$</span>X<span class="p">,</span>dat<span class="o">$</span>y<span class="p">[,</span><span class="m">1</span><span class="p">],</span>center<span class="o">=</span><span class="bp">T</span><span class="p">,</span>scale<span class="o">=</span><span class="bp">T</span><span class="p">)</span>
-<span class="kp">head</span><span class="p">(</span>res<span class="o">$</span>betahat<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="nf">univariate_regression</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y[</span><span class="p">,</span><span class="m">1</span><span class="n">]</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<span class="nf">head</span><span class="p">(</span><span class="n">res</span><span class="o">$</span><span class="n">betahat</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1642,7 +1635,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1669,10 +1662,10 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>res1<span class="o">$</span>bhat<span class="p">[,</span><span class="m">1</span><span class="p">])</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">res1</span><span class="o">$</span><span class="n">bhat[</span><span class="p">,</span><span class="m">1</span><span class="n">]</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1682,7 +1675,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1709,10 +1702,10 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>res<span class="o">$</span>sebetahat<span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">res</span><span class="o">$</span><span class="n">sebetahat</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1722,7 +1715,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1749,10 +1742,10 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="kp">head</span><span class="p">(</span>res1<span class="o">$</span>sbhat0<span class="p">[,</span><span class="m">1</span><span class="p">])</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">res1</span><span class="o">$</span><span class="n">sbhat0[</span><span class="p">,</span><span class="m">1</span><span class="n">]</span><span class="p">)</span>
 </pre></div>
 
-</div>
+    </div>
 </div>
 </div>
 
@@ -1762,7 +1755,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 
 <div class="output_area">
 
-<div class="prompt"></div>
+    <div class="prompt"></div>
 
 
 
@@ -1785,8 +1778,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
+</div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><code>bhat</code> are identical but not <code>sebhat</code>. This is understandable. In unit tests I'll compare <code>bhat</code>.</p>
 
