@@ -58,10 +58,10 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     residual_variance_inv = function() private$.residual_variance_inv,
     residual_variance = function(v) {
       if (missing(v)) private$.residual_variance
-      else{
+      else {
         private$.residual_variance = v
         private$.residual_variance_inv = invert_via_chol(v)
-        }
+      }
     },
     prior_variance = function() private$prior_variance_scale
   ),
@@ -86,7 +86,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       } else {
         # when R = 1 each post_b2 is a scalar.
         # Now make it a matrix to be compatable with later computations.
-        if (ncol(post_b2) != 1) stop("Data dimension error for post_b2")
+        if (ncol(post_b2) != 1) stop("Data dimension is incorrect for post_b2")
         mu2 = matrix(sum(post_weights * post_b2[,1]), 1,1)
       }
       if (is.null(private$.prior_variance_inv)) private$.prior_variance_inv = ginv(private$.prior_variance)

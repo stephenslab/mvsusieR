@@ -63,7 +63,7 @@ MashRegression <- R6Class("MashRegression",
                                          TRUE,
                                          is_common_cov)$data
       } else {
-        llik = mashr:::calc_lik_rooti_rcpp(t(bhat),
+        llik = mashr:::calc_lik_precomputed_rcpp(t(bhat),
                                          private$precomputed_cov_matrices$sigma_rooti,
                                          TRUE,
                                          is_common_cov)$data
@@ -105,25 +105,25 @@ MashRegression <- R6Class("MashRegression",
           else
             stop("Cannot compute posteror with prior variance updates in the presence of missing data.")
         }
-        post = mashr:::calc_post_rcpp(t(bhat), t(sbhat),
+        post = mashr:::calc_sermix_rcpp(t(bhat), t(sbhat),
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
-                              matrix(0,0,0), matrix(0,0,0),
-                              xUlist,
+                              xUlist, 0, 0, 0,
                               t(private$.mixture_posterior_weights),
-                              is_common_cov, 4)
+                              matrix(0,0,0),
+                              is_common_cov)
       } else {
         # Posterior calculation does not need sbhat when there is Vinv etc
         # But mashr code needs it for scaling back EE / EZ models
         # So we just put in an an empty matrix here.
-        post = mashr:::calc_post_precision_rcpp(t(bhat), matrix(0,0,0),
+        post = mashr:::calc_sermix_rcpp(t(bhat), matrix(0,0,0),
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
-                              matrix(0,0,0), matrix(0,0,0),
-                              private$precomputed_cov_matrices$Vinv,
+                              0, 0,                              private$precomputed_cov_matrices$Vinv,
                               private$precomputed_cov_matrices$U0,
                               t(private$.mixture_posterior_weights),
-                              is_common_cov, 4)
+                              matrix(0,0,0),
+                              is_common_cov)
       }
       private$.posterior_b1 = post$post_mean
       private$.posterior_b2 = post$post_cov + matlist2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
@@ -254,7 +254,7 @@ MashInitializer <- R6Class("MashInitializer",
         sigma_rooti = list()
         for (i in 1:length(private$xU$xUlist)) {
           if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(svs + private$xU$xUlist[[i]])
-          else sigma_rooti[[i]] = mashr:::calc_rooti_rcpp(svs + private$xU$xUlist[[i]])$data
+          else sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(svs + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
         Vinv = list()
@@ -273,7 +273,7 @@ MashInitializer <- R6Class("MashInitializer",
               if (algorithm == 'R') {
                 sigma_rooti[[k]] = invert_chol_tri(svs[[j]] + private$xU$xUlist[[i]])
               } else {
-                sigma_rooti[[k]] = mashr:::calc_rooti_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
+                sigma_rooti[[k]] = mashr:::inv_chol_tri_rcpp(svs[[j]] + private$xU$xUlist[[i]])$data
               }
               k = k + 1
             }
