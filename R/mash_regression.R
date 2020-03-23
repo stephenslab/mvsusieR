@@ -37,8 +37,8 @@ MashRegression <- R6Class("MashRegression",
       # 2. Yuxin's RSS work might be able to bypass this issue for missing data in Y,
       # making RSS_Data$Y_has_missing equals FALSE as a result so regular computating
       # can still work without needing to precompute quantities.
-      if (!is.null(estimate_prior_variance_method) && d$Y_has_missing) {
-          stop("Cannot estimate prior variance when there is missing data in Y")
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && d$Y_has_missing) {
+        stop("Cannot estimate prior variance when there is missing data in Y")
       }
       # d: data object
       # use_residual: fit with residual instead of with Y,
@@ -133,7 +133,7 @@ MashRegression <- R6Class("MashRegression",
     .lfsr = NULL,
     .residual_variance_inv = NULL,
     compute_loglik_mat = function(scalar, bhat, sbhat) {
-      if (is.null(private$precomputed_cov_matrices) || scalar != 1) {
+      if (is.null(private$precomputed_cov_matrices) || (scalar != 1 && scalar != 0)) {
         llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation,
                                          matrix(0,0,0),
                                          private$get_scaled_prior(scalar),
@@ -144,6 +144,13 @@ MashRegression <- R6Class("MashRegression",
                                          private$precomputed_cov_matrices$sigma_rooti,
                                          TRUE,
                                          private$is_common_cov)$data
+        if (scalar == 0) {
+          # The precomputed sigma_rooti is not correct
+          # but the first column if llik is llik under the null anyways
+          # that corresponds to scalar == 0
+          # so we can simply set all columns of llik to the first column
+          llik = replicate(ncol(llik), llik[,1])
+        }
       }
       # give a warning if any columns have -Inf likelihoods.
       rows = which(apply(llik,2,function (x) any(is.infinite(x))))
@@ -155,7 +162,7 @@ MashRegression <- R6Class("MashRegression",
       return(llik)
     },
     compute_posterior = function(bhat, sbhat, mixture_posterior_weights, variable_posterior_weights) {
-      if (is.null(private$precomputed_cov_matrices) || private$prior_variance_scale != 1) {
+      if (is.null(private$precomputed_cov_matrices) || (private$prior_variance_scale != 1 && private$prior_variance_scale != 0)) {
         post = mashr:::calc_sermix_rcpp(t(bhat), t(sbhat),
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
@@ -168,11 +175,12 @@ MashRegression <- R6Class("MashRegression",
         # Posterior calculation does not need sbhat when there is Vinv etc
         # But mashr code needs it for scaling back EE / EZ models
         # So we just put in an an empty matrix here.
+        # here private$prior_variance_scale is either 0 or 1
         post = mashr:::calc_sermix_rcpp(t(bhat), matrix(0,0,0),
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
                               0, 0,                              private$precomputed_cov_matrices$Vinv,
-                              private$precomputed_cov_matrices$U0,
+                              private$precomputed_cov_matrices$U0 * private$prior_variance_scale,
                               t(mixture_posterior_weights),
                               t(variable_posterior_weights),
                               private$is_common_cov)
