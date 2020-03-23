@@ -214,7 +214,7 @@ MashRegression <- R6Class("MashRegression",
     },
     loglik = function(V,B,S,prior_weights) {
       llik = private$compute_loglik_mat(V,B,S)
-      return(compute_weighted_sum(private$compute_lbf(llik)$lbf, prior_weights)$log_sum)
+      return(compute_softmax(private$compute_lbf(llik)$lbf, prior_weights)$log_sum)
     },
     estimate_prior_variance_em = function(post_b2, post_weights) Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[[j]])),
     estimate_prior_variance_simple = function() 1,

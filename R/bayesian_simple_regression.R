@@ -74,7 +74,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       #log(bf) on each SNP
       lbf[shat2==Inf] = 0 # deal with special case of infinite shat2 (eg happens if X does not vary)
-      return(compute_weighted_sum(lbf, prior_weights)$log_sum)
+      return(compute_softmax(lbf, prior_weights)$log_sum)
     },
     neg_loglik_logscale = function(lV, betahat, shat2, prior_weights){
       return(-1 * private$loglik(exp(lV),betahat,shat2,prior_weights))
@@ -89,7 +89,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       #log(bf) on each effect
       lbf = dnorm(bhat,0,sqrt(V+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
       lbf[sbhat2==Inf] = 0 # deal with special case of infinite sbhat2 (eg happens if X does not vary)
-      alpha = compute_weighted_sum(lbf, prior_weights)$weights
+      alpha = compute_softmax(lbf, prior_weights)$weights
       sum(alpha*private$lbf_grad(V,sbhat2,bhat^2/sbhat2))
     },
     # define gradient as function of lV:=log(V)

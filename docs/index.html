@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.290</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.305</span>
       </span>
     </div>
 
@@ -71,7 +71,7 @@
 <h2 class="hasAnchor">
 <a href="#setup" class="anchor"></a>Setup</h2>
 <p>To automatically retrieve and install <code>mmbr</code> from this repository,</p>
-<p><code>R    devtools::install_github("stephenslab/mmbr")</code></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">devtools<span class="op">::</span><span class="kw"><a href="https://devtools.r-lib.org//reference/remote-reexports.html">install_github</a></span>(<span class="st">"stephenslab/mmbr"</span>)</a></code></pre></div>
 </div>
 <div id="quick-start" class="section level2">
 <h2 class="hasAnchor">
@@ -82,13 +82,13 @@
 <h2 class="hasAnchor">
 <a href="#developer-notes" class="anchor"></a>Developer notes</h2>
 <ul>
-<li><p>When any changes are made to <code>roxygen2</code> markup, simply run <code><a href="https://rdrr.io/pkg/devtools/man/document.html">devtools::document()</a></code> to update package <code>NAMESPACE</code> and documentation files.</p></li>
+<li><p>When any changes are made to <code>roxygen2</code> markup, simply run <code><a href="https://devtools.r-lib.org//reference/document.html">devtools::document()</a></code> to update package <code>NAMESPACE</code> and documentation files.</p></li>
 <li>
 <p>To install and test the package, run the following commands in the shell:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="va">VERSION=</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span><span class="fu">grep</span> Version DESCRIPTION <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">|</a></span> <span class="fu">awk</span> <span class="st">'{print $2}'</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span>
-<span class="ex">R</span> CMD build --resave-data --no-build-vignettes mmbr
-<span class="ex">R</span> CMD INSTALL mmbr_<span class="va">$VERSION</span>.tar.gz
-<span class="ex">R</span> CMD check --as-cran --ignore-vignettes mmbr_<span class="va">$VERSION</span>.tar.gz</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" title="1"><span class="va">VERSION=</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span><span class="fu">grep</span> Version DESCRIPTION <span class="kw"><a href="https://rdrr.io/r/base/Logic.html">|</a></span> <span class="fu">awk</span> <span class="st">'{print $2}'</span><span class="kw"><a href="https://rdrr.io/r/base/Quotes.html">`</a></span></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="ex">R</span> CMD build --resave-data --no-build-vignettes mmbr</a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="ex">R</span> CMD INSTALL mmbr_<span class="va">$VERSION</span>.tar.gz</a>
+<a class="sourceLine" id="cb2-4" title="4"><span class="ex">R</span> CMD check --as-cran --ignore-vignettes mmbr_<span class="va">$VERSION</span>.tar.gz</a></code></pre></div>
 </li>
 <li><p>Run <code><a href="https://pkgdown.r-lib.org/reference/build_site.html">pkgdown::build_site(lazy=T,examples=F)</a></code> to build the website.</p></li>
 </ul>

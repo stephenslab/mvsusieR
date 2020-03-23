@@ -72,7 +72,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     loglik = function(scalar, bhat, S, prior_weights) {
       U = private$.prior_variance * scalar
       lbf = multivariate_lbf(bhat, S, U)
-      return(compute_weighted_sum(lbf, prior_weights)$log_sum)
+      return(compute_softmax(lbf, prior_weights)$log_sum)
     },
     estimate_prior_variance_optim = function(betahat, shat2, prior_weights, ...) {
       # log(1) = 0

@@ -13,7 +13,7 @@ SingleEffectModel <- function(base)
         fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL) {
             if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
             super$fit(d, use_residual = TRUE, prior_weights = prior_weights, estimate_prior_variance_method=estimate_prior_variance_method)
-            ws = compute_weighted_sum(private$.lbf, prior_weights, log = TRUE)
+            ws = compute_softmax(private$.lbf, prior_weights, log = TRUE)
             private$.pip = ws$weights
             private$lbf_single_effect = ws$log_sum
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
