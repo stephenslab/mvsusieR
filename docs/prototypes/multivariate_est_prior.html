@@ -242,7 +242,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-sos"><pre><span></span><span class="n">library</span><span class="p">(</span><span class="n">mmbr</span><span class="p">)</span>
@@ -250,27 +250,6 @@ body {
 </pre></div>
 
     </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-    <div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>Loading required package: mashr
-
-Loading required package: ashr
-
-</pre>
-</div>
-</div>
-
 </div>
 </div>
 
@@ -451,7 +430,7 @@ Loading required package: ashr
 
 
 <div class="output_text output_subarea ">
-<pre>Time difference of 5.989441 secs</pre>
+<pre>Time difference of 5.797874 secs</pre>
 </div>
 
 </div>
@@ -1010,7 +989,7 @@ height=420
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Estimating-prior-variance-scalar">Estimating prior variance scalar<a class="anchor-link" href="#Estimating-prior-variance-scalar">&#182;</a></h2>
+<h2 id="Estimating-prior-variance-scalar-directly">Estimating prior variance scalar directly<a class="anchor-link" href="#Estimating-prior-variance-scalar-directly">&#182;</a></h2>
 </div>
 </div>
 </div>
@@ -1659,7 +1638,7 @@ height=420
 
 
 <div class="output_text output_subarea ">
-<pre>Time difference of 20.41468 secs</pre>
+<pre>Time difference of 19.85434 secs</pre>
 </div>
 
 </div>
@@ -1761,7 +1740,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-sos"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">Sys</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -1785,7 +1764,7 @@ height=420
 
 
 <div class="output_text output_subarea ">
-<pre>Time difference of 24.15604 secs</pre>
+<pre>Time difference of 23.95675 secs</pre>
 </div>
 
 </div>
@@ -1796,7 +1775,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-sos"><pre><span></span><span class="n">res2</span><span class="err">$</span><span class="n">elbo</span>
@@ -1834,7 +1813,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-sos"><pre><span></span><span class="n">res2</span><span class="err">$</span><span class="n">V</span>
@@ -1872,7 +1851,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-sos"><pre><span></span><span class="kn">susieR:</span><span class="p">:</span><span class="n">susie_plot</span><span class="p">(</span><span class="n">res2</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="s1">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">main</span> <span class="o">=</span> <span class="s1">&#39;Default SuSiE plot for cross-condition PIP&#39;</span><span class="p">,</span> <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;SNP positions&#39;</span><span class="p">,</span> <span class="n">add_legend</span> <span class="o">=</span> <span class="n">T</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">true_pos</span><span class="p">)</span>
@@ -2352,6 +2331,126 @@ height=420
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Update-for-prior-scalar-for-MASH-mixture">Update for prior scalar for MASH mixture<a class="anchor-link" href="#Update-for-prior-scalar-for-MASH-mixture">&#182;</a></h2><p>First, try out the <code>simple</code> method in MASH to verify that it agrees with the multivariate prior (although it does, at least as far as our unit test can tell us),</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">Sys</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">m_init</span> <span class="o">=</span> <span class="n">mmbr</span><span class="p">:::</span><span class="n">MashInitializer</span><span class="err">$</span><span class="n">new</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dat</span><span class="err">$</span><span class="n">V</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">res2</span> <span class="o">=</span> <span class="n">msusie</span><span class="p">(</span><span class="n">dat</span><span class="err">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="err">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">,</span><span class="n">estimate_prior_variance</span><span class="o">=</span><span class="n">T</span><span class="p">,</span><span class="n">precompute_covariances</span><span class="o">=</span><span class="n">T</span><span class="p">,</span><span class="n">compute_objective</span><span class="o">=</span><span class="n">T</span><span class="p">,</span><span class="n">estimate_residual_variance</span><span class="o">=</span><span class="n">F</span><span class="p">,</span> <span class="n">estimate_prior_method</span><span class="o">=</span><span class="s1">&#39;simple&#39;</span><span class="p">)</span>
+<span class="n">Sys</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_text output_subarea ">
+<pre>Time difference of 1.276372 secs</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">res2</span><span class="err">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-1618.74386621887</li><li>-1574.43053803949</li><li>-1574.17412385583</li><li>-1574.17119869015</li><li>-1574.17117800401</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-sos"><pre><span></span><span class="n">res2</span><span class="err">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>1</li><li>1</li><li>1</li><li>1</li><li>1</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
 </div>
 <hr>
 &copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago

@@ -80,11 +80,17 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
 
 test_that("mash regression in SuSiE agrees with BMR using one component prior matrix", with(simulate_multivariate(r=3), {
     m_init = create_mash_prior(mixture_prior = list(matrices=list(V)))
+    # don't compare ELBO
     A = msusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
     B = msusie(X,y,L=L,prior_variance=V, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE)
     expect_susie_equal(A,B,F,F)
-    A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=FALSE, , precompute_covariances=TRUE)
+    # compare ELBO
+    A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
     B = msusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=FALSE)
+    expect_susie_equal(A,B,F,F)
+    # compare estimate prior variance "simple" method
+    A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple', precompute_covariances=TRUE)
+    B = msusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple')
     expect_susie_equal(A,B,F,F)
 }))
 

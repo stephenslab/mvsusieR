@@ -23,6 +23,23 @@ MashRegression <- R6Class("MashRegression",
       private$prior_variance_scale = 1
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL) {
+      # FIXME: might have a better solution for it, but the problem is as follows:
+      # When prior changes (private$prior_variance_scale != 1),
+      # we can no longer use precomputed quantities
+      # because the precomputed quantities will be wrong in scale
+      # This implies that we currently cannot estimate prior variance
+      # when d$Y_has_missing is TRUE.
+      # With more work we can at least update those precomputed quantities
+      # that needs an update, in light of updated priors, then keep using them
+      # However reasons I don't do it are:
+      # 1. currently precomputation of prior are implemented in R which is slow.
+      # If I were to do it, I'll have to reimplment that part in C++.
+      # 2. Yuxin's RSS work might be able to bypass this issue for missing data in Y,
+      # making RSS_Data$Y_has_missing equals FALSE as a result so regular computating
+      # can still work without needing to precompute quantities.
+      if (!is.null(estimate_prior_variance_method) && d$Y_has_missing) {
+          stop("Cannot estimate prior variance when there is missing data in Y")
+      }
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -34,97 +51,54 @@ MashRegression <- R6Class("MashRegression",
       bhat[which(is.nan(bhat))] = 0
       if (!is.null(private$precomputed_cov_matrices)) {
         # we dont need sbhat, when we have precomputed quantities
+        # for when d$has_missing_Y, sbhat will be set to NA because
+        # with precomputed cov_mats there is no need to use sbhat anyways.
         sbhat = private$precomputed_cov_matrices$sbhat
-        is_common_cov = private$precomputed_cov_matrices$common_sbhat
+        private$is_common_cov = private$precomputed_cov_matrices$common_sbhat
       } else {
         # sbhat is R by R
         # for non-missing Y d$X2_sum is a J vector
-        # for missing Y it is a J list of R by R matrix that I'm not sure how to compute.
-        # however with precomputed cov_mats there is no need to use sbhat anyways.
+        # for missing Y it is a J list of R by R matrix that I'm not sure how to compute,
+        # so we have to rely on precomputed sbhat, see above.
         if (d$Y_has_missing) {
-          stop("Please use precomputed_covariances() in MASH initializer function to avoid computing sbhat in the presence of missing data.")
+          stop("Please use precomputed_covariances() in MASH initializer function to handle computation of sbhat in the presence of missing data.")
         } else {
           sigma2 = diag(private$.residual_variance)
           sbhat = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
           sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E3
-          is_common_cov = is_mat_common(sbhat)
+          private$is_common_cov = is_mat_common(sbhat)
         }
       }
       if (save_summary_stats) {
         private$.bhat = bhat
         private$.sbhat = sbhat
       }
-      # Fit MASH model
-      # 1.1 compute log-likelihood matrix given current estimates
-      if (is.null(private$precomputed_cov_matrices)) {
-        llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation,
-                                         matrix(0,0,0),
-                                         private$.prior_variance$xUlist,
-                                         TRUE,
-                                         is_common_cov)$data
-      } else {
-        llik = mashr:::calc_lik_precomputed_rcpp(t(bhat),
-                                         private$precomputed_cov_matrices$sigma_rooti,
-                                         TRUE,
-                                         is_common_cov)$data
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
+        if (estimate_prior_variance_method != 'simple')
+          stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
+        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat,prior_weights,method=estimate_prior_variance_method)
       }
-      # 1.2 give a warning if any columns have -Inf likelihoods.
-      rows <- which(apply(llik,2,function (x) any(is.infinite(x))))
-      if (length(rows) > 0)
-        warning(paste("Some mixture components result in non-finite likelihoods,",
-                          "either\n","due to numerical underflow/overflow,",
-                          "or due to invalid covariance matrices",
-                          paste(rows,collapse=", "), "\n"))
-      # 1.3 get relative loglik
-      lfactors = apply(llik,1,max)
-      llik = list(loglik_matrix=llik-lfactors, lfactors=lfactors)
+      # Fit MASH model
+      # 1. compute log-likelihood matrix given current estimates
+      llik = private$compute_loglik_mat(private$prior_variance_scale, bhat, sbhat)
       # 2. lbf
       lbf_obj = private$compute_lbf(llik)
       private$.lbf = lbf_obj$lbf
       private$.loglik_null = lbf_obj$loglik_null
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
-        if (estimate_prior_variance_method != 'simple')
-          stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
-        private$prior_variance_scale = private$estimate_prior_variance(NULL,NULL,prior_weights,method=estimate_prior_variance_method)
-      }
       # 3. compute posterior weights
-      private$.mixture_posterior_weights = mashr:::compute_posterior_weights(private$.prior_variance$pi, exp(llik$loglik_matrix))
+      private$.mixture_posterior_weights = private$compute_mixture_posterior_weights(private$.prior_variance$pi, llik)
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == 'EM') {
+        variable_posterior_weights = private$compute_variable_posterior_weights(prior_weights, llik)
+      } else {
+        variable_posterior_weights = matrix(0,0,0)
+      }
       # 4. posterior
       ## FIXME: we do not need to compute second moment unless:
       # 1. need ELBO to check for convergence
       # 2. need ELBO to estimate residual variance
-      ## but let's set report_type = 4 and compute posterior covariance for now regardless of if ELBO is needed.
-      if (is.null(private$precomputed_cov_matrices) || private$prior_variance_scale != 1) {
-        if (private$prior_variance_scale != 1)
-          xUlist = private$.prior_variance$xUlist * private$prior_variance_scale
-        else
-          xUlist = private$.prior_variance$xUlist
-        if (identical(sbhat, NA)) {
-          if (private$prior_variance_scale == 0)
-            sbhat = matrix(0,0,0)
-          else
-            stop("Cannot compute posteror with prior variance updates in the presence of missing data.")
-        }
-        post = mashr:::calc_sermix_rcpp(t(bhat), t(sbhat),
-                              matrix(0,0,0), matrix(0,0,0),
-                              private$residual_correlation,
-                              xUlist, 0, 0, 0,
-                              t(private$.mixture_posterior_weights),
-                              matrix(0,0,0),
-                              is_common_cov)
-      } else {
-        # Posterior calculation does not need sbhat when there is Vinv etc
-        # But mashr code needs it for scaling back EE / EZ models
-        # So we just put in an an empty matrix here.
-        post = mashr:::calc_sermix_rcpp(t(bhat), matrix(0,0,0),
-                              matrix(0,0,0), matrix(0,0,0),
-                              private$residual_correlation,
-                              0, 0,                              private$precomputed_cov_matrices$Vinv,
-                              private$precomputed_cov_matrices$U0,
-                              t(private$.mixture_posterior_weights),
-                              matrix(0,0,0),
-                              is_common_cov)
-      }
+      # 3. need to update prior via EM
+      # but let's compute it here anyways
+      post = private$compute_posterior(bhat, sbhat, private$.mixture_posterior_weights, variable_posterior_weights)
       private$.posterior_b1 = post$post_mean
       private$.posterior_b2 = post$post_cov + matlist2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
       if (save_var) private$.posterior_variance = post$post_cov
@@ -154,24 +128,104 @@ MashRegression <- R6Class("MashRegression",
     residual_correlation = NULL,
     precomputed_cov_matrices = NULL,
     prior_variance_scale = NULL,
+    is_common_cov = NULL,
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     .residual_variance_inv = NULL,
+    compute_loglik_mat = function(scalar, bhat, sbhat) {
+      if (is.null(private$precomputed_cov_matrices) || scalar != 1) {
+        llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation,
+                                         matrix(0,0,0),
+                                         private$get_scaled_prior(scalar),
+                                         TRUE,
+                                         private$is_common_cov)$data
+      } else {
+        llik = mashr:::calc_lik_precomputed_rcpp(t(bhat),
+                                         private$precomputed_cov_matrices$sigma_rooti,
+                                         TRUE,
+                                         private$is_common_cov)$data
+      }
+      # give a warning if any columns have -Inf likelihoods.
+      rows = which(apply(llik,2,function (x) any(is.infinite(x))))
+      if (length(rows) > 0)
+        warning(paste("Some mixture components result in non-finite likelihoods,",
+                          "either\n","due to numerical underflow/overflow,",
+                          "or due to invalid covariance matrices",
+                          paste(rows,collapse=", "), "\n"))
+      return(llik)
+    },
+    compute_posterior = function(bhat, sbhat, mixture_posterior_weights, variable_posterior_weights) {
+      if (is.null(private$precomputed_cov_matrices) || private$prior_variance_scale != 1) {
+        post = mashr:::calc_sermix_rcpp(t(bhat), t(sbhat),
+                              matrix(0,0,0), matrix(0,0,0),
+                              private$residual_correlation,
+                              private$get_scaled_prior(private$prior_variance_scale),
+                              0, 0, 0,
+                              t(mixture_posterior_weights),
+                              t(variable_posterior_weights),
+                              private$is_common_cov)
+      } else {
+        # Posterior calculation does not need sbhat when there is Vinv etc
+        # But mashr code needs it for scaling back EE / EZ models
+        # So we just put in an an empty matrix here.
+        post = mashr:::calc_sermix_rcpp(t(bhat), matrix(0,0,0),
+                              matrix(0,0,0), matrix(0,0,0),
+                              private$residual_correlation,
+                              0, 0,                              private$precomputed_cov_matrices$Vinv,
+                              private$precomputed_cov_matrices$U0,
+                              t(mixture_posterior_weights),
+                              t(variable_posterior_weights),
+                              private$is_common_cov)
+      }
+      return(post)
+    },
+    compute_mixture_posterior_weights = function(prior_mixture_weights, llik) {
+      lfactors = apply(llik,1,max)
+      d = t(prior_mixture_weights * t(exp(llik-lfactors)))
+      return(d/rowSums(d))
+    },
+    compute_variable_posterior_weights = function(prior_variable_weights, llik) {
+      lfactors = apply(llik,2,max)
+      d = prior_variable_weights * exp(llik-lfactors)
+      return(t(t(d)/colSums(d)))
+    },
     compute_lbf = function(llik, s = NULL) {
+      # get relative loglik
+      lfactors = apply(llik,1,max)
+      llik = list(loglik_matrix=llik-lfactors, lfactors=lfactors)
       # using mashr functions have to ensure input s_alpha parameter has valid log and rowSums
       if (is.null(s) || (is.matrix(s) && nrow(s) == 0)) s = matrix(1,1,1)
-        loglik_null = mashr:::compute_null_loglik_from_matrix(llik, s)
-        loglik_alt = mashr:::compute_alt_loglik_from_matrix_and_pi(private$.prior_variance$pi, llik, s)
-        lbf = loglik_alt - loglik_null
-        if (!is.null(ncol(lbf)) && ncol(lbf) == 1)
-          lbf = as.vector(lbf)
-        # Inf - Inf above can cause NaN
-        lbf[which(is.na(lbf))] = 0
-        return(list(lbf=lbf, loglik_null=loglik_null))
+      loglik_null = mashr:::compute_null_loglik_from_matrix(llik, s)
+      loglik_alt = mashr:::compute_alt_loglik_from_matrix_and_pi(private$.prior_variance$pi, llik, s)
+      lbf = loglik_alt - loglik_null
+      if (!is.null(ncol(lbf)) && ncol(lbf) == 1)
+        lbf = as.vector(lbf)
+      # Inf - Inf above can cause NaN
+      lbf[which(is.na(lbf))] = 0
+      return(list(lbf=lbf, loglik_null=loglik_null))
     },
-    loglik = function(V,B,S,prior_weights) ifelse(V==0, 0, compute_weighted_sum(private$.lbf, prior_weights)$log_sum),
+    loglik = function(V,B,S,prior_weights) {
+      llik = private$compute_loglik_mat(V,B,S)
+      return(compute_weighted_sum(private$compute_lbf(llik)$lbf, prior_weights)$log_sum)
+    },
     estimate_prior_variance_em = function(post_b2, post_weights) Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[[j]])),
-    estimate_prior_variance_simple = function() 1
+    estimate_prior_variance_simple = function() 1,
+    get_scaled_prior = function(scalar, inverse = FALSE) {
+      # xUlist here is a 3D array
+      if (scalar != 1) {
+        if (inverse) {
+          return(NA)
+        } else {
+          return(private$.prior_variance$xUlist * scalar)
+        }
+      } else {
+        if (inverse) {
+          return(NA)
+        } else {
+          return(private$.prior_variance$xUlist)
+        }
+      }
+    }
   ),
 )
 
