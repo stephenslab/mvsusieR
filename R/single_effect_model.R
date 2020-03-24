@@ -17,9 +17,11 @@ SingleEffectModel <- function(base)
             private$.pip = ws$weights
             private$lbf_single_effect = ws$log_sum
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
-                em_est = private$estimate_prior_variance_em(private$cache, prior_weights, private$.posterior_b2, private$.pip)
-                if (private$cache$update_scale) private$prior_variance_scale = em_est
-                else private$.prior_variance = em_est
+                check_null_tol = 0.1
+                V = private$estimate_prior_variance_em(private$.pip)
+                if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_tol >= private$loglik(V,private$cache$b,private$cache$s,prior_weights)) V=0
+                if (private$cache$update_scale) private$prior_variance_scale = V
+                else private$.prior_variance = V
                 private$cache = NULL
             }
         },

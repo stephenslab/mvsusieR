@@ -41,7 +41,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
         if (estimate_prior_variance_method == "EM") {
-          private$cache = list(betahat = bhat, shat2 = sbhat2, update_scale=T)
+          private$cache = list(b=bhat, s=sbhat2, update_scale=T)
         } else {
           private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
         }
@@ -79,19 +79,18 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       lV = optim(par=0, fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em = function(sumstats, prior_weights, post_b2, post_weights, check_null_tol = 0.1) {
-      if (length(dim(post_b2)) == 3) {
+    estimate_prior_variance_em = function(pip) {
+      if (length(dim(private$.posterior_b2)) == 3) {
         # when R > 1
-        mu2 = Reduce("+", lapply(1:length(post_weights), function(j) post_weights[j] * post_b2[,,j]))
+        mu2 = Reduce("+", lapply(1:length(pip), function(j) pip[j] * private$.posterior_b2[,,j]))
       } else {
         # when R = 1 each post_b2 is a scalar.
         # Now make it a matrix to be compatable with later computations.
-        if (ncol(post_b2) != 1) stop("Data dimension is incorrect for post_b2")
-        mu2 = matrix(sum(post_weights * post_b2[,1]), 1,1)
+        if (ncol(private$.posterior_b2) != 1) stop("Data dimension is incorrect for posterior_b2")
+        mu2 = matrix(sum(pip * private$.posterior_b2[,1]), 1,1)
       }
       if (is.null(private$.prior_variance_inv)) private$.prior_variance_inv = ginv(private$.prior_variance)
       V = sum(diag(private$.prior_variance_inv %*% mu2)) / nrow(private$.prior_variance)
-      if(private$loglik(0,sumstats$betahat,sumstats$shat2,prior_weights) + check_null_tol >= private$loglik(V,sumstats$betahat,sumstats$shat2,prior_weights)) V=0
       return(V)
     },
     estimate_prior_variance_simple = function() 1

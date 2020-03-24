@@ -27,7 +27,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
         if (estimate_prior_variance_method == "EM") {
-          private$cache = list(betahat = bhat, shat2 = sbhat2, update_scale=F)
+          private$cache = list(b=bhat, s=sbhat2, update_scale=F)
         } else {
           private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
         }
@@ -118,9 +118,8 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em = function(sumstats, prior_weights, post_b2, post_weights, check_null_tol = 0.1) {
-      V = sum(post_weights*post_b2)
-      if(private$loglik(0,sumstats$betahat,sumstats$shat2,prior_weights) + check_null_tol >= private$loglik(V,sumstats$betahat,sumstats$shat2,prior_weights)) V=0
+    estimate_prior_variance_em = function(pip) {
+      V = sum(pip*private$.posterior_b2)
       return(V)
     },
     estimate_prior_variance_simple = function() private$.prior_variance
