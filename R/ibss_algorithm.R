@@ -67,9 +67,9 @@ SuSiE <- R6Class("SuSiE",
             pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },
-    get_objective = function(dump = FALSE) {
+    get_objective = function(dump = FALSE, warning_tol = 1E-6) {
         if (length(private$elbo) == 0) return(NA)
-        if (!all(diff(private$elbo) >= 0)) {
+        if (!all(diff(private$elbo) >= (-1 * warning_tol))) {
             warning('Objective is not non-decreasing')
             dump = TRUE
         }
