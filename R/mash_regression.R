@@ -118,7 +118,7 @@ MashRegression <- R6Class("MashRegression",
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == 'EM') {
         SER_posterior_mixture_weights = private$get_SER_posterior_mixture_weights(llik, prior_weights, private$.prior_variance$pi)
         private$cache$SER_posterior_mixture_weights = SER_posterior_mixture_weights
-        private$cache$mixture_prior_variance_scale = post$prior_scalar_em_update
+        private$cache$mixture_prior_variance_scale = post$prior_scale_em_update
       }
     }
   ),
@@ -180,6 +180,8 @@ MashRegression <- R6Class("MashRegression",
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
                               private$get_scaled_prior(private$prior_variance_scale),
+                              # because we define the scalar with respect to the original prior
+                              # the inverse should always be the original.
                               private$.prior_variance$xUlist_inv,
                               0, 0,
                               t(mixture_posterior_weights),
@@ -209,9 +211,8 @@ MashRegression <- R6Class("MashRegression",
       return(d/rowSums(d))
     },
     compute_variable_posterior_weights = function(prior_variable_weights, llik) {
-      lfactors = apply(llik,2,max)
-      d = prior_variable_weights * exp(llik-lfactors)
-      return(t(t(d)/colSums(d)))
+      lbf = t(llik - llik[,1])
+      return(t(private$compute_mixture_posterior_weights(prior_variable_weights, lbf)))
     },
     compute_lbf = function(llik, s = NULL) {
       # get relative loglik

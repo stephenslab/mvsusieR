@@ -92,6 +92,10 @@ test_that("mash regression in SuSiE agrees with BMR using one component prior ma
     A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple', precompute_covariances=TRUE)
     B = msusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple')
     expect_susie_equal(A,B,F,F)
+    # compare estimate prior variance "EM" method
+    A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM', precompute_covariances=FALSE)
+    B = msusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
+    expect_susie_equal(A,B,F,F)
 }))
 
 test_that("customized initialization interface", with(simulate_multivariate(r=3), {
