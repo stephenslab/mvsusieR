@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="ipynb_website:version" content="0.9.7" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" type="text/css" href="../css/jt.css">
+
+<link rel="stylesheet" type="text/css" href="../css/toc2.css">
+
+<link href="../site_libs/jqueryui-1.11.4/jquery-ui.css">
+<link rel="stylesheet" href="../site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="../site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="../site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+
+<link rel="stylesheet"
+      href="../site_libs/highlightjs/null.min.css"
+      type="text/css" />
+
+<script src="../site_libs/highlightjs/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+<script src="../js/doc_toc.js"></script>
+<script src="../js/docs.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script>
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+        processEscapes: true
+        },
+        "HTML-CSS": {
+            preferredFont: "TeX",
+            availableFonts: ["TeX"],
+            styles: {
+                scale: 110,
+                ".MathJax_Display": {
+                    "font-size": "110%",
+                }
+            }
+        }
+    });
+</script>
+<script>
+function filterDataFrame(id) {
+    var input = document.getElementById("search_" + id);
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("dataframe_" + id);
+    var tr = table.getElementsByTagName("tr");
+    // Loop through all table rows, and hide those who don't match the search query
+    for (var i = 1; i < tr.length; i++) {
+        for (var j = 0; j < tr[i].cells.length; ++j) {
+            var matched = false;
+            if (tr[i].cells[j].innerHTML.toUpperCase().indexOf(filter) != -1) {
+                tr[i].style.display = "";
+                matched = true
+                break;
+            }
+            if (!matched)
+                tr[i].style.display = "none";
+        }
+    }
+}
+function sortDataFrame(id, n, dtype) {
+    var table = document.getElementById("dataframe_" + id);
+    var tb = table.tBodies[0]; // use `<tbody>` to ignore `<thead>` and `<tfoot>` rows
+    var tr = Array.prototype.slice.call(tb.rows, 0); // put rows into array
+    if (dtype === 'numeric') {
+        var fn = function(a, b) { 
+            return parseFloat(a.cells[n].textContent) <= parseFloat(b.cells[n].textContent) ? -1 : 1;
+        }
+    } else {
+        var fn = function(a, b) {
+            var c = a.cells[n].textContent.trim().localeCompare(b.cells[n].textContent.trim()); 
+            return c > 0 ? 1 : (c < 0 ? -1 : 0) }
+    }
+    var isSorted = function(array, fn) {
+        if (array.length < 2)
+            return 1;
+        var direction = fn(array[0], array[1]); 
+        for (var i = 1; i < array.length - 1; ++i) {
+            var d = fn(array[i], array[i+1]);
+            if (d == 0)
+                continue;
+            else if (direction == 0)
+                direction = d;
+            else if (direction != d)
+                return 0;
+            }
+        return direction;
+    }
+    var sorted = isSorted(tr, fn);
+    if (sorted == 1 || sorted == -1) {
+        // if sorted already, reverse it
+        for(var i = tr.length - 1; i >= 0; --i)
+            tb.appendChild(tr[i]); // append each row in order
+    } else {
+        tr = tr.sort(fn);
+        for(var i = 0; i < tr.length; ++i)
+            tb.appendChild(tr[i]); // append each row in order
+    }
+}
+</script>
+
+<script>
+$( document ).ready(function(){
+            var cfg={'threshold':3,     // depth of toc (number of levels)
+             'number_sections': false,
+             'toc_cell': false,          // useless here
+             'toc_window_display': true, // display the toc window
+             "toc_section_display": "block", // display toc contents in the window
+             'sideBar':true,       // sidebar or floating window
+             'navigate_menu':false       // navigation menu (only in liveNotebook -- do not change)
+            }
+            var st={};                  // some variables used in the script
+            st.rendering_toc_cell = false;
+            st.config_loaded = false;
+            st.extension_initialized=false;
+            st.nbcontainer_marginleft = $('#notebook-container').css('margin-left')
+            st.nbcontainer_marginright = $('#notebook-container').css('margin-right')
+            st.nbcontainer_width = $('#notebook-container').css('width')
+            st.oldTocHeight = undefined
+            st.cell_toc = undefined;
+            st.toc_index=0;
+            // fire the main function with these parameters
+            table_of_contents(cfg, st);
+            var file=prototypesDict[$("h1:first").attr("id")];
+            $("#toc-level0 a").css("color","#126dce");
+            $('a[href="#'+$("h1:first").attr("id")+'"]').hide()
+            var docs=prototypesArray;
+            var docs_map=prototypesArrayMap;
+            var pos=prototypesArray.indexOf(file);
+            for (var a=pos;a>=0;a--){
+                  $('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>').insertBefore("#toc-level0 li:eq(0)");
+            }
+            $('a[href="'+file+'.html'+'"]').css("color","#126dce");
+            for (var a=pos+1;a<docs.length;a++){
+                  $(".toc #toc-level0").append('<li><a href="'+docs[a]+'.html"><font color="#073642"><b>'+docs_map[docs[a]].replace(/_/g," ")+'</b></font></a></li>');
+            }
+            // $("#toc-header").hide(); // comment out because it prevents search bar from displaying
+    });
+</script>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+  // mark it active
+  menuAnchor.parent().addClass('active');
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+<div class="container-fluid main-container">
+<!-- tabsets -->
+<script src="../site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+
+
+<title>R package for the M&M method for regression</title>
+
+<style type = "text/css">
+body {
+  font-family: "Droid Sans";
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+</style>
+</head>
+
+<body>
+<div tabindex="-1" id="notebook" class="border-box-sizing">
+<div class="container" id="notebook-container">
+
+<!-- code folding -->
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="../index.html">R package for the M&M method for regression</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+<li>
+  <a href="../index.html">Overview</a>
+</li>
+        
+<li>
+  <a href="../prototypes.html">Prototypes</a>
+</li>
+        
+      </ul>
+        
+<ul class="nav navbar-nav navbar-right">
+<li>
+   <a href="http://github.com/stephenslab/mmbr"> <span class="fa fa-github"></span> </a>
+</li>
+</ul>
+        
+      </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Decreasing-ELBO-issue">Decreasing ELBO issue<a class="anchor-link" href="#Decreasing-ELBO-issue">&#182;</a></h1><p>Possibly caused by comparing and setting prior variances to zero when estimating them.</p>
+<h2 id="Context">Context<a class="anchor-link" href="#Context">&#182;</a></h2><p>I recently implemented EM updates for prior scalar in both MASH regression and  Bayesian multivariate regression (hereafter BMR, essentially MASH with just one component but we have separate, simpler code for it written in R for prototyping purpose). I verified with some tests that for IBSS using MASH mixture with only one matrix the result agree with IBSS using BMR. And BMR, when reduced to just one response, agrees with susieR result. The EM estimate for prior variance scalar are identical and ELBO are non-decreasing.</p>
+<h2 id="Problem">Problem<a class="anchor-link" href="#Problem">&#182;</a></h2><p>However, as I moved on to more simulations I get warnings for decreasing ELBO. It seems to happen only when there are many effect variables relative to conditions. For example my toy example below has 2 conditions each having 2 effect variables out of 50 variables. The problem is that not only EM method, but also the "simple" method which estimates prior variance scalar simply by comparing the original to zero and accept whichever has better likelihood, resulted in decreasing ELBO.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This is not the case for SuSiE -- no matter how many effect variables are there, the ELBO is non-decreasing. And at least in my toy example below, estimating the scalar using <code>optim</code> also works.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Possible-cause">Possible cause<a class="anchor-link" href="#Possible-cause">&#182;</a></h2><p>An interesting observation is that if I switch of the comparison between current estimate and zero at the end of each EM update (<a href="https://github.com/stephenslab/mmbr/blob/390eb23852fa5ed5c17b5062deb6f3e8494ba76e/R/single_effect_model.R#L22">comment out this line</a>), the algorithm takes longer to converge but ELBO is non-decreasing and the estimates make sense.</p>
+<p>A major difference between EM update and maximizing the single effect loglik directly is that the formal is a function of posterior quantities while the latter only involve the data, with the prior to be estimated (<a href="https://github.com/stephenslab/mmbr/blob/390eb23852fa5ed5c17b5062deb6f3e8494ba76e/R/bayesian_simple_regression.R#L73">here for a simple example</a>). As a result, in EM updates if in a previous iteration sets the estimate to zero then it will impact the posterior of the next iteration and the estimate will never come back from zero. This is not the case for when prior is directly estimated as in <code>optim</code>.</p>
+<h2 id="Illustration">Illustration<a class="anchor-link" href="#Illustration">&#182;</a></h2><p>Here I use BMR not MASH regression to illustrate.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&#39;~/GIT/software/mmbr&#39;</span><span class="p">)</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="m">1</span><span class="p">)</span>
+<span class="n">dat</span> <span class="o">=</span> <span class="nf">mmbr_sim1</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="m">50</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="m">50</span><span class="p">,</span><span class="n">r</span><span class="o">=</span><span class="m">2</span><span class="p">,</span><span class="n">s</span><span class="o">=</span><span class="m">2</span><span class="p">)</span>
+<span class="n">L</span> <span class="o">=</span> <span class="m">10</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading mmbr
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>There are 2 conditions, each having 2 effect variables.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="nf">sum</span><span class="p">(</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">)</span><span class="o">&gt;</span><span class="m">0</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+4
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Fit-without-estimating-prior">Fit without estimating prior<a class="anchor-link" href="#Fit-without-estimating-prior">&#182;</a></h3><p>We use fixed prior here provided by simulated data object; everything looks fine:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">dat</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 2 × 2 of type dbl</caption>
+<tbody>
+	<tr><td>0.46673960</td><td>0.05659291</td></tr>
+	<tr><td>0.05659291</td><td>0.50840182</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit0</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit0</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-198.044780051201</li><li>-196.062858410187</li><li>-195.768521254949</li><li>-195.608472451142</li><li>-195.361025036579</li><li>-195.242309228748</li><li>-195.227677853132</li><li>-195.225650183385</li><li>-195.224819801876</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit0</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>1</li><li>1</li><li>1</li><li>1</li><li>1</li><li>1</li><li>1</li><li>1</li><li>1</li><li>1</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="simple-method"><code>simple</code> method<a class="anchor-link" href="#simple-method">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Using <code>simple</code> method we see decreasing ELBO, and only 1 out of 4 effects was captured.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit1</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;simple&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Warning message in m$get_objective(dump = TRUE):
+“Objective is not non-decreasing”
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit1</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-182.785460711142</li><li>-182.785460711142</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit1</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>1</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Notice that with <code>L = 5</code> I get the same behavior,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[36]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit11</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="m">5</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;simple&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Warning message in m$get_objective(dump = TRUE):
+“Objective is not non-decreasing”
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit11</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-182.785460711142</li><li>-182.785460711142</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[38]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit11</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>1</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="EM-method"><code>EM</code> method<a class="anchor-link" href="#EM-method">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;EM&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Warning message in m$get_objective(dump = TRUE):
+“Objective is not non-decreasing”
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[34]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-198.044780051201</li><li>-183.89382332534</li><li>-185.064348616454</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>However, when I set <code>L = 5</code> it seems to work,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[40]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="m">5</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;EM&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-188.01736755959</li><li>-183.262876818347</li><li>-182.795977777449</li><li>-182.75095982415</li><li>-182.746969306347</li><li>-182.746686553396</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.716762547285981</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Although still it sets only the first effect to be non-zero.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[60]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit21</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAACx1BMVEUAAAABAQECAgIDAwME
+BAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBARERESEhITExMVFRUWFhYX
+FxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8gICAhISEiIiIjIyMkJCQlJSUmJiYnJycoKCgp
+KSkqKiorKyssLCwtLS0uLi4vLy8wMDAxMTEyMjIzMzM1NTU2NjY3Nzc4ODg5OTk6Ojo7Ozs8
+PDw9PT0+Pj4/Pz9AQEBCQkJDQ0NERERGRkZHR0dISEhJSUlKSkpLS0tMTExNTU1OTk5PT09Q
+UFBRUVFSUlJTU1NUVFRVVVVWVlZXV1dYWFhZWVlaWlpbW1tcXFxdXV1eXl5fX19gYGBhYWFi
+YmJjY2NkZGRlZWVmZmZnZ2doaGhpaWlqampra2tsbGxtbW1ubm5vb29wcHBxcXFycnJ0dHR1
+dXV2dnZ3d3d4eHh5eXl6enp7e3t8fHx9fX1+fn5/f3+AgICBgYGCgoKDg4OEhISFhYWGhoaH
+h4eIiIiJiYmKioqLi4uMjIyOjo6Pj4+QkJCSkpKUlJSWlpaXl5eYmJiZmZmampqcnJydnZ2e
+np6fn5+goKChoaGioqKjo6OkpKSoqKiqqqqrq6usrKytra2vr6+wsLCxsbGysrK0tLS1tbW2
+tra3t7e4uLi5ubm6urq7u7u8vLy9vb2+vr6/v7/AwMDBwcHCwsLDw8PExMTFxcXGxsbHx8fI
+yMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW1tbY2NjZ2dna2trb
+29vc3Nzd3d3e3t7f39/h4eHi4uLj4+Pk5OTl5eXm5ubn5+fo6Ojp6enr6+vs7Ozu7u7v7+/w
+8PDx8fHy8vLz8/P09PT19fX29vb39/f4+Pj5+fn6+vr7+/v8/Pz9/f3+/v7/AAD///96bgId
+AAAACXBIWXMAABJ0AAASdAHeZh94AAAYjElEQVR4nO3d/2Nd9X3f8Y+jGIhZHWcksYztrk5L
+bBqCmyaWPeJAWIxMIW2IweVbu2YEknTZ0rQLZRRC2tCs69oubciyZsu6daPZOuzipc2WBFZI
+GTgQyrYM3BjHacHGX6T7R0y6wsaSdY9k6eVzdK4fjx/uPdf3o3vf91w9kXR1rigdYN5K0wNA
+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
+AAAASUVORK5CYII="
+width=420
+height=420
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="optim-method"><code>optim</code> method<a class="anchor-link" href="#optim-method">&#182;</a></h3><p>It seems to work at least for this example with <code>L=10</code> and the estimate is similar to that produced by <code>EM</code> with <code>L = 5</code>. Notice that for <code>optim</code> method we still have that check at the end of each update comparing current estimate with zero in terms of likelihood. Thus many <code>V</code> are set to zero.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[43]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;optim&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[44]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-182.746666507784</li><li>-182.746666507784</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[45]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.718104560164367</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[59]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit3</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAACx1BMVEUAAAABAQECAgIDAwME
+BAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBARERESEhITExMUFBQVFRUW
+FhYXFxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8gICAhISEiIiIjIyMkJCQlJSUmJiYnJyco
+KCgpKSkqKiorKyssLCwtLS0uLi4vLy8wMDAxMTEyMjIzMzM1NTU2NjY3Nzc4ODg5OTk6Ojo7
+Ozs8PDw9PT0+Pj4/Pz9AQEBCQkJDQ0NERERGRkZHR0dISEhJSUlKSkpLS0tMTExNTU1OTk5P
+T09QUFBRUVFSUlJTU1NUVFRVVVVWVlZXV1dYWFhZWVlaWlpbW1tcXFxdXV1eXl5fX19gYGBh
+YWFiYmJjY2NkZGRlZWVmZmZnZ2doaGhpaWlqampra2tsbGxtbW1ubm5vb29wcHBxcXFycnJ0
+dHR1dXV2dnZ3d3d4eHh5eXl6enp7e3t8fHx9fX1+fn5/f3+AgICBgYGCgoKDg4OEhISFhYWG
+hoaHh4eIiIiJiYmKioqLi4uMjIyPj4+QkJCSkpKUlJSWlpaXl5eYmJiZmZmampqcnJydnZ2e
+np6fn5+goKChoaGioqKjo6OkpKSoqKiqqqqrq6usrKytra2vr6+wsLCxsbGysrK0tLS1tbW2
+tra3t7e4uLi5ubm6urq7u7u8vLy9vb2+vr6/v7/AwMDBwcHCwsLDw8PExMTFxcXGxsbHx8fI
+yMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW1tbY2NjZ2dna2trb
+29vc3Nzd3d3e3t7f39/h4eHi4uLj4+Pk5OTl5eXm5ubn5+fo6Ojp6enr6+vs7Ozu7u7v7+/w
+8PDx8fHy8vLz8/P09PT19fX29vb39/f4+Pj5+fn6+vr7+/v8/Pz9/f3+/v7/AAD///+58vFC
+AAAACXBIWXMAABJ0AAASdAHeZh94AAAYkklEQVR4nO3d/4NddX3n8U8cAxi2MS6rJiFJt7HF
+hIqkVjPJYgQpYUJBKwZSvvWLi6B23bW2K2UpFLdSa7ft2orr6m63X6ltl6Sktu6q0IJlIYKU
+7raQGmJsISFfZu4fsTN3SMhMZk7myyvn3HPzePxw77m5n7n3fc+dJzNz59yhdIB5K00PAP1A
+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
+I92vjA0+G+MhNTbBX/3IikVvue2F7AjeRgEBQoIAIUGAkCBASBAgJAgQEgQICQKEBAFCggAh
+QYCQIEBIECAkCBASBAgJAoQEAUKCACFBgJAgQEgQICQIEBIECAkChAQBQoIAIUGAkCBASBAg
+JAgQEgQICQKEBAFCggAhQYCQIEBIECCkNln6vsevX7ny6ifHtr/9oTf/s7f8TPf/zf2F9UvO
+ecefNDva6U5IbbL04iU3/tYnX/vqBzudZ/5luejmt5bv/8dO5xPl9dtuXDzwpaanO60JqU2W
+ln83evrkWZd0OjeXXx3dvL3c1em87vv2dzpfLj/Z9HSnNSG1ydJX/sPY2b8u3zi48M1jWy8u
+X9Y5OPC9hzud4YeeaHa205yQ2mTpG7pnv1nue6L8VHfzR8o/dTaXNZ/8y8NNzoWQWmXpYPfs
+d8tv7Cwf725+sHyj8+1/85pSzvngniYnO+0JqU2Wfnf37FfLHxz9inR12Td6emjnL6wtbxlu
+cLLTnpDaZOkrvjl2NlR2HXzlurGtgyte33nqnj8f23xH+b9Njna6E1KbLC0//GKn89/LOzqd
+95VPj/7DHeWOzhNlw+gPSIc3nLG/6fFOZ0Jqk6Ur/vl573vnglc/1On8/apyyQcGx36PNHxZ
+WffhH11Zfrrp6U5rQmqTpRc/edXSc9/TPbJh761vOvsHfnbsyIa9Hztv0TmDnz3S8HCnNyG1
+ydKLm56AaQipTYTUs4TUJkLqWUJqEyH1LCFBgJAgQEgQICQIEBIECAkChAQBQoIAIUGAkCBA
+SBAgJAgQEgQICQKEBAFCggAhQYCQIEBIECAkCBASBAgJAoQEAUKCACFBgJAgQEgQ8P8B7Cvf
+hZKSSB4AAAAASUVORK5CYII="
+width=420
+height=420
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="EM-update-without-checking-with-zero"><code>EM</code> update without checking with zero<a class="anchor-link" href="#EM-update-without-checking-with-zero">&#182;</a></h3><p>I commented out <a href="https://github.com/stephenslab/mmbr/blob/390eb23852fa5ed5c17b5062deb6f3e8494ba76e/R/single_effect_model.R#L22">this line</a>) in my code, and run EM with <code>L=10</code>:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[46]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&#39;~/GIT/software/mmbr&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading mmbr
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[51]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;EM&#39;</span><span class="p">,</span> <span class="n">max_iter</span> <span class="o">=</span> <span class="m">200</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[52]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-198.044780051201</li><li>-185.808446867106</li><li>-184.186223744929</li><li>-183.748348515929</li><li>-183.517946916971</li><li>-183.347957226874</li><li>-183.228141911754</li><li>-183.158819669811</li><li>-183.122288636005</li><li>-183.100822326533</li><li>-183.08558841485</li><li>-183.073211704825</li><li>-183.062327230459</li><li>-183.052198977251</li><li>-183.042274528671</li><li>-183.03201305774</li><li>-183.020763776462</li><li>-183.007608403357</li><li>-182.991088736146</li><li>-182.968679236777</li><li>-182.935727526705</li><li>-182.88344571863</li><li>-182.796386513956</li><li>-182.656681568024</li><li>-182.475109898781</li><li>-182.31519771353</li><li>-182.218387872279</li><li>-182.166127784205</li><li>-182.132652406407</li><li>-182.106278000122</li><li>-182.083266460384</li><li>-182.062470319903</li><li>-182.043454610881</li><li>-182.025980421308</li><li>-182.009872422002</li><li>-181.994984702269</li><li>-181.981190998938</li><li>-181.96838088548</li><li>-181.956457457973</li><li>-181.945335496277</li><li>-181.934939885653</li><li>-181.925204251526</li><li>-181.916069785292</li><li>-181.907484239335</li><li>-181.899401068683</li><li>-181.891778697851</li><li>-181.88457989376</li><li>-181.877771228245</li><li>-181.871322616192</li><li>-181.865206917615</li><li>-181.859399593881</li><li>-181.853878409897</li><li>-181.84862317543</li><li>-181.843615519816</li><li>-181.838838695242</li><li>-181.83427740455</li><li>-181.829917650122</li><li>-181.825746600967</li><li>-181.821752475532</li><li>-181.817924438144</li><li>-181.814252507307</li><li>-181.810727474311</li><li>-181.807340830853</li><li>-181.804084704534</li><li>-181.800951801277</li><li>-181.797935353803</li><li>-181.795029075472</li><li>-181.792227118822</li><li>-181.789524038298</li><li>-181.786914756664</li><li>-181.784394534698</li><li>-181.781958943801</li><li>-181.7796038412</li><li>-181.777325347474</li><li>-181.775119826142</li><li>-181.772983865106</li><li>-181.770914259761</li><li>-181.768907997584</li><li>-181.766962244078</li><li>-181.765074329917</li><li>-181.763241739179</li><li>-181.761462098566</li><li>-181.759733167516</li><li>-181.758052829118</li><li>-181.756419081757</li><li>-181.754830031426</li><li>-181.753283884637</li><li>-181.75177894189</li><li>-181.750313591628</li><li>-181.748886304666</li><li>-181.747495629019</li><li>-181.746140185128</li><li>-181.744818661421</li><li>-181.743529810206</li><li>-181.742272443847</li><li>-181.741045431215</li><li>-181.739847694388</li><li>-181.738678205572</li><li>-181.737535984239</li><li>-181.736420094456</li><li>-181.735329642387</li><li>-181.734263773969</li><li>-181.733221672733</li><li>-181.73220255777</li><li>-181.731205681822</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[53]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span><span class="o">$</span><span class="n">niter</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+105
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>It took 105 iterations to converge. The prior estimates are:</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[54]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714071252664812</li><li>0.688578701959507</li><li>0.00337649436178791</li><li>0.00331738817397583</li><li>0.00329732911004534</li><li>0.0032842114304321</li><li>0.00327467368818631</li><li>0.0032673322654283</li><li>0.00326146768668188</li><li>0.00325665554106171</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here it captures 2 effects, as also reflected below that two effects have large PIP,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[58]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit4</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAAC1lBMVEUAAAABAQECAgIDAwME
+BAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBARERESEhITExMUFBQVFRUW
+FhYXFxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8gICAhISEiIiIjIyMkJCQlJSUmJiYnJyco
+KCgpKSkqKiorKyssLCwtLS0uLi4vLy8wMDAxMTEyMjIzMzM0NDQ1NTU2NjY3Nzc4ODg5OTk6
+Ojo7Ozs8PDw9PT0+Pj4/Pz9AQEBCQkJDQ0NERERFRUVGRkZHR0dISEhJSUlKSkpLS0tMTExN
+TU1OTk5PT09QUFBRUVFSUlJTU1NUVFRVVVVWVlZXV1dYWFhZWVlaWlpbW1tcXFxdXV1eXl5f
+X19gYGBhYWFiYmJjY2NkZGRlZWVmZmZnZ2doaGhpaWlqampra2tsbGxtbW1ubm5vb29wcHBx
+cXFycnJ0dHR1dXV2dnZ3d3d4eHh5eXl6enp7e3t8fHx9fX1+fn5/f3+AgICBgYGCgoKDg4OE
+hISFhYWGhoaHh4eIiIiJiYmKioqLi4uMjIyPj4+QkJCSkpKUlJSWlpaXl5eYmJiZmZmampqc
+nJydnZ2enp6fn5+goKChoaGioqKjo6OkpKSoqKipqamqqqqrq6usrKytra2urq6vr6+wsLCx
+sbGysrK0tLS1tbW2tra3t7e5ubm6urq7u7u8vLy9vb2+vr6/v7/AwMDBwcHCwsLDw8PExMTF
+xcXGxsbHx8fIyMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW1tbX
+19fY2NjZ2dna2trb29vc3Nzd3d3e3t7f39/g4ODh4eHi4uLj4+Pk5OTl5eXm5ubn5+fo6Ojp
+6enr6+vs7Ozu7u7v7+/w8PDx8fHy8vLz8/P09PT19fX29vb39/f4+Pj5+fn6+vr7+/v8/Pz9
+/f3+/v7/AAD///9Usrt6AAAACXBIWXMAABJ0AAASdAHeZh94AAAc8ElEQVR4nO3d+4PVdZ3H
+8TeOKA7rBJk6w80aC8E0JyuZQRwhW4eBQJPACRFLQzDbdu2yEZFEF7u3q0lZ7q7VVmtuK8hs
+5RU2UBYXMbOsgBxHTBkc5vL9D/ZcmIGZOedzDnNefj7zOTwfP5zzHc5nvt/P+X7PkzNzzveA
+JQBKZqEnAJQDQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQ
+ICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAk
+QICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECA
+kAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAA
+AUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFC
+AgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJEDAQ0jbtwJR
+2X7sj/LXPqQtBkRmyzE/zF/7kB60V1/zbQBCr9qDx/w9hAQMQkiAACEBAoQECBASIEBIgAAh
+AQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBII0hvSug5YHgIacToPSz0PDAc
+hDRiEFLMCGnEIKSYEdKI0UtJESOkEYOOYkZIIwYhxYyQRg46ihghjSB0FC9CAgQICRAgJECA
+kAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAA
+AUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIEgoR06PFn3QMICZHxG9LLX76i5eHk/6aa
+nf2oaxwhITJeQ2qfZmZVW88+deniMaf8wTGQkBAZryHdYp977rG6k8Y8mSQPn3C9YyAhITJe
+Q5p2ceriUVuaXr58umMgISEyXkOqXJG6eMU+k16+qdIxkJAQGb/PSLNSF4/ZNenleTwjoYx4
+/h1p/b5tF554ylNJsrXiQ46BhITI+H3VbqqZnfrwG8ddt7RyjOutJEJCZPy+j/TXz89f9FCy
+401mb3zINY6QEJkgZzZ0bnnaPYCQEBnOtQMECAkQCBVSe13doD/pfuD+ft8kJMQlVEhtNngt
+vzt9fL9Ke0WwDcCbUCF1btzouPV2+6tgG4A3I/N3JEJCZPyH1NO2p7vQGEJCZDyH1Lp04miz
+iklLWp3DCAmR8RpSR5PZhBnNzfWTzeYfdAwkJETGa0hrrWlbdmlni613DCQkRMZrSPXTDvUt
+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
++bj9zgAAAABJRU5ErkJggg=="
+width=420
+height=420
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<hr>
+&copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
+
+</div>
+</div>
+</body>
+</html>
