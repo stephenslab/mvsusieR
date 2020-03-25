@@ -253,8 +253,9 @@ body {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Possible-cause">Possible cause<a class="anchor-link" href="#Possible-cause">&#182;</a></h2><p>An interesting observation is that if I switch of the comparison between current estimate and zero at the end of each EM update (<a href="https://github.com/stephenslab/mmbr/blob/390eb23852fa5ed5c17b5062deb6f3e8494ba76e/R/single_effect_model.R#L22">comment out this line</a>), the algorithm takes longer to converge but ELBO is non-decreasing and the estimates make sense.</p>
-<p>A major difference between EM update and maximizing the single effect loglik directly is that the formal is a function of posterior quantities while the latter only involve the data, with the prior to be estimated (<a href="https://github.com/stephenslab/mmbr/blob/390eb23852fa5ed5c17b5062deb6f3e8494ba76e/R/bayesian_simple_regression.R#L73">here for a simple example</a>). As a result, in EM updates if in a previous iteration sets the estimate to zero then it will impact the posterior of the next iteration and the estimate will never come back from zero. This is not the case for when prior is directly estimated as in <code>optim</code>.</p>
+<h2 id="Possible-cause">Possible cause<a class="anchor-link" href="#Possible-cause">&#182;</a></h2><p>An interesting observation is that if I switch off the comparison between current estimate and zero at the end of each EM update (<a href="https://github.com/stephenslab/mmbr/blob/390eb23852fa5ed5c17b5062deb6f3e8494ba76e/R/single_effect_model.R#L22">comment out this line</a>), the algorithm takes longer to converge but ELBO is non-decreasing, is eventually larger than any other approaches, and the estimates make more sense given we know the truth.</p>
+<p>A major difference between EM update and maximizing the single effect loglik directly is that the former is a function of posterior quantities whereas the latter only involves the data, with the prior to be estimated (<a href="https://github.com/stephenslab/mmbr/blob/390eb23852fa5ed5c17b5062deb6f3e8494ba76e/R/bayesian_simple_regression.R#L73">here for instance</a>). As a result, in EM updates if in a previous iteration sets the estimate to zero then it will impact the posterior of the next iteration and the estimate will never come back from zero. This is not the case for when prior is directly estimated as in <code>optim</code>.</p>
+<p>However it is still puzzling that <code>simple</code> method doesn't work.</p>
 <h2 id="Illustration">Illustration<a class="anchor-link" href="#Illustration">&#182;</a></h2><p>Here I use BMR not MASH regression to illustrate.</p>
 
 </div>
@@ -262,7 +263,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&#39;~/GIT/software/mmbr&#39;</span><span class="p">)</span>
@@ -287,6 +288,10 @@ body {
 <div class="output_subarea output_stream output_stderr output_text">
 <pre>Loading mmbr
 
+Loading required package: mashr
+
+Loading required package: ashr
+
 </pre>
 </div>
 </div>
@@ -305,7 +310,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="nf">sum</span><span class="p">(</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">)</span><span class="o">&gt;</span><span class="m">0</span><span class="p">)</span>
@@ -345,7 +350,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">dat</span><span class="o">$</span><span class="n">V</span>
@@ -384,7 +389,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit0</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -399,7 +404,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit0</span><span class="o">$</span><span class="n">elbo</span>
@@ -437,7 +442,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit0</span><span class="o">$</span><span class="n">V</span>
@@ -490,7 +495,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit1</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -524,7 +529,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit1</span><span class="o">$</span><span class="n">elbo</span>
@@ -562,7 +567,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit1</span><span class="o">$</span><span class="n">V</span>
@@ -608,7 +613,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[36]:</div>
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit11</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="m">5</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -642,7 +647,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit11</span><span class="o">$</span><span class="n">elbo</span>
@@ -680,7 +685,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[38]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit11</span><span class="o">$</span><span class="n">V</span>
@@ -719,13 +724,14 @@ body {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="EM-method"><code>EM</code> method<a class="anchor-link" href="#EM-method">&#182;</a></h3>
+<h3 id="EM-method"><code>EM</code> method<a class="anchor-link" href="#EM-method">&#182;</a></h3><p>It suffers from the same, or maybe even more so, because the ELBO is worse,</p>
+
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -759,7 +765,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[34]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span><span class="o">$</span><span class="n">elbo</span>
@@ -797,7 +803,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span><span class="o">$</span><span class="n">V</span>
@@ -843,7 +849,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[40]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="m">5</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -858,7 +864,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span><span class="o">$</span><span class="n">elbo</span>
@@ -896,7 +902,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span><span class="o">$</span><span class="n">V</span>
@@ -935,14 +941,14 @@ body {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Although still it sets only the first effect to be non-zero.</p>
+<p>Although still it sets only the first effect to be non-zero and the signals share the one effect.</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[60]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit21</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
@@ -1107,6 +1113,38 @@ height=420
 </div>
 
 </div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="nf">sum</span><span class="p">(</span><span class="n">fit21</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+1
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -1117,7 +1155,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[43]:</div>
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -1132,7 +1170,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[44]:</div>
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span><span class="o">$</span><span class="n">elbo</span>
@@ -1170,7 +1208,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[45]:</div>
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span><span class="o">$</span><span class="n">V</span>
@@ -1208,7 +1246,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[59]:</div>
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit3</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
@@ -1501,7 +1539,8 @@ height=420
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>It took 105 iterations to converge. The prior estimates are:</p>
+<p>It took 105 iterations to converge but the ELBO -181 is the best ELBO achieved in this document.</p>
+<p>The prior estimates are:</p>
 
 </div>
 </div>
