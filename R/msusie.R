@@ -260,7 +260,7 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
   if (!estimate_prior_variance) estimate_prior_method = NULL
   # Below are the core computations
   SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance)
-  SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
+  SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit, track_prior=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, data$n_effect, data$n_condition)
   SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)

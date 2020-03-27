@@ -80,6 +80,11 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       return(exp(lV))
     },
     estimate_prior_variance_em = function(pip) {
+      # This is very similar to updating the univariate case via EM,
+      # \sigma_0^2 = \mathrm{tr}(S_0^{-1} E[bb^T])/r
+      # where S_0 is prior variance, E[bb^T] is 2nd moment of SER effect:
+      # that is, E[bb^T] = \sum_j alpha_j * b_jb_j^T where b_j is posterior of j
+      # Recall in univariate case it is \sigma_0^2 = E[bb^T] directly
       if (length(dim(private$.posterior_b2)) == 3) {
         # when R > 1
         mu2 = Reduce("+", lapply(1:length(pip), function(j) pip[j] * private$.posterior_b2[,,j]))

@@ -6,7 +6,7 @@ SuSiE <- R6Class("SuSiE",
   public = list(
     initialize = function(SER,L,estimate_residual_variance=FALSE,
                     compute_objective = TRUE,max_iter=100,tol=1e-3,
-                    track_pip=FALSE,track_lbf=FALSE)
+                    track_pip=FALSE,track_lbf=FALSE, track_prior_est=FALSE)
     {
         if (!compute_objective) {
             track_pip = TRUE
@@ -24,6 +24,7 @@ SuSiE <- R6Class("SuSiE",
 
         if (track_pip) private$.pip_history = list()
         if (track_lbf) private$.lbf_history = list()
+        if (track_prior_est) private$.prior_history = list()
     },
     init_coef = function(coef_index, coef_value, p, r) {
         L = length(coef_index)
@@ -92,6 +93,7 @@ SuSiE <- R6Class("SuSiE",
     lbf = function() sapply(1:private$L, function(l) private$SER[[l]]$lbf),
     pip_history = function() lapply(ifelse(private$.niter>1, 2, 1):length(private$.pip_history), function(i) private$.pip_history[[i]]),
     lbf_history = function() lapply(ifelse(private$.niter>1, 2, 1):length(private$.lbf_history), function(i) private$.lbf_history[[i]]),
+    prior_history = function() lapply(ifelse(private$.niter>1, 2, 1):length(private$.prior_history), function(i) private$.prior_history[[i]]),
     posterior_b1 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),
     posterior_b2 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b2),
     lfsr = function() lapply(1:private$L, function(l) private$SER[[l]]$lfsr),
@@ -108,6 +110,7 @@ SuSiE <- R6Class("SuSiE",
     .convergence = NULL,
     .pip_history = NULL, # keep track of pip
     .lbf_history = NULL, # keep track of lbf
+    .prior_history = NULL, # keep track of prior estimates
     tol = NULL, # tolerance level for convergence
     sigma2 = NULL, # residual variance
     essr = NULL,
@@ -191,6 +194,9 @@ SuSiE <- R6Class("SuSiE",
         }
         if (!is.null(private$.lbf_history)) {
             private$.lbf_history[[length(private$.lbf_history) + 1]] = self$lbf
+        }
+        if (!is.null(private$.prior_history)) {
+            private$.prior_history[[length(private$.prior_history) + 1]] = sapply(1:private$L, function(l) ifelse(is.null(private$SER[[l]]$prior_variance_scale), private$SER[[l]]$prior_variance, private$SER[[l]]$prior_variance_scale))
         }
     }
   )

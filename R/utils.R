@@ -102,6 +102,7 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         )
     if (!is.null(m$pip_history)) s$alpha_history = m$pip_history
     if (!is.null(m$lbf_history)) s$lbf_history = m$lbf_history
+    if (!is.null(m$prior_history)) s$prior_history = m$prior_history
     # FIXME: unit test for scaling issue for the fitted
     if(inherits(d, "RSSData")){
       s$fitted = d$XtX %*% b
