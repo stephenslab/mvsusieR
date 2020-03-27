@@ -257,8 +257,8 @@ body {
 <span class="n">p</span> <span class="o">=</span> <span class="m">1000</span>
 <span class="n">X</span> <span class="o">=</span> <span class="nf">matrix</span><span class="p">(</span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">p</span><span class="p">),</span><span class="n">nrow</span><span class="o">=</span><span class="n">n</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
 <span class="n">beta1</span> <span class="o">=</span> <span class="n">beta2</span> <span class="o">=</span> <span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
-<span class="n">beta1[1</span><span class="o">:</span><span class="m">4</span><span class="n">]</span> <span class="o">=</span> <span class="nf">runif</span><span class="p">(</span><span class="m">4</span><span class="p">)</span>
-<span class="n">beta2[1</span><span class="o">:</span><span class="m">4</span><span class="n">]</span> <span class="o">=</span> <span class="nf">runif</span><span class="p">(</span><span class="m">4</span><span class="p">)</span>
+<span class="n">beta1</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span> <span class="o">=</span> <span class="nf">runif</span><span class="p">(</span><span class="m">4</span><span class="p">)</span>
+<span class="n">beta2</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span> <span class="o">=</span> <span class="nf">runif</span><span class="p">(</span><span class="m">4</span><span class="p">)</span>
 <span class="n">y1</span> <span class="o">=</span> <span class="n">X</span> <span class="o">%*%</span> <span class="n">beta1</span> <span class="o">+</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 <span class="n">y2</span> <span class="o">=</span> <span class="n">X</span> <span class="o">%*%</span> <span class="n">beta2</span> <span class="o">+</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 </pre></div>
@@ -273,7 +273,7 @@ body {
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">beta1[1</span><span class="o">:</span><span class="m">4</span><span class="n">]</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">beta1</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span>
 </pre></div>
 
     </div>
@@ -311,7 +311,7 @@ body {
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">beta2[1</span><span class="o">:</span><span class="m">4</span><span class="n">]</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">beta2</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span>
 </pre></div>
 
     </div>
@@ -384,7 +384,7 @@ body {
 <div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">bhat1[2</span><span class="o">:</span><span class="m">5</span><span class="n">]</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">bhat1</span><span class="p">[</span><span class="m">2</span><span class="o">:</span><span class="m">5</span><span class="p">]</span>
 </pre></div>
 
     </div>
@@ -422,7 +422,7 @@ body {
 <div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">bhat2[2</span><span class="o">:</span><span class="m">5</span><span class="n">]</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">bhat2</span><span class="p">[</span><span class="m">2</span><span class="o">:</span><span class="m">5</span><span class="p">]</span>
 </pre></div>
 
     </div>

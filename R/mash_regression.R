@@ -25,7 +25,7 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold = 0) {
       # FIXME: might have a better solution for it, but the problem is as follows:
       # When prior changes (private$prior_variance_scale != 1),
       # we can no longer use precomputed quantities
@@ -79,7 +79,7 @@ MashRegression <- R6Class("MashRegression",
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
         if (estimate_prior_variance_method != 'simple')
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
-        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat,prior_weights,method=estimate_prior_variance_method)
+        private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
       }
       # Fit MASH model
       # 1. compute log-likelihood matrix given current estimates

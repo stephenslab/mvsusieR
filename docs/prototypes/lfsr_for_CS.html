@@ -416,7 +416,7 @@ body {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">true_idx</span> <span class="o">=</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">Y</span><span class="o">$</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="n">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
-<span class="n">Y</span><span class="o">$</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef[true_idx</span><span class="p">,</span><span class="n">]</span>
+<span class="n">Y</span><span class="o">$</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">[</span><span class="n">true_idx</span><span class="p">,]</span>
 </pre></div>
 
     </div>
@@ -577,7 +577,7 @@ body {
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">pip[true_idx]</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">pip</span><span class="p">[</span><span class="n">true_idx</span><span class="p">]</span>
 </pre></div>
 
     </div>
@@ -681,7 +681,7 @@ body {
 <div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">pip[true_idx</span><span class="p">,</span><span class="n">]</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">pip</span><span class="p">[</span><span class="n">true_idx</span><span class="p">,]</span>
 </pre></div>
 
     </div>
@@ -852,7 +852,7 @@ body {
 <span class="n">m_init</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="kc">NA</span><span class="p">,</span> <span class="kc">NA</span><span class="p">,</span> <span class="n">xUlist</span><span class="o">=</span><span class="n">prior</span><span class="o">$</span><span class="n">xUlist</span><span class="p">,</span> <span class="n">prior_weights</span><span class="o">=</span><span class="n">prior</span><span class="o">$</span><span class="kc">pi</span><span class="p">,</span> <span class="n">null_weight</span><span class="o">=</span><span class="n">prior</span><span class="o">$</span><span class="n">null_weight</span><span class="p">,</span> <span class="n">top_mixtures</span><span class="o">=</span><span class="m">0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">::</span><span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="o">$</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">$</span><span class="n">Y</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="m">10</span><span class="p">,</span> <span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">)</span>
 <span class="n">true_idx</span> <span class="o">=</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">Y</span><span class="o">$</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="n">sum</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
-<span class="n">Y</span><span class="o">$</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef[true_idx</span><span class="p">,</span><span class="n">]</span>
+<span class="n">Y</span><span class="o">$</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">[</span><span class="n">true_idx</span><span class="p">,]</span>
 </pre></div>
 
     </div>
@@ -892,7 +892,7 @@ body {
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">pip</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="nf">mmbr_get_pip_per_condition</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">m_init</span><span class="p">)</span>
-<span class="n">pip[true_idx</span><span class="p">,</span><span class="n">]</span>
+<span class="n">pip</span><span class="p">[</span><span class="n">true_idx</span><span class="p">,]</span>
 </pre></div>
 
     </div>

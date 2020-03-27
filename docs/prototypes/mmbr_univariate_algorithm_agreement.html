@@ -1542,7 +1542,7 @@ Loading required package: ashr
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">residual_var</span> <span class="o">=</span> <span class="nf">as.numeric</span><span class="p">(</span><span class="nf">var</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
-<span class="n">scaled_prior_var</span> <span class="o">=</span> <span class="n">V[1</span><span class="p">,</span><span class="m">1</span><span class="n">]</span> <span class="o">/</span> <span class="n">residual_var</span>
+<span class="n">scaled_prior_var</span> <span class="o">=</span> <span class="n">V</span><span class="p">[</span><span class="m">1</span><span class="p">,</span><span class="m">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">residual_var</span>
 <span class="n">A</span> <span class="o">=</span> <span class="nf">susie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">scaled_prior_var</span><span class="p">,</span>
           <span class="n">compute_objective</span><span class="o">=</span><span class="kc">FALSE</span><span class="p">)</span>
 </pre></div>

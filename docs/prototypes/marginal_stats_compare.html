@@ -1621,7 +1621,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="nf">univariate_regression</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y[</span><span class="p">,</span><span class="m">1</span><span class="n">]</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">res</span> <span class="o">=</span> <span class="nf">univariate_regression</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">[,</span><span class="m">1</span><span class="p">],</span><span class="n">center</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
 <span class="nf">head</span><span class="p">(</span><span class="n">res</span><span class="o">$</span><span class="n">betahat</span><span class="p">)</span>
 </pre></div>
 
@@ -1662,7 +1662,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">res1</span><span class="o">$</span><span class="n">bhat[</span><span class="p">,</span><span class="m">1</span><span class="n">]</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">res1</span><span class="o">$</span><span class="n">bhat</span><span class="p">[,</span><span class="m">1</span><span class="p">])</span>
 </pre></div>
 
     </div>
@@ -1742,7 +1742,7 @@ AJWg2AEAAKgExQ4AAEAlKHYAAAAq8f9lpFK4Uvl2agAAAABJRU5ErkJggg=="
 <div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">res1</span><span class="o">$</span><span class="n">sbhat0[</span><span class="p">,</span><span class="m">1</span><span class="n">]</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="nf">head</span><span class="p">(</span><span class="n">res1</span><span class="o">$</span><span class="n">sbhat0</span><span class="p">[,</span><span class="m">1</span><span class="p">])</span>
 </pre></div>
 
     </div>

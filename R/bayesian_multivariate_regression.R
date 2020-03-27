@@ -17,7 +17,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
       })
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -43,7 +43,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         if (estimate_prior_variance_method == "EM") {
           private$cache = list(b=bhat, s=sbhat2, update_scale=T)
         } else {
-          private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
+          private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
         }
       }
       # posterior

@@ -9,7 +9,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, 1)
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
@@ -29,7 +29,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
         if (estimate_prior_variance_method == "EM") {
           private$cache = list(b=bhat, s=sbhat2, update_scale=F)
         } else {
-          private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method)
+          private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method, check_null_threshold=check_null_threshold)
         }
       }
       # posterior
@@ -97,7 +97,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     negloglik_grad_logscale = function(lV, betahat, shat2, prior_weights) {
       -exp(lV)*private$loglik_grad(exp(lV),betahat,shat2,prior_weights)
     },
-    estimate_prior_variance = function(betahat, shat2, prior_weights, method=c('optim', 'uniroot', 'simple'), check_null_tol = 0.1) {
+    estimate_prior_variance = function(betahat, shat2, prior_weights, method=c('optim', 'uniroot', 'simple'), check_null_threshold = 0) {
       if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
       if(method=="optim") {
         # method BFGS is 1.5 times slower than Brent with upper 15 lower -15 although it does not require specifying upper/lower
@@ -110,8 +110,8 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       } else {
         stop("Optimization method not supported.")
       }
-      # set V exactly 0 if that beats the numerical value by a loglik factor of 1.1 by default check_null_tol = 0.1
-      if(private$loglik(0,betahat,shat2,prior_weights) + check_null_tol >= private$loglik(V,betahat,shat2,prior_weights)) V=0
+      # set V exactly 0 if that beats the numerical value by a loglik factor of (1 + check_null_threshold)
+      if(private$loglik(0,betahat,shat2,prior_weights) + check_null_threshold >= private$loglik(V,betahat,shat2,prior_weights)) V=0
       return(V)
     },
     estimate_prior_variance_optim = function(betahat, shat2, prior_weights, ...) {

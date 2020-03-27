@@ -256,7 +256,7 @@ body {
 <span class="n">n</span> <span class="o">=</span> <span class="m">1000</span>
 <span class="n">p</span> <span class="o">=</span> <span class="m">1000</span>
 <span class="n">beta</span> <span class="o">=</span> <span class="nf">rep</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
-<span class="n">beta[1</span><span class="o">:</span><span class="m">4</span><span class="n">]</span> <span class="o">=</span> <span class="m">1</span>
+<span class="n">beta</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">4</span><span class="p">]</span> <span class="o">=</span> <span class="m">1</span>
 <span class="n">X</span> <span class="o">=</span> <span class="nf">matrix</span><span class="p">(</span><span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">p</span><span class="p">),</span><span class="n">nrow</span><span class="o">=</span><span class="n">n</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">X</span> <span class="o">%*%</span> <span class="n">beta</span> <span class="o">+</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 <span class="c1">#&#39; res =susie(X,y,L=10)</span>

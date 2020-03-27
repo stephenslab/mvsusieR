@@ -10,16 +10,15 @@ SingleEffectModel <- function(base)
             super$initialize(J, residual_variance, prior_variance)
             private$.pip = rep(0, J)
         },
-        fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL) {
+        fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL,check_null_threshold=0) {
             if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-            super$fit(d, use_residual = TRUE, prior_weights = prior_weights, estimate_prior_variance_method=estimate_prior_variance_method)
+            super$fit(d, use_residual = TRUE, prior_weights = prior_weights, estimate_prior_variance_method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
             ws = compute_softmax(private$.lbf, prior_weights, log = TRUE)
             private$.pip = ws$weights
             private$lbf_single_effect = ws$log_sum
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
-                check_null_tol = 0.1
                 V = private$estimate_prior_variance_em(private$.pip)
-                if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_tol >= private$loglik(V,private$cache$b,private$cache$s,prior_weights)) V=0
+                if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_threshold >= private$loglik(V,private$cache$b,private$cache$s,prior_weights)) V=0
                 if (private$cache$update_scale) private$prior_variance_scale = V
                 else private$.prior_variance = V
                 private$cache = NULL

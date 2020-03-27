@@ -8,7 +8,8 @@
 #' @param X an n by p matrix of covariates
 #' @param Y an n vector, or n by r matrix of response variables
 #' @param L maximum number of non-zero effects
-#' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
+#' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`);
+#' 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
 #' @param residual_variance the residual variance (defaults to sample variance of Y)
 #' @param prior_weights a p vector of prior probability that each element is non-zero
 #' @param standardize logical flag (default=TRUE) for whether to standardize columns of X to unit variance prior to fitting.
@@ -20,6 +21,8 @@
 #' @param estimate_residual_variance indicates whether to estimate residual variance (currently only works for univariate Y input)
 #' @param estimate_prior_variance indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)
 #' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
+#' @param check_null_threshold when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
+#' using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. Default is 0.
 #' @param precompute_covariances if TRUE, precomputes various covariance quantities to speed up computations at the cost of increased memory usage
 #' @param s_init a previous susie fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
@@ -67,6 +70,7 @@ msusie = function(X,Y,L=10,
                  estimate_residual_variance=FALSE,
                  estimate_prior_variance=TRUE,
                  estimate_prior_method='simple',
+                 check_null_threshold=0,
                  compute_objective=FALSE,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
@@ -90,7 +94,7 @@ msusie = function(X,Y,L=10,
   }
   #
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
-            estimate_residual_variance, estimate_prior_variance, estimate_prior_method,
+            estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
             precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
@@ -116,6 +120,8 @@ msusie = function(X,Y,L=10,
 #' @param estimate_residual_variance indicates whether to estimate residual variance (currently only works for univariate Y input)
 #' @param estimate_prior_variance indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)
 #' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
+#' @param check_null_threshold when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
+#' using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. Default is 0.
 #' @param s_init a previous susie fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
@@ -163,6 +169,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
                       estimate_residual_variance=FALSE,
                       estimate_prior_variance=TRUE,
                       estimate_prior_method='simple',
+                      check_null_threshold=0,
                       compute_objective=FALSE,
                       precompute_covariances = FALSE,
                       s_init = NULL,coverage=0.95,min_abs_corr=0.5,
@@ -186,7 +193,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
   }
   #
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
-                estimate_residual_variance, estimate_prior_variance, estimate_prior_method,
+                estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
@@ -202,7 +209,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
 #' @title Core MMBR code
 #' @keywords internal
 mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_weights,
-            estimate_residual_variance, estimate_prior_variance, estimate_prior_method,
+            estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
             precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose) {
   start_time = proc.time()
   if (is.numeric(prior_variance) && !is.matrix(prior_variance))
@@ -255,7 +262,7 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
   SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, data$n_effect, data$n_condition)
-  SuSiE_model$fit(data, prior_weights, estimate_prior_method, verbose)
+  SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   ## clean up prior object
   if ('R6' %in% class(prior_variance)) prior_variance$remove_precomputed()
