@@ -964,7 +964,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -999,7 +999,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span><span class="o">$</span><span class="n">elbo</span>
@@ -1037,7 +1037,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span><span class="o">$</span><span class="n">V</span>
@@ -1076,10 +1076,65 @@ height=420
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>And no effect was captured!</p>
+<p>And no effect was captured! It seems in the first iteration both prior are estimated non-zero. But the 2nd iteration they both became zero because zero maximizes the loglik in that iteration. However apparently in the next iteration setting prior to zero decreased the ELBO:</p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit2</span><span class="o">$</span><span class="n">prior_history</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.772252893753661</li><li>0.437599977548084</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
@@ -1091,7 +1146,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="m">4</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
@@ -1126,7 +1181,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span><span class="o">$</span><span class="n">elbo</span>
@@ -1164,7 +1219,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span><span class="o">$</span><span class="n">V</span>
@@ -1202,7 +1257,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit21</span><span class="o">$</span><span class="n">prior_history</span>
@@ -1257,7 +1312,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit21</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
@@ -1279,157 +1334,156 @@ height=420
 
 
 <div class="output_png output_subarea ">
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAAC2VBMVEUAAAABAQECAgIDAwME
-BAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBARERESEhITExMUFBQVFRUW
-FhYXFxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8gICAhISEiIiIjIyMkJCQlJSUmJiYnJyco
-KCgpKSkqKiorKyssLCwtLS0uLi4vLy8wMDAxMTEyMjIzMzM0NDQ1NTU2NjY3Nzc4ODg5OTk6
-Ojo7Ozs8PDw9PT0+Pj4/Pz9AQEBCQkJDQ0NERERFRUVGRkZHR0dISEhJSUlKSkpLS0tMTExN
-TU1OTk5PT09QUFBRUVFSUlJTU1NUVFRVVVVWVlZXV1dYWFhZWVlaWlpbW1tcXFxdXV1eXl5f
-X19gYGBhYWFiYmJjY2NkZGRlZWVmZmZnZ2doaGhpaWlqampra2tsbGxtbW1ubm5vb29wcHBx
-cXFycnJ0dHR1dXV2dnZ3d3d4eHh5eXl6enp7e3t8fHx9fX1+fn5/f3+AgICBgYGCgoKDg4OE
-hISFhYWGhoaHh4eIiIiJiYmKioqLi4uMjIyNjY2Ojo6Pj4+QkJCSkpKUlJSWlpaXl5eYmJiZ
-mZmampqcnJydnZ2enp6fn5+goKChoaGioqKjo6OkpKSoqKipqamqqqqrq6usrKytra2urq6v
-r6+wsLCxsbGysrK0tLS1tbW2tra3t7e4uLi5ubm6urq7u7u8vLy9vb2+vr6/v7/AwMDBwcHC
-wsLDw8PExMTFxcXGxsbHx8fIyMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU
-1NTV1dXW1tbY2NjZ2dna2trb29vc3Nzd3d3e3t7f39/g4ODi4uLj4+Pk5OTl5eXm5ubn5+fo
-6Ojp6enr6+vs7Ozu7u7v7+/w8PDx8fHy8vLz8/P09PT19fX29vb39/f4+Pj5+fn6+vr7+/v8
-/Pz9/f3+/v7/AAD////Sp8rYAAAACXBIWXMAABJ0AAASdAHeZh94AAAceElEQVR4nO3d/2PV
-1X3H8TdeUYSZYp2aAME1thYo1tS1klCMUDfDhYJWCqaI9ItVsHZu/bZSSqH0i/2yfp2tOlu3
-2XbtZt06QklttSqsoAwRpbZ1QA0RqgZDEj5/we4XEpKb5OSGvDgn5+b5+OHec3NP7ufcz82T
-JPd+brAEwLBZ6AUApYCQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQ
-AAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAAB
-QgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUIC
-BAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQI
-CRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQ
-ICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJEPAQ
-0o5tQFR2DP2r/NSHtNWAyGwd8pf5qQ/pYXv1lG8DEHrVHh7y5xASUICQAAFCAgQICRAgJECA
-kAABQgIECAkQ8BrSXT8tciIhITJeQzJ7z+GiJhISIuM3pAsrL/plMRMJCZHxG9Lclga7dvfg
-EwkJkfEcUpL864WpFYN+VyIkRMZ7SMmRr5xjb9j4a2cphITI+A8pSQ59a6bZuCsdEwkJkQkR
-UsbDH53puhVCQmQChZTxB8dEQkJkwoXkMkpDOpYReg04OV5DOnCwyImjMqRjx4VeB04Gx9qN
-GIQUM0IaMQgpZqFCaqmuLvjI3jN6/m2jlwXbiMwxSopYqJCarfBWOh/a1O12+5NgG5Gho5iF
-CqmtsdFx7Z2EhLiMzN+RRmVICR1FzH9Inc37OgabMzpD4nWkiHkOqWn55LFmqSnLmpzTRmlI
-iJfXkFrrzSbNSqdrKs0WHnFMJCRExmtI66x+e360q8E2OiYSEiLjNaSaaUe7hp11sx0TCQmR
-8RpS2coT4zVljomEhMh4Dal2env3eF6tYyIhITJeQ1pvC3bmR3tW2AbHREJCZPw+a5c2mzpn
-0eK6KrP5PGuHEuL5daQtDRUps1TF0s3OaYSEyPg/sqHjwH6ObECp4Vg7QICQAAFCAgQICRAg
-JECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRA
-gJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQ
-AAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkACB
-ICH9cdsgnRASIuM3pN+99xtJ8shMszH1v3PNIyRExmtIz5xrX0meOvO0q1fPtfObHRMJCZHx
-GtKS1E+S5JrUzzPDH9qtjomEhMh4DemCxZmTyQty46tmOCYSEiLjNaQJyzMn59+UG998tmMi
-ISEyXkOqqXgxSd5ZnR12zJztmEhIiIzXkO63yx9Jdpy9riNpvc3WOiYSEiLj9+nvz59ulVdc
-ZOe9tcze/pJjHiEhMp5fkH3+09PPNrPX/tW/tbumERIiE+DIhsO/PzLYFEJCZDjWDhAYQSH9
-6WC3rxES4hIqpJbq6oKPPDvGejgs2AbgTaiQmq3Prezc1m0N35EQl1AhtTU2Oq7ldyREZgT9
-jtQDISEy/kPqbN7XMdgcQkJkPIfUtHzyWLPUlGVNzmmEhMh4Dam13mzSrHS6ptJsoetVWUJC
-ZLyGtM7qt+dHuxpso2MiISEyft9GMe1o17CzjrdRoIR4Dals5YnxmjLHREJCZLyGVDv9xDHf
-82odEwkJkfEa0npbsDM/2rPCNjgmEhIi4/dZu7TZ1DmLFtdVmc3nWTuUEM+vI21pqEiZpSqW
-bnZOIyRExv+RDR0H9nNkA0oNx9oBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIg
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAAC01BMVEUAAAABAQECAgIDAwME
+BAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBARERESEhITExMVFRUWFhYX
+FxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8gICAhISEiIiIjIyMkJCQlJSUmJiYnJycoKCgp
+KSkqKiorKyssLCwtLS0uLi4vLy8wMDAxMTEyMjIzMzM0NDQ1NTU2NjY3Nzc4ODg5OTk6Ojo7
+Ozs8PDw9PT0+Pj4/Pz9AQEBCQkJDQ0NERERFRUVGRkZHR0dISEhJSUlKSkpLS0tMTExNTU1O
+Tk5PT09QUFBRUVFSUlJTU1NUVFRVVVVWVlZXV1dYWFhZWVlaWlpbW1tcXFxdXV1eXl5fX19g
+YGBhYWFiYmJjY2NkZGRlZWVmZmZnZ2doaGhpaWlqampra2tsbGxtbW1ubm5vb29wcHBxcXFy
+cnJ0dHR1dXV2dnZ3d3d4eHh5eXl6enp7e3t8fHx9fX1+fn5/f3+AgICBgYGCgoKDg4OEhISF
+hYWGhoaHh4eIiIiJiYmKioqLi4uMjIyOjo6Pj4+QkJCSkpKUlJSWlpaXl5eYmJiZmZmampqc
+nJydnZ2enp6fn5+goKChoaGioqKjo6OkpKSoqKipqamqqqqrq6usrKytra2urq6vr6+wsLCx
+sbGysrK0tLS1tbW2tra3t7e4uLi5ubm6urq7u7u8vLy9vb2+vr6/v7/AwMDBwcHCwsLDw8PE
+xMTFxcXGxsbHx8fIyMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW
+1tbY2NjZ2dna2trb29vc3Nzd3d3e3t7f39/g4ODi4uLj4+Pk5OTl5eXm5ubn5+fo6Ojp6enr
+6+vs7Ozu7u7v7+/w8PDx8fHy8vLz8/P09PT19fX29vb39/f4+Pj5+fn6+vr7+/v8/Pz9/f3+
+/v7/AAD///+2hbbHAAAACXBIWXMAABJ0AAASdAHeZh94AAAccklEQVR4nO3d+2OU1Z3H8S+O
+KMKaYr0kQGIbWwsWa+q2JqEYoe4aBgpaKZgi0otVsHa729uWUgqlF3vZ3tZWXVt317a73Vp3
+u4aSbatVYQvKIqLUVgtoQGw1MSTh+RN2LiSQ28kk8+GcnMn79cPMmczJPGdm8ibJM88ESwAU
+zUIvACgFhAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiA
+ACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAh
+AQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEC
+hAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQE
+CBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQ
+EiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASICAh5B2bAOismPk
+X+UnP6StBkRm64i/zE9+SA/aqyd9G4DQq/bgiD+HkIB+CAkQICRAgJAAAUICBAgJECAkQICQ
+AAFCAgQICRAgJECAkAABQgIECAkQICRAgJAAAUICBAhpDDmaEXoNGB1CGjOOHhN6HRgNQhoz
+CClmhDRmEFLMCGnMOEpJEfMa0h0/K3DiuA4p9DowGl5DMnvvSwVNJCRExm9I51de8KtCJo7L
+kBI6ipjfkOYdarJrdg8/cXyGxOtIEfMcUpL86/mplcN+VxqnISFe3kNK2r92lr1x02+cpRAS
+IuM/pCQ5/O3ZZpOucEwkJEQmREgZD358tutWCAmRCRRSxrOOiYSEyIQLyYWQEBmvIR04WOBE
+QkJkONYOECAkQCBUSIdqavp95Nk3V/c6z9oF2wC8CRVSq/W/lfa7vttrhf1JsA3Am1AhdTQ3
+O669nZAQl7H5OxIhITL+Q+pu3dc13BxCQmQ8h9SyYvpEs9SM5S3OaYSEyHgNqa3RbFptOl1X
+abbItV+OkBAZryGtt8bt+dGuJtvkmEhIiIzXkOpmHukZdjfMcUwkJETGa0hlq46P15Y5JhIS
+IuM1pPpZnb3j+fWOiYSEyHgNaYMt3Jkf7VlpGx0TCQmR8bvXLm1WNXfxkoZqswXstUMJ8fw6
+0pamipRZqmLZZuc0QkJk/B/Z0HVgP0c2oNRwrB0gQEiAACEBAoQECBASIEBIgAAhAQKEBAgQ
+EiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIg
 QEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBI
-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
+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
-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
+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
-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
+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
+5TNee+GN75zwmm1J8scqm39LXfZ1pO6rrOaj7620j4de3bhGSDEpn/fUkvLp1+aObDi0ZvaU
+t34qe2TDoU9fOPnsuru6Ai9ufCOkmJTPC70CDIGQYkJIYxYhxYSQxixCigkhjVmEBAgQEiBA
 SIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChAQIEBIgQEiA
-ACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIAAIQEChBST8pueuqGycskz2fGLt735zy77eO7/
-5r5v1sRzr/xZ2KWNdoQUk/K5E2+8/8vnvWZrkuz7C5tz89vsTX9Kki/aBQ03lqUeCr26UY2Q
-YlJuf5c5fWbcvCS52b6ZGa61DUly/htak+Rh+0Do1Y1qhBST8tP/mD37oD3dNvbN2dGrkyqS
-ttTr25Okc9uesGsb5QgpJuUX5c6+aw/ssQ/nhu+yl5J6m/bl/2kPuS4QUlTKa3JnP7bvNNnn
-csMP2dPJi39zjtm5H2oOubJRj5BiUn5h7uyb9h9d35GW2KHM6dGmz063yzoDrmzUI6SYlJ/2
-bPYsbbvbTq/OjtqmXJDsveOX2eGV9vuQSxvtCCkm5fbOV5PkX+zKJLnJ7sx8YJ2tS/ZYbeYX
-pPbaM1pDL280I6SYlE957cU3vWPMa7Ylyf9NtXm31mRfR+q82qpvf0+lfTT06kY1QopJ+dxn
-FpdPvi53ZEPL6pkT3vKJ7JENLZ+8ePy5Nfd0BF7c6EZIMSmfG3oFGAAhxYSQRixCigkhjViE
-FBNCGrEICRAgJECAkAABQgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkAAB
-QgIECAkQICRAgJAAAUICBAgJECAkQICQAAFCAgQICRAgJECAkACB/wdhQV0JTAP2fQAAAABJ
-RU5ErkJggg=="
+ACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIDA/wNH1gdifAvJzAAAAABJRU5ErkJggg=="
 width=420
 height=420
 >
@@ -1443,7 +1497,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="nf">sum</span><span class="p">(</span><span class="n">fit21</span><span class="o">$</span><span class="n">pip</span><span class="p">)</span>
@@ -1476,19 +1530,20 @@ height=420
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="optim-method"><code>optim</code> method<a class="anchor-link" href="#optim-method">&#182;</a></h3><p>In <code>optim</code> method we still have that check at the end of each update comparing current estimate with zero in terms of likelihood. Thus many <code>V</code> are set to zero and there is an under-estimate of effects,</p>
+<h3 id="optim-method"><code>optim</code> method<a class="anchor-link" href="#optim-method">&#182;</a></h3><p>In <code>optim</code> method we still have that check at the end of each update comparing current estimate with zero in terms of likelihood. Thus many <code>V</code> are set to zero. However, two effects were captured this time,</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
               <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
-              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;optim&#39;</span><span class="p">)</span>
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span><span class="o">=</span><span class="s">&#39;optim&#39;</span><span class="p">,</span>
+              <span class="n">track_fit</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -1498,7 +1553,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span><span class="o">$</span><span class="n">elbo</span>
@@ -1536,7 +1591,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span><span class="o">$</span><span class="n">V</span>
@@ -1572,9 +1627,121 @@ height=420
 </div>
 
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>It seems unlike with the EM update, the estimates never hit zero:</p>
+
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit3</span><span class="o">$</span><span class="n">prior_history</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.718104560164367</li><li>0.224801351426067</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.670096870076645</li><li>0.389241325606643</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.698217111519865</li><li>0.464535584071289</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.707982718058914</li><li>0.480474396331732</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.708815689491669</li><li>0.516421119893738</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.720830675177921</li><li>0.629771919574128</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.723375689728803</li><li>0.684168873257886</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.718308377615937</li><li>0.694134021478436</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.716446884365248</li><li>0.696830471900811</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.715781056508291</li><li>0.697643195745796</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+</li>
+</ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit3</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
@@ -1752,7 +1919,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&#39;~/GIT/software/mmbr&#39;</span><span class="p">)</span>
@@ -1784,12 +1951,13 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
               <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
-              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;EM&#39;</span><span class="p">,</span> <span class="n">max_iter</span> <span class="o">=</span> <span class="m">200</span><span class="p">)</span>
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span><span class="o">=</span><span class="s">&#39;EM&#39;</span><span class="p">,</span> <span class="n">max_iter</span> <span class="o">=</span> <span class="m">200</span><span class="p">,</span>
+              <span class="n">track_fit</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -1799,7 +1967,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[52]:</div>
+<div class="prompt input_prompt">In&nbsp;[34]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span><span class="o">$</span><span class="n">elbo</span>
@@ -1837,7 +2005,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[53]:</div>
+<div class="prompt input_prompt">In&nbsp;[35]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span><span class="o">$</span><span class="n">niter</span>
@@ -1870,7 +2038,7 @@ height=420
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>It took 105 iterations to converge but the ELBO -181 is the best ELBO achieved in this document.</p>
+<p>It took 105 iterations to converge. The ELBO -181 is comparable to that obtained by <code>optim</code>.</p>
 <p>The prior estimates are:</p>
 
 </div>
@@ -1878,7 +2046,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[54]:</div>
+<div class="prompt input_prompt">In&nbsp;[36]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span><span class="o">$</span><span class="n">V</span>
@@ -1905,6 +2073,775 @@ height=420
 .list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
 </style>
 <ol class=list-inline><li>0.714071252664812</li><li>0.688578701959507</li><li>0.00337649436178791</li><li>0.00331738817397583</li><li>0.00329732911004534</li><li>0.0032842114304321</li><li>0.00327467368818631</li><li>0.0032673322654283</li><li>0.00326146768668188</li><li>0.00325665554106171</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit4</span><span class="o">$</span><span class="n">prior_history</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<ol>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.772252893753661</li><li>0.437599977548084</li><li>0.230816611326831</li><li>0.182712570727553</li><li>0.161966528494426</li><li>0.14890498820585</li><li>0.13983830974034</li><li>0.133145589210748</li><li>0.127990831154109</li><li>0.123895510397412</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.348780576745262</li><li>0.204830733993712</li><li>0.13264147204938</li><li>0.113990158776202</li><li>0.105131394536457</li><li>0.0988132823002502</li><li>0.0939315953550189</li><li>0.08998920889978</li><li>0.0867123175151383</li><li>0.0839316058941495</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.318314281408707</li><li>0.139151332826073</li><li>0.0989184485105305</li><li>0.088025622062182</li><li>0.0827403500789719</li><li>0.0788326183833658</li><li>0.0757231565949973</li><li>0.0731429957410007</li><li>0.0709404952208998</li><li>0.0690210406399394</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.352166997013485</li><li>0.110260897866691</li><li>0.0817942818277802</li><li>0.0741443384012128</li><li>0.0704777140198969</li><li>0.0677079834574479</li><li>0.0654576979152978</li><li>0.063556714774443</li><li>0.0619095716883881</li><li>0.0604560841632362</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.413484033088573</li><li>0.0947074401725199</li><li>0.0712504928043032</li><li>0.0651749881003786</li><li>0.0623503448986931</li><li>0.0602177374226174</li><li>0.0584767368155838</li><li>0.0569951764452616</li><li>0.0557005765104261</li><li>0.0545481710432499</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.492818989767097</li><li>0.085688759457636</li><li>0.0642963273842031</li><li>0.0590146733071478</li><li>0.0566290509296431</li><li>0.0548435910246225</li><li>0.053392638402784</li><li>0.0521602967311602</li><li>0.0510835311395561</li><li>0.0501237625868888</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.571321213803357</li><li>0.0803050756915857</li><li>0.059490918443972</li><li>0.0546285486319528</li><li>0.052487920612162</li><li>0.0509008770130016</li><li>0.0496192280051213</li><li>0.0485354349202314</li><li>0.047591320046614</li><li>0.0467514369537998</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.629836978546416</li><li>0.0770340100656435</li><li>0.0559640252179707</li><li>0.0513364261338768</li><li>0.049349151218669</li><li>0.0478897635245875</li><li>0.0467187789621496</li><li>0.0457331928928537</li><li>0.0448776189723954</li><li>0.0441184836044137</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.66408769558506</li><li>0.0751062196275566</li><li>0.0532184552515274</li><li>0.0487242877244731</li><li>0.0468409761100616</li><li>0.0454714997457457</li><li>0.0443801196212489</li><li>0.0434661517274231</li><li>0.0426757817608774</li><li>0.0419765596920409</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.680751264049956</li><li>0.0741380079465696</li><li>0.0509761504508198</li><li>0.0465545846411982</li><li>0.0447451949264225</li><li>0.0434425389560861</li><li>0.0424117258009453</li><li>0.0415530911513403</li><li>0.0408136626861662</li><li>0.0401616533673864</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.687506585922961</li><li>0.0739350861197195</li><li>0.0490726500657946</li><li>0.0446863522978146</li><li>0.0429319414109733</li><li>0.0416812472746624</li><li>0.0406985541983706</li><li>0.0398844748074473</li><li>0.039186461748461</li><li>0.0385731256230509</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.689374044876907</li><li>0.0744110778521846</li><li>0.0474042475014478</li><li>0.0430309268117504</li><li>0.0413196317317423</li><li>0.0401112999847064</li><li>0.0391684891320084</li><li>0.0383916924597413</li><li>0.0377285642976069</li><li>0.0371479694297903</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.689032397169939</li><li>0.0755527407800426</li><li>0.0459013709634381</li><li>0.0415291847382497</li><li>0.039853927710144</li><li>0.0386819115559522</li><li>0.037773600340774</li><li>0.0370292052353413</li><li>0.036396486424101</li><li>0.0358444981454197</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.687797641306849</li><li>0.0774075631425995</li><li>0.0445142180630376</li><li>0.0401392983217729</li><li>0.0384964529125933</li><li>0.0373572395700764</li><li>0.0364800776659467</li><li>0.0357649086255916</li><li>0.0351595956502203</li><li>0.0346333738158734</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.686301928438894</li><li>0.0800866606457768</li><li>0.0432045764154652</li><li>0.0388297799911545</li><li>0.037218399955907</li><li>0.0361104025577631</li><li>0.0352625697503015</li><li>0.0345747310276004</li><li>0.0339949247368479</li><li>0.0334926023357102</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.684858771726241</li><li>0.0837824656141522</li><li>0.0419407891565497</li><li>0.0375752245648316</li><li>0.035996622818784</li><li>0.0349198303552678</li><li>0.0341007390913323</li><li>0.0334393572851371</li><li>0.0328840370488476</li><li>0.0324045199929872</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.68364484775395</li><li>0.0888064626283074</li><li>0.0406942121427318</li><li>0.0363533578783541</li><li>0.0348109356685831</li><li>0.0337667457812159</li><li>0.0329768889266027</li><li>0.0323419758569724</li><li>0.0318108759708623</li><li>0.0313537313294974</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.682791771367817</li><li>0.0956606415727144</li><li>0.0394361778085536</li><li>0.0351425682021279</li><li>0.0336418620740864</li><li>0.0326330688490092</li><li>0.0318739890079384</li><li>0.0312664048110158</li><li>0.0307599761319298</li><li>0.0303253944049722</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.682439189329662</li><li>0.10517186698894</li><li>0.0381347880466546</li><li>0.0339193467644676</li><li>0.0324683022978105</li><li>0.0314992403389492</li><li>0.030773619486854</li><li>0.0301951338749748</li><li>0.0297145885415539</li><li>0.0293034180656758</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.682776831077307</li><li>0.118748689983147</li><li>0.0367511399294308</li><li>0.0326552372759695</li><li>0.0312647228677088</li><li>0.0303415735443374</li><li>0.0296534459968443</li><li>0.0291068994763304</li><li>0.0286543400266742</li><li>0.0282681947279377</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.684091353053259</li><li>0.138871938814153</li><li>0.0352356563582494</li><li>0.0313135374038589</li><li>0.029997984365979</li><li>0.029129170154857</li><li>0.0284842039499602</li><li>0.0279737255628424</li><li>0.0275523227978742</li><li>0.0271937333491561</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.686819622658178</li><li>0.169956413756255</li><li>0.0335296802576374</li><li>0.0298489815956523</li><li>0.0286264515356364</li><li>0.0278226676861181</li><li>0.0272281815773375</li><li>0.0267591992822108</li><li>0.0263732001635298</li><li>0.0260456217903998</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.691550638147311</li><li>0.219302671057312</li><li>0.0315905340592951</li><li>0.028223310515274</li><li>0.0271126837757984</li><li>0.0263850714424433</li><li>0.0258486754390097</li><li>0.025426829661028</li><li>0.025080650148953</li><li>0.0247876828053348</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.698700067781788</li><li>0.295322027501959</li><li>0.029464964261296</li><li>0.0264585438760271</li><li>0.0254706895313862</li><li>0.0248251201557767</li><li>0.0243504679982151</li><li>0.0239782111643958</li><li>0.0236735820981637</li><li>0.0234164955991146</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.707367182485501</li><li>0.396079328398168</li><li>0.0273378722630898</li><li>0.0246840408994679</li><li>0.0238130801578658</li><li>0.023244663825073</li><li>0.0228274699238083</li><li>0.0225009353420961</li><li>0.0222343042623042</li><li>0.022009795424786</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714572811657588</li><li>0.497135080072082</li><li>0.0253916185321135</li><li>0.0230428659324804</li><li>0.0222721354038772</li><li>0.0217694559802882</li><li>0.0214008943500442</li><li>0.0211127971327255</li><li>0.0208778946799568</li><li>0.0206804096352994</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.717930371599802</li><li>0.571760111179281</li><li>0.0236745799063452</li><li>0.0215812497395732</li><li>0.0208944761703754</li><li>0.0204468047576322</li><li>0.0201188646886408</li><li>0.0198627997629438</li><li>0.0196542697316358</li><li>0.0194791833547233</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.717935022790402</li><li>0.615743551705277</li><li>0.0221599422389636</li><li>0.0202828882057191</li><li>0.01966730036047</li><li>0.0192662899648304</li><li>0.0189728090310319</li><li>0.0187439119866257</li><li>0.0185577422744155</li><li>0.0184016393578122</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.716378273616803</li><li>0.638761674020014</li><li>0.0208133079071682</li><li>0.0191220774873128</li><li>0.0185675963721936</li><li>0.0182066230141149</li><li>0.0179426936216939</li><li>0.0177370818456674</li><li>0.0175700659841651</li><li>0.0174302157367816</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714624559675707</li><li>0.650361596177655</li><li>0.0196081739097604</li><li>0.0180780919797861</li><li>0.0175764815027897</li><li>0.0172501051393335</li><li>0.0170116786291695</li><li>0.0168261353256179</li><li>0.0166756057107856</li><li>0.0165497271086083</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713265379414631</li><li>0.656317627616281</li><li>0.0185242877434431</li><li>0.0171347946574883</li><li>0.0166791951473046</li><li>0.0163828813852398</li><li>0.0161665797943953</li><li>0.0159984179163056</li><li>0.0158621432251369</li><li>0.0157483253561603</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712395532496227</li><li>0.659587005446953</li><li>0.0175453205786428</li><li>0.0162790501332988</li><li>0.0158636938492546</li><li>0.0155936366700626</li><li>0.0153966285429969</li><li>0.0152435983290387</li><li>0.0151197120745711</li><li>0.0150163575895526</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711914119493346</li><li>0.661593447623953</li><li>0.0166576815744199</li><li>0.0154998591273003</li><li>0.0151198656489364</li><li>0.0148728526802205</li><li>0.0146927535461347</li><li>0.0145529643016711</li><li>0.0144399008731037</li><li>0.0143456722260588</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711689223264453</li><li>0.663007043067616</li><li>0.0158499051136934</li><li>0.0147878994545063</li><li>0.014439116978875</li><li>0.0142124223211076</li><li>0.0140472135582941</li><li>0.0139190682833483</li><li>0.0138155081119378</li><li>0.0137292802449123</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711616411115853</li><li>0.664139900285655</li><li>0.0151122570851257</li><li>0.0141352250395618</li><li>0.0138141040254128</li><li>0.0136054024331161</li><li>0.0134533658735784</li><li>0.0133355081930423</li><li>0.0132403328909006</li><li>0.0131611542032889</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711626965894996</li><li>0.665135756531882</li><li>0.0144364378764538</li><li>0.0135350352594547</li><li>0.0132385267211916</li><li>0.0130458246836371</li><li>0.012905490142265</li><li>0.0127967617265973</li><li>0.0127090180718384</li><li>0.0126360790507399</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711679993605135</li><li>0.666059471270681</li><li>0.0138153434403091</li><li>0.0129814875548273</li><li>0.012706960641614</li><li>0.0125285408001579</li><li>0.0123986439020611</li><li>0.0122980503338365</li><li>0.0122169214570596</li><li>0.0121495296174453</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711752704917154</li><li>0.666939224592037</li><li>0.0132428694690824</li><li>0.0124695429795959</li><li>0.0122147178141855</li><li>0.0120490939059815</li><li>0.0119285420377105</li><li>0.0118352253449686</li><li>0.0117600076084064</li><li>0.0116975674317375</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711833025820957</li><li>0.667786442038861</li><li>0.0127137501738652</li><li>0.0119948386051693</li><li>0.0117577312819485</li><li>0.011603611420182</li><li>0.0114914560892641</li><li>0.0114046725232039</li><li>0.0113347568693</li><li>0.0112767536616012</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711914856754983</li><li>0.66860517738568</li><li>0.0122234253552291</li><li>0.0115535820567503</li><li>0.0113324593818973</li><li>0.0111887159700374</li><li>0.0110841302392361</li><li>0.0110032321890892</li><li>0.0109380890042288</li><li>0.0108840758293036</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.711995288884021</li><li>0.669396480346404</li><li>0.0117679306380133</li><li>0.0111424642414749</li><li>0.0109358063168717</li><li>0.010801451269838</li><li>0.010703711231275</li><li>0.0106281324196915</li><li>0.0105672991760556</li><li>0.010516886212389</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712073056963204</li><li>0.670160376449399</li><li>0.0113438066423765</li><li>0.0107585869786406</li><li>0.0105650561303184</li><li>0.0104392203634453</li><li>0.010347689846972</li><li>0.0102769331418631</li><li>0.0102200042479293</li><li>0.010172850067147</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712147711977328</li><li>0.670896717436744</li><li>0.0109480236204256</li><li>0.0103994028169853</li><li>0.0102178176785236</li><li>0.0100997340466022</li><li>0.0100138519321496</li><li>0.00994747925781517</li><li>0.00989409767559455</li><li>0.00984990205395828</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712219192042848</li><li>0.671605506832625</li><li>0.010577918727514</li><li>0.0100626648200427</li><li>0.00989197862291806</li><li>0.00978096766249653</li><li>0.00970023730058625</li><li>0.00963786124305582</li><li>0.00958771152718067</li><li>0.00954620948780029</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712287606085536</li><li>0.672286990278562</li><li>0.0102311436299259</li><li>0.00974638451694263</li><li>0.00958566682912895</li><li>0.00948112478981068</li><li>0.00940510513797334</li><li>0.00934638192539751</li><li>0.00929918441324262</li><li>0.00926014126229229</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712353128162681</li><li>0.672941647694482</li><li>0.00990562058766826</li><li>0.0094487965584478</li><li>0.00929721786151757</li><li>0.00919860661531614</li><li>0.00912690477836169</li><li>0.00907152838348486</li><li>0.00902703432234929</li><li>0.00899024149276661</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712415947973042</li><li>0.673570150551752</li><li>0.0095995055058812</li><li>0.0091683288960574</li><li>0.00902514750867101</li><li>0.00893198600741166</li><li>0.0088642509319435</li><li>0.00881194809499149</li><li>0.00876993553625954</li><li>0.00873520709104316</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712476249216636</li><li>0.674173312155431</li><li>0.00931115673451841</li><li>0.00890357752607895</li><li>0.00876812847502858</li><li>0.0086799854894934</li><li>0.00861590261195244</li><li>0.00856642862226741</li><li>0.00852669894656699</li><li>0.00849386862371724</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712534201358535</li><li>0.674752042151695</li><li>0.00903910862591347</li><li>0.00865328502050318</li><li>0.00852497053473088</li><li>0.00844145845963973</li><li>0.00838074514565903</li><li>0.00833388025178089</li><li>0.00829625521581269</li><li>0.0082651739202903</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712589957577481</li><li>0.675307308859888</li><li>0.00878204904443863</li><li>0.00841632221085129</li><li>0.00829460357320914</li><li>0.00821537312218559</li><li>0.00815777476550327</li><li>0.00811332110813648</li><li>0.00807764032480634</li><li>0.00804817399118275</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712643655370983</li><li>0.675840109748111</li><li>0.00853880017069343</li><li>0.0081916725070354</li><li>0.00807606304618079</li><li>0.00800079869284299</li><li>0.00794608536626094</li><li>0.00790386434818482</li><li>0.00786998312824741</li><li>0.00784201089215688</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712695418142054</li><li>0.676351449117225</li><li>0.00830830206187882</li><li>0.00797841842647187</li><li>0.00786847746966319</li><li>0.00779689351664647</li><li>0.00774485708690443</li><li>0.00770470710952634</li><li>0.00767249460612939</li><li>0.00764590723408721</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712745357007076</li><li>0.676842321714503</li><li>0.00808959852611763</li><li>0.00777572998385268</li><li>0.00767105762245059</li><li>0.00760289480085414</li><li>0.00755334643486132</li><li>0.0075151209436461</li><li>0.00748445855170148</li><li>0.00745915708799021</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712793572505735</li><li>0.677313701034564</li><li>0.00788182494617088</li><li>0.00758285465279205</li><li>0.00748308719747897</li><li>0.00741810971597293</li><li>0.00737087771840954</li><li>0.00733444350951111</li><li>0.00730522348028534</li><li>0.00728111807693821</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712840156100687</li><li>0.677766531236874</li><li>0.0076841977509955</li><li>0.00739910865993292</li><li>0.00730391468321233</li><li>0.00724190765965205</li><li>0.0071968355921464</li><li>0.00716207134073249</li><li>0.00713419557888455</li><li>0.00711120448069987</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712885191446939</li><li>0.678201721808466</li><li>0.00749600528483764</li><li>0.00722386941231577</li><li>0.00713294629266847</li><li>0.00707371351217183</li><li>0.0070306585525586</li><li>0.00699745352995533</li><li>0.00697083254579399</li><li>0.00694888120709544</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712928755448499</li><li>0.678620144284648</li><li>0.00731659986538681</li><li>0.00705656889169445</li><li>0.00696963978757893</li><li>0.00691300174012553</li><li>0.00687183324707895</li><li>0.00684008619927788</li><li>0.00681463819352777</li><li>0.00679365850727458</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.712970919132202</li><li>0.67902263049542</li><li>0.00714539085677592</li><li>0.00689668787646355</li><li>0.00681349906973068</li><li>0.00675929122782958</li><li>0.0067198894817383</li><li>0.00668950764624724</li><li>0.00666515770830912</li><li>0.00664508733133706</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713011748369916</li><li>0.679409971929999</li><li>0.00698183861136498</li><li>0.00674375087407711</li><li>0.00666406943178406</li><li>0.00661214073493921</li><li>0.00657439583048293</li><li>0.00654529407215467</li><li>0.00652197347588188</li><li>0.00650275523666251</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713051304477285</li><li>0.679782919909545</li><li>0.00682544915745865</li><li>0.00659732166519368</li><li>0.00652093337661592</li><li>0.00647114489444091</li><li>0.00643495576412915</li><li>0.00640705581361936</li><li>0.00638470139713729</li><li>0.00636628277458983</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713089644712774</li><li>0.680142186333799</li><li>0.00667576952930817</li><li>0.00645699937600051</li><li>0.00638370692814663</li><li>0.00633593067823955</li><li>0.00630120422932838</li><li>0.00627443401033564</li><li>0.00625298762850473</li><li>0.0062353202921704</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713126822696488</li><li>0.680488444825222</li><li>0.00653238365168316</li><li>0.00632241500782677</li><li>0.00625203636819598</li><li>0.00620615426843891</li><li>0.00617280461826989</li><li>0.00614709765179248</li><li>0.0061265056916392</li><li>0.00610954509500083</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713162888764375</li><li>0.680822332138454</li><li>0.0063949087045632</li><li>0.0061932283637185</li><li>0.00612559534359472</li><li>0.00608149828151615</li><li>0.00604944607852007</li><li>0.00602474095410209</li><li>0.00600495390497889</li><li>0.00598865892493645</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713197890270257</li><li>0.68114444973652</li><li>0.0062629919045769</li><li>0.00606912532048912</li><li>0.00600408229589326</li><li>0.00596166930022919</li><li>0.00593084111967993</li><li>0.00590708102507541</li><li>0.00588805309651398</li><li>0.0058723857130522</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713231871845553</li><li>0.681455365460751</li><li>0.00613630764909406</li><li>0.00594981540218297</li><li>0.00588721817283177</li><li>0.00584639567452429</li><li>0.00581672347967912</li><li>0.00579385578158665</li><li>0.00577554456281794</li><li>0.00576046957376245</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713264875624467</li><li>0.681755615240785</li><li>0.00601455497667069</li><li>0.00583502961714077</li><li>0.00577474438648828</li><li>0.00573542555813685</li><li>0.00570684621870828</li><li>0.00568482208825996</li><li>0.00566718824422516</li><li>0.00565267301070759</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713296941440852</li><li>0.682045704805658</li><li>0.00589745530411312</li><li>0.00572451852613563</li><li>0.005666420987886</li><li>0.00562852515217155</li><li>0.00560098001318318</li><li>0.0055797540907445</li><li>0.00556276109013914</li><li>0.00554877530900228</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713328107001626</li><li>0.682326111368124</li><li>0.00578475040597488</li><li>0.00561805051351947</li><li>0.00556202503196523</li><li>0.00552547713084562</li><li>0.00549891162586493</li><li>0.00547844172044156</li><li>0.00546205559194375</li><li>0.00544857109183482</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713358408040671</li><li>0.682597285262702</li><li>0.00567620060699944</li><li>0.0055154102371171</li><li>0.00546134911033259</li><li>0.00542607922789665</li><li>0.0054004425314376</li><li>0.00538068935061443</li><li>0.00536487846396522</li><li>0.00535186902230452</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713387878456331</li><li>0.682859651524274</li><li>0.00557158316201381</li><li>0.0054163972358381</li><li>0.00536420003218902</li><li>0.00533014296498636</li><li>0.00530538767955769</li><li>0.0052863145864319</li><li>0.00527104945547634</li><li>0.00525849063386192</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713416550435032</li><li>0.68311361139875</li><li>0.00547069080117712</li><li>0.00532082467673686</li><li>0.00527039763639318</li><li>0.00523749250585309</li><li>0.00521357437971246</li><li>0.00519514717374084</li><li>0.00518040027891484</li><li>0.00516826927484292</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713444454563037</li><li>0.683359543780896</li><li>0.00537333042139084</li><li>0.00522851822561315</li><li>0.00517977371980533</li><li>0.00514796362204129</li><li>0.00512484129421642</li><li>0.00510702801329072</li><li>0.00509277364136098</li><li>0.00508104915441486</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713471619928032</li><li>0.683597806576945</li><li>0.00527932190716069</li><li>0.0051393150272717</li><li>0.00509217106893641</li><li>0.00506140275782052</li><li>0.00503903752738973</li><li>0.00502180826879121</li><li>0.0050080223679325</li><li>0.00499668447882682</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.71349807421185</li><li>0.683828737991577</li><li>0.00518849706633156</li><li>0.00505306278330196</li><li>0.00500744258354503</li><li>0.00497766618344373</li><li>0.00495602180043928</li><li>0.00493934855861492</li><li>0.00492600860714717</li><li>0.00491503866821589</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.71352384377548</li><li>0.684052657740204</li><li>0.00510069866794891</li><li>0.00496961891674074</li><li>0.00492545048222096</li><li>0.00489661922722137</li><li>0.00487566170284012</li><li>0.00485951822219403</li><li>0.00484660310950725</li><li>0.0048359836453975</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713548953737272</li><li>0.684269868188467</li><li>0.00501577957107926</li><li>0.00488884981427806</li><li>0.00484606558120071</li><li>0.00481813557803642</li><li>0.00479783301212005</li><li>0.00478219465323097</li><li>0.00476968457160391</li><li>0.00475939918908777</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713573428045124</li><li>0.684480655421503</li><li>0.00493360193478666</li><li>0.00481063013778903</li><li>0.00476916663870667</li><li>0.00474209665092129</li><li>0.00472241907490919</li><li>0.00470726269277355</li><li>0.00469513903894585</li><li>0.00468517234489234</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713597289543309</li><li>0.684685290245996</li><li>0.00485403650064237</li><li>0.00473484219794949</li><li>0.00469463975800953</li><li>0.00466839100918262</li><li>0.00464931024295028</li><li>0.00463461407601409</li><li>0.00462285936150577</li><li>0.00461319688816802</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713620560034464</li><li>0.684884029128273</li><li>0.00477696194016976</li><li>0.00466137538353966</li><li>0.00462237784320386</li><li>0.00459691383731378</li><li>0.00457840335849194</li><li>0.00456414692737734</li><li>0.00455274469666574</li><li>0.00454337283353656</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713643260337253</li><li>0.685077115071847</li><li>0.00470226426051599</li><li>0.00459012564077791</li><li>0.00455228010237581</li><li>0.00452756645959192</li><li>0.00450960128412121</li><li>0.00449576529907815</li><li>0.00448470005484401</li><li>0.00447560598641862</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713665410340107</li><li>0.685264778437823</li><li>0.00462983626241806</li><li>0.00452099499767089</li><li>0.00448425159344363</li><li>0.00446025589983121</li><li>0.00444281247264634</li><li>0.00442937874886851</li><li>0.00441863588361178</li><li>0.00440980753247118</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713687029051357</li><li>0.685447237711599</li><li>0.00455957704520691</li><li>0.00445389112892899</li><li>0.0044182028084785</li><li>0.00439489447826693</li><li>0.00437795057312668</li><li>0.0043649019531663</li><li>0.00435446768656982</li><li>0.00434589366126355</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713708134646136</li><li>0.685624700219167</li><li>0.00449139155418513</li><li>0.00438872695748968</li><li>0.00435404929277501</li><li>0.00433139944198655</li><li>0.00431493406957313</li><li>0.00430225435217271</li><li>0.00429211567366015</li><li>0.00428378522092485</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713728744510254</li><li>0.685797362796232</li><li>0.00442519016623165</li><li>0.00432542028912393</li><li>0.00429171129534619</li><li>0.00426969262571216</li><li>0.00425368594921759</li><li>0.00424135982395045</li><li>0.00423150443994484</li><li>0.00422340740084492</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713748875281342</li><li>0.685965412413237</li><li>0.0043608883099417</li><li>0.00426389347698187</li><li>0.00423111344787509</li><li>0.00420970014007972</li><li>0.00419413339758033</li><li>0.0041821463847564</li><li>0.00417256267019808</li><li>0.0041646894398195</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713768542887444</li><li>0.686129026759202</li><li>0.00429840611700982</li><li>0.00420407311326865</li><li>0.00417218446946931</li><li>0.00415135208486246</li><li>0.00413620751785557</li><li>0.00412454591320604</li><li>0.0041152228669357</li><li>0.00410756435730267</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713787762583269</li><li>0.686288374787175</li><li>0.00423766810191552</li><li>0.00414588974553771</li><li>0.00411485689484276</li><li>0.00409458228485126</li><li>0.0040798430723932</li><li>0.00406849389609822</li><li>0.00405942109975154</li><li>0.00405196870567056</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713806548984273</li><li>0.686443617223878</li><li>0.00417860286728166</li><li>0.00408927761534939</li><li>0.00405906682379453</li><li>0.00403932804634069</li><li>0.00402497824428264</li><li>0.00401392919395087</li><li>0.00400509677404758</li><li>0.00399784234161361</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713824916098715</li><li>0.686594907046034</li><li>0.00412114283254975</li><li>0.00403417441727474</li><li>0.00400475369007232</li><li>0.00398552993237798</li><li>0.00397155441724681</li><li>0.00396079382449524</li><li>0.00395219241743783</li><li>0.00394512821496455</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.71384287735785</li><li>0.686742389925642</li><li>0.00406522398385886</li><li>0.00398052107642878</li><li>0.00395186004790057</li><li>0.00393313155511702</li><li>0.00391951597223384</li><li>0.00390903276255154</li><li>0.00390065348227723</li><li>0.00389377217343718</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713860445644366</li><li>0.686886204646376</li><li>0.00401078564323001</li><li>0.00392826154289988</li><li>0.00390033137462532</li><li>0.0038820793837846</li><li>0.00386881009925363</li><li>0.0038585937548643</li><li>0.00385042816291935</li><li>0.00384372278190101</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713877633319199</li><li>0.687026483493095</li><li>0.00395777025534855</li><li>0.00387734260160363</li><li>0.00385011588807991</li><li>0.00383232256691211</li><li>0.00381938662314846</li><li>0.0038094271486145</li><li>0.00380146722644258</li><li>0.00379493115495054</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713894452246835</li><li>0.687163352616339</li><li>0.00390612319040663</li><li>0.00382771369623352</li><li>0.00380116437741181</li><li>0.00378381276761676</li><li>0.00377119784211362</li><li>0.00376148573244933</li><li>0.00375372385570583</li><li>0.00374735080164696</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713910913819178</li><li>0.687296932373549</li><li>0.00385579256161904</li><li>0.00377932676610946</li><li>0.00375343004623186</li><li>0.00373650401083298</li><li>0.00372419837789717</li><li>0.00371472458898081</li><li>0.00370715350370288</li><li>0.00370093748141653</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.71392702897811</li><li>0.687427337648625</li><li>0.00380672905615993</li><li>0.00373213609483951</li><li>0.00370686836705577</li><li>0.00369035254149859</li><li>0.00367834503670904</li><li>0.00366910095780333</li><li>0.0036617137582817</li><li>0.00365564907018535</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713942808236788</li><li>0.687554678151321</li><li>0.00375888577838841</li><li>0.00368609816981323</li><li>0.00366143694610448</li><li>0.00364531669279392</li><li>0.00363359667996043</li><li>0.00362457410816891</li><li>0.0036173642163817</li><li>0.00361144543591567</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713958261699791</li><li>0.687679058697873</li><li>0.00371221810433813</li><li>0.00364117155163635</li><li>0.00361709539761673</li><li>0.00360135676361536</li><li>0.00358991410403553</li><li>0.00358110522053792</li><li>0.00357406636701986</li><li>0.00356828832278531</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713973399082162</li><li>0.687800579474154</li><li>0.00366668354654207</li><li>0.00359731675269912</li><li>0.0035738052269053</li><li>0.00355843490453991</li><li>0.00354725992837055</li><li>0.00353865727629482</li><li>0.00353178348232649</li><li>0.00352614124332085</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.713988229727444</li><li>0.687919336282553</li><li>0.0036222416283501</li><li>0.00355449612414444</li><li>0.00353152972145798</li><li>0.00351651501160481</li><li>0.00350559849118054</li><li>0.00349719495498198</li><li>0.00349048051599461</li><li>0.00348496937785693</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714002762624733</li><li>0.688035420773693</li><li>0.00357885376697389</li><li>0.00351267375056823</li><li>0.00349023384944755</li><li>0.00347556262728662</li><li>0.00346489575223351</li><li>0.00345668453846281</li><li>0.00345012400856302</li><li>0.00344473948075003</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714017006424841</li><li>0.688148920664015</li><li>0.00353648316456321</li><li>0.00347181535184429</li><li>0.00344988416507125</li><li>0.003435544848119</li><li>0.0034251192021243</li><li>0.0034170938214771</li><li>0.00341068199900472</li><li>0.00340541979282495</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714030969455596</li><li>0.688259919940198</li><li>0.00349509470668038</li><li>0.00343188819151958</li><li>0.00341044872019173</li><li>0.00339643023843759</li><li>0.00338623777754879</li><li>0.00337839202809837</li><li>0.00337212394213802</li><li>0.00336697995957812</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714044659736358</li><li>0.688368499051286</li><li>0.0034546548675954</li><li>0.00339286099127453</li><li>0.00337189698179692</li><li>0.0033581887497846</li><li>0.00334822178212208</li><li>0.00334054973364553</li><li>0.00333442063141948</li><li>0.00332939095470217</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714058084991773</li><li>0.68847473508936</li><li>0.00341513162187545</li><li>0.00335470385098673</li><li>0.00333419975483845</li><li>0.00332079164554625</li><li>0.00331104281232344</li><li>0.00330353879163926</li><li>0.00329754412671528</li><li>0.00329262500853404</li></ol>
+</li>
+	<li><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.714071252664812</li><li>0.688578701959507</li><li>0.00337649436178791</li><li>0.00331738817397583</li><li>0.00329732911004534</li><li>0.0032842114304321</li><li>0.00327467368818631</li><li>0.0032673322654283</li><li>0.00326146768668188</li><li>0.00325665554106171</li></ol>
+</li>
+</ol>
 
 </div>
 
