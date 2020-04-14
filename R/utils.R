@@ -358,7 +358,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
   s_idx <- 0
   nms <- vector()
   ###Singleton matrices
-  if((singletons==T)) {
+  if(singletons) {
     for(i in 1:R) {
       mats[[i]] <- matrix(0, nrow=R, ncol=R)
       mats[[i]][i, i] <- 1
