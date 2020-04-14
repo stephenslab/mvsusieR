@@ -370,8 +370,8 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
   if(!is.null(hetgrid)) {
     for(j in 1:length(hetgrid)) {
       mats[[s_idx+j]] <- matrix(1, nrow=R, ncol=R)
-      mats[[s_idx+j]][lower.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
-      mats[[s_idx+j]][upper.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
+      mats[[s_idx+j]][lower.tri(mats[[s_idx+j]], diag = FALSE)] <- hetgrid[j]
+      mats[[s_idx+j]][upper.tri(mats[[s_idx+j]], diag = FALSE)] <- hetgrid[j]
       nms[s_idx+j] = paste0('shared_', j)
     }
   }
