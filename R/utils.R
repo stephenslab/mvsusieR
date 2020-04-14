@@ -354,34 +354,29 @@ predict.mmbr <- function (object, newx) {
 #'  mmbr:::create_cov_canonical(3, hetgrid=NULL)
 #' @keywords internal
 create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
-      mats <- list()
-
+  mats <- list()
+  s_idx <- 0
+  nms <- vector()
   ###Singleton matrices
-  if((singletons==T)){
-          for(i in 1:R){
-                    mats[[i]] <- matrix(0, nrow=R, ncol=R)
-        mats[[i]][i, i] <- 1
-            }
-
-      ###Heterogeneity matrices
-      if(!is.null(hetgrid)){
-                for(j in 1:length(hetgrid)){
-                            mats[[R+j]] <- matrix(1, nrow=R, ncol=R)
-              mats[[R+j]][lower.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
-                      mats[[R+j]][upper.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
-                    }
-          }
-        } else {
-                ###Heterogeneity matrices
-                if(!is.null(hetgrid)){
-                          for(j in 1:length(hetgrid)){
-                                      mats[[j]] <- matrix(1, nrow=R, ncol=R)
-                mats[[j]][lower.tri(mats[[j]], diag = FALSE)] <- hetgrid[j]
-                        mats[[j]][upper.tri(mats[[j]], diag = FALSE)] <- hetgrid[j]
-                      }
-            }
-        }
-    return(mats)
+  if((singletons==T)) {
+    for(i in 1:R) {
+      mats[[i]] <- matrix(0, nrow=R, ncol=R)
+      mats[[i]][i, i] <- 1
+      nms[i] = paste0('singleton_', i)
+    }
+    s_idx <- R
+  }
+  ###Heterogeneity matrices
+  if(!is.null(hetgrid)) {
+    for(j in 1:length(hetgrid)) {
+      mats[[s_idx+j]] <- matrix(1, nrow=R, ncol=R)
+      mats[[s_idx+j]][lower.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
+      mats[[s_idx+j]][upper.tri(mats[[R+j]], diag = FALSE)] <- hetgrid[j]
+      nms[s_idx+j] = paste0('shared_', j)
+    }
+  }
+  names(mats) = nms
+  return(mats)
 }
 
 #' @title Create mash prior object
