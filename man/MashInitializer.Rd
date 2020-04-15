@@ -13,6 +13,7 @@ MASH initializer object
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{MashInitializer$new()}}
+\item \href{#method-compute_prior_ginv}{\code{MashInitializer$compute_prior_ginv()}}
 \item \href{#method-precompute_cov_matrices}{\code{MashInitializer$precompute_cov_matrices()}}
 \item \href{#method-remove_precomputed}{\code{MashInitializer$remove_precomputed()}}
 \item \href{#method-clone}{\code{MashInitializer$clone()}}
@@ -20,6 +21,7 @@ MASH initializer object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MashInitializer$new(
@@ -36,7 +38,17 @@ MASH initializer object
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-compute_prior_ginv"></a>}}
+\if{latex}{\out{\hypertarget{method-compute_prior_ginv}{}}}
+\subsection{Method \code{compute_prior_ginv()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{MashInitializer$compute_prior_ginv()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-precompute_cov_matrices"></a>}}
+\if{latex}{\out{\hypertarget{method-precompute_cov_matrices}{}}}
 \subsection{Method \code{precompute_cov_matrices()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MashInitializer$precompute_cov_matrices(
@@ -49,6 +61,7 @@ MASH initializer object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-remove_precomputed"></a>}}
+\if{latex}{\out{\hypertarget{method-remove_precomputed}{}}}
 \subsection{Method \code{remove_precomputed()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MashInitializer$remove_precomputed()}\if{html}{\out{</div>}}
@@ -57,6 +70,7 @@ MASH initializer object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

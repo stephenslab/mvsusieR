@@ -275,6 +275,7 @@ MashInitializer <- R6Class("MashInitializer",
       initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, weights_tol = 1E-10, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
         all_zeros = vector()
         if (is.null(xUlist)) {
+          if (is.null(Ulist)) stop("Either xUlist or Ulist have to be non-null")
           for (l in 1:length(Ulist)) {
               if (all(Ulist[[l]] == 0))
               stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))

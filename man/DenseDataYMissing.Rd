@@ -35,6 +35,7 @@ Regression data object with missing values in Y
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$new(X, Y)}\if{html}{\out{</div>}}
@@ -43,6 +44,7 @@ Regression data object with missing values in Y
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-standardize"></a>}}
+\if{latex}{\out{\hypertarget{method-standardize}{}}}
 \subsection{Method \code{standardize()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$standardize(center, scale)}\if{html}{\out{</div>}}
@@ -51,6 +53,7 @@ Regression data object with missing values in Y
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-compute_Xb"></a>}}
+\if{latex}{\out{\hypertarget{method-compute_Xb}{}}}
 \subsection{Method \code{compute_Xb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$compute_Xb(b)}\if{html}{\out{</div>}}
@@ -59,6 +62,7 @@ Regression data object with missing values in Y
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-compute_MXt"></a>}}
+\if{latex}{\out{\hypertarget{method-compute_MXt}{}}}
 \subsection{Method \code{compute_MXt()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$compute_MXt(M)}\if{html}{\out{</div>}}
@@ -67,6 +71,7 @@ Regression data object with missing values in Y
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get_sumstats"></a>}}
+\if{latex}{\out{\hypertarget{method-get_sumstats}{}}}
 \subsection{Method \code{get_sumstats()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$get_sumstats(residual_variances, residual_correlation = NULL)}\if{html}{\out{</div>}}
@@ -75,6 +80,7 @@ Regression data object with missing values in Y
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

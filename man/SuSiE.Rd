@@ -21,6 +21,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SuSiE$new(
@@ -31,13 +32,15 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
   max_iter = 100,
   tol = 0.001,
   track_pip = FALSE,
-  track_lbf = FALSE
+  track_lbf = FALSE,
+  track_prior_est = FALSE
 )}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-init_coef"></a>}}
+\if{latex}{\out{\hypertarget{method-init_coef}{}}}
 \subsection{Method \code{init_coef()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SuSiE$init_coef(coef_index, coef_value, p, r)}\if{html}{\out{</div>}}
@@ -46,12 +49,14 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fit"></a>}}
+\if{latex}{\out{\hypertarget{method-fit}{}}}
 \subsection{Method \code{fit()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SuSiE$fit(
   d,
   prior_weights = NULL,
   estimate_prior_variance_method = NULL,
+  check_null_threshold = 0,
   verbose = TRUE
 )}\if{html}{\out{</div>}}
 }
@@ -59,14 +64,16 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get_objective"></a>}}
+\if{latex}{\out{\hypertarget{method-get_objective}{}}}
 \subsection{Method \code{get_objective()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SuSiE$get_objective(dump = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SuSiE$get_objective(dump = FALSE, warning_tol = 1e-06)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

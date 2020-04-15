@@ -15,6 +15,7 @@ msusie_rss(
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "simple",
+  check_null_threshold = 0,
   compute_objective = FALSE,
   precompute_covariances = FALSE,
   s_init = NULL,
@@ -45,6 +46,9 @@ msusie_rss(
 \item{estimate_prior_variance}{indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)}
 
 \item{estimate_prior_method}{the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.}
+
+\item{check_null_threshold}{when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
+using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. Default is 0.}
 
 \item{s_init}{a previous susie fit with which to initialize}
 

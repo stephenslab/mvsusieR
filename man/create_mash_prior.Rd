@@ -9,6 +9,7 @@ create_mash_prior(
   mixture_prior = NULL,
   sample_data = NULL,
   null_weight = NULL,
+  use_grid = FALSE,
   weights_tol = 1e-10,
   max_mixture_len = 40,
   include_indices = NULL,
@@ -24,6 +25,8 @@ create_mash_prior(
 
 \item{null_weight}{whether or not to add a weight for null in single effect models. By default it takes the null weight from fitted_g
 if available. Use `null_weight = 0` to override the behavior.}
+
+\item{use_grid}{expand mixture by grid values as in MASH (not necessary when prior scalar is estimated)}
 
 \item{weights_tol}{filter out priors with weights smaller than weights_tol}
 

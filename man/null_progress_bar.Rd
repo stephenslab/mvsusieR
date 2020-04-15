@@ -18,6 +18,7 @@ A null progressbar, because currently `progressbar_enabled` feature does not wor
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-tick"></a>}}
+\if{latex}{\out{\hypertarget{method-tick}{}}}
 \subsection{Method \code{tick()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{null_progress_bar$tick(...)}\if{html}{\out{</div>}}
@@ -26,6 +27,7 @@ A null progressbar, because currently `progressbar_enabled` feature does not wor
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

@@ -28,6 +28,7 @@ Multiviate regression object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BayesianMultivariateRegression$new(J, residual_variance, prior_variance)}\if{html}{\out{</div>}}
@@ -36,6 +37,7 @@ Multiviate regression object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-fit"></a>}}
+\if{latex}{\out{\hypertarget{method-fit}{}}}
 \subsection{Method \code{fit()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BayesianMultivariateRegression$fit(
@@ -44,13 +46,15 @@ Multiviate regression object
   use_residual = FALSE,
   save_summary_stats = FALSE,
   save_var = FALSE,
-  estimate_prior_variance_method = NULL
+  estimate_prior_variance_method = NULL,
+  check_null_threshold = 0
 )}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

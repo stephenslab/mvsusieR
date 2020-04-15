@@ -14,6 +14,7 @@ mmbr_core(
   estimate_residual_variance,
   estimate_prior_variance,
   estimate_prior_method,
+  check_null_threshold,
   precompute_covariances,
   compute_objective,
   max_iter,

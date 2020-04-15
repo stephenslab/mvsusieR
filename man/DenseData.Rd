@@ -26,6 +26,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$new(X, Y)}\if{html}{\out{</div>}}
@@ -34,6 +35,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-standardize"></a>}}
+\if{latex}{\out{\hypertarget{method-standardize}{}}}
 \subsection{Method \code{standardize()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$standardize(center, scale)}\if{html}{\out{</div>}}
@@ -42,6 +44,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-compute_Xb"></a>}}
+\if{latex}{\out{\hypertarget{method-compute_Xb}{}}}
 \subsection{Method \code{compute_Xb()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$compute_Xb(b)}\if{html}{\out{</div>}}
@@ -50,6 +53,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-compute_MXt"></a>}}
+\if{latex}{\out{\hypertarget{method-compute_MXt}{}}}
 \subsection{Method \code{compute_MXt()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$compute_MXt(M)}\if{html}{\out{</div>}}
@@ -58,6 +62,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-remove_from_residual"></a>}}
+\if{latex}{\out{\hypertarget{method-remove_from_residual}{}}}
 \subsection{Method \code{remove_from_residual()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$remove_from_residual(value)}\if{html}{\out{</div>}}
@@ -66,6 +71,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-add_to_residual"></a>}}
+\if{latex}{\out{\hypertarget{method-add_to_residual}{}}}
 \subsection{Method \code{add_to_residual()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$add_to_residual(value)}\if{html}{\out{</div>}}
@@ -74,6 +80,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-compute_residual"></a>}}
+\if{latex}{\out{\hypertarget{method-compute_residual}{}}}
 \subsection{Method \code{compute_residual()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$compute_residual(fitted)}\if{html}{\out{</div>}}
@@ -82,6 +89,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-rescale_coef"></a>}}
+\if{latex}{\out{\hypertarget{method-rescale_coef}{}}}
 \subsection{Method \code{rescale_coef()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$rescale_coef(b)}\if{html}{\out{</div>}}
@@ -90,6 +98,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get_sumstats"></a>}}
+\if{latex}{\out{\hypertarget{method-get_sumstats}{}}}
 \subsection{Method \code{get_sumstats()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$get_sumstats(residual_variances, residual_correlation = NULL)}\if{html}{\out{</div>}}
@@ -98,6 +107,7 @@ The regular regression data object
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

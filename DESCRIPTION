@@ -16,7 +16,7 @@ BugReports: https://github.com/stephenslab/mmbr/issues
 License: MIT + file LICENSE
 LazyData: true
 NeedsCompilation: no
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Depends: R (>= 3.0.0),
     mashr (>= 0.2.19)
 Imports:

@@ -16,6 +16,7 @@ msusie(
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "simple",
+  check_null_threshold = 0,
   compute_objective = FALSE,
   s_init = NULL,
   coverage = 0.95,
@@ -35,7 +36,8 @@ msusie(
 
 \item{L}{maximum number of non-zero effects}
 
-\item{prior_variance}{Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights}
+\item{prior_variance}{Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`);
+2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights}
 
 \item{residual_variance}{the residual variance (defaults to sample variance of Y)}
 
@@ -54,6 +56,9 @@ Any column of X that has zero variance is not standardized, but left as is.}
 \item{estimate_prior_variance}{indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)}
 
 \item{estimate_prior_method}{the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.}
+
+\item{check_null_threshold}{when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
+using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. Default is 0.}
 
 \item{s_init}{a previous susie fit with which to initialize}
 
