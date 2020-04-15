@@ -23,6 +23,8 @@
 #' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
 #' @param check_null_threshold when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
 #' using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. Default is 0.
+#' @param prior_tol when prior variance is estimated, compare the estimated value to this tol at the end of
+#' the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.
 #' @param precompute_covariances if TRUE, precomputes various covariance quantities to speed up computations at the cost of increased memory usage
 #' @param s_init a previous susie fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
@@ -70,7 +72,7 @@ msusie = function(X,Y,L=10,
                  estimate_residual_variance=FALSE,
                  estimate_prior_variance=TRUE,
                  estimate_prior_method='simple',
-                 check_null_threshold=0,
+                 check_null_threshold=0, prior_tol=1E-9,
                  compute_objective=FALSE,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
@@ -100,7 +102,7 @@ msusie = function(X,Y,L=10,
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$null_index = -9
     s$sets = susie_get_cs(s, coverage=coverage, X=X, min_abs_corr=min_abs_corr)
-    s$pip = susie_get_pip(s)
+    s$pip = susie_get_pip(s, prior_tol=prior_tol)
     s$null_index = NULL
   }
   # report z-scores from univariate regression
@@ -122,6 +124,8 @@ msusie = function(X,Y,L=10,
 #' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
 #' @param check_null_threshold when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
 #' using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. Default is 0.
+#' @param prior_tol when prior variance is estimated, compare the estimated value to this tol at the end of
+#' the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.
 #' @param s_init a previous susie fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
@@ -169,7 +173,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
                       estimate_residual_variance=FALSE,
                       estimate_prior_variance=TRUE,
                       estimate_prior_method='simple',
-                      check_null_threshold=0,
+                      check_null_threshold=0, prior_tol=1E-9,
                       compute_objective=FALSE,
                       precompute_covariances = FALSE,
                       s_init = NULL,coverage=0.95,min_abs_corr=0.5,
@@ -199,7 +203,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$null_index = -9
     s$sets = susie_get_cs(s, coverage=coverage, Xcorr=data$XtX, min_abs_corr=min_abs_corr)
-    s$pip = susie_get_pip(s)
+    s$pip = susie_get_pip(s, prior_tol=prior_tol)
     s$null_index = NULL
   }
   return(s)
