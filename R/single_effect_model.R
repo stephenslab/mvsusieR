@@ -12,18 +12,22 @@ SingleEffectModel <- function(base)
         },
         fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL,check_null_threshold=0) {
             if (is.null(prior_weights)) prior_weights = rep(1/private$J, private$J)
-            super$fit(d, use_residual = TRUE, prior_weights = prior_weights, estimate_prior_variance_method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
+            super$fit(d, use_residual = TRUE, prior_weights = prior_weights, estimate_prior_variance_method=estimate_prior_variance_method,check_null_threshold=ifelse(is.na(check_null_threshold), 0, check_null_threshold))
             ws = compute_softmax(private$.lbf, prior_weights, log = TRUE)
             private$.pip = ws$weights
             private$lbf_single_effect = ws$log_sum
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
                 V = private$estimate_prior_variance_em(private$.pip)
-                if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_threshold >= private$loglik(V,private$cache$b,private$cache$s,prior_weights)) {
-                    V=0
-                    # set the corresponding posterior also to zero
-                    private$.posterior_b1 = private$.posterior_b1 * 0
-                    private$.posterior_b2 = private$.posterior_b2 * 0
-                    private$.lbf = private$.lbf * 0
+                # when check_null_threshold = NA we skip this check with zero estimate
+                # see details in https://github.com/stephenslab/mmbr/issues/26
+                if (!is.na(check_null_threshold)) {
+                    if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_threshold >= private$loglik(V,private$cache$b,private$cache$s,prior_weights)) {
+                        V=0
+                        # set the corresponding posterior also to zero
+                        private$.posterior_b1 = private$.posterior_b1 * 0
+                        private$.posterior_b2 = private$.posterior_b2 * 0
+                        private$.lbf = private$.lbf * 0
+                    }
                 }
                 if (private$cache$update_scale) private$prior_variance_scale = V
                 else private$.prior_variance = V

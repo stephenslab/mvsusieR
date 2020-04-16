@@ -957,7 +957,7 @@ height=420
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="EM-method"><code>EM</code> method<a class="anchor-link" href="#EM-method">&#182;</a></h3><p>Now we can see dicreasing ELBO: from -183 to -185, compared to previously the ELBO was -182 at convergence,</p>
+<h3 id="EM-method"><code>EM</code> method<a class="anchor-link" href="#EM-method">&#182;</a></h3><p>Now we can see decreasing ELBO: from -183 to -185, compared to previously the ELBO was -182 at convergence,</p>
 
 </div>
 </div>
@@ -3036,6 +3036,332 @@ u+MaIcWkevbTC6snXpU5s6F91Xlj3/6p9JkN7Z+eWnla/Xe7A0/u+EZIMameHXoGyIOQYkJI
 IxYhxYSQRixCigkhjViEBAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKE
 BAgQEiBASIAAIQEChAQIEBIgQEiAACEBAoQECBASIEBIgAAhAQKEBAgQEiBASIDA/wMrHiap
 +bj9zgAAAABJRU5ErkJggg=="
+width=420
+height=420
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Final-solution">Final solution<a class="anchor-link" href="#Final-solution">&#182;</a></h2><p>Following from <a href="https://github.com/stephenslab/mmbr/issues/26#issuecomment-612947198">Matthew's suggestion</a>, we check with zero and set all posteriors to zero, only after 10 iterations. This is the current default implementation of <code>EM</code> method,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit5</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">dat</span><span class="o">$</span><span class="n">V</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> 
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span><span class="o">=</span><span class="s">&#39;EM&#39;</span><span class="p">,</span>
+              <span class="n">track_fit</span><span class="o">=</span><span class="bp">T</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The convergence is now faster,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit5</span><span class="o">$</span><span class="n">niter</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+34
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit5</span><span class="o">$</span><span class="n">elbo</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-198.044780051201</li><li>-185.808446867106</li><li>-184.186223744929</li><li>-183.748348515929</li><li>-183.517946916971</li><li>-183.347957226874</li><li>-183.228141911754</li><li>-183.158819669811</li><li>-183.122288636005</li><li>-183.100822326533</li><li>-183.044586444743</li><li>-182.861451903339</li><li>-182.818408667179</li><li>-182.783486354127</li><li>-182.756119965729</li><li>-182.750229117781</li><li>-182.735071648099</li><li>-182.730465406676</li><li>-182.725419263242</li><li>-182.718932307953</li><li>-182.710280433489</li><li>-182.698368211485</li><li>-182.681350548334</li><li>-182.656000311233</li><li>-182.61671773808</li><li>-182.555042844271</li><li>-182.463696168948</li><li>-182.344595986929</li><li>-182.173990294663</li><li>-181.860343382417</li><li>-181.680238281792</li><li>-181.647334578022</li><li>-181.642486688434</li><li>-181.641790080555</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This now achieves the same ELBO as <code>optim</code> method.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit5</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.716272294674902</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0.694622119578786</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here, two effects are captured, with very similar result compared to <code>optim</code>; <strong>but they appear in effects 1 and 9!</strong></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">fit5</span><span class="p">,</span> <span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="nf">rowSums</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAMAAADKOT/pAAAC0FBMVEUAAAABAQECAgIDAwME
+BAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBARERESEhITExMUFBQVFRUW
+FhYXFxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8gICAhISEiIiIjIyMkJCQlJSUmJiYnJyco
+KCgpKSkqKiorKyssLCwtLS0uLi4vLy8wMDAxMTEyMjI0NDQ1NTU2NjY3Nzc4ODg5OTk6Ojo7
+Ozs8PDw9PT0+Pj4/Pz9AQEBCQkJDQ0NERERFRUVGRkZHR0dISEhJSUlKSkpLS0tMTExNTU1O
+Tk5PT09QUFBRUVFSUlJTU1NUVFRVVVVWVlZXV1dYWFhZWVlaWlpbW1tcXFxdXV1eXl5fX19g
+YGBhYWFiYmJjY2NkZGRlZWVmZmZnZ2doaGhpaWlqampra2tsbGxtbW1ubm5vb29wcHBxcXFy
+cnJ0dHR1dXV2dnZ3d3d4eHh5eXl6enp7e3t8fHx9fX1+fn5/f3+AgICBgYGCgoKDg4OEhISF
+hYWGhoaHh4eIiIiJiYmKioqLi4uMjIyPj4+QkJCSkpKUlJSWlpaXl5eYmJiZmZmampqcnJyd
+nZ2enp6fn5+goKChoaGioqKjo6OkpKSoqKiqqqqrq6usrKytra2urq6vr6+wsLCxsbGysrK0
+tLS1tbW2tra3t7e4uLi5ubm6urq7u7u8vLy9vb2+vr6/v7/AwMDCwsLDw8PExMTFxcXGxsbH
+x8fIyMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW1tbX19fY2NjZ
+2dna2trb29vc3Nzd3d3e3t7f39/g4ODh4eHi4uLj4+Pk5OTl5eXm5ubn5+fo6Ojp6enr6+vs
+7Ozu7u7v7+/w8PDx8fHy8vLz8/P09PT19fX29vb39/f4+Pj5+fn6+vr7+/v8/Pz9/f3+/v7/
+AAD////9JDgwAAAACXBIWXMAABJ0AAASdAHeZh94AAAZKUlEQVR4nO3d/2Nd9X3f8Y8RBmOK
+45Ql2MamqWmInULwWGKbEAfKhpEJsIYZXPMlaxIKNF23tM1CiAOhbdL027asIcuajWVtN9qt
+i12cNuSLvULKYA40JcsycGIcSMDGX+T7L0y6so0tS0ey9PI5OtePxw/3nuv70T3ve66eSLq6
+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
+pe75paftTY5QY0ibyq2Dpz/X1C9kO4dDamaQgTedtfPQdkOHYuC82U8Onn22rG320Rh++rup
+CS6a9ZXB0z8c+mVacIQaQxpYXX7mI5eXNfXtcaSDITUzyDPl7CuHfb+xQ/HQjFnvvmtVmb+9
+2UdjOKSmJvjqrFP/8Z3vKBc8Hx2hztfa7frYijkrmnzR6sGQmhlk0+EfD77b3KF4ZPXCMy/+
+YPcrY4OPxnBIjU3w1z+7cPYld7+cHcHbKCBASBAgJAgQEgQICQKEBAFCggAhQYCQIEBIECAk
+CBASBAgJAoQEAUKCACFBgJAgQEgQICQIEBIECAkChAQBQoIAIUGAkCBASBAgJAgQEgQICQKE
+BAFCggAhQYCQIEBIECAkCBASBAgJAoTUJvPe9+TNixbd8PTQ9g8+8JYfu+TXuv9v7s8vn3v2
+O/+82dFOdkJqk3mXz731wU+97jVbOp1n31Auu/2t5ad/2Ol8opyz7tY5fV9qerqTmpDaZF75
+F4OnT8+6otO5vfz+4OY95b5O5/Vv3NXpfLm8t+HhTm5CapN5p35v6Oz95Zt7Zr5laOuVBfM7
+e/p+al+nM7D1qWZnO8kJqU3mnd89+4Py0FPll7qbP1t+1Fldlnzqf+5rci6E1CrzVnTP/rj8
+283l17ubv1i+2fnBP3ttKWf/4o4mJzvpCalN5v1E9+z3y3899BXphvLC4OnezR9fWi4ZaHCy
+k56Q2mTeKX87dNZftu05ddnQ1p6F53S+9cm/HNp8Z/lOk6Od7ITUJvPKu17pdP5jeWen877y
+6cF/2FA2dJ4qKwd/QNq38rRdTY93MhNSm8xb+OMXvO9nZrxma6fz/84rV9y1Yuj3SANXlWW/
+/HOLyq80Pd1JTUhtMu/yp6+bd+67u69s2HnnhWf+/Q8NvbJh54cvmH32is/ub3i4k5uQ2mTe
+5U1PwBiE1CZCmraE1CZCmraE1CZCmraEBAFCggAhQYCQIEBIECAkCBASBAgJAoQEAUKCACFB
+gJAgQEgQICQIEBIECAkChAQBQoIAIUGAkCBASBAgJAgQEgQICQKEBAFCggAhQcD/B/svi16G
+X519AAAAAElFTkSuQmCC"
 width=420
 height=420
 >

@@ -14,8 +14,9 @@ msusie_rss(
   prior_weights = NULL,
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
-  estimate_prior_method = "simple",
+  estimate_prior_method = "EM",
   check_null_threshold = 0,
+  prior_tol = 1e-09,
   compute_objective = FALSE,
   precompute_covariances = FALSE,
   s_init = NULL,
@@ -48,7 +49,11 @@ msusie_rss(
 \item{estimate_prior_method}{the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.}
 
 \item{check_null_threshold}{when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
-using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. Default is 0.}
+using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. When used with "EM" method
+setting \code{check_null_threshold=NA} will skip the check and instead relying solely on EM to update this parameter.}
+
+\item{prior_tol}{when prior variance is estimated, compare the estimated value to this tol at the end of
+the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.}
 
 \item{s_init}{a previous susie fit with which to initialize}
 
