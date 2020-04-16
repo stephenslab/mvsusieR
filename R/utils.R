@@ -63,10 +63,10 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
       b1 = aperm(abind::abind(m$posterior_b1,along=3), c(3,1,2))
       b2 = aperm(abind::abind(m$posterior_b2,along=3), c(3,1,2))
       if (dim(b1)[1] == 1) {
-        # single effect
+        # only one effect specified or left
         b = do.call(cbind, lapply(1:dim(b1)[3], function(i) b1[,,i]))
       } else {
-        # multiple effect dimension fix
+        # multiple effects
         b = do.call(cbind, lapply(1:dim(b1)[3], function(i) colSums(b1[,,i])))
       }
       if (dim(b)[2] == 1) {
