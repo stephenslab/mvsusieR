@@ -1,6 +1,5 @@
 #' @title Multiviate regression object
 #' @importFrom R6 R6Class
-#' @importFrom MASS ginv
 #' @keywords internal
 BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
@@ -79,13 +78,14 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       lV = optim(par=0, fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em_direct_inv = function(pip) {
+    estimate_prior_variance_em_direct_inv = function(pip, inv_function = invert_via_chol) {
       # Update directly using inverse of prior matrix
       # This is very similar to updating the univariate case via EM,
       # \sigma_0^2 = \mathrm{tr}(S_0^{-1} E[bb^T])/r
       # where S_0 is prior variance, E[bb^T] is 2nd moment of SER effect:
       # that is, E[bb^T] = \sum_j alpha_j * b_jb_j^T where b_j is posterior of j
       # Recall in univariate case it is \sigma_0^2 = E[bb^T] directly
+      if (is.null(private$.prior_variance_inv)) private$.prior_variance_inv = inv_function(private$.prior_variance)
       if (length(dim(private$.posterior_b2)) == 3) {
         # when R > 1
         mu2 = Reduce("+", lapply(1:length(pip), function(j) pip[j] * private$.posterior_b2[,,j]))
@@ -95,27 +95,29 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         if (ncol(private$.posterior_b2) != 1) stop("Data dimension is incorrect for posterior_b2")
         mu2 = matrix(sum(pip * private$.posterior_b2[,1]), 1,1)
       }
-      if (is.null(private$.prior_variance_inv)) private$.prior_variance_inv = ginv(private$.prior_variance)
       V = sum(diag(private$.prior_variance_inv %*% mu2)) / nrow(private$.prior_variance)
       return(V)
     },
     estimate_prior_variance_em_inv_safe = function(pip) {
       # Instead of computing S_0^{-1} and E[bb^T] we compute them as one quantity to avoid explicit inverse
       # We need S_inv a J vector of R by R matrices (private$cache$s), bhat a J by R vector (private$cache$b),
-      # the original prior matrix U (private$.prior_variance)
+      # the original prior matrix S_0 (private$.prior_variance)
       # and the scalar from previous update (private$prior_variance_scale)
+      # U = \sigma_0 S_0
       U = private$prior_variance_scale * private$.prior_variance
       S_inv = lapply(1:private$J, function(j) invert_via_chol(private$cache$s[[j]]))
-      bbt = lapply(1:private$J, function(j) tcrossprod(private$cache$b[j,]))
-      si_SU_inv = lapply(1:private$J, function(j) private$prior_variance_scale * solve(diag(nrow(private$.prior_variance)) + S_inv[[j]] %*% U))
-      ebb_U = lapply(1:private$J, function(j) si_SU_inv[[j]] %*% S_inv[[j]] %*% bbt[[j]] %*% S_inv[[j]] %*% si_SU_inv[[j]] %*% private$.prior_variance + si_SU_inv[[j]])
-      V = sum(diag(Reduce("+", lapply(1:private$J, function(j) pip[j] * ebb_U[[j]])))) / nrow(private$.prior_variance)
+      # posterior covariance pre-multipled by U^{-1}
+      post_cov_U = lapply(1:private$J, function(j) solve(diag(nrow(U)) + S_inv[[j]] %*% U))
+      # posterior first moment pre-multipled by U^{-1}
+      post_b1_U = lapply(1:private$J, function(j) post_cov_U[[j]] %*% (S_inv[[j]] %*% private$cache$b[j,]))
+      # posterior 2nd moment pre-multiplied by S_0^{-1}
+      b2_U = lapply(1:private$J, function(j) private$prior_variance_scale * (tcrossprod(post_b1_U[[j]]) %*% U + post_cov_U[[j]]))
+      V = sum(diag(Reduce("+", lapply(1:private$J, function(j) pip[j] * b2_U[[j]])))) / nrow(U)
       return(V)
     },
     estimate_prior_variance_em = function(pip) {
       tryCatch({
-          tmp = chol(private$.prior_variance)
-          return(private$estimate_prior_variance_em_direct_inv(pip))
+          return(private$estimate_prior_variance_em_direct_inv(pip, inv_function = invert_via_chol))
         },
         error = function(e) {
           return(private$estimate_prior_variance_em_inv_safe(pip))
