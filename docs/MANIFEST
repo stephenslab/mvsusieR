@@ -6,6 +6,7 @@ docs/prototypes/Multivariate_Computation_Compared_Univariate.html
 docs/prototypes/elbo_implementation.html
 docs/prototypes/elbo_prior_est.html
 docs/prototypes/em_inv_prior_est.html
+docs/prototypes/em_optim_est_prior.html
 docs/prototypes/lfsr_for_CS.html
 docs/prototypes/marginal_stats_compare.html
 docs/prototypes/mash_compare_simple_multivariate.html
