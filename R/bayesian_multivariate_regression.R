@@ -80,6 +80,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       return(exp(lV))
     },
     estimate_prior_variance_em = function(pip) {
+      # Update directly using inverse of prior matrix
       # This is very similar to updating the univariate case via EM,
       # \sigma_0^2 = \mathrm{tr}(S_0^{-1} E[bb^T])/r
       # where S_0 is prior variance, E[bb^T] is 2nd moment of SER effect:
@@ -96,6 +97,19 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       }
       if (is.null(private$.prior_variance_inv)) private$.prior_variance_inv = ginv(private$.prior_variance)
       V = sum(diag(private$.prior_variance_inv %*% mu2)) / nrow(private$.prior_variance)
+      return(V)
+    },
+    estimate_prior_variance_em_inv_safe = function(pip) {
+      # Instead of computing S_0^{-1} and E[bb^T] we compute them as one quantity to avoid explicit inverse
+      # We need S_inv a J vector of R by R matrices (private$cache$s), bhat a J by R vector (private$cache$b),
+      # the original prior matrix U (private$.prior_variance)
+      # and the scalar from previous update (private$prior_variance_scale)
+      U = private$prior_variance_scale * private$.prior_variance
+      S_inv = lapply(1:private$J, function(j) invert_via_chol(private$cache$s[[j]]))
+      bbt = lapply(1:private$J, function(j) tcrossprod(private$cache$b[j,]))
+      si_SU_inv = lapply(1:private$J, function(j) private$prior_variance_scale * solve(diag(nrow(private$.prior_variance)) + S_inv[[j]] %*% U))
+      ebb_U = lapply(1:private$J, function(j) si_SU_inv[[j]] %*% S_inv[[j]] %*% bbt[[j]] %*% S_inv[[j]] %*% si_SU_inv[[j]] %*% private$.prior_variance + si_SU_inv[[j]])
+      V = sum(diag(Reduce("+", lapply(1:private$J, function(j) pip[j] * ebb_U[[j]])))) / nrow(private$.prior_variance)
       return(V)
     },
     estimate_prior_variance_simple = function() 1
