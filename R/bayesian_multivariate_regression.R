@@ -79,7 +79,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       lV = optim(par=0, fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em = function(pip) {
+    estimate_prior_variance_em_direct_inv = function(pip) {
       # Update directly using inverse of prior matrix
       # This is very similar to updating the univariate case via EM,
       # \sigma_0^2 = \mathrm{tr}(S_0^{-1} E[bb^T])/r
@@ -111,6 +111,15 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       ebb_U = lapply(1:private$J, function(j) si_SU_inv[[j]] %*% S_inv[[j]] %*% bbt[[j]] %*% S_inv[[j]] %*% si_SU_inv[[j]] %*% private$.prior_variance + si_SU_inv[[j]])
       V = sum(diag(Reduce("+", lapply(1:private$J, function(j) pip[j] * ebb_U[[j]])))) / nrow(private$.prior_variance)
       return(V)
+    },
+    estimate_prior_variance_em = function(pip) {
+      tryCatch({
+          tmp = chol(private$.prior_variance)
+          return(private$estimate_prior_variance_em_direct_inv(pip))
+        },
+        error = function(e) {
+          return(private$estimate_prior_variance_em_inv_safe(pip))
+        })
     },
     estimate_prior_variance_simple = function() 1
   )
