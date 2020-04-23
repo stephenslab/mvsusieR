@@ -242,13 +242,154 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">dat</span> <span class="o">=</span> <span class="nf">readRDS</span><span class="p">(</span><span class="s">&#39;mnm_shared/lite_data_1_artificial_mixture_1_mnm_shared_1.rds&#39;</span><span class="p">)</span>
+<div class=" highlight hl-r"><pre><span></span><span class="n">dat</span> <span class="o">=</span> <span class="nf">readRDS</span><span class="p">(</span><span class="s">&#39;lite_data_1_artificial_mixture_1_mnm_shared_1.rds&#39;</span><span class="p">)</span>
 </pre></div>
 
     </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="c1">## r script UUID: 14676992</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">mmbr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">flashier</span><span class="p">)</span>
+<span class="n">DSC_A8484812</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">()</span>
+<span class="n">DSC_A8484812</span> <span class="o">&lt;-</span> <span class="n">dscrutils</span><span class="o">:::</span><span class="nf">load_inputs</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;lite_data_1.rds&#39;</span><span class="p">,</span><span class="s">&#39;lite_data_1_artificial_mixture_1.rds&#39;</span><span class="p">),</span> <span class="n">dscrutils</span><span class="o">:::</span><span class="n">read_dsc</span><span class="p">)</span>
+<span class="n">DSC_REPLICATE</span> <span class="o">&lt;-</span> <span class="n">DSC_A8484812</span><span class="o">$</span><span class="n">DSC_DEBUG</span><span class="o">$</span><span class="n">replicate</span>
+<span class="n">X</span> <span class="o">&lt;-</span> <span class="n">DSC_A8484812</span><span class="o">$</span><span class="n">X</span>
+<span class="n">Y</span> <span class="o">&lt;-</span> <span class="n">DSC_A8484812</span><span class="o">$</span><span class="n">Y</span>
+<span class="n">meta</span> <span class="o">&lt;-</span> <span class="n">DSC_A8484812</span><span class="o">$</span><span class="n">meta</span>
+<span class="n">eff_mode</span> <span class="o">&lt;-</span> <span class="s">&#39;shared&#39;</span>
+<span class="n">L</span> <span class="o">&lt;-</span> <span class="m">10</span>
+<span class="n">resid_method</span> <span class="o">&lt;-</span> <span class="s">&#39;oracle&#39;</span>
+<span class="n">TIC_A8484812</span> <span class="o">&lt;-</span> <span class="nf">proc.time</span><span class="p">()</span>
+<span class="nf">set.seed</span><span class="p">(</span><span class="n">DSC_REPLICATE</span><span class="p">)</span>
+
+<span class="c1">## BEGIN DSC CORE</span>
+<span class="n">get_center</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nf">if </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">k</span><span class="p">))</span> <span class="p">{</span>
+      <span class="nf">return</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="n">n</span><span class="p">)</span>
+  <span class="p">}</span>
+  <span class="n">start</span> <span class="o">=</span> <span class="nf">floor</span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="m">2</span> <span class="o">-</span> <span class="n">k</span><span class="o">/</span><span class="m">2</span><span class="p">)</span>
+  <span class="n">end</span> <span class="o">=</span> <span class="nf">floor</span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="m">2</span> <span class="o">+</span> <span class="n">k</span><span class="o">/</span><span class="m">2</span><span class="p">)</span>
+  <span class="nf">if </span><span class="p">(</span><span class="n">start</span><span class="o">&lt;</span><span class="m">1</span><span class="p">)</span> <span class="n">start</span> <span class="o">=</span> <span class="m">1</span>
+  <span class="nf">if </span><span class="p">(</span><span class="n">end</span><span class="o">&gt;</span><span class="n">n</span><span class="p">)</span> <span class="n">end</span> <span class="o">=</span> <span class="n">n</span>
+  <span class="nf">return</span><span class="p">(</span><span class="n">start</span><span class="o">:</span><span class="n">end</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">center_scale</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="nf">return</span><span class="p">(</span><span class="n">susieR</span><span class="o">:::</span><span class="nf">set_X_attributes</span><span class="p">(</span><span class="nf">as.matrix</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">center</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">,</span> <span class="n">scale</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">))</span>
+<span class="n">subset_N</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="n">N_sub</span><span class="p">){</span>
+    <span class="nf">if</span><span class="p">(</span><span class="o">!</span><span class="nf">is.null</span><span class="p">(</span><span class="n">N_sub</span><span class="p">)){</span>
+        <span class="n">Ntot</span> <span class="o">&lt;-</span> <span class="nf">nrow</span><span class="p">(</span><span class="n">gene</span><span class="o">$</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">to_keep</span> <span class="o">&lt;-</span> <span class="nf">sort</span><span class="p">(</span><span class="nf">sample</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="n">Ntot</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">N_sub</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">F</span><span class="p">))</span>
+        <span class="n">gene</span><span class="o">$</span><span class="n">X</span> <span class="o">&lt;-</span> <span class="n">gene</span><span class="o">$</span><span class="n">X</span><span class="p">[</span><span class="n">to_keep</span><span class="p">,</span> <span class="p">]</span>
+        <span class="n">gene</span><span class="o">$</span><span class="n">y</span> <span class="o">&lt;-</span> <span class="n">gene</span><span class="o">$</span><span class="n">y</span><span class="p">[</span><span class="n">to_keep</span><span class="p">]</span>
+        <span class="n">gene</span><span class="o">$</span><span class="n">Z</span> <span class="o">&lt;-</span> <span class="n">gene</span><span class="o">$</span><span class="n">Z</span><span class="p">[</span><span class="n">to_keep</span><span class="p">,</span> <span class="p">]</span>
+        <span class="nf">return</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
+    <span class="p">}</span> <span class="n">else</span> <span class="p">{</span> <span class="c1">###If we don&#39;t want to subset individuals</span>
+        <span class="nf">return</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">compute_cov_diag</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">Y</span><span class="p">){</span>
+    <span class="n">covar</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span> <span class="n">na.rm</span><span class="o">=</span><span class="bp">T</span><span class="p">))</span>
+    <span class="nf">return</span><span class="p">(</span><span class="n">covar</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">compute_cov_flash</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">Y</span><span class="p">){</span>
+    <span class="n">fl</span> <span class="o">&lt;-</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">flash</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">var.type</span> <span class="o">=</span> <span class="m">2</span><span class="p">,</span> <span class="n">prior.family</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal</span><span class="p">(),</span> <span class="n">flashier</span><span class="o">::</span><span class="nf">prior.normal.scale.mix</span><span class="p">()),</span> <span class="n">backfit</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">,</span> <span class="n">verbose.lvl</span><span class="o">=</span><span class="m">0</span><span class="p">)</span>
+    <span class="nf">if</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">n.factors</span><span class="o">==</span><span class="m">0</span><span class="p">){</span>
+      <span class="n">covar</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">residuals.sd</span><span class="o">^</span><span class="m">2</span><span class="p">)</span>
+    <span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+      <span class="n">fsd</span> <span class="o">&lt;-</span> <span class="nf">sapply</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">fitted.g</span><span class="p">[[</span><span class="m">1</span><span class="p">]],</span> <span class="s">&#39;[[&#39;</span><span class="p">,</span> <span class="s">&quot;sd&quot;</span><span class="p">)</span>
+      <span class="n">covar</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">residuals.sd</span><span class="o">^</span><span class="m">2</span><span class="p">)</span> <span class="o">+</span> <span class="nf">crossprod</span><span class="p">(</span><span class="nf">t</span><span class="p">(</span><span class="n">fl</span><span class="o">$</span><span class="n">flash.fit</span><span class="o">$</span><span class="n">EF</span><span class="p">[[</span><span class="m">2</span><span class="p">]])</span> <span class="o">*</span> <span class="n">fsd</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">s</span> <span class="o">&lt;-</span> <span class="nf">diag</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">sd</span><span class="p">,</span> <span class="n">na.rm</span><span class="o">=</span><span class="bp">T</span><span class="p">))</span>
+    <span class="n">covar</span> <span class="o">&lt;-</span> <span class="n">s</span><span class="o">%*%</span><span class="nf">cov2cor</span><span class="p">(</span><span class="n">covar</span><span class="p">)</span><span class="o">%*%</span><span class="n">s</span>
+    <span class="nf">return</span><span class="p">(</span><span class="n">covar</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">create_missing</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">Y1</span><span class="p">,</span> <span class="n">Y0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nf">if </span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nf">ncol</span><span class="p">(</span><span class="n">Y1</span><span class="p">))</span> <span class="p">{</span>
+        <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y1</span><span class="p">)</span> <span class="o">-</span> <span class="nf">ncol</span><span class="p">(</span><span class="n">Y0</span><span class="p">)))</span> <span class="p">{</span>
+            <span class="n">Y0</span> <span class="o">=</span> <span class="nf">cbind</span><span class="p">(</span><span class="n">Y0</span><span class="p">,</span> <span class="nf">sample</span><span class="p">(</span><span class="n">Y0</span><span class="p">[,</span> <span class="nf">sample.int</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y0</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="m">1</span><span class="p">)]))</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="nf">if </span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nf">ncol</span><span class="p">(</span><span class="n">Y1</span><span class="p">))</span> <span class="n">Y0</span> <span class="o">=</span> <span class="n">Y0</span><span class="p">[,</span><span class="nf">sample</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y1</span><span class="p">))]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">Y1</span>
+    <span class="n">res</span><span class="p">[</span><span class="nf">which</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Y0</span><span class="p">))]</span> <span class="o">=</span> <span class="kc">NA</span>
+    <span class="n">na_rows</span> <span class="o">=</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="nf">all</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">x</span><span class="p">))))</span>
+    <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="n">na_rows</span><span class="p">)</span> <span class="p">{</span>
+	    <span class="n">non_na</span> <span class="o">=</span> <span class="nf">sample.int</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">res</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="m">1</span><span class="p">)</span>
+        <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">non_na</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y1</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">non_na</span><span class="p">]</span>
+    <span class="p">}</span>
+    <span class="nf">return</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">compute_maf</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+   <span class="n">f</span> <span class="o">&lt;-</span> <span class="nf">mean</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span><span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span><span class="o">/</span><span class="m">2</span>
+   <span class="nf">return</span><span class="p">(</span><span class="nf">min</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="m">1</span><span class="o">-</span><span class="n">f</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="n">compute_missing</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+  <span class="n">miss</span> <span class="o">&lt;-</span> <span class="nf">sum</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">geno</span><span class="p">))</span><span class="o">/</span><span class="nf">length</span><span class="p">(</span><span class="n">geno</span><span class="p">)</span>
+  <span class="nf">return</span><span class="p">(</span><span class="n">miss</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">mean_impute</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">geno</span><span class="p">){</span>
+  <span class="n">f</span> <span class="o">&lt;-</span> <span class="nf">apply</span><span class="p">(</span><span class="n">geno</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="nf">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">))</span>
+  <span class="nf">for </span><span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="m">1</span><span class="o">:</span><span class="nf">length</span><span class="p">(</span><span class="n">f</span><span class="p">))</span> <span class="n">geno</span><span class="p">[,</span><span class="n">i</span><span class="p">][</span><span class="nf">which</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">geno</span><span class="p">[,</span><span class="n">i</span><span class="p">]))]</span> <span class="o">&lt;-</span> <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+  <span class="nf">return</span><span class="p">(</span><span class="n">geno</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">is_zero_variance</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="nf">unique</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">==</span><span class="m">1</span><span class="p">)</span> <span class="nf">return</span><span class="p">(</span><span class="bp">T</span><span class="p">)</span>
+  <span class="n">else</span> <span class="nf">return</span><span class="p">(</span><span class="bp">F</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="n">filter_X</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">missing_rate_thresh</span><span class="p">,</span> <span class="n">maf_thresh</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">compute_missing</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">missing_rate_thresh</span><span class="p">)</span>
+    <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X</span><span class="p">[,</span> <span class="o">-</span><span class="n">rm_col</span><span class="p">]</span>
+    <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">compute_maf</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">maf_thresh</span><span class="p">)</span>
+    <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X</span><span class="p">[,</span> <span class="o">-</span><span class="n">rm_col</span><span class="p">]</span>
+    <span class="n">rm_col</span> <span class="o">&lt;-</span> <span class="nf">which</span><span class="p">(</span><span class="nf">apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="n">is_zero_variance</span><span class="p">))</span>
+    <span class="nf">if </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">rm_col</span><span class="p">))</span> <span class="n">X</span> <span class="o">&lt;-</span> <span class="n">X</span><span class="p">[,</span> <span class="o">-</span><span class="n">rm_col</span><span class="p">]</span>
+    <span class="nf">return</span><span class="p">(</span><span class="nf">mean_impute</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="n">prior</span> <span class="o">=</span> <span class="n">meta</span><span class="o">$</span><span class="n">prior</span><span class="p">[[</span><span class="n">eff_mode</span><span class="p">]]</span>
+<span class="nf">if </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">prior</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">prior</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">xUlist</span> <span class="o">=</span> <span class="n">mmbr</span><span class="o">:::</span><span class="nf">create_cov_canonical</span><span class="p">(</span><span class="nf">ncol</span><span class="p">(</span><span class="n">Y</span><span class="p">)))</span>
+<span class="p">}</span>
+<span class="nf">if </span><span class="p">(</span><span class="n">resid_method</span> <span class="o">==</span> <span class="s">&#39;flash&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">resid_Y</span> <span class="o">&lt;-</span> <span class="nf">compute_cov_flash</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+<span class="p">}</span> <span class="n">else</span> <span class="nf">if </span><span class="p">(</span><span class="n">resid_method</span> <span class="o">==</span> <span class="s">&#39;diag&#39;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">resid_Y</span> <span class="o">&lt;-</span> <span class="nf">compute_cov_diag</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+<span class="p">}</span> <span class="n">else</span> <span class="p">{</span>
+    <span class="n">resid_Y</span> <span class="o">&lt;-</span> <span class="n">meta</span><span class="o">$</span><span class="n">residual_variance</span>
+<span class="p">}</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading required package: mashr
+
+Loading required package: ashr
+
+</pre>
+</div>
+</div>
+
 </div>
 </div>
 
@@ -270,10 +411,11 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-r"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">prior_variance</span><span class="o">=</span><span class="nf">matrix</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">50</span><span class="p">),</span> <span class="n">residual_variance</span><span class="o">=</span><span class="n">resid_Y</span><span class="p">,</span> <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> 
+<div class=" highlight hl-r"><pre><span></span><span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&#39;~/GIT/software/mmbr&#39;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">prior_variance</span><span class="o">=</span><span class="nf">matrix</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">50</span><span class="p">),</span> <span class="n">residual_variance</span><span class="o">=</span><span class="n">resid_Y</span><span class="p">,</span> <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> 
                 <span class="n">estimate_prior_method</span><span class="o">=</span><span class="s">&#39;EM&#39;</span><span class="p">,</span> <span class="n">track_fit</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">precompute_covariances</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
 </pre></div>
 
@@ -303,7 +445,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">V</span>
@@ -329,7 +471,7 @@ body {
 .list-inline>li {display: inline-block}
 .list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
 </style>
-<ol class=list-inline><li>0.133190373851</li><li>0.13312172574107</li><li>0.132797850056606</li><li>0.132659898296642</li><li>0.132633838190898</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+<ol class=list-inline><li>0.133190141967517</li><li>0.133122023124095</li><li>0.132797959361328</li><li>0.132660010456815</li><li>0.132633887742004</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
 
 </div>
 
@@ -349,7 +491,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="nf">which</span><span class="p">(</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">)</span> <span class="o">!=</span> <span class="m">0</span><span class="p">)</span>
@@ -395,7 +537,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">))</span>
@@ -418,331 +560,775 @@ body {
 
 <div class="output_png output_subarea ">
 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA0gAAANICAIAAAByhViMAAAACXBIWXMAABJ0AAASdAHeZh94
-AAAgAElEQVR4nOzde3xU9Z34/8/kDgJyM2iEgKhIiQqiFlRKAa0EZUtZLdUtX9zqflfavbS/
-fndFXe0FbWlLu2672wt2e3G31uJla4sBliISrYJRCyoEFEVBLgoGwj3Xmd8fg5RyiYCQyXz6
-fP7jmTlnJu88jpO8OGfOJJFKpQIAANkvJ9MDAABwfAg7AIBICDsAgEgIOwCASAg7AIBICDsA
-gEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7
-AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgI
-OwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBI
-CDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCA
-SAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsA
-gEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7
-AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgI
-OwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBI
-CDsAgEgIOwCASAg7AIBICDsAgEjkZXqA7PDiiy82NTVlegoAoE3Iy8sbOHBgpqc4BGH3/p5/
-/vmLL74401MAAG3Ic889d9FFF2V6igMJu/fX0NAQQqivry8oKMj0LABAhjU0NBQWFqbzoK3x
-HjsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEhka9ilUqmampqNGzcmk8lMzwIA
-0CZkWdhVVlZOnDixZ8+ehYWF3bt3LykpKSgo6NWr13XXXVdZWZnp6QAAMilr/vJEXV3d+PHj
-586dG0IoKSkZPHhwt27dQghbtmxZv379zJkzZ86cOXbs2IcffriwsDDTwwIAZEDWhN20adPm
-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
-Vq1aNWnSpAULFpSXl7f+bAAAbUHWXDwxZcqUqqqqioqKioqK0tLS0tLSrl27JhKJrVu3rlu3
-bvXq1SGEMWPGTJkyJdOTAgBkRtaEXVFRUUVFxcKFC++9996FCxcuWrQofVo2Nze3uLh4woQJ
-N99886hRozI9JgBAxmRN2KWNGDFixIgRIYRkMrl58+ZUKlVcXJyTkzUnlAEATpwsC7t9cnJy
-evTokekpAADaEMe6AAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAA
-IiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewA
-ACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHs
-AAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh
-7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAi
-IewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAA
-IiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewA
-ACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHsAAAiIewAACIh7AAAIiHs
-AAAiIewAACKR9WG3adOmF154YefOnZkeBAAgw7Ip7NasWfOZz3zmu9/9bvrmokWLzjvvvB49
-elx00UWdOnUaM2bMmjVrMjshAEAG5WV6gCP12muvDR06tKamZvr06SGEFStWjBw5srGxcfTo
-0X379l2xYsXcuXM//OEPV1dXd+vWLdPDAgBkQNaE3W233VZbW/voo4+OGzcuhHD77bc3NTXN
-nz9/5MiR6Q0eeeSRa6+99ktf+tL3v//9jE4KAJAZWXMq9qmnnho7dmy66kIIzz33XHl5+b6q
-CyFcc801V1xxxcKFCzMzHwBApmVN2O3cubNDhw77bjY2Np522mkHbNO3b9+33nqrdecCAGgr
-sibszjvvvAULFmzbti19c8iQIc8///z+GySTyWeeeea8887LxHQAAJmXNWH3xS9+cePGjVde
-eeWiRYtCCHfdddfrr7/+5S9/OZlMhhDq6uo+//nPL1u2bNSoUZmeFAAgM7Lm4olPfvKTX/va
-17785S9feumlvXr16tOnT3Fx8dSpU3/4wx/27t371Vdf3b59+2WXXXbrrbdmelIAgMzImiN2
-IYTbb7/9zTffvPPOOzt06LB06dLXX389hLB58+bVq1cPGTLkf/7nfyorK0866aRMjwkAkBlZ
-c8Qu7fTTT586derUqVNDCDt27KitrS0uLi4sLMz0XABkzKtLn9ny7P2n1DzVuemd5pBXU9C7
-tueVfUd+psfpvV9b9sK7i/6r++bKLk1vJxM5W/J7bSn5WO+P/nVJ77NaeMK3Vq9Y9+R93d5+
-vEvDukQIW/NOq+kxssdlk87oP7DVvik4NolUKpXpGdq6GTNmTJ48eceOHftflgtAxm3dsvnN
-n994wfbHDl5VHwo35vft3bgyEQ78NdcYCl7o+dmLbpiel59/wKqG+volP//8hRt/kheaDliV
-DDnPd//0uX/9/fYdOh7Hb4Fs1NDQUFhY+PTTT1966aWZnuVA2XQqFgD2eXv9m7t/MOSQVRdC
-KAz1fRpXHFx1IYT80DB03XdX/tuV9XV79r9/966dq+8ZMWTjjIOrLoSQE5Iffve/N37vsm1b
-a47L/HAiZNmp2BbU1tamP694yZIlR/6oN954Y8iQIU1Nh3gN71NfXx9CcGgToO2or9uz676P
-n9n0RvrmyqKhO8pu6tTzQ8lk07aVTw1edVdBaEivqskpfn3gVzv1OjeVTG57/dmer/6oZ/Pq
-EMK5uxY+95//9+K//8W+51x578TBdYvTy2vz+m04Z/LJZ1yYyMnZtmZp9xX3ntnwcgjhzIaX
-l/34kx3/aX5OjiMjtEXxnIqtqanp3r17OMoCSyaTTz75ZMth99hjj333u991Khag7Vj8wLSh
-r9y+d7n/Ny65/o8fifAP11zyvXMX7buZTOUM+Z8zn1+2Kn2zob5+6Yy/vrjmgfTN6qsXDLh4
-ZAjhpSdnnb/g4+k7q4pvHPy3M/Y/UZtsbq762T8Nfeue9M3nh9x30ZhJJ+p7o81ry6di4zli
-16lTp/nz5x/to3JyckaMGNHyNunLbwFoI5LJ5FmrvpdeXnza5/avuhDCFwasTy9sT3TulKrN
-SST/+Yqun1q2d21BYWFjY+PKb6/uX/dsCKHhyW+Hi0eGEHIXfye9wbL2Iz/8dz8Nf/fT/Z8z
-Jzd3aAh/+Ndxg7f9JoTQZcl3grCjTYrnSHJ+fv7ll19++eWXZ3oQAE6s115+tnvy7RBCYyj4
-0ISp+68acFZp35y1IYRkyFlx/tfTd44+eeX+Z07z8/Obhu99VP+dC+rr9uzcVnvO7qf3rv3Y
-XYf7uqeMm5ZeOLPhpXfWrzlu3w8cP9kadqlUqqamZuPGjem/PAHAn4/t619JL7xedEHnrt33
-X/Wh0r03VyV7n/exienlk8O2U7t3+ZPNhlzekCgMIRSl6jZtePOddavTF0zsSHTqN+iwJ9d6
-9f3QxtzS9PLmNa8cn28GjqssC7vKysqJEyf27NmzsLCwe/fuJSUlBQUFvXr1uu666yorKzM9
-HQCtoXn33r8bXp/f+YBVJ5+0941xtU3tT+rYqSFRkL7ZudOffHx9bm7uztApvbxnR239ztr0
-8q6ckxOJxGG/cCKxK69rerFh99YP8i3ACZI177Grq6sbP3783LlzQwglJSWDBw/u1q1bCGHL
-li3r16+fOXPmzJkzx44d+/DDD/u8YoC45XUqTi+cXPfWAas2batLL/TM37Jp41sFP+qVvvn2
-5tr9N9u1Y/vJYUt6uWPXUxvqdqWXuzRvaqivLzjM1002N3e/a++Xbtfl1A/2TcAJkTVH7KZN
-mzZ37tzy8vIlS5asX79+8eLFFRUVFRUVixYtWrt27fLly6+//vrHHnts+vTpmZ4UgBPrtHMu
-Ti/0blzx5isv7b/q+ZXrmhO5IYTTExtf/+030ne+meq5Zdv2/TerfmJmbqo5hFCTU9zj9N4l
-vfvtSHQKIRSG+pcrHznc161e9L+dUzUhhMZQ0Ossf4WCtihrwm7evHn9+/efNWvWoEGDDl47
-YMCA+++/f/jw4XPmzGn92QBoTSW9z3qtYGAIIRFSux79XGNDw75Vb2+qWVQ3IL188YYZ6YVH
-N/be/+E172zos/RL6eXXTvl4Tk5OfkHByq5j0/ec9uy/bNvy7sFfdPeO7R0W/lN6ubrjyA4n
-H3gWGNqCrAm76urqIUOG5OUd9txxIpEYNmzYsmXLDrcBANHYOXRvmQ3Y/fvq747dvHHdvlVT
-33vHdW5oCiHsCh2+8esV+9a+Xr1k570jTkm+HUKoD4WlY/d+GF6PMf/SFPJCCCXNb9b84KNr
-Xn15/y+34c1Vb/3HFX0aq0MIqZBof8VXTtD3BR9Q1rzHrqysrKqqqrm5OTc393DbLF68uKys
-rDWnAiAjBo36y+eqJ1787i9CCOfvnLdnRr/n/+2ahq5lobmh06ZFYfcftywI9bNvv6K++3kh
-2dxh07O9H7wofRI2hLB04LeH9DojvVx61oDF/e8auvK2EELfxuVN91/w4vTRu4svCiFR9O7S
-c39WVvLen7J4tvc/Dx04tDW/WThyWRN2o0eP/spXvjJu3LhvfOMb55577gFrV61adddddy1Y
-sOCrX/1qRsYDoJUN/L//+cKP9ly49ZEQQrvU7gu3PhK2HuLtcfmhcfC2R8O2R/e/Mxlynj37
-y5eM//v97xx63a2Lfl479M1vJUIqLzQN3Pm/Yef/HvBsz546+cM3TDve3wocN1nzJ8Xq6uqu
-ueaa2bNnhxBKS0tLS0u7du2aSCS2bt26bt261atXhxDGjBnz61//+rhfFTtjxozJkyf7k2IA
-bU0qlXruNz/q+9LU9OcV729VwQXvllzZ961f9Ghef8CqN/LLdo769nmXlB/yOV+s/E3n30/p
-3Xjgx9RtyO2zccjXLrzyr47X8GSvtvwnxbIm7NIWLlx47733Lly4cNOmTc3NzSGE3Nzc4uLi
-j3zkIzfffPOoUaNOxBcVdgBtWUN9/cpn5+1+rTJ314ZUTkHzyX26n3/VWeddnEgkmhobV1bN
-3/nqE7k716cSuc0n9+l67uizB16y/x+iOFgymXxlyVO1y3+Xt31NSCWbOvbq2P/y/heNbOF9
-3vxZEXbHXzKZ3Lx5cyqVKi4ubvn1+cEJOwBgn7Ycdtn6j4+cnJwePXpkegoAgDYkaz7uBACA
-lgk7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsA
-gEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7
-AIBICDsAgEgIOwCASAg7AIBI5LWwrq6u7tVXX92wYUO/fv3OOOOMRCLRamMBAHC0DnvE7qc/
-/WlJScnAgQPHjBlz5plnDh06dPny5a05GQAAR+XQR+zmz59/0003hRCGDRt2+umnP/fcc1VV
-VVdfffXLL7/csWPH1p0QAIAjcugjdtOmTQshPPjgg0899dSvfvWrlStXXnvttWvWrPnlL3/Z
-uuMBAHCkDh121dXVgwcP/uQnP5m+mZ+fP3Xq1BDCiy++2HqjAQBwNA4ddm+//Xa/fv32v+fs
-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
+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
-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
-gEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7
-AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgI
-OwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBI
-CDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCASAg7AIBICDsAgEgIOwCA
-SAg7AIBICDsAgEjkZXoAALJbMhXmv9Y4e2XDsneaa3YlO7fLOaNrzuiz88eVFRTlJQ7e/sk3
-GitWNv5hfdOGHcmQCslUCCF0OynRp0vuFWflX3NuQcfCQzwKOBLCDoBjt+yd5n+q2LX8neZ9
-97y7u/m1mubfrWr8zlN1d49uf+XZ+ftWvbk1+cXHdj23rung59nZkFqzNVm5uvFfn9pz+8h2
-1w0sbI3pITpOxQJwjCpXN17z3zv2r7r9bdyR/JuHd/64qi59c+mGpr+4b/shq25/W/ek/nn2
-7rsW7DnOs8KfB0fsADgWr9c0T3501+7GVAghJxGu7l9wdf/80zvl1OxOVb7R+KsXG/Y0plIh
-3L1gT58uueeflnvjw7tq96QOeJJBp+V1PynxzJqm9PPsc++zdX065/yfwY7bwdERdgAci68+
-vmdnfSqE0LEw8eNrOgzrk//D/da+saV50oM73tiSTKbCnfN2Dy3N27wrGULITYTmVAghpJob
-tjw4+bGXHw0h5HY6tfukB/JLBoYQcnMSzclUCOHrC/dc1b+gW3vvt4Oj4FQsAEft1Xebn3i9
-Mb18z9iThvXJP2CDM7rm/vyTHQrzEiGE9duTv17WkL5/33G5bbO/tOflR9PLzdvffve+TyX3
-bA0hNCdT7fNDCGFnfeqXS+tP8PcBsRF2ABy1363aW3UDT8srP6fgkNuc2S1vwvl7VyVDCCF0
-bZ9IXwPbvG3Dzmd/uv/GzTs27Xx6Rti72d7fTfPe+yrAERJ2ABy11Vv2XjDx0b4tvaVnRN8/
-OZJX0nHvL5361ytD8sCrKOpWPZ5e2F6397je6zWHviwDOBxhB8BR29denYtaeg9cl3Z/sjbx
-3q3kntqDN07u3ppe2NWw98l31qeSB15uAbRE2AFw1LqftPfXx4btyRY2e6v2T9Y2vXcr9+Se
-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
+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
+AACORNgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC
+2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBE
+QtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEA
+RELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgB
+AERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELY
+AQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC
+2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBE
+QtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEA
+RELYAQBEIuvDrrGx8aWXXnrzzTczPQgAQIZlU9jt3r3761//+vjx4//6r/96yZIlIYRVq1aV
+lZUNGDDgzDPPPPvssysrKzM9IwBAxuRleoCjVVNTc+mll65atSp9s7y8fMGCBX/1V3+1efPm
+T33qUw0NDb/97W+HDx++atWq0tLSzI4KAJARWXPE7u677161atWXvvSldevWVVZW9unT57LL
+LtuwYcOzzz77i1/8YubMmU8++WRdXd3UqVMzPSkAQGZkTdjNnj378ssv//KXv9yzZ89LLrlk
+xowZ9fX111577Yc+9KH0BkOGDPnYxz72zDPPZHZOAIBMyZqwW7duXVlZ2f6b5513Xgihd+/e
+B25z1llnrV27toUHAwBoJbIm7EpLS6uqqvbfXLFiRQjhoIxbu3Ztr169WnoyAIDWIWvC7uqr
+r/79739/zz33vPPOO8uWLZs8eXJeXt6jjz766quvpjd44YUX5s6de+mll2Z2TgCATEmkUqlM
+z3BUampqBg8evD/j2rdvP2/evBtuuKGmpuYTn/hEQ0PDr3/962QyuXLlyoPOz35wM2bMmDx5
+8s6dO9u1a3dinxkAyDr19fWFhYVPP/30ZZddlulZDpY1H3fSqVOnF1544d57762srCwqKvri
+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
-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
-fX39XXfdddlll5188smXXXbZ1KlT6+vrMz0U76NXr16Jg9x55537NrBb26wf/vCHXbp0Ofj+
-991l9mnbcbid6IXZ9m3btu3//b//d/7553fo0KFfv36TJk16880399/AK7E1pDiRrr766hBC
-//79J02a1K9fvxDCmDFjMj0ULdm9e3cikSgpKRnxp37yk5/s28ZubZt27do1YMCAzp07H7zq
-fXeZfdpGHG4nemG2fbt27erbt28IYejQoZMnT77yyisTiUS7du2ef/75fdt4JbYCYXcCPfHE
-EyGEq6++uqmpKZVKNTY2jh49OoSwcOHCTI/GYb300kshhLvuuutwG9itbdD//u//fvOb3+zf
-v38I4eAmeN9dZp+2BS3vRC/Mtu9LX/pSCOGWW27Zd89jjz2Wk5Nz3nnnpW96JbYOYXcCXX/9
-9SGEl19+ed89f/jDH0IIEydOzOBUtOyRRx4JITz00EOH28BubYOKior2nYU4uAned5fZp21B
-yzvRC7Ptu+SSSwoLC3ft2rX/nVdccUUI4Z133kl5JbaWRCqV+sCnczm0008/PTc3d+3atQfc
-mUgk1q1bl6mpaNk3v/nNW2+9taqq6tVXX121atXpp59+ySWXnHvuufs2sFvboH3vwhk8ePCG
-DRu2bt26/9r33WX2aVvQ8k70wmz7Bg0adOqpp86dO3f/O6+++urZs2evXLnynHPO8UpsHXmZ
-HiBayWTynXfeueSSSw64v1evXn/4wx9SqVQikcjIYLRs1apVIYSrr7568+bN6XsSicTNN9/8
-ve99Lz8/325tmwoLC9MLOTkHXhD2vrsslUrZp21BCzsxeGFmg6VLlx5wzzvvvPP4448XFxef
-eeaZXomtxlWxJ8rmzZubm5u7du16wP3dunVrbGzcsmVLRqbifb366qshhI9+9KMvvvji9u3b
-n3rqqYsuuuhHP/rRt771rWC3ZqH33WX2aVbwwsw6r7zyyqWXXlpfX//1r389Ly/PK7HVCLsT
-JX2O+3D/wmhoaGjdcThSX/rSl2bPnv3ggw+ef/75HTt2HDZs2OzZs7t06TJt2rRkMmm3Zp33
-3WX2aVbwwswi27dvv/322y+44IJ169bdc889N910U/BKbEVOxZ4oxcXFubm5B7xNJISwZcuW
-3NzcHj16ZGQq3lf6rb776969+6hRox555JHXXnvtrLPOsluzy5G8Eu3Tts8LM1v89re//exn
-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
+kRB2AACREHYAAJEQdgAAkRB2AACREHYAAJEQdgAAkRB2AACREHYAAJEQdgAAkRB2AACREHYA
+AJEQdgAAkRB2AACREHYAAJEQdgAAkRB2AACREHYAAJEQdgAAkRB2AACREHYAAJEQdgAAkRB2
+AACREHYAAJHI+rDbvHnzCy+8sGvXrkwPAgCQYdkUdmvXrv30pz/9ne98J31z8eLF559/fvfu
+3S+++OIOHTqMGTNm7dq1mZ0QACCD8jI9wNF67bXXhgwZUl1dPX369BDCypUrR4wY0dDQMGrU
+qD59+qxcuXLu3Lkf/vCHq6qqunbtmulhAQAyIGvC7rbbbqupqXnsscfGjRsXQrj99tsbGxvn
+z58/YsSI9AaPPvroddddd9ddd33ve9/L6KQAAJmRNadin3rqqbFjx6arLoTw3HPPjR49en/V
+hRCuvfbaK6+8cuHChZmZDwAg07Im7Hbt2tWuXbv9NxsaGk4//fSDtunTp89bb73VsnMBALQW
+WRN2559//oIFC7Zv356+OXjw4Oeff/7ADZLJ5DPPPHP++ednYjoAgMzLmrD74he/uGnTpquu
+umrx4sUhhLvvvvv111//0pe+lEwmQwi1tbWf//znly9fPnLkyExPCgCQGVlz8cQnP/nJr371
+q1/60pcuu+yynj179u7du7i4eOrUqT/4wQ969er16quv7tix4/LLL7/11lszPSkAQGZkzRG7
+EMLtt9/+5ptv3nnnne3atVu2bNnrr78eQtiyZcuaNWsGDx78P//zPxUVFaecckqmxwQAyIys
+OWKXdsYZZ0ydOnXq1KkhhJ07d9bU1BQXFxcWFmZ6LgAy5tVlz2x99oFTq5/q1PhOU8irLuhV
+0+OqPiM+3f2MXq8tf+Hdxf/VbUtF58a3k4mcrfk9t5Z8rNdH/6ak19nNPOFba1auX3R/17ef
+6Fy/PhHCtrzTq7uP6H75pDP7DWixbwqOTyKVSmV6htZuxowZkydP3rlz54GX5QKQcdu2bnnz
+55+5cMfjh66qC4Wb8vv0aliVCAf/mmsIBS/0+OzFN07Py88/aFV9Xd3Sn3/+ok0/yQuNB61K
+hpznu33qvL/5Xtt27U/gt0A2qq+vLywsfPrppy+77LJMz3KwbDoVCwD7vb3hzT3fH3zYqgsh
+FIa63g0rD626EEJ+qB+y/jur/v2qutq9B96/Z/euNfcOH7xpxqFVF0LICckPv/vfm757+fZt
+1SdkfjgZsuxUbDNqamrSn1e8dOnSo3/UG2+8MXjw4MbGw7yG96urqwshOLQJ0HrU1e7dff/H
+z2p8I31zVdGQnWU3dejxoWSycfuqpwatvrsg1KdXVecUvz7gKx16npdKJre//myPV3/Yo2lN
+COG83Quf+/H/veQffrH/OVfdN3FQ7ZL08rq8vhvPndzxzIsSOTnb1y7rtvK+s+pfDiGcVf/y
+8h99sv0/z8/JcWSE1iieU7HV1dXdunULx1hgyWRy0aJFzYfd448//p3vfMepWIDWY8mD04a8
+cvu+5X5fv/SGP34kwj9ee+l3z1u8/2YylTP4f856fvnq9M36urplM/7mkuoH0zerrlnQ/5IR
+IYSXFs26YMHH03dWFn9m0N/NOPBEbbKpqfJn/zzkrXvTN58ffP/FYyadrO+NVq81n4qN54hd
+hw4d5s+ff6yPysnJGT58ePPbpC+/BaCVSCaTZ6/+bnp5yemfO7DqQghf6L8hvbAj0alDqiYn
+kfyXK7v81fJ9awsKCxsaGlZ9a02/2mdDCPWLvhUuGRFCyF3y7fQGy9uO+PDf/zT8/U8PfM6c
+3NwhIfzh38YN2v6bEELnpd8Owo5WKZ4jyfn5+VdcccUVV1yR6UEAOLlee/nZbsm3QwgNoeBD
+E6YeuKr/2aV9ctaFEJIhZ+UFX0vfOarjqgPPnObn5zcO2/eofrsW1NXu3bW95tw9T+9b+7G7
+j/R1Tx03Lb1wVv1L72xYe8K+HzhxsjXsUqlUdXX1pk2b0n95AoA/Hzs2vJJeeL3owk5duh24
+6kOl+26uTvY6/2MT08sdw/bTunX+k80GX1GfKAwhFKVqN2988531a9IXTOxMdOg78Ign13r2
++dCm3NL08pa1r5yYbwZOqCwLu4qKiokTJ/bo0aOwsLBbt24lJSUFBQU9e/a8/vrrKyoqMj0d
+AC2hac++vxtel9/poFUdT9n3xriaxrantO9QnyhI3+zU4U8+vj43N3dX6JBe3ruzpm5XTXp5
+d07HRCJxxC+cSOzO65JerN+z7YN8C3CSZM177Gpra8ePHz937twQQklJyaBBg7p27RpC2Lp1
+64YNG2bOnDlz5syxY8c+8sgjPq8YIG55HYrTCx1r3zpo1ebttemFHvlbN296q+CHPdM3395S
+c+Bmu3fu6Bi2ppfbdzmtvnZ3erlz0+b6urqCI3zdZFNTt7v3fek2nU/7YN8EnBRZc8Ru2rRp
+c+fOHT169NKlSzds2LBkyZLy8vLy8vLFixevW7duxYoVN9xww+OPPz59+vRMTwrAyXX6uZek
+F3o1rHzzlZcOXPX8qvVNidwQwhmJTa//9uvpO99M9di6fceBm1U9OTM31RRCqM4p7n5Gr5Je
+fXcmOoQQCkPdyxWPHunrVi3+306p6hBCQyjoeba/QkFrlDVhN2/evH79+s2aNWvgwIGHru3f
+v/8DDzwwbNiwOXPmtPxsALSkkl5nv1YwIISQCKndj32uob5+/6q3N1cvru2fXr5k44z0wmOb
+eh348Op3NvZedld6+bVTP56Tk5NfULCqy9j0Pac/+6/bt7576Bfds3NHu4X/nF6uaj+iXceD
+zwJDa5A1YVdVVTV48OC8vCOeO04kEkOHDl2+fPmRNgAgGruG7Cuz/nt+X/WdsVs2rd+/aup7
+77jODY0hhN2h3dd/vXL/2terlu66b/ipybdDCHWhsHTsvg/D6z7mXxtDXgihpOnN6u9/dO2r
+Lx/45Ta+ufqt/7yyd0NVCCEVEm2v/PJJ+r7gA8qa99iVlZVVVlY2NTXl5uYeaZslS5aUlZW1
+5FQAZMTAkX/5XNXES979RQjhgl3z9s7o+/y/X1vfpSw01XfYvDjs+eOWBaFu9u1X1nU7PySb
+2m1+ttdDF6dPwoYQlg341uCeZ6aXS8/uv6Tf3UNW3RZC6NOwovGBC1+cPmpP8cUhJIreXXbe
+z8pK3vtTFs/2+pchA4a05DcLRy9rwm7UqFFf/vKXx40b9/Wvf/288847aO3q1avvvvvuBQsW
+fOUrX8nIeAC0sAH/98cv/HDvRdseDSG0Se25aNujYdth3h6XHxoGbX8sbH/swDuTIefZc750
+6fh/OPDOIdffuvjnNUPe/GYipPJC44Bd/xt2/e9Bz/bsaZM/fOO0E/2twAmTNX9SrLa29tpr
+r509e3YIobS0tLS0tEuXLolEYtu2bevXr1+zZk0IYcyYMb/+9a9P+FWxM2bMmDx5sj8pBtDa
+pFKp537zwz4vTU1/XvGBVhdc+G7JVX3e+kX3pg0HrXojv2zXyG+df+nowz7nixW/6fT7Kb0a
+Dv6Yuo25vTcN/upFV/31iRqe7NWa/6RY1oRd2sKFC++7776FCxdu3ry5qakphJCbm1tcXPyR
+j3zk5ptvHjly5Mn4osIOoDWrr6tb9ey8Pa9V5O7emMopaOrYu9sFV599/iWJRKKxoWFV5fxd
+rz6Zu2tDKpHb1LF3l/NGnTPg0gP/EMWhksnkK0ufqlnxu7wda0Mq2di+Z/t+V/S7eEQz7/Pm
+z4qwO/GSyeSWLVtSqVRxcXHzr88PTtgBAPu15rDL1n985OTkdO/ePdNTAAC0IlnzcScAADRP
+2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBE
+QtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEA
+RELYAQBEQtgBAERC2AEARCKvmXW1tbWvvvrqxo0b+/bte+aZZyYSiRYbCwCAY3XEI3Y//elP
+S0pKBgwYMGbMmLPOOmvIkCErVqxoyckAADgmhz9iN3/+/JtuuimEMHTo0DPOOOO5556rrKy8
+5pprXn755fbt27fshAAAHJXDH7GbNm1aCOGhhx566qmnfvWrX61ateq6665bu3btL3/5y5Yd
+DwCAo3X4sKuqqho0aNAnP/nJ9M38/PypU6eGEF588cWWGw0AgGNx+LB7++23+/bte+A955xz
+Tghh586dLTEUAADH7ogXT+Tl5TVzEwCA1sbn2AEARELYAQBE4ognWBctWrT/4onm73z44YdP
+/FwAAByjI4bdunXr1q1bdzR3AgDQGhw+7JYtW9bCcwAA8AEdPuwGDBjQwnMAAPABuXgCACAS
+wg4AIBKHPxWb/jsTR2n16tUnaBgAAI7f4cPutddea+E5AAD4gA4fdqlUqoXnAADgA/IeOwCA
+SBzxA4pDCLW1ta+++urGjRv79u175plnJhKJFhsLAIBjdcQjdj/96U9LSkoGDBgwZsyYs846
+a8iQIStWrGjJyQAAOCaHP2I3f/78m266KYQwdOjQM84447nnnqusrLzmmmtefvnl9u3bt+yE
+AAAclcMfsZs2bVoI4aGHHnrqqad+9atfrVq16rrrrlu7du0vf/nLlh0PAICjdfiwq6qqGjRo
+0Cc/+cn0zfz8/KlTp4YQXnzxxZYbDQCAY3H4sHv77bf79u174D3pjyzeuXNnSwwFAMCxO+LF
+E3l5ec3cBACgtfE5dgAAkRB2AACROOIJ1kWLFu2/eKL5Ox9++OETPxcAAMfoiGG3bt26devW
+Hc2dAAC0BocPu2XLlrXwHAAAfECHD7sBAwa08BwAAHxALp4AAIiEsAMAiISwAwCIhLADAIiE
+sAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCI
+hLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMA
+iISwAwCIRAxh95Of/OTpp5/O9BQAABkWQ9j97d/+7S9+8YtMTwEAkGF5mR7gaJWXlzezdu3a
+tfs3uOaaa1pkIgCA1iVrwm7s2LHNrJ0zZ86cOXPSy6lUqkUmAgBoXbIm7O6///7Pfe5zu3fv
+vvHGGz/0oQ8duOrWW28dPHjw+PHjMzUbAEBrkDVhN2nSpMGDB0+YMOHhhx/+j//4j8985jP7
+V916660XXnjhlClTMjgeAEDGZdPFE+eee+6zzz5744033nTTTTfccMOOHTsyPREAQCuSTWEX
+QigqKvr+97//yCOPzJkz58ILL6ysrMz0RAAArUWWhV3atddeu2zZslNPPXXo0KHf+ta3Mj0O
+AECrkJVhF0Lo3bv3U0899YUvfOGWW27J9CwAAK1C1lw8caj8/PxvfvObo0ePXugibxIAACAA
+SURBVLp06YABAzI9DgBAhmVx2KWNHDly5MiRmZ4CACDzsvVULAAAB8n6I3b71dTUjBgxIoSw
+dOnSo39UMplctGhRY2NjM9usXLnygw4HAHDyxRN2TU1Ny5YtO9ZHrV27dsKECc2HXV1dXfCX
+ygCAVi+esOvQocP8+fOP9VFnnnnm5s2bm99mxowZkydPTiQSxzsaAEBLiCfs8vPzr7jiikxP
+AQCQMdl68UQqlaqurt60aVMymcz0LAAArUKWhV1FRcXEiRN79OhRWFjYrVu3kpKSgoKCnj17
+Xn/99RUVFZmeDgAgk7LmVGxtbe348ePnzp0bQigpKRk0aFDXrl1DCFu3bt2wYcPMmTNnzpw5
+duzYRx55pLCwMNPDAgBkQNaE3bRp0+bOnTt69Ohp06YNHDjwoLVVVVX33HPPgw8+OH369Dvu
+uCMjEwIAZFbWnIqdN29ev379Zs2adWjVhRD69+//wAMPDBs2bM6cOS0/GwBAa5A1YVdVVTV4
+8OC8vCMeYkwkEkOHDl2+fHlLTgUA0HpkTdiVlZVVVlY2NTU1s82SJUvKyspabCQAgFYla8Ju
+1KhRK1euHDdu3GGPya1evXrSpEkLFiwYPXp0y88GANAaZM3FE1OmTKmsrCwvLy8vLy8tLS0t
+Le3SpUsikdi2bdv69evXrFkTQhgzZsyUKVMyPSkAQGZkTdgVFRWVl5cvXLjwvvvuW7hw4eLF
+i9OnZXNzc4uLiydMmHDzzTePHDky02MCAGRM1oRd2vDhw4cPHx5CSCaTW7ZsSaVSxcXFOTlZ
+c0IZAODkybKw2y8nJ6d79+6ZngIAoBVxrAsAIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACAS
+wg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAg
+EsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4A
+IBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIO
+ACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLC
+DgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACASwg4AIBLCDgAgEsIOACAS
+wg4AIBLCDgAgEnmZHgCA7JZMhfmvNcxeVb/8nabq3clObXLO7JIz6pz8cWUFRXmJQ7df9EZD
++aqGP2xo3LgzGVIhmQohhK6nJHp3zr3y7PxrzytoX3iYRwFHQ9gBcPyWv9P0z+W7V7zTtP+e
+d/c0vVbd9LvVDd9+qvaeUW2vOid//6o3tyW/+Pju59Y3Hvo8u+pTa7clK9Y0/NtTe28f0eb6
+AYUtMT1Ex6lYAI7Tojcarv3vnQdW3YE27Uz+7SO7fvxcXfrmso2Nf3H/jsNW3YG27U39y+w9
+9yzYe4JnhT8PjtgBcDxer266+de79zSkQgg5iXBNv4Jr+uWf0SGnek+q4o2GX71Yv7chlQrh
+7if29OqUM+D03Jse3V2zN3XQkww8Pa/bKYln1jamn2e/Gc/W9uqc838udNwOjo2wA+B4TH1i
+7666VAihXWHix9e2G9o7/wcHrH1ja9P/mbnzzW3JZCrcOW/PpaX5m3clQwi5idCUCiGEVFP9
+1ocmP/7yYyGE3A6ndZv0YH7JgBBCbk6iKZkKIXztyb1Xn1vQta3328ExcCoWgGP26rtNC15v
+SC/fO/aUob3zD9rgzC65909oV5iXCCFs2JH8n+X7TsjuPy63ffZde19+LL3ctOPtd++/Prl3
+WwihKZlqmx9CCLvqUr9cVneSvw+IjbAD4Jj9bvW+qhtwet6YcwsOu81ZXfMmXLBvVTKEEEKX
+ton0NbBN2zfuevanB27ctPOdXU/PCPs22/e7ad57XwU4SsIOgGO2Zuu+CyY+2qe5t/QM7/Mn
+R/JK2u/7pVP3ekVIHnwVRe3qJ9ILO2r3Hdd7vfrwl2UARyLsADhm+9urU1Fz74Hr3OZP1ibe
+u5XcW3Poxsk929ILu+v3PfmuulTy4MstgOYIOwCOWbdT9v362Lgj2cxmb9X8ydrG927lduxx
+6Ma5nXumFzoU7Xvyrm0TOa6dgGMh7AA4ZuedlptemPtqQ0PTEY+qPb6q/sCb67btK7vCc4bn
+FHU8aOO2530ivdDuvQ85Oe80H90Ax0bYAXDMrjonPz83hBDWb0/+5zO1h93md6vr57939UOb
+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
+KytrsZEAskXvjr3TC/svevjj+dZe7y1sO9wj92ff1v3Pte+/+96rd8CTAxmXNWE3atSolStX
+jhs37rDH5FavXj1p0qQFCxaMHj265WcDaOVGn7nvZ+Mf/+DEe++1CxeF0D6EEMKmwz2yy3sL
+r4QQQugYwqB9d6zdvvagJwcyLms+oHjKlCmVlZXpCyZKS0tLS0u7dOmSSCS2bdu2fv36NWvW
+hBDGjBkzZcqUTE8K0OpMOHfCbYtuq6mr2VW/Kz83v6GpIRSE0BRCbghFIUwK4eEQhhzukekD
+fNtCeCWEtiHcGEJ+CCEU5BbUNtWGELq37T7+nPEt950AzcqaI3ZFRUXl5eVPPvnkDTfc0NDQ
+sHjx4t/+9re/+c1vnn766b17906YMOGJJ56YPXt2YaG3egAcrEtRl69c/pX0ckPTe38Bdv/1
+E71D7i25ofiID79x6I33Lrm39N7S0HPfPfVN9emFacOmtcv35xahtciaI3Zpw4cPHz58eAgh
+mUxu2bIllUoVFxfn5GRNngJkyj8N+qdlm5f9bPnPDrs2/Sl3R3L/ivvvX3H/off/w4X/8Onz
+Pn1i5gNOhCwLu/1ycnK6d++e6SkAsslPRv+kZ/ue056d1pBseP+tm1WQWzD18qm3fPiWEzIY
+cKI41gXw5yIREl+5/CvLP7387y74u+5tm/u3cUm7kgHFA05vd/phV31u4OdWfmbllA9PSfzJ
+R94BmZetR+wAOD59O/edcdWMGVfNqN5bvb1+e7c23RqTjTV1NV2LujalmtILHQv3fR5xTV3N
+1tqtnQs7JxKJ9ELnos6ZnR9ohrAD+DPVtU3Xrm26ppe7FHU5aCGtU2Gn/X+F7I9/jgxorZyK
+BQCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiE
+sAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCI
+hLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMA
+iISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLAD
+AIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISwAwCIhLADAIiEsAMAiISw
+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
+RELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtgBAERC2AEARELYAQBEQtid
+XHV1dXfffffll1/esWPHyy+/fOrUqXV1dZkeivfRs2fPxCHuvPPO/RvYra3WD37wg86dOx96
+//vuMvu09TjSTvTCbP22b9/+//7f/7vgggvatWvXt2/fSZMmvfnmmwdu4JXYElKcTNdcc00I
+oV+/fpMmTerbt28IYcyYMZkeiubs2bMnkUiUlJQM/1M/+clP9m9jt7ZOu3fv7t+/f6dOnQ5d
+9b67zD5tJY60E70wW7/du3f36dMnhDBkyJDJkydfddVViUSiTZs2zz///P5tvBJbgLA7iZ58
+8skQwjXXXNPY2JhKpRoaGkaNGhVCWLhwYaZH44heeumlEMLdd999pA3s1lbof//3f7/xjW/0
+69cvhHBoE7zvLrNPW4Pmd6IXZut31113hRBuueWW/fc8/vjjOTk5559/fvqmV2LLEHYn0Q03
+3BBCePnll/ff84c//CGEMHHixAxORfMeffTREMLDDz98pA3s1laoqKho/1mIQ5vgfXeZfdoa
+NL8TvTBbv0svvbSwsHD37t0H3nnllVeGEN55552UV2JLSaRSqQ98OpfDO+OMM3Jzc9etW3fQ
+nYlEYv369ZmaiuZ94xvfuPXWWysrK1999dXVq1efccYZl1566Xnnnbd/A7u1Fdr/LpxBgwZt
+3Lhx27ZtB659311mn7YGze9EL8zWb+DAgaeddtrcuXMPvPOaa66ZPXv2qlWrzj33XK/ElpGX
+6QGilUwm33nnnUsvvfSg+3v27PmHP/whlUolEomMDEbzVq9eHUK45pprtmzZkr4nkUjcfPPN
+3/3ud/Pz8+3W1qmwsDC9kJNz8AVh77vLUqmUfdoaNLMTgxdmNli2bNlB97zzzjtPPPFEcXHx
+WWed5ZXYYlwVe7Js2bKlqampS5cuB93ftWvXhoaGrVu3ZmQq3terr74aQvjoRz/64osv7tix
+46mnnrr44ot/+MMffvOb3wx2axZ6311mn2YFL8ys88orr1x22WV1dXVf+9rX8vLyvBJbjLA7
+WdLnuI/0L4z6+vqWHYejddddd82ePfuhhx664IIL2rdvP3To0NmzZ3fu3HnatGnJZNJuzTrv
+u8vs06zghZlFduzYcfvtt1944YXr16+/9957b7rppuCV2IKcij1ZiouLc3NzD3qbSAhh69at
+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
-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"
+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"
 width=420
 height=420
 >
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">sets</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<dl>
+	<dt>$cs</dt>
+		<dd><dl>
+	<dt>$L1</dt>
+		<dd><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>153</li><li>156</li><li>162</li></ol>
+</dd>
+	<dt>$L2</dt>
+		<dd>129</dd>
+	<dt>$L4</dt>
+		<dd><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>129</li><li>130</li><li>131</li><li>132</li><li>134</li><li>135</li></ol>
+</dd>
+	<dt>$L5</dt>
+		<dd><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>139</li><li>144</li><li>145</li><li>153</li><li>156</li><li>162</li></ol>
+</dd>
+</dl>
+</dd>
+	<dt>$purity</dt>
+		<dd><table>
+<caption>A data.frame: 4 × 3</caption>
+<thead>
+	<tr><th></th><th scope=col>min.abs.corr</th><th scope=col>mean.abs.corr</th><th scope=col>median.abs.corr</th></tr>
+	<tr><th></th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th><th scope=col>&lt;dbl&gt;</th></tr>
+</thead>
+<tbody>
+	<tr><th scope=row>L1</th><td>1.0000000</td><td>1.0000000</td><td>1.0000000</td></tr>
+	<tr><th scope=row>L2</th><td>1.0000000</td><td>1.0000000</td><td>1.0000000</td></tr>
+	<tr><th scope=row>L4</th><td>0.9845723</td><td>0.9957145</td><td>1.0000000</td></tr>
+	<tr><th scope=row>L5</th><td>0.9601872</td><td>0.9800936</td><td>0.9800936</td></tr>
+</tbody>
+</table>
+</dd>
+	<dt>$cs_index</dt>
+		<dd><style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>1</li><li>2</li><li>4</li><li>5</li></ol>
+</dd>
+	<dt>$coverage</dt>
+		<dd>0.95</dd>
+</dl>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">alpha</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="m">153</span><span class="p">,</span><span class="m">156</span><span class="p">,</span><span class="m">162</span><span class="p">)]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 10 × 3 of type dbl</caption>
+<tbody>
+	<tr><td> 3.333333e-01</td><td> 3.333333e-01</td><td> 3.333333e-01</td></tr>
+	<tr><td>6.349176e-142</td><td>6.349176e-142</td><td>6.349176e-142</td></tr>
+	<tr><td> 3.333311e-01</td><td> 3.333311e-01</td><td> 3.333311e-01</td></tr>
+	<tr><td> 1.788361e-11</td><td> 1.788361e-11</td><td> 1.788361e-11</td></tr>
+	<tr><td> 8.156961e-02</td><td> 8.156961e-02</td><td> 8.156961e-02</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">pip</span><span class="p">[</span><span class="nf">c</span><span class="p">(</span><span class="m">153</span><span class="p">,</span><span class="m">156</span><span class="p">,</span><span class="m">162</span><span class="p">)]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.591807364084137</li><li>0.591807364084137</li><li>0.591807364084137</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">coef</span><span class="p">[</span><span class="m">130</span><span class="p">,]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li><li>0.127650809566136</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">[</span><span class="m">129</span><span class="p">,]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>-0.451579520293967</li><li>0.212362419670355</li><li>-0.23139926245904</li><li>1.29082044865503</li><li>-0.139192877987568</li><li>0.45860797023633</li><li>1.19081004850437</li><li>0.519507177038623</li><li>-0.444040958330359</li><li>0.552882389431176</li><li>1.02044255171292</li><li>-0.671814615437313</li><li>0.648295380611219</li><li>0.904728920517463</li><li>0.56318766496157</li><li>-0.380772279580034</li><li>0.349855351519188</li><li>-0.333712926727966</li><li>0.351859726264355</li><li>0.0755333676724879</li><li>1.7465511006099</li><li>0.132764293589086</li><li>0.790278763571395</li><li>1.74287183971923</li><li>-0.357770774475342</li><li>-0.0669878126419395</li><li>0.984384930972871</li><li>1.34967007988781</li><li>0.653897431049535</li><li>0.286275590107287</li><li>0.373163107935322</li><li>0.725860516251139</li><li>0.45548786043258</li><li>1.25877287508022</li><li>0.389427756565688</li><li>-0.534945131447272</li><li>0.177056489702033</li><li>-0.403823956895729</li><li>0.0192486701159794</li><li>-0.152833418179631</li><li>0.807454176367542</li><li>1.16550009635113</li><li>0.556354264855155</li><li>0.411866111150109</li><li>-0.453984697496325</li><li>-0.354563471973746</li><li>0.595394391140776</li><li>-0.701367761799491</li><li>1.04218255084502</li><li>1.26042124189206</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result</span><span class="o">$</span><span class="n">coef</span><span class="p">[</span><span class="n">result</span><span class="o">$</span><span class="n">sets</span><span class="o">$</span><span class="n">cs</span><span class="o">$</span><span class="n">L4</span><span class="m">+1</span><span class="p">,]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 6 × 50 of type dbl</caption>
+<tbody>
+	<tr><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>⋯</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td><td>0.127650810</td></tr>
+	<tr><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>⋯</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td></tr>
+	<tr><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>⋯</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td></tr>
+	<tr><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>⋯</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td></tr>
+	<tr><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>⋯</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td></tr>
+	<tr><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>⋯</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td><td>0.006085951</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[43]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="nf">mean</span><span class="p">(</span><span class="nf">var</span><span class="p">(</span><span class="n">Y</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+0.00739924426713323
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="nf">mean</span><span class="p">(</span><span class="nf">diag</span><span class="p">(</span><span class="n">meta</span><span class="o">$</span><span class="n">residual_variance</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+0.12029316231606
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[48]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="nf">var</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 50 × 50 of type dbl</caption>
+<tbody>
+	<tr><td> 0.1185362659</td><td> 0.0058174212</td><td> 0.0156981391</td><td>-0.0498283608</td><td> 0.0184847519</td><td>-1.459572e-02</td><td>-0.0153816909</td><td>-0.0111348095</td><td> 0.0287768490</td><td>-0.0086363510</td><td>⋯</td><td>-0.0048748258</td><td>-0.0343167092</td><td>-0.016050102</td><td>-0.0018237877</td><td> 0.0183803358</td><td> 0.0228742519</td><td>-0.0018751758</td><td> 0.0182906769</td><td>-0.018117164</td><td>-0.0193231942</td></tr>
+	<tr><td> 0.0058174212</td><td> 0.0260124101</td><td> 0.0085204586</td><td>-0.0104806431</td><td> 0.0069205608</td><td> 5.396690e-04</td><td> 0.0047525515</td><td> 0.0014651229</td><td> 0.0070521792</td><td>-0.0145781243</td><td>⋯</td><td> 0.0045204660</td><td>-0.0046630616</td><td>-0.001281934</td><td> 0.0021526138</td><td> 0.0053621776</td><td> 0.0077774808</td><td> 0.0034179503</td><td> 0.0025643709</td><td> 0.000366391</td><td> 0.0003816052</td></tr>
+	<tr><td> 0.0156981391</td><td> 0.0085204586</td><td> 0.0641801760</td><td>-0.0254236302</td><td> 0.0160320746</td><td>-1.172049e-02</td><td>-0.0098604938</td><td>-0.0064347744</td><td> 0.0242399273</td><td>-0.0212231912</td><td>⋯</td><td>-0.0020322881</td><td>-0.0266383075</td><td>-0.010648223</td><td> 0.0005998810</td><td> 0.0150355235</td><td> 0.0202434056</td><td> 0.0022991208</td><td> 0.0163442889</td><td>-0.013766507</td><td>-0.0060087097</td></tr>
+	<tr><td>-0.0498283608</td><td>-0.0104806431</td><td>-0.0254236302</td><td> 0.5229388896</td><td>-0.0227326993</td><td> 2.902225e-02</td><td> 0.0600860389</td><td> 0.0255446522</td><td>-0.0548822745</td><td> 0.0295042530</td><td>⋯</td><td> 0.0247081547</td><td> 0.0803694195</td><td> 0.041401708</td><td> 0.0148617274</td><td>-0.0459754822</td><td>-0.0592300455</td><td> 0.0149968883</td><td>-0.0589343695</td><td> 0.068223650</td><td> 0.0586856072</td></tr>
+	<tr><td> 0.0184847519</td><td> 0.0069205608</td><td> 0.0160320746</td><td>-0.0227326993</td><td> 0.0569238704</td><td>-5.645283e-03</td><td>-0.0060631315</td><td>-0.0054002424</td><td> 0.0147928142</td><td>-0.0178832100</td><td>⋯</td><td>-0.0022728738</td><td>-0.0184137731</td><td>-0.009161973</td><td>-0.0015208613</td><td> 0.0098205954</td><td> 0.0133014276</td><td>-0.0010264131</td><td> 0.0092684990</td><td>-0.011329553</td><td>-0.0093450712</td></tr>
+	<tr><td>-0.0145957176</td><td> 0.0005396690</td><td>-0.0117204878</td><td> 0.0290222529</td><td>-0.0056452829</td><td> 4.452623e-02</td><td> 0.0170706543</td><td> 0.0108304026</td><td>-0.0149659385</td><td> 0.0129021423</td><td>⋯</td><td> 0.0089516222</td><td> 0.0202900342</td><td> 0.010684989</td><td> 0.0043679361</td><td>-0.0083671583</td><td>-0.0139427543</td><td> 0.0021478982</td><td>-0.0126875531</td><td> 0.015057034</td><td> 0.0131906371</td></tr>
+	<tr><td>-0.0153816909</td><td> 0.0047525515</td><td>-0.0098604938</td><td> 0.0600860389</td><td>-0.0060631315</td><td> 1.707065e-02</td><td> 0.1802125929</td><td> 0.0193968887</td><td>-0.0193625310</td><td> 0.0157523073</td><td>⋯</td><td> 0.0203400975</td><td> 0.0364360672</td><td> 0.024545533</td><td> 0.0111910647</td><td>-0.0160526627</td><td>-0.0186410575</td><td> 0.0131434975</td><td>-0.0274841826</td><td> 0.031964815</td><td> 0.0364127905</td></tr>
+	<tr><td>-0.0111348095</td><td> 0.0014651229</td><td>-0.0064347744</td><td> 0.0255446522</td><td>-0.0054002424</td><td> 1.083040e-02</td><td> 0.0193968887</td><td> 0.0431000363</td><td>-0.0132045829</td><td> 0.0197266929</td><td>⋯</td><td> 0.0118589599</td><td> 0.0255265747</td><td> 0.009515472</td><td> 0.0057097107</td><td>-0.0075916460</td><td>-0.0076078899</td><td> 0.0046686210</td><td>-0.0148783477</td><td> 0.017064408</td><td> 0.0171387823</td></tr>
+	<tr><td> 0.0287768490</td><td> 0.0070521792</td><td> 0.0242399273</td><td>-0.0548822745</td><td> 0.0147928142</td><td>-1.496594e-02</td><td>-0.0193625310</td><td>-0.0132045829</td><td> 0.1837703686</td><td>-0.0207471864</td><td>⋯</td><td>-0.0128389148</td><td>-0.0401478696</td><td>-0.021664718</td><td>-0.0043193357</td><td> 0.0151427248</td><td> 0.0295582901</td><td> 0.0025467977</td><td> 0.0302515988</td><td>-0.026954341</td><td>-0.0271764880</td></tr>
+	<tr><td>-0.0086363510</td><td>-0.0145781243</td><td>-0.0212231912</td><td> 0.0295042530</td><td>-0.0178832100</td><td> 1.290214e-02</td><td> 0.0157523073</td><td> 0.0197266929</td><td>-0.0207471864</td><td> 0.9947257559</td><td>⋯</td><td>-0.0010161518</td><td> 0.0485801806</td><td> 0.006920655</td><td> 0.0071036347</td><td>-0.0065036061</td><td>-0.0120045492</td><td> 0.0118829012</td><td>-0.0124468194</td><td> 0.011404048</td><td> 0.0207870965</td></tr>
+	<tr><td>-0.0183875923</td><td> 0.0021875304</td><td>-0.0113864724</td><td> 0.0363406433</td><td>-0.0049176387</td><td> 1.566544e-02</td><td> 0.0405684906</td><td> 0.0149209069</td><td>-0.0250695789</td><td> 0.0147901923</td><td>⋯</td><td> 0.0171397954</td><td> 0.0275524129</td><td> 0.016017554</td><td> 0.0085466511</td><td>-0.0164180429</td><td>-0.0122169878</td><td> 0.0105492190</td><td>-0.0206825595</td><td> 0.030674768</td><td> 0.0267086535</td></tr>
+	<tr><td> 0.0347417892</td><td> 0.0111815998</td><td> 0.0304524582</td><td>-0.0922473868</td><td> 0.0286758537</td><td>-2.136836e-02</td><td>-0.0224371011</td><td>-0.0157646749</td><td> 0.0485083500</td><td>-0.0370549417</td><td>⋯</td><td>-0.0047431389</td><td>-0.0731290341</td><td>-0.021739375</td><td> 0.0002472276</td><td> 0.0269195571</td><td> 0.0395533877</td><td>-0.0013139949</td><td> 0.0338167911</td><td>-0.041554913</td><td>-0.0291586403</td></tr>
+	<tr><td> 0.0041096920</td><td> 0.0070775511</td><td> 0.0054539999</td><td> 0.0087985662</td><td> 0.0010639023</td><td> 2.841213e-03</td><td> 0.0163774032</td><td> 0.0025443860</td><td> 0.0058171206</td><td>-0.0059865273</td><td>⋯</td><td> 0.0137427404</td><td> 0.0063053246</td><td> 0.004550262</td><td> 0.0088955841</td><td>-0.0001882503</td><td> 0.0014203881</td><td> 0.0083612331</td><td>-0.0090147111</td><td> 0.017294804</td><td> 0.0163627674</td></tr>
+	<tr><td>-0.0176570244</td><td>-0.0008676483</td><td>-0.0165336582</td><td> 0.0515488795</td><td>-0.0078526979</td><td> 1.313858e-02</td><td> 0.0239371822</td><td> 0.0129346663</td><td>-0.0259648002</td><td> 0.0178601416</td><td>⋯</td><td> 0.0153001079</td><td> 0.0435052684</td><td> 0.017601737</td><td> 0.0097241076</td><td>-0.0174830633</td><td>-0.0189001146</td><td> 0.0130812120</td><td>-0.0237921453</td><td> 0.027097771</td><td> 0.0351583512</td></tr>
+	<tr><td>-0.0009012900</td><td> 0.0050090699</td><td> 0.0016369336</td><td> 0.0172784187</td><td> 0.0003880925</td><td> 5.732112e-03</td><td> 0.0117240911</td><td> 0.0065897020</td><td>-0.0038115540</td><td>-0.0001369241</td><td>⋯</td><td> 0.0093588841</td><td> 0.0060281689</td><td> 0.005718031</td><td> 0.0068182755</td><td>-0.0046147260</td><td>-0.0029158792</td><td> 0.0085382175</td><td>-0.0081166815</td><td> 0.016060113</td><td> 0.0178674150</td></tr>
+	<tr><td> 0.0141975141</td><td> 0.0041384183</td><td> 0.0089885555</td><td>-0.0266537581</td><td> 0.0101009292</td><td>-7.035002e-03</td><td>-0.0111466911</td><td>-0.0074291655</td><td> 0.0182611623</td><td>-0.0213279408</td><td>⋯</td><td>-0.0064603012</td><td>-0.0243439972</td><td>-0.012076771</td><td>-0.0020883197</td><td> 0.0089587331</td><td> 0.0109452625</td><td>-0.0035502950</td><td> 0.0129475862</td><td>-0.011908554</td><td>-0.0128840308</td></tr>
+	<tr><td> 0.0055098023</td><td> 0.0050119172</td><td> 0.0063888665</td><td>-0.0042813629</td><td> 0.0034189154</td><td>-5.622183e-05</td><td> 0.0088198955</td><td> 0.0031826610</td><td> 0.0028885319</td><td>-0.0035004028</td><td>⋯</td><td> 0.0053647341</td><td>-0.0026656427</td><td> 0.001561663</td><td> 0.0041369870</td><td> 0.0002406298</td><td> 0.0046765902</td><td> 0.0051669509</td><td> 0.0005952383</td><td> 0.003858583</td><td> 0.0096549501</td></tr>
+	<tr><td> 0.0207141403</td><td> 0.0093092517</td><td> 0.0213103692</td><td>-0.0341095338</td><td> 0.0134961283</td><td>-9.008333e-03</td><td>-0.0186160706</td><td>-0.0084488147</td><td> 0.0358630641</td><td>-0.0120340336</td><td>⋯</td><td>-0.0020257132</td><td>-0.0430776558</td><td>-0.017166768</td><td> 0.0019517469</td><td> 0.0168430290</td><td> 0.0236166413</td><td> 0.0039180101</td><td> 0.0246145726</td><td>-0.016495026</td><td>-0.0105450889</td></tr>
+	<tr><td> 0.0088609304</td><td> 0.0095936791</td><td> 0.0177619166</td><td>-0.0153115624</td><td> 0.0132703771</td><td>-2.563303e-03</td><td>-0.0017341672</td><td>-0.0007788836</td><td> 0.0145250040</td><td>-0.0189337901</td><td>⋯</td><td> 0.0095646357</td><td>-0.0205180582</td><td> 0.001529991</td><td> 0.0058517258</td><td> 0.0039073314</td><td> 0.0137148553</td><td> 0.0089739655</td><td> 0.0057993250</td><td>-0.001533826</td><td> 0.0091628948</td></tr>
+	<tr><td> 0.0001715207</td><td> 0.0011181666</td><td> 0.0010545354</td><td>-0.0005698547</td><td> 0.0007362864</td><td>-1.649602e-04</td><td> 0.0018678244</td><td> 0.0003848763</td><td> 0.0007942905</td><td>-0.0007024169</td><td>⋯</td><td> 0.0009996001</td><td>-0.0001490895</td><td> 0.000556920</td><td> 0.0007987608</td><td>-0.0002099772</td><td> 0.0000447294</td><td> 0.0013968616</td><td> 0.0002346213</td><td> 0.001363080</td><td> 0.0026365797</td></tr>
+	<tr><td>-0.0147680121</td><td> 0.0128503412</td><td>-0.0064441630</td><td> 0.0561147387</td><td>-0.0034802266</td><td> 2.002182e-02</td><td> 0.0406795794</td><td> 0.0204022009</td><td>-0.0187036718</td><td>-0.0030288038</td><td>⋯</td><td> 0.0396488743</td><td> 0.0437028741</td><td> 0.019289408</td><td> 0.0143057507</td><td>-0.0125856293</td><td>-0.0043825263</td><td> 0.0325556405</td><td>-0.0263292349</td><td> 0.051407719</td><td> 0.0518937806</td></tr>
+	<tr><td> 0.0147824371</td><td> 0.0111600114</td><td> 0.0174696320</td><td>-0.0235181035</td><td> 0.0127919115</td><td>-7.750464e-03</td><td> 0.0010622587</td><td>-0.0012067815</td><td> 0.0208949643</td><td>-0.0187359981</td><td>⋯</td><td> 0.0036554048</td><td>-0.0298616369</td><td>-0.005165138</td><td> 0.0021892168</td><td> 0.0110276585</td><td> 0.0166590889</td><td> 0.0066071309</td><td> 0.0106476647</td><td>-0.005226061</td><td>-0.0004342545</td></tr>
+	<tr><td> 0.0192706399</td><td> 0.0133677734</td><td> 0.0172671298</td><td>-0.0095392854</td><td> 0.0076318072</td><td> 3.495999e-03</td><td> 0.0059613343</td><td> 0.0036664031</td><td> 0.0151687796</td><td>-0.0166172908</td><td>⋯</td><td> 0.0153956646</td><td>-0.0011436729</td><td> 0.000711666</td><td> 0.0059937890</td><td> 0.0067938301</td><td> 0.0167836754</td><td> 0.0170402611</td><td> 0.0018010201</td><td> 0.010449005</td><td> 0.0180355112</td></tr>
+	<tr><td>-0.0452827951</td><td>-0.0035873959</td><td>-0.0251220895</td><td> 0.0966294880</td><td>-0.0179016475</td><td> 2.441724e-02</td><td> 0.0506972718</td><td> 0.0295767613</td><td>-0.0591282548</td><td> 0.0383930223</td><td>⋯</td><td> 0.0277559378</td><td> 0.0824540639</td><td> 0.039471357</td><td> 0.0135620870</td><td>-0.0344506331</td><td>-0.0355613420</td><td> 0.0307621267</td><td>-0.0421013763</td><td> 0.059707447</td><td> 0.0677069548</td></tr>
+	<tr><td> 0.0161421617</td><td> 0.0052735299</td><td> 0.0159528953</td><td>-0.0348597139</td><td> 0.0112074621</td><td>-1.132104e-02</td><td>-0.0196143044</td><td>-0.0100532861</td><td> 0.0191365496</td><td>-0.0092263124</td><td>⋯</td><td>-0.0082730046</td><td>-0.0280129656</td><td>-0.014327194</td><td>-0.0038574955</td><td> 0.0124820710</td><td> 0.0172084942</td><td>-0.0006451598</td><td> 0.0200012368</td><td>-0.019232429</td><td>-0.0158945623</td></tr>
+	<tr><td> 0.0052675464</td><td> 0.0023497505</td><td> 0.0057089285</td><td>-0.0085867957</td><td> 0.0037477683</td><td>-2.639521e-03</td><td>-0.0033136362</td><td>-0.0023432600</td><td> 0.0071741664</td><td>-0.0057726942</td><td>⋯</td><td>-0.0015719257</td><td>-0.0075885198</td><td>-0.003613532</td><td> 0.0003115315</td><td> 0.0040791204</td><td> 0.0051151413</td><td>-0.0002734298</td><td> 0.0055919557</td><td>-0.004856369</td><td>-0.0032707740</td></tr>
+	<tr><td>-0.0150325789</td><td> 0.0058223444</td><td> 0.0031051478</td><td> 0.0267727865</td><td> 0.0011256530</td><td> 7.040967e-03</td><td> 0.0253069927</td><td> 0.0122149238</td><td>-0.0091071982</td><td> 0.0013325279</td><td>⋯</td><td> 0.0197944728</td><td> 0.0136447350</td><td> 0.012808966</td><td> 0.0105216373</td><td>-0.0072835443</td><td>-0.0020080902</td><td> 0.0112577688</td><td>-0.0149154249</td><td> 0.020340280</td><td> 0.0275251469</td></tr>
+	<tr><td>-0.0175840191</td><td> 0.0014153200</td><td>-0.0167272295</td><td> 0.0895646247</td><td>-0.0275790117</td><td> 1.912556e-02</td><td> 0.0480841187</td><td> 0.0239073857</td><td>-0.0366762819</td><td> 0.0161961453</td><td>⋯</td><td> 0.0295346319</td><td> 0.0541699411</td><td> 0.031695699</td><td> 0.0138797774</td><td>-0.0168003009</td><td>-0.0242798510</td><td> 0.0111272252</td><td>-0.0338123321</td><td> 0.047107091</td><td> 0.0516978774</td></tr>
+	<tr><td> 0.0037275167</td><td> 0.0090186052</td><td> 0.0075461616</td><td> 0.0174662525</td><td> 0.0052765689</td><td> 4.960816e-03</td><td> 0.0118234483</td><td> 0.0051152462</td><td> 0.0025576417</td><td>-0.0128320559</td><td>⋯</td><td> 0.0135430274</td><td>-0.0007354625</td><td> 0.005206011</td><td> 0.0056940043</td><td> 0.0006057648</td><td> 0.0052893888</td><td> 0.0110257376</td><td>-0.0078370542</td><td> 0.008546677</td><td> 0.0210953533</td></tr>
+	<tr><td> 0.0211213604</td><td> 0.0209738467</td><td> 0.0363529651</td><td>-0.0500462328</td><td> 0.0273771259</td><td>-1.380771e-02</td><td>-0.0076312928</td><td>-0.0045345022</td><td> 0.0407181490</td><td>-0.0732725459</td><td>⋯</td><td> 0.0085129939</td><td>-0.0370698267</td><td>-0.018867322</td><td> 0.0063639041</td><td> 0.0192977950</td><td> 0.0324446987</td><td> 0.0210778744</td><td> 0.0219114777</td><td>-0.015800359</td><td>-0.0039528000</td></tr>
+	<tr><td> 0.0080088825</td><td> 0.0090311416</td><td> 0.0108747381</td><td>-0.0129222663</td><td> 0.0069581332</td><td>-3.391921e-03</td><td> 0.0065712155</td><td> 0.0009300262</td><td> 0.0147611312</td><td>-0.0053479838</td><td>⋯</td><td> 0.0104766690</td><td>-0.0130109088</td><td>-0.001835769</td><td> 0.0036977745</td><td> 0.0030476418</td><td> 0.0127511859</td><td> 0.0066007268</td><td>-0.0003262521</td><td>-0.005588504</td><td> 0.0050793806</td></tr>
+	<tr><td>-0.0326477657</td><td>-0.0047534947</td><td>-0.0232497244</td><td> 0.0645203585</td><td>-0.0177712723</td><td> 1.426948e-02</td><td> 0.0208652480</td><td> 0.0186611296</td><td>-0.0466855057</td><td> 0.0267345702</td><td>⋯</td><td> 0.0182405443</td><td> 0.0496749009</td><td> 0.020676274</td><td> 0.0057312269</td><td>-0.0166189119</td><td>-0.0340716095</td><td> 0.0047507793</td><td>-0.0361193498</td><td> 0.021593257</td><td> 0.0305663987</td></tr>
+	<tr><td>-0.0038232536</td><td> 0.0027156815</td><td>-0.0001840202</td><td> 0.0167063670</td><td>-0.0001737279</td><td> 4.148531e-03</td><td> 0.0136723045</td><td> 0.0065024022</td><td>-0.0036365260</td><td> 0.0015941666</td><td>⋯</td><td> 0.0082882660</td><td> 0.0081340955</td><td> 0.005374756</td><td> 0.0051561993</td><td>-0.0046797232</td><td>-0.0020222143</td><td> 0.0063287912</td><td>-0.0057995760</td><td> 0.011288294</td><td> 0.0132163422</td></tr>
+	<tr><td>-0.0355311448</td><td>-0.0034267800</td><td>-0.0250200786</td><td> 0.0818153414</td><td>-0.0231344897</td><td> 2.451392e-02</td><td> 0.0475756899</td><td> 0.0175310503</td><td>-0.0381641556</td><td> 0.0306769067</td><td>⋯</td><td> 0.0189564317</td><td> 0.0513609073</td><td> 0.027083650</td><td> 0.0081238956</td><td>-0.0318954515</td><td>-0.0467560628</td><td> 0.0056376066</td><td>-0.0371503534</td><td> 0.037258916</td><td> 0.0396771364</td></tr>
+	<tr><td>-0.0031964955</td><td> 0.0017977028</td><td>-0.0009639882</td><td> 0.0184500777</td><td>-0.0042316997</td><td> 4.693659e-03</td><td> 0.0138757503</td><td> 0.0051373933</td><td>-0.0054329351</td><td> 0.0049530507</td><td>⋯</td><td> 0.0083368272</td><td> 0.0071276204</td><td> 0.005938957</td><td> 0.0043246272</td><td>-0.0038107430</td><td>-0.0020777298</td><td> 0.0055422436</td><td>-0.0086662197</td><td> 0.011993412</td><td> 0.0120639725</td></tr>
+	<tr><td> 0.0269167558</td><td> 0.0083986088</td><td> 0.0215584922</td><td>-0.0634592581</td><td> 0.0207368070</td><td>-1.263182e-02</td><td>-0.0256391946</td><td>-0.0202012032</td><td> 0.0357695841</td><td>-0.0004558822</td><td>⋯</td><td>-0.0132379731</td><td>-0.0400064828</td><td>-0.017185062</td><td>-0.0042592379</td><td> 0.0224627180</td><td> 0.0316052563</td><td> 0.0021369089</td><td> 0.0346776335</td><td>-0.025417985</td><td>-0.0169595477</td></tr>
+	<tr><td> 0.0070786202</td><td> 0.0051501794</td><td> 0.0092539734</td><td>-0.0066128693</td><td> 0.0053850280</td><td>-2.015665e-03</td><td> 0.0006917703</td><td>-0.0013608284</td><td> 0.0091024461</td><td>-0.0184236613</td><td>⋯</td><td> 0.0031183940</td><td>-0.0083789239</td><td>-0.004273894</td><td> 0.0027249661</td><td> 0.0035724892</td><td> 0.0078359593</td><td> 0.0041719626</td><td> 0.0043157256</td><td>-0.001934359</td><td> 0.0041555846</td></tr>
+	<tr><td> 0.0186010670</td><td> 0.0016449722</td><td> 0.0139243320</td><td>-0.0500127283</td><td> 0.0085271513</td><td>-1.147412e-02</td><td>-0.0146805614</td><td>-0.0110947152</td><td> 0.0191730077</td><td>-0.0160739028</td><td>⋯</td><td>-0.0096006754</td><td>-0.0332072430</td><td>-0.014580175</td><td>-0.0048058537</td><td> 0.0117939784</td><td> 0.0165857678</td><td>-0.0032185395</td><td> 0.0167202965</td><td>-0.012559335</td><td>-0.0173599700</td></tr>
+	<tr><td> 0.0136633834</td><td> 0.0091802800</td><td> 0.0158602540</td><td>-0.0271747354</td><td> 0.0141906669</td><td>-5.440056e-03</td><td> 0.0038044157</td><td>-0.0035546921</td><td> 0.0192130231</td><td>-0.0255495206</td><td>⋯</td><td> 0.0072290695</td><td>-0.0275447182</td><td>-0.005005483</td><td> 0.0046613587</td><td> 0.0095050317</td><td> 0.0175030793</td><td> 0.0060747655</td><td> 0.0077355767</td><td>-0.006385141</td><td>-0.0065528132</td></tr>
+	<tr><td> 0.0327785605</td><td> 0.0126131435</td><td> 0.0317778784</td><td>-0.0474817631</td><td> 0.0224318247</td><td>-1.539134e-02</td><td>-0.0109054159</td><td>-0.0125682766</td><td> 0.0344785815</td><td>-0.0144834787</td><td>⋯</td><td>-0.0029671762</td><td>-0.0469031466</td><td>-0.017936442</td><td> 0.0003707507</td><td> 0.0187617609</td><td> 0.0285287826</td><td> 0.0034261533</td><td> 0.0307055243</td><td>-0.016220962</td><td>-0.0071579941</td></tr>
+	<tr><td>-0.0048748258</td><td> 0.0045204660</td><td>-0.0020322881</td><td> 0.0247081547</td><td>-0.0022728738</td><td> 8.951622e-03</td><td> 0.0203400975</td><td> 0.0118589599</td><td>-0.0128389148</td><td>-0.0010161518</td><td>⋯</td><td> 0.0774982196</td><td> 0.0240292948</td><td> 0.012278073</td><td> 0.0098446871</td><td>-0.0091442835</td><td>-0.0085038723</td><td> 0.0131773613</td><td>-0.0153486976</td><td> 0.019658036</td><td> 0.0235905235</td></tr>
+	<tr><td>-0.0343167092</td><td>-0.0046630616</td><td>-0.0266383075</td><td> 0.0803694195</td><td>-0.0184137731</td><td> 2.029003e-02</td><td> 0.0364360672</td><td> 0.0255265747</td><td>-0.0401478696</td><td> 0.0485801806</td><td>⋯</td><td> 0.0240292948</td><td> 0.3425835510</td><td> 0.031429864</td><td> 0.0054939297</td><td>-0.0329673660</td><td>-0.0347856346</td><td> 0.0084665591</td><td>-0.0460980552</td><td> 0.058832549</td><td> 0.0485854463</td></tr>
+	<tr><td>-0.0160501019</td><td>-0.0012819337</td><td>-0.0106482225</td><td> 0.0414017085</td><td>-0.0091619729</td><td> 1.068499e-02</td><td> 0.0245455335</td><td> 0.0095154719</td><td>-0.0216647181</td><td> 0.0069206551</td><td>⋯</td><td> 0.0122780730</td><td> 0.0314298639</td><td> 0.068504960</td><td> 0.0045877041</td><td>-0.0119986039</td><td>-0.0163141147</td><td> 0.0062865821</td><td>-0.0163889674</td><td> 0.026691160</td><td> 0.0224901506</td></tr>
+	<tr><td>-0.0018237877</td><td> 0.0021526138</td><td> 0.0005998810</td><td> 0.0148617274</td><td>-0.0015208613</td><td> 4.367936e-03</td><td> 0.0111910647</td><td> 0.0057097107</td><td>-0.0043193357</td><td> 0.0071036347</td><td>⋯</td><td> 0.0098446871</td><td> 0.0054939297</td><td> 0.004587704</td><td> 0.0206614201</td><td>-0.0032544916</td><td>-0.0047289773</td><td> 0.0046445952</td><td>-0.0074711340</td><td> 0.009938357</td><td> 0.0132913484</td></tr>
+	<tr><td> 0.0183803358</td><td> 0.0053621776</td><td> 0.0150355235</td><td>-0.0459754822</td><td> 0.0098205954</td><td>-8.367158e-03</td><td>-0.0160526627</td><td>-0.0075916460</td><td> 0.0151427248</td><td>-0.0065036061</td><td>⋯</td><td>-0.0091442835</td><td>-0.0329673660</td><td>-0.011998604</td><td>-0.0032544916</td><td> 0.0631479269</td><td> 0.0176167618</td><td>-0.0013665975</td><td> 0.0175874810</td><td>-0.016781249</td><td>-0.0201020732</td></tr>
+	<tr><td> 0.0228742519</td><td> 0.0077774808</td><td> 0.0202434056</td><td>-0.0592300455</td><td> 0.0133014276</td><td>-1.394275e-02</td><td>-0.0186410575</td><td>-0.0076078899</td><td> 0.0295582901</td><td>-0.0120045492</td><td>⋯</td><td>-0.0085038723</td><td>-0.0347856346</td><td>-0.016314115</td><td>-0.0047289773</td><td> 0.0176167618</td><td> 0.1003513175</td><td> 0.0016290281</td><td> 0.0189423959</td><td>-0.021515470</td><td>-0.0219887176</td></tr>
+	<tr><td>-0.0018751758</td><td> 0.0034179503</td><td> 0.0022991208</td><td> 0.0149968883</td><td>-0.0010264131</td><td> 2.147898e-03</td><td> 0.0131434975</td><td> 0.0046686210</td><td> 0.0025467977</td><td> 0.0118829012</td><td>⋯</td><td> 0.0131773613</td><td> 0.0084665591</td><td> 0.006286582</td><td> 0.0046445952</td><td>-0.0013665975</td><td> 0.0016290281</td><td> 0.0492477021</td><td>-0.0057785162</td><td> 0.013991833</td><td> 0.0192896657</td></tr>
+	<tr><td> 0.0182906769</td><td> 0.0025643709</td><td> 0.0163442889</td><td>-0.0589343695</td><td> 0.0092684990</td><td>-1.268755e-02</td><td>-0.0274841826</td><td>-0.0148783477</td><td> 0.0302515988</td><td>-0.0124468194</td><td>⋯</td><td>-0.0153486976</td><td>-0.0460980552</td><td>-0.016388967</td><td>-0.0074711340</td><td> 0.0175874810</td><td> 0.0189423959</td><td>-0.0057785162</td><td> 0.1058405322</td><td>-0.027651873</td><td>-0.0301440167</td></tr>
+	<tr><td>-0.0181171643</td><td> 0.0003663910</td><td>-0.0137665070</td><td> 0.0682236504</td><td>-0.0113295534</td><td> 1.505703e-02</td><td> 0.0319648150</td><td> 0.0170644083</td><td>-0.0269543411</td><td> 0.0114040481</td><td>⋯</td><td> 0.0196580362</td><td> 0.0588325487</td><td> 0.026691160</td><td> 0.0099383572</td><td>-0.0167812486</td><td>-0.0215154704</td><td> 0.0139918329</td><td>-0.0276518727</td><td> 0.162539012</td><td> 0.0370816354</td></tr>
+	<tr><td>-0.0193231942</td><td> 0.0003816052</td><td>-0.0060087097</td><td> 0.0586856072</td><td>-0.0093450712</td><td> 1.319064e-02</td><td> 0.0364127905</td><td> 0.0171387823</td><td>-0.0271764880</td><td> 0.0207870965</td><td>⋯</td><td> 0.0235905235</td><td> 0.0485854463</td><td> 0.022490151</td><td> 0.0132913484</td><td>-0.0201020732</td><td>-0.0219887176</td><td> 0.0192896657</td><td>-0.0301440167</td><td> 0.037081635</td><td> 0.1937857601</td></tr>
+</tbody>
+</table>
+
 </div>
 
 </div>
@@ -761,7 +1347,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">result2</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">prior_variance</span><span class="o">=</span><span class="nf">matrix</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">50</span><span class="p">),</span> <span class="n">residual_variance</span><span class="o">=</span><span class="n">resid_Y</span><span class="p">,</span> <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> 
@@ -775,7 +1361,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">result2</span><span class="o">$</span><span class="n">V</span>
@@ -813,7 +1399,7 @@ height=420
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">susieR</span><span class="o">::</span><span class="nf">susie_plot</span><span class="p">(</span><span class="n">result2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s">&#39;PIP&#39;</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="nf">rowSums</span><span class="p">(</span><span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">))</span>
@@ -1118,6 +1704,129 @@ QmCC"
 width=420
 height=420
 >
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result2</span><span class="o">$</span><span class="n">alpha</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="m">153</span><span class="p">,</span><span class="m">156</span><span class="p">,</span><span class="m">162</span><span class="p">)]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<table>
+<caption>A matrix: 10 × 3 of type dbl</caption>
+<tbody>
+	<tr><td> 3.333333e-01</td><td> 3.333333e-01</td><td> 3.333333e-01</td></tr>
+	<tr><td>1.447861e-221</td><td>1.447861e-221</td><td>1.447861e-221</td></tr>
+	<tr><td> 3.332946e-01</td><td> 3.332946e-01</td><td> 3.332946e-01</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+	<tr><td> 4.694836e-03</td><td> 4.694836e-03</td><td> 4.694836e-03</td></tr>
+</tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result2</span><span class="o">$</span><span class="n">pip</span><span class="p">[</span><span class="nf">c</span><span class="p">(</span><span class="m">153</span><span class="p">,</span><span class="m">156</span><span class="p">,</span><span class="m">162</span><span class="p">)]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.555529717829305</li><li>0.555529717829305</li><li>0.555529717829305</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result2</span><span class="o">$</span><span class="n">coef</span><span class="p">[</span><span class="m">130</span><span class="p">,]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li><li>0.156619953095882</li></ol>
+
 </div>
 
 </div>

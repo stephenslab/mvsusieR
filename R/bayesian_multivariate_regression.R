@@ -20,7 +20,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
-      if (d$Y_has_missing) stop("Cannot work with missing data in Bayesian Multivariate Regression module.")
+      if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
@@ -36,7 +36,6 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         private$.bhat = bhat
         private$.sbhat = sqrt(do.call(rbind, lapply(1:length(sbhat2), function(j) diag(sbhat2[[j]]))))
       }
-      if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
         if (estimate_prior_variance_method == "EM") {

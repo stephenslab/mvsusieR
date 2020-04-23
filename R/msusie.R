@@ -249,18 +249,12 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
     if (class(prior_variance)[1] != 'MashInitializer') stop("prior_variance should be a scalar for univariate response, or a matrix or MashInitializer object for multivariate response.")
     if (prior_variance$n_condition != data$n_condition) stop("Dimension mismatch between input prior covariance and response variable data.")
     base = MashRegression
-    if (estimate_prior_variance && !is.null(estimate_prior_method) && estimate_prior_method == 'EM') {
-      prior_variance$compute_prior_ginv()
-      if (precompute_covariances) {
-        warning("precompute_covariances option is forced to FALSE when estimating prior variance using EM algorithm. The computation can be a lot slower as a result.")
-        precompute_covariances = FALSE
-      }
-    } else {
-      if (!precompute_covariances)
-        warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation can be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
-    }
+    if (!precompute_covariances)
+      warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation can be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
     if (data$Y_has_missing || precompute_covariances)
       prior_variance$precompute_cov_matrices(data, residual_variance)
+    if (estimate_prior_variance && !is.null(estimate_prior_method) && estimate_prior_method == 'EM')
+      prior_variance$compute_prior_inv()
     residual_variance = as.matrix(residual_variance)
   }
   if (!estimate_prior_variance) estimate_prior_method = NULL

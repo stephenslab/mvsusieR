@@ -80,7 +80,7 @@ DenseData <- R6Class("DenseData",
         return(mat)
       }
     },
-    get_sumstats = function(residual_variances, residual_correlation=NULL) {
+    get_sumstats = function(residual_variances, residual_correlation=NULL, sbhat_only=FALSE) {
       if (is.null(residual_correlation)) {
         if (!is.matrix(residual_variances))
           stop("residual variance has to be a matrix if residual correlation is not specified")
@@ -88,13 +88,17 @@ DenseData <- R6Class("DenseData",
         residual_variances = diag(residual_variances)
       }
       # private$d is either vector or matrix
-      bhat = self$XtY/private$d
-      bhat[which(is.nan(bhat))] = 0
       sbhat = sqrt(do.call(rbind, lapply(1:length(private$d), function(j) residual_variances / private$d[j])))
       sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E3
       is_common_sbhat = is_mat_common(sbhat)
-      if (is_common_sbhat) SVS = sbhat[1,] * t(residual_correlation * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
-      else SVS = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(residual_correlation * sbhat[j,]))
+      if (!sbhat_only) {
+        bhat = self$XtY/private$d
+        bhat[which(is.nan(bhat))] = 0
+        if (is_common_sbhat) SVS = sbhat[1,] * t(residual_correlation * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
+        else SVS = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(residual_correlation * sbhat[j,]))
+      } else {
+        SVS = bhat = NA
+      }
       return(list(svs=SVS, sbhat=sbhat, is_common_sbhat = is_common_sbhat, bhat=bhat))
     }
   ),
@@ -196,42 +200,48 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       t(sapply(1:private$R, function(r) private$X_for_Y_missing[,,r] %*% M[r,]))
     },
     # Compute multivariate summary statistics in the presence of missing data
-    get_sumstats = function(residual_variances, residual_correlation=NULL) {
+    get_sumstats = function(residual_variances, residual_correlation=NULL, sbhat_only=FALSE) {
       if (is.null(residual_correlation)) {
         if (!is.matrix(residual_variances))
           stop("residual variance has to be a matrix if residual correlation is not specified")
         residual_correlation = cov2cor(residual_variances)
         residual_variances = diag(residual_variances)
       }
-      # private$d is either vector or matrix
-      bhat = self$XtY/private$d
-      bhat[which(is.nan(bhat))] = 0
       Sigma = sqrt(residual_variances) * t(sqrt(residual_variances) * residual_correlation)
-      SVS = list()
-      XtX_inv = list()
-      for(j in 1:private$J) {
-        SVS[[j]] = matrix(NA, private$R, private$R)
-        XtX_inv[[j]] = matrix(NA, private$R, private$R)
-        for(r1 in 1:private$R){
-          for(r2 in r1:private$R){
-            common = as.logical(private$Y_non_missing[,r1] * private$Y_non_missing[,r2])
-            # if `common` is all FALSE the sum below will return zero
-            # FIXME: here X_for_Y_missing, after scaling per column, is not 100% correct on the numerator.
-            # not sure what to do for now.
-            XtX_inv[[j]][r1,r2] = ifelse(private$d[j,r1]*private$d[j,r2] != 0, sum(private$X_for_Y_missing[common,j,r1] * private$X_for_Y_missing[common,j,r2])/(private$d[j,r1]*private$d[j,r2]), ifelse(r1==r2, 1E6, 0))
-            SVS[[j]][r1,r2] = Sigma[r1,r2] * XtX_inv[[j]][r1,r2]
-            if (r1 != r2) SVS[[j]][r2,r1] = SVS[[j]][r1,r2]
+      if (!sbhat_only) {
+        # private$d is either vector or matrix
+        bhat = self$XtY/private$d
+        bhat[which(is.nan(bhat))] = 0
+        SVS = list()
+        XtX_inv = list()
+        for(j in 1:private$J) {
+          SVS[[j]] = matrix(NA, private$R, private$R)
+          XtX_inv[[j]] = matrix(NA, private$R, private$R)
+          for(r1 in 1:private$R){
+            for(r2 in r1:private$R){
+              common = as.logical(private$Y_non_missing[,r1] * private$Y_non_missing[,r2])
+              # if `common` is all FALSE the sum below will return zero
+              # FIXME: here X_for_Y_missing, after scaling per column, is not 100% correct on the numerator.
+              # not sure what to do for now.
+              XtX_inv[[j]][r1,r2] = ifelse(private$d[j,r1]*private$d[j,r2] != 0, sum(private$X_for_Y_missing[common,j,r1] * private$X_for_Y_missing[common,j,r2])/(private$d[j,r1]*private$d[j,r2]), ifelse(r1==r2, 1E6, 0))
+              SVS[[j]][r1,r2] = Sigma[r1,r2] * XtX_inv[[j]][r1,r2]
+              if (r1 != r2) SVS[[j]][r2,r1] = SVS[[j]][r1,r2]
+            }
           }
         }
+        is_common_sbhat = is_list_common(SVS)
+        if (is_common_sbhat) {
+            SVS = SVS[[1]]
+        }
+        # FIXME: haven't figured out how to compute it for missing data case ...
+        # but this will not have an impact later since we've computed SVS instead
+        # that can be used for likelihood and posterior calculations
+        sbhat = NA
+      } else {
+        svs = bhat = NA
+        # FIXME: haven't figured out how to compute it for missing data case ...
+        stop("Cannot provide sbhat statistics when there is missing data.")
       }
-      is_common_sbhat = is_list_common(SVS)
-      if (is_common_sbhat) {
-          SVS = SVS[[1]]
-      }
-      # FIXME: haven't figured out how to compute it for missing data case ...
-      # but this will not have an impact later since we've computed SVS instead
-      # that can be used for likelihood and posterior calculations
-      sbhat = NA
       return(list(svs=SVS, sbhat=sbhat, is_common_sbhat = is_common_sbhat, bhat=bhat))
     }
   ),

@@ -11,9 +11,6 @@ MashRegression <- R6Class("MashRegression",
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = matlist2array(private$.prior_variance$xUlist)
-      if (!is.null(private$.prior_variance$xUlist_inv)) {
-        private$.prior_variance$xUlist_inv = matlist2array(private$.prior_variance$xUlist_inv)
-      }
       private$.residual_variance = residual_variance
       tryCatch({
         private$.residual_variance_inv = invert_via_chol(residual_variance)
@@ -22,6 +19,8 @@ MashRegression <- R6Class("MashRegression",
       })
       private$residual_correlation = cov2cor(residual_variance)
       private$precomputed_cov_matrices = mash_initializer$precomputed
+      if (is.na(private$.prior_variance$xUlist_inv) || is.null(private$.prior_variance$xUlist_inv))
+        private$.prior_variance$xUlist_inv = 0
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
     },
@@ -40,7 +39,7 @@ MashRegression <- R6Class("MashRegression",
       # 2. Yuxin's RSS work might be able to bypass this issue for missing data in Y,
       # making RSS_Data$Y_has_missing equals FALSE as a result so regular computating
       # can still work without needing to precompute quantities.
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && d$Y_has_missing) {
+      if (d$Y_has_missing && !is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple') {
         stop("Cannot estimate prior variance when there is missing data in Y")
       }
       # d: data object
@@ -52,7 +51,7 @@ MashRegression <- R6Class("MashRegression",
       # bhat is J by R
       bhat = XtY / d$X2_sum
       bhat[which(is.nan(bhat))] = 0
-      if (!is.null(private$precomputed_cov_matrices)) {
+      if (!is.null(private$precomputed_cov_matrices$sbhat)) {
         # we dont need sbhat, when we have precomputed quantities
         # for when d$has_missing_Y, sbhat will be set to NA because
         # with precomputed cov_mats there is no need to use sbhat anyways.
@@ -60,17 +59,10 @@ MashRegression <- R6Class("MashRegression",
         private$is_common_cov = private$precomputed_cov_matrices$common_sbhat
       } else {
         # sbhat is R by R
-        # for non-missing Y d$X2_sum is a J vector
-        # for missing Y it is a J list of R by R matrix that I'm not sure how to compute,
-        # so we have to rely on precomputed sbhat, see above.
-        if (d$Y_has_missing) {
-          stop("Please use precomputed_covariances() in MASH initializer function to handle computation of sbhat in the presence of missing data.")
-        } else {
-          sigma2 = diag(private$.residual_variance)
-          sbhat = sqrt(do.call(rbind, lapply(1:length(d$X2_sum), function(j) sigma2 / d$X2_sum[j])))
-          sbhat[which(is.nan(sbhat) | is.infinite(sbhat))] = 1E3
-          private$is_common_cov = is_mat_common(sbhat)
-        }
+        # FIXME: for missing Y, `get_sumstats` currently cannot compute sbhat and will quit with error
+        res = d$get_sumstats(private$.residual_variance, sbhat_only=TRUE)
+        sbhat = res$sbhat
+        private$is_common_cov = res$is_common_sbhat
       }
       if (save_summary_stats) {
         private$.bhat = bhat
@@ -80,6 +72,11 @@ MashRegression <- R6Class("MashRegression",
         if (estimate_prior_variance_method != 'simple')
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
         private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
+      }
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && !is.null(private$precomputed_cov_matrices$U0)) {
+        # Cannot use precomputed quantities if prior variance scalar is being estimated
+        # we set it to 0 so it will not be used later
+        private$precomputed_cov_matrices$U0 = NULL
       }
       # Fit MASH model
       # 1. compute log-likelihood matrix given current estimates
@@ -95,7 +92,6 @@ MashRegression <- R6Class("MashRegression",
         private$cache = list(b=bhat, s=sbhat, update_scale=T)
       } else {
         variable_posterior_weights = matrix(0,0,0)
-        private$.prior_variance$xUlist_inv = 0
       }
       # 4. posterior
       ## FIXME: we do not need to compute second moment unless:
@@ -116,8 +112,7 @@ MashRegression <- R6Class("MashRegression",
       private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
       # 6. estimate prior via EM
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == 'EM') {
-        SER_posterior_mixture_weights = private$get_SER_posterior_mixture_weights(llik, prior_weights, private$.prior_variance$pi)
-        private$cache$SER_posterior_mixture_weights = SER_posterior_mixture_weights
+        private$cache$SER_posterior_mixture_weights = private$get_SER_posterior_mixture_weights(llik, prior_weights, private$.prior_variance$pi)
         private$cache$mixture_prior_variance_scale = post$prior_scale_em_update
       }
     }
@@ -144,8 +139,9 @@ MashRegression <- R6Class("MashRegression",
     .lfsr = NULL,
     .residual_variance_inv = NULL,
     compute_loglik_mat = function(scalar, bhat, sbhat) {
-      if (is.null(private$precomputed_cov_matrices) || (scalar != 1 && scalar != 0)) {
-        llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat), private$residual_correlation,
+      if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
+        llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat),
+                                         private$residual_correlation,
                                          matrix(0,0,0),
                                          private$get_scaled_prior(scalar),
                                          TRUE,
@@ -175,32 +171,42 @@ MashRegression <- R6Class("MashRegression",
       return(llik)
     },
     compute_posterior = function(bhat, sbhat, mixture_posterior_weights, variable_posterior_weights) {
-      if (is.null(private$precomputed_cov_matrices) || (private$prior_variance_scale != 1 && private$prior_variance_scale != 0)) {
+      if (is.null(private$precomputed_cov_matrices$U0) || (private$prior_variance_scale != 1 && private$prior_variance_scale != 0)) {
+        if (!is.null(private$precomputed_cov_matrices$Vinv)) {
+          # Vinv is a 3D array for per variable
+          Vinv = private$precomputed_cov_matrices$Vinv
+        } else {
+          Vinv = 0
+        }
         post = mashr:::calc_sermix_rcpp(t(bhat), t(sbhat),
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
+                              Vinv,
                               private$get_scaled_prior(private$prior_variance_scale),
                               # because we define the scalar with respect to the original prior
                               # the inverse should always be the original.
                               private$.prior_variance$xUlist_inv,
-                              0, 0,
+                              0,
                               t(mixture_posterior_weights),
                               t(variable_posterior_weights),
+                              private$prior_variance_scale,
                               private$is_common_cov)
       } else {
+        # Use precomputed quantities
         # Posterior calculation does not need sbhat when there is Vinv etc
         # But mashr code needs it for scaling back EE / EZ models
-        # So we just put in an an empty matrix here.
+        # So we just put in an empty matrix for it.
         # here private$prior_variance_scale is either 0 or 1
         post = mashr:::calc_sermix_rcpp(t(bhat), matrix(0,0,0),
                               matrix(0,0,0), matrix(0,0,0),
                               private$residual_correlation,
-                              0,
-                              private$.prior_variance$xUlist_inv,
                               private$precomputed_cov_matrices$Vinv,
+                              private$get_scaled_prior(private$prior_variance_scale),
+                              private$.prior_variance$xUlist_inv,
                               private$precomputed_cov_matrices$U0 * private$prior_variance_scale,
                               t(mixture_posterior_weights),
-                              t(variable_posterior_weights),
+                              matrix(0,0,0),
+                              private$prior_variance_scale,
                               private$is_common_cov)
       }
       return(post)
@@ -267,7 +273,6 @@ MashRegression <- R6Class("MashRegression",
 
 #' @title MASH initializer object
 #' @importFrom R6 R6Class
-#' @importFrom MASS ginv
 #' @importFrom mashr expand_cov
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
@@ -327,10 +332,14 @@ MashInitializer <- R6Class("MashInitializer",
         prior_weights = prior_weights / sum(prior_weights)
         private$xU = list(pi = c(null_weight, prior_weights * (1 - null_weight)), xUlist = xUlist)
       },
-    compute_prior_ginv = function() {
+    compute_prior_inv = function() {
       # compute generalized inverse for prior matrices
       # this is relevant to the EM update of prior variance scalar
-      private$xU$xUlist_inv = lapply(1:length(private$xU$xUlist), function(i) ginv(private$xU$xUlist[[i]]))
+      tryCatch({
+        private$xU$xUlist_inv = matlist2array(lapply(1:length(private$xU$xUlist), function(i) invert_via_chol(private$xU$xUlist[[i]])))
+        }, error = function(e) {
+          private$xU$xUlist_inv = NA
+        })
     },
     precompute_cov_matrices = function(d, residual_covariance, algorithm = c('R', 'cpp')) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
@@ -345,10 +354,11 @@ MashInitializer <- R6Class("MashInitializer",
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
       # FIXME: compute this in parallel in the future
       algorithm = match.arg(algorithm)
+      sigma_rooti = list()
+      U0 = list()
       if (is.matrix(svs)) {
         # sigma_rooti is R * R * P
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
-        sigma_rooti = list()
         for (i in 1:length(private$xU$xUlist)) {
           if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(svs + private$xU$xUlist[[i]])
           else sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(svs + private$xU$xUlist[[i]])$data
@@ -356,14 +366,14 @@ MashInitializer <- R6Class("MashInitializer",
         # this is in prepartion for some constants used in posterior calculation
         Vinv = list()
         Vinv[[1]] = invert_via_chol(svs)
-        U0 = list()
-        for (i in 1:length(private$xU$xUlist)) U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+        for (i in 1:length(private$xU$xUlist)) {
+          U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+        }
       } else {
           # have to do this for every effect
           # sigma_rooti and U0 will be R * R * (J * P)
           # and Vinv will be a J list, not a matrix
           # this is in preparation for some constants used in dmvnrom() for likelihood calculations
-          sigma_rooti = list()
           k = 1
           for (j in 1:length(svs)) {
             for (i in 1:length(private$xU$xUlist)) {
@@ -376,7 +386,6 @@ MashInitializer <- R6Class("MashInitializer",
             }
           }
           Vinv = lapply(1:length(svs), function(i) invert_via_chol(svs[[i]]))
-          U0 = list()
           k = 1
           for (j in 1:length(svs)) {
             for (i in 1:length(private$xU$xUlist)) {

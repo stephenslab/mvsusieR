@@ -10,6 +10,7 @@ muffled_chol = function(x, ...)
 #' @title Invert a symmetric, positive definite square matrix via its Choleski decomposition
 #' @keywords internal
 invert_via_chol = function(x) {
+  if (all(x==0)) return(x)
   return(chol2inv(muffled_chol(x)))
 }
 

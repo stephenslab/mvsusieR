@@ -959,6 +959,246 @@ Warning message in m$get_objective(dump = TRUE):
 </div>
 </div>
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Verify-that-MASH-prior-is-also-correctly-implemented">Verify that MASH prior is also correctly implemented<a class="anchor-link" href="#Verify-that-MASH-prior-is-also-correctly-implemented">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>When <code>V</code> is not invertable,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">m_init</span> <span class="o">=</span> <span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="m">1</span><span class="p">)</span>
+<span class="n">fit5</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">precompute_covariances</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span>
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;EM&#39;</span><span class="p">,</span>
+              <span class="n">track_fit</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit5</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0.215164026486418</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>When <code>V</code> is invertable,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">m_init</span> <span class="o">=</span> <span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="nf">diag</span><span class="p">(</span><span class="m">2</span><span class="p">)),</span> <span class="m">1</span><span class="p">)</span>
+<span class="n">fit6</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">,</span> 
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">precompute_covariances</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span>
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;EM&#39;</span><span class="p">,</span>
+              <span class="n">track_fit</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit6</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.340567896558995</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0.34528976531648</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This result agrees with above from BMR. Now I comment out the line to precompute inverse so it will use the trick around inverse implemented for MASH,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">devtools</span><span class="o">::</span><span class="nf">load_all</span><span class="p">(</span><span class="s">&#39;~/GIT/software/mmbr&#39;</span><span class="p">)</span>
+<span class="n">m_init</span> <span class="o">=</span> <span class="n">MashInitializer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="nf">list</span><span class="p">(</span><span class="nf">diag</span><span class="p">(</span><span class="m">2</span><span class="p">)),</span> <span class="m">1</span><span class="p">)</span>
+<span class="n">fit7</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">dat</span><span class="o">$</span><span class="n">X</span><span class="p">,</span><span class="n">dat</span><span class="o">$</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span><span class="n">prior_variance</span><span class="o">=</span><span class="n">m_init</span><span class="p">,</span>
+              <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">precompute_covariances</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span>
+              <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_prior_method</span> <span class="o">=</span> <span class="s">&#39;EM&#39;</span><span class="p">,</span>
+              <span class="n">track_fit</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading mmbr
+
+</pre>
+</div>
+</div>
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>NULL
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">fit7</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.340567896558995</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0.34528976531648</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
 <hr>
 &copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago
 
