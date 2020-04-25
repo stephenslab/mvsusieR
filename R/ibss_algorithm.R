@@ -68,6 +68,7 @@ SuSiE <- R6Class("SuSiE",
             }
             if (private$to_estimate_residual_variance)
               private$estimate_residual_variance(d)
+            if (i == private$.niter) warning(paste("IBSS failed to converge after", i, "iterations. Perhaps you should increase max_iter and try again."))
             pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },
