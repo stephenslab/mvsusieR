@@ -283,7 +283,6 @@ body {
 <span class="n">Y1</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[,</span> <span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="n">R</span><span class="p">)]</span>
 <span class="n">resid_Y1</span> <span class="o">=</span> <span class="n">resid_Y</span><span class="p">[</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="n">R</span><span class="p">),</span> <span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="n">R</span><span class="p">)]</span>
 <span class="n">V1</span> <span class="o">=</span> <span class="nf">matrix</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">R</span><span class="p">)</span>
-<span class="n">L</span> <span class="o">=</span> <span class="m">1</span>
 <span class="n">true_coef</span> <span class="o">=</span> <span class="n">meta</span><span class="o">$</span><span class="n">true_coef</span><span class="p">[,</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="o">:</span><span class="n">R</span><span class="p">)]</span>
 </pre></div>
 
@@ -789,6 +788,67 @@ Loading required package: ashr
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>I think the disagreement is understandable because the "all shared" prior model is very much mis-specified for these true coefficients.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><strong>Notice previous notebook I made a mistake using the coefficient based on rescaled data,</strong></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">wrong_b1</span> <span class="o">=</span> <span class="n">d</span><span class="o">$</span><span class="nf">rescale_coef</span><span class="p">(</span><span class="n">m2</span><span class="o">$</span><span class="n">posterior_b1</span><span class="p">)[</span><span class="m">130</span><span class="p">,]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="nf">sum</span><span class="p">(</span><span class="nf">diag</span><span class="p">(</span><span class="nf">tcrossprod</span><span class="p">(</span><span class="n">wrong_b1</span><span class="p">)))</span><span class="o">/</span><span class="n">R</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+0.0986839903507364
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>This is inconsistent with estimated prior scalar because of the scale issue.</p>
 
 </div>
 </div>
