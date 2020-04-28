@@ -27,7 +27,7 @@
 #' @param prior_tol when prior variance is estimated, compare the estimated value to this tol at the end of
 #' the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.
 #' @param precompute_covariances if TRUE, precomputes various covariance quantities to speed up computations at the cost of increased memory usage
-#' @param s_init a previous susie fit with which to initialize
+#' @param s_init a previous model fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
 #' Default set to 0.5 to correspond to squared correlation of 0.25,
@@ -128,7 +128,7 @@ msusie = function(X,Y,L=10,
 #' setting \code{check_null_threshold=NA} will skip the check and instead relying solely on EM to update this parameter.
 #' @param prior_tol when prior variance is estimated, compare the estimated value to this tol at the end of
 #' the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.
-#' @param s_init a previous susie fit with which to initialize
+#' @param s_init a previous model fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
 #' Default set to 0.5 to correspond to squared correlation of 0.25,
@@ -261,7 +261,7 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
   # Below are the core computations
   SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit, track_prior=track_fit)
-  if (!is.null(s_init)) SuSiE_model$init_coef(s_init$coef_index, s_init$coef_value, data$n_effect, data$n_condition)
+  if (!is.null(s_init)) SuSiE_model$init_from(s_init)
   SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   ## clean up prior object

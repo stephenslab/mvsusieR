@@ -101,7 +101,8 @@ test_that("mash regression in SuSiE agrees with BMR using one component prior ma
 test_that("customized initialization interface", with(simulate_multivariate(r=3), {
     # not sure what to test here ...
     m_init = create_mash_prior(mixture_prior = list(matrices = list(V), weights = 1), null_weight=0)
-    A = msusie(X,y,L=L,prior_variance=m_init,s_init=list(coef_index=c(2,3,4),coef_value=matrix(1,3,3)),compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
+    A = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
+    B = msusie(X,y,L=L,prior_variance=m_init,s_init=A,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
     # let's just test of null is null ...
     null_weight = 0.2
     m_init = create_mash_prior(sample_data = list(X=X,Y=y,center=T,scale=T,residual_variance=cov(y)),
@@ -202,7 +203,8 @@ test_that("customized initialization interface (RSS)", with(simulate_multivariat
   })
   R = cor(X)
   m_init = create_mash_prior(mixture_prior = list(matrices = list(V), weights = 1), null_weight=0)
-  A = msusie_rss(z,R,L=L,prior_variance=m_init,s_init=list(coef_index=c(2,3,4),coef_value=matrix(1,3,3)),compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE)
+  A = msusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE)
+  B = msusie_rss(z,R,L=L,prior_variance=m_init,s_init=A,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE)
   # let's just test of null is null ...
   null_weight = 0.2
   m_init = create_mash_prior(sample_data = list(X=X,Y=y,center=T,scale=T,residual_variance=cov(y)),

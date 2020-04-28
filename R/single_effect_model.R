@@ -91,7 +91,10 @@ SingleEffectModel <- function(base)
             else b2 = private$.posterior_b2
             return(private$.pip * b2)
         },
-        pip = function() private$.pip,
+        pip = function(v) {
+            if (missing(v)) private$.pip
+            else private$.pip = v
+        },
         lbf = function() private$lbf_single_effect,
         kl = function() private$.kl,
         vbxxb = function() private$.vbxxb,

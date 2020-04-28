@@ -61,7 +61,10 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         private$.residual_variance_inv = invert_via_chol(v)
       }
     },
-    prior_variance = function() private$prior_variance_scale
+    prior_variance = function(v) {
+      if (missing(v)) private$prior_variance_scale
+      else private$prior_variance_scale = v
+    }
   ),
   private = list(
     .residual_variance_inv = NULL,

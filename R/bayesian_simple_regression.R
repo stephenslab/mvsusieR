@@ -51,7 +51,10 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     lbf = function() private$.lbf,
     bhat = function() private$.bhat,
     sbhat = function() private$.sbhat,
-    prior_variance = function() private$.prior_variance,
+    prior_variance = function(v) {
+      if (missing(v)) private$.prior_variance
+      else private$.prior_variance = v
+    },
     posterior_variance = function() private$.posterior_variance,
     residual_variance = function(v) {
       if (missing(v)) private$.residual_variance

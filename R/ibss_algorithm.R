@@ -26,17 +26,19 @@ SuSiE <- R6Class("SuSiE",
         if (track_lbf) private$.lbf_history = list()
         if (track_prior_est) private$.prior_history = list()
     },
-    init_coef = function(coef_index, coef_value, p, r) {
-        L = length(coef_index)
-        if (L <= 0) stop("Need at least one non-zero effect")
-        if (L > private$L) stop("Cannot initialize more effects than the current model allows")
-        if (any(which(apply(coef_value,1,sum)==0))) stop("Input coef_value must be at least one non-zero item per row")
-        if (L != nrow(coef_value)) stop("Inputs coef_index and coef_value must of the same length")
-        if (max(coef_index)>p) stop("Input coef_index exceeds the boundary of p")
+    init_from = function(model) {
+        mu = model$b1
+        if (is.null(dim(mu)) || length(dim(mu)) != 3)
+            stop("Input coefficient should be a 3-D array for first moment estimate of each single effect.")
+        L = dim(mu)[1]
+        if (L != private$L)
+            stop("Cannot initialize different number of effects than the current model allows")
         for (i in 1:L) {
-            mu = matrix(0, p, r)
-            mu[coef_index[i], ] = coef_value[i,]
-            private$SER[[i]]$mu = mu
+            mu_l = mu[i,,]/model$alpha[i,]
+            mu_l[which(is.nan(mu_l) | !is.finite(mu_l))] = 0
+            private$SER[[i]]$mu = mu_l
+            private$SER[[i]]$pip = model$alpha[i,]
+            if (!is.null(model$V)) private$SER[[i]]$prior_variance = model$V[i]
         }
     },
     fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, check_null_threshold=0, verbose=TRUE) {

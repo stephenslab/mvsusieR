@@ -242,7 +242,7 @@ body {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="prompt input_prompt">In&nbsp;[41]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-r"><pre><span></span><span class="n">dat</span> <span class="o">=</span> <span class="nf">readRDS</span><span class="p">(</span><span class="s">&#39;lite_data_1_artificial_mixture_1_mnm_shared_1.rds&#39;</span><span class="p">)</span>
@@ -256,7 +256,7 @@ body {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>This data-set can be found in <code>mmbr/inst/prototypes</code>. Script to reproduce <code>msusie</code> analysis is available via <code>cat(dat$DSC_DEBUG$script)</code>. Simply copy that code and run the data generation; then run the analysis using <code>EM</code> and <code>optim</code>.</p>
+<p>This data-set can be found in <code>mmbr/inst/prototypes</code>. Script to reproduce <code>msusie</code> analysis is available via <code>cat(dat$DSC_DEBUG$script)</code>. Simply copy that code and run the data generation; then run the analysis using <code>EM</code> and <code>optim</code>. I save the <code>X</code>, <code>Y</code>, <code>meta</code> and <code>resid_Y</code> data into <code>em_optim_difference.rds</code> file for ease with loading it for further investigation.</p>
 
 </div>
 </div>
@@ -3994,6 +3994,309 @@ height=420
 
 <div class="output_html rendered_html output_subarea ">
 -4762.07666765973
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Assessing-impact-of-initialization-on-agreement-between-EM-and-optim">Assessing impact of initialization on agreement between EM and optim<a class="anchor-link" href="#Assessing-impact-of-initialization-on-agreement-between-EM-and-optim">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here we run optim starting from the EM solution and vice versa, to see if that leads to agreement between these two approaches in estimating prior scalar.</p>
+<p>First, initalize <code>EM</code> with <code>optim</code> result,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result7</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">s_init</span> <span class="o">=</span> <span class="n">result2</span><span class="p">,</span> <span class="n">prior_variance</span><span class="o">=</span><span class="nf">matrix</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">50</span><span class="p">),</span> <span class="n">residual_variance</span><span class="o">=</span><span class="n">resid_Y</span><span class="p">,</span> <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> 
+                <span class="n">estimate_prior_method</span><span class="o">=</span><span class="s">&#39;EM&#39;</span><span class="p">,</span> <span class="n">track_fit</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">precompute_covariances</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Loading mmbr
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result7</span><span class="o">$</span><span class="n">niter</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+2
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here is <code>EM</code> result using <code>optim</code> initialization,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[34]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result7</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.000755844772649111</li><li>0.00092964882084519</li><li>0.000261429236288484</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Here is <code>optim</code> result,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[39]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result2</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.000755795213844379</li><li>0.000929637524553294</li><li>0.000261454666168821</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now initialize <code>optim</code> with <code>EM</code> result,</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result8</span> <span class="o">=</span> <span class="nf">msusie</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">L</span><span class="p">,</span> <span class="n">s_init</span> <span class="o">=</span> <span class="n">result5</span><span class="p">,</span> <span class="n">prior_variance</span><span class="o">=</span><span class="nf">matrix</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="m">50</span><span class="p">,</span><span class="m">50</span><span class="p">),</span> <span class="n">residual_variance</span><span class="o">=</span><span class="n">resid_Y</span><span class="p">,</span> <span class="n">compute_objective</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">estimate_residual_variance</span><span class="o">=</span><span class="bp">F</span><span class="p">,</span> <span class="n">estimate_prior_variance</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> 
+                <span class="n">estimate_prior_method</span><span class="o">=</span><span class="s">&#39;optim&#39;</span><span class="p">,</span> <span class="n">track_fit</span><span class="o">=</span><span class="bp">T</span><span class="p">,</span> <span class="n">precompute_covariances</span><span class="o">=</span><span class="bp">F</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[36]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result8</span><span class="o">$</span><span class="n">niter</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+2
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result8</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.00190715760523663</li><li>0.000930484657641357</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[38]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-r"><pre><span></span><span class="n">result5</span><span class="o">$</span><span class="n">V</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt"></div>
+
+
+
+<div class="output_html rendered_html output_subarea ">
+<style>
+.list-inline {list-style: none; margin:0; padding: 0}
+.list-inline>li {display: inline-block}
+.list-inline>li:not(:last-child)::after {content: "\00b7"; padding: 0 .5ex}
+</style>
+<ol class=list-inline><li>0.00158092887545148</li><li>0.000940417090182203</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li><li>0</li></ol>
+
 </div>
 
 </div>
