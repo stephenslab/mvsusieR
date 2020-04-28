@@ -18,7 +18,8 @@ LazyData: true
 NeedsCompilation: no
 RoxygenNote: 7.1.0
 Depends: R (>= 3.5.0),
-    mashr (>= 0.2.21)
+    mashr (>= 0.2.21),
+    susieR (>= 0.9.1)
 Imports:
     R6,
     methods,
@@ -37,5 +38,5 @@ Suggests:
     microbenchmark,
     knitr,
     rmarkdown
-Remotes: stephenslab/mashr
+Remotes: stephenslab/mashr, stephenslab/susieR
 VignetteBuilder: knitr
