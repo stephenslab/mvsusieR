@@ -55,7 +55,7 @@ SuSiE <- R6Class("SuSiE",
                 # For the first 10 iterations, don't do the check with zero when EM updates are used to estimate prior variance
                 # see https://github.com/stephenslab/mmbr/issues/26#issuecomment-612947198
                 private$SER[[l]]$fit(d, prior_weights=prior_weights, estimate_prior_variance_method=estimate_prior_variance_method,
-                                    check_null_threshold=ifelse(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM" && i <= 15, NA, check_null_threshold))
+                                    check_null_threshold=ifelse(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM" && i <= 10, NA, check_null_threshold))
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
                 d$remove_from_residual(private$SER[[l]]$predict(d))
             }
@@ -66,11 +66,17 @@ SuSiE <- R6Class("SuSiE",
                 private$save_history()
                 pb$tick(private$.niter)
                 private$.niter = i
+                private$add_back_zero_effects()
                 break
             }
             if (private$to_estimate_residual_variance)
-              private$estimate_residual_variance(d)
-            if (i == private$.niter) warning(paste("IBSS failed to converge after", i, "iterations. Perhaps you should increase max_iter and try again."))
+                private$estimate_residual_variance(d)
+            if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM")
+                private$trim_zero_effects()
+            if (i == private$.niter) {
+                warning(paste("IBSS failed to converge after", i, "iterations. Perhaps you should increase max_iter and try again."))
+                private$add_back_zero_effects()
+            }
             pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
         }
     },
@@ -110,6 +116,7 @@ SuSiE <- R6Class("SuSiE",
     to_compute_objective = NULL,
     L = NULL,
     SER = NULL, # Single effect regression models
+    SER_NULL = list(), # Single effect regression models removed
     elbo = NULL, # Evidence lower bound
     null_index = NULL, # index of null effect intentially added
     .niter = NULL,
@@ -127,7 +134,8 @@ SuSiE <- R6Class("SuSiE",
             if (private$to_compute_objective)
                 delta = private$elbo[n] - private$elbo[n-1]
             else
-                delta = max(abs(private$.pip_history[[n]] - private$.pip_history[[n-1]]))
+                # convergence check with marginal PIP
+                delta = max(abs(apply(1 - private$.pip_history[[n]], 1, prod) - apply(1 - private$.pip_history[[n-1]], 1, prod)))
             return (list(delta=delta, converged=(delta < private$tol)))
         }
     },
@@ -193,6 +201,25 @@ SuSiE <- R6Class("SuSiE",
       E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
       E1 = tr(v_inv%*%crossprod(d$residual)) - sum(E1)
       return(E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
+    },
+    trim_zero_effects = function() {
+        # remove single effect models where estimated prior is zero
+        if (length(private$SER) > 1) {
+            zero_idx = which(sapply(1:length(private$SER), function(i) private$SER[[i]]$prior_variance) == 0)
+            if (length(zero_idx) == length(private$SER)) zero_idx = zero_idx[2:length(zero_idx)]
+            if (length(zero_idx)) {
+                private$SER_NULL = c(private$SER_NULL, private$SER[zero_idx])
+                private$SER = private$SER[-zero_idx]
+                private$L = length(private$SER)
+            }
+        }
+    },
+    add_back_zero_effects = function() {
+        # keep output number of effects consistent with specified L
+        if (length(private$SER_NULL)) {
+            private$SER = c(private$SER, private$SER_NULL)
+            private$L = length(private$SER)
+        }
     },
     save_history = function() {
         if (!is.null(private$.pip_history)) {
