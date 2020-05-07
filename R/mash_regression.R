@@ -186,8 +186,10 @@ MashRegression <- R6Class("MashRegression",
         } else {
           Vinv = 0
         }
-        post = mashr:::calc_sermix_rcpp(t(bhat), t(sbhat),
-                              matrix(0,0,0), matrix(0,0,0),
+        post = mashr:::calc_sermix_rcpp(t(bhat),
+                              # sbhat is not needed (can safely be replaced by matrix(0,0,0)) IF Vinv is provided
+                              t(sbhat),
+                              # residual correlation is not needed (can safely be replaced by matrix(0,0,0)) IF Vinv is provided
                               private$residual_correlation,
                               Vinv,
                               private$get_scaled_prior(private$prior_variance_scale),
@@ -201,13 +203,11 @@ MashRegression <- R6Class("MashRegression",
                               private$is_common_cov)
       } else {
         # Use precomputed quantities
-        # Posterior calculation does not need sbhat when there is Vinv etc
-        # But mashr code needs it for scaling back EE / EZ models
-        # So we just put in an empty matrix for it.
         # here private$prior_variance_scale is either 0 or 1
-        post = mashr:::calc_sermix_rcpp(t(bhat), matrix(0,0,0),
+        post = mashr:::calc_sermix_rcpp(t(bhat),
+                              # No need for sbhat and residual correlation when Vinv is precomputed
+                              # So we just put in an empty matrix for them (matrix(0,0,0)).
                               matrix(0,0,0), matrix(0,0,0),
-                              private$residual_correlation,
                               private$precomputed_cov_matrices$Vinv,
                               private$get_scaled_prior(private$prior_variance_scale),
                               private$.prior_variance$xUlist_inv,
