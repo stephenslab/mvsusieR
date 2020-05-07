@@ -31,6 +31,7 @@ tr = function (m) {
 #' @title Convert a list of matrices to array without losing dimension
 #' @keywords internal
 matlist2array = function(l) {
+  if (class(l) != "list") return(l)
   l = simplify2array(l)
   if (is.null(dim(l))) {
     l = array(l, c(1,1,length(l)))
