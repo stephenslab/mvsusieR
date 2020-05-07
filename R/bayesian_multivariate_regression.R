@@ -20,15 +20,19 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
-      if (d$Y_has_missing) stop("Computation involving missing data in Y has not been implemented in BayesianMultivariateRegression method.")
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
       # bhat is J by R
-      bhat = XtY / d$X2_sum
+      # X2_sum is either a length J vector or J by R by R array
+      if(d$Y_has_missing){
+        bhat = t(sapply(1:d$n_effect, function(j) solve(d$X2_sum[j,,], XtY[j,])))
+        sbhat2 = lapply(1:d$n_effect, function(j) invert_via_chol(d$X2_sum[j,,]))
+      }else{
+        bhat = XtY / d$X2_sum
+        sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
+      }
       bhat[which(is.nan(bhat))] = 0
-      if (d$Y_has_missing) sbhat2 = lapply(1:nrow(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j,])
-      else sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
       for (j in 1:length(sbhat2)) {
         sbhat2[[j]][which(is.nan(sbhat2[[j]]) | is.infinite(sbhat2[[j]]))] = 1E6
       }

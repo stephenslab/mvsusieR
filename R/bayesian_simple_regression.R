@@ -16,9 +16,16 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (use_residual) XtY = d$XtR
       else XtY = d$XtY
       # OLS estimates
-      bhat = XtY / d$X2_sum
+      # bhat is J by R
+      # X2_sum is either a length J vector or J by R by R array
+      if(d$Y_has_missing){
+        bhat = matrix(sapply(1:d$n_effect, function(j) solve(d$X2_sum[j,,], XtY[j,])), d$n_effect, 1)
+        sbhat2 = as.numeric(1/d$X2_sum)
+      }else{
+        bhat = XtY / d$X2_sum
+        sbhat2 = private$.residual_variance / d$X2_sum
+      }
       bhat[which(is.nan(bhat))] = 0
-      sbhat2 = private$.residual_variance / d$X2_sum
       sbhat2[which(is.nan(sbhat2) | is.infinite(sbhat2))] = 1E6
       if (save_summary_stats) {
         private$.bhat = bhat
@@ -33,9 +40,9 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
         }
       }
       # posterior
-      post_var = (1/private$.prior_variance + d$X2_sum/private$.residual_variance)^(-1) # posterior variance
+      post_var = (1/private$.prior_variance + 1/sbhat2)^(-1) # posterior variance
       if (save_var) private$.posterior_variance = post_var
-      private$.posterior_b1 = (1/private$.residual_variance) * post_var * XtY
+      private$.posterior_b1 = post_var * bhat /sbhat2
       private$.posterior_b2 = post_var + private$.posterior_b1^2 # second moment
       # Bayes factor
       private$.lbf = dnorm(bhat,0,sqrt(private$.prior_variance+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)

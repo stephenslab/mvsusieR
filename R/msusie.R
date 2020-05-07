@@ -82,12 +82,13 @@ msusie = function(X,Y,L=10,
                  verbose=TRUE,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
+  # set data object
   if (any(is.na(Y))) {
     data = DenseDataYMissing$new(X, Y)
   } else {
     data = DenseData$new(X, Y)
   }
-  data$standardize(intercept, standardize)
+  # check residual variance
   if (is.null(residual_variance)) {
     if (data$n_condition > 1) {
       if (!data$Y_has_missing) residual_variance = cov(Y)
@@ -95,6 +96,20 @@ msusie = function(X,Y,L=10,
     }
     else residual_variance = var(Y, na.rm=T)
   }
+  if (is.matrix(residual_variance)) {
+    if (any(is.na(diag(residual_variance))))
+      stop("Diagonal of residual_variance cannot be NA")
+    residual_variance[which(is.na(residual_variance))] = 0
+    mashr:::check_positive_definite(residual_variance)
+  }else {
+    if (is.na(residual_variance) || is.infinite(residual_variance))
+    stop("Invalid residual_variance")
+  }
+  # precompute residual variance inverse for missing data
+  if(data$Y_has_missing){
+    data$adjust(residual_variance)
+  }
+  data$standardize(intercept, standardize)
   #
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
@@ -198,6 +213,15 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
     else residual_variance = matrix(1)
   }
   #
+  if (is.matrix(residual_variance)) {
+    if (any(is.na(diag(residual_variance))))
+      stop("Diagonal of residual_variance cannot be NA")
+    residual_variance[which(is.na(residual_variance))] = 0
+    mashr:::check_positive_definite(residual_variance)
+  } else {
+    if (is.na(residual_variance) || is.infinite(residual_variance))
+      stop("Invalid residual_variance")
+  }
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
@@ -220,15 +244,6 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
   start_time = proc.time()
   if (is.numeric(prior_variance) && !is.matrix(prior_variance))
     residual_variance = as.numeric(residual_variance)
-  if (is.matrix(residual_variance)) {
-    if (any(is.na(diag(residual_variance))))
-      stop("Diagonal of residual_variance cannot be NA")
-    residual_variance[which(is.na(residual_variance))] = 0
-    mashr:::check_positive_definite(residual_variance)
-  } else {
-    if (is.na(residual_variance) || is.infinite(residual_variance))
-      stop("Invalid residual_variance")
-  }
   # for now the type of prior_variance controls the type of regression
   if (is.numeric(prior_variance)) {
     if (data$n_condition > 1 && !is.matrix(prior_variance))

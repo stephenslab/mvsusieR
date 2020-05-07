@@ -49,7 +49,12 @@ MashRegression <- R6Class("MashRegression",
       else XtY = d$XtY
       # OLS estimates
       # bhat is J by R
-      bhat = XtY / d$X2_sum
+      # X2_sum is either a length J vector or J by R by R array
+      if(d$Y_has_missing){
+        bhat = t(sapply(1:d$n_effect, function(j) solve(d$X2_sum[j,,], XtY[j,])))
+      }else{
+        bhat = XtY / d$X2_sum
+      }
       bhat[which(is.nan(bhat))] = 0
       if (!is.null(private$precomputed_cov_matrices$sbhat)) {
         # we dont need sbhat, when we have precomputed quantities
