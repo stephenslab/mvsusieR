@@ -149,10 +149,13 @@ MashRegression <- R6Class("MashRegression",
     compute_loglik_mat = function(scalar, bhat, sbhat) {
       if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
         llik = mashr:::calc_lik_rcpp(t(bhat),
+                                    # t(sbhat) and private$residual_correlation can both be empty (matrix(0,0,0)) if SVS is provided
                                     t(sbhat),
                                     private$residual_correlation,
                                     matrix(0,0,0),
                                     private$get_scaled_prior(scalar),
+                                    # should be matlist2array(d$svs), if t(sbhat) and private$residual_correlation are not empty
+                                    0,
                                     TRUE,
                                     private$is_common_cov)$data
       } else {
