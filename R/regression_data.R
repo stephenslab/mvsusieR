@@ -51,7 +51,7 @@ DenseData <- R6Class("DenseData",
     },
     compute_Xb = function(b) {
       # J by R
-      # tcrossprod(A,B) performs A%*%t(B) but faster 
+      # tcrossprod(A,B) performs A%*%t(B) but faster
       tcrossprod(private$.X,t(b))
     },
     compute_MXt = function(M) {
@@ -71,9 +71,9 @@ DenseData <- R6Class("DenseData",
       coefs = b/private$csd
       if(private$.Y_has_missing){
         # Length R
-        # sum_i Gamma_i Sigma_i^{-1} Gamma_i b^T X[i,] 
-        D = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
+        # sum_i Gamma_i Sigma_i^{-1} Gamma_i b^T X[i,]
+        D = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) %*% crossprod(b, private$.X[i,])))
         if (!is.null(private$Y_mean)) intercept = private$Y_mean - private$Ainv %*% D
         else intercept = 0
@@ -88,7 +88,7 @@ DenseData <- R6Class("DenseData",
         if (is.null(dim(coefs))) {
           if (!is.null(private$Y_mean)) intercept = private$Y_mean - sum(private$cm * coefs)
           else intercept = 0
-          
+
           c(intercept, coefs)
         } else {
           if (!is.null(private$Y_mean)) intercept = private$Y_mean - colSums(private$cm * coefs)
@@ -113,7 +113,7 @@ DenseData <- R6Class("DenseData",
       if (!sbhat_only) {
         bhat = self$XtY/private$d
         bhat[which(is.nan(bhat))] = 0
-        if (is_common_sbhat) SVS = sbhat[1,] * t(residual_correlation * sbhat[1,]) # faster than diag(s) %*% V %*% diag(s)
+        if (is_common_sbhat) SVS = list(sbhat[1,] * t(residual_correlation * sbhat[1,])) # faster than diag(s) %*% V %*% diag(s)
         else SVS = lapply(1:nrow(sbhat), function(j) sbhat[j,] * t(residual_correlation * sbhat[j,]))
       } else {
         SVS = bhat = NA
@@ -202,7 +202,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
     adjust = function(residual_variance, approximation = FALSE){
       private$.residual_variance_inv = list()
       if(approximation){
-        ## FIXME: order of eigenvectors? 
+        ## FIXME: order of eigenvectors?
         ## Ignore this part for now
         n_per_condition = crossprod(private$Y_non_missing)
         # adjusted residual variance
@@ -212,7 +212,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         dinv = 1/(eigenSigma$values)
         dinv[is.infinite(dinv)] = 0
         for(k in 1:nrow(private$missing_pattern)){
-          private$.residual_variance_inv[[k]] = eigenSigma$vectors %*% (dinv[private$missing_pattern[k,]] * 
+          private$.residual_variance_inv[[k]] = eigenSigma$vectors %*% (dinv[private$missing_pattern[k,]] *
                                                                           t(eigenSigma$vectors))
         }
       }else{
@@ -232,10 +232,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         for(j in 1:private$J){
           # For variant j, sum_i private$X_for_Y_missing[i,j,,] Gamma_i Sigma_i^{-1} Gamma_i private$X_for_Y_missing[i,j,,], R by R matrix
           # when there is no missing, it is sum(x_j^2) * Sigma^{-1}
-          private$d[j,,] = Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*% 
-                                                (private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                                   t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
-                                                       private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*% 
+          private$d[j,,] = Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*%
+                                                (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                                   t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
+                                                       private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                 private$X_for_Y_missing[i,j,,]))
         }
       }
@@ -247,18 +247,18 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       }
       if(center){
         # sum_i Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
-        A = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
+        A = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) ))
         # sum_i Gamma_i Sigma_i^{-1} Gamma_i y_i R by 1 matrix
-        B = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
+        B = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) %*% private$.Y[i,] ))
         # For variant j, sum_i X_{i,j} Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
         C = array(0,dim = c(private$J, private$R, private$R)) # J by R by R array
         for(j in 1:private$J){
-          C[j,,] = Reduce('+', lapply(1:private$N, function(i) private$.X[i,j] * (private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                                                                    t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
+          C[j,,] = Reduce('+', lapply(1:private$N, function(i) private$.X[i,j] * (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                                                                    t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                                                                         private$missing_pattern[private$Y_missing_pattern_assign[i],])) ))
         }
         private$Ainv = invert_via_chol(A)
@@ -276,10 +276,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         for(j in 1:private$J){
           # For variant j, sum_i private$X_for_Y_missing[i,j,,] Gamma_i Sigma_i^{-1} Gamma_i private$X_for_Y_missing[i,j,,], R by R matrix
           # when there is no missing, it is sum(x_j^2) * Sigma^{-1}
-          private$d[j,,] = Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*% 
-                                                (private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                                   t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
-                                                       private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*% 
+          private$d[j,,] = Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*%
+                                                (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                                   t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
+                                                       private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                 private$X_for_Y_missing[i,j,,]))
         }
       }
@@ -302,10 +302,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         bhat[which(is.nan(bhat))] = 0
         # length J list, each element is an R by R matrix
         SVS = lapply(1:private$J, function(j) solve(private$d[j,,]))
-      
+
         is_common_sbhat = is_list_common(SVS)
         if (is_common_sbhat) {
-          SVS = SVS[[1]]
+          SVS = list(SVS[[1]])
         }
         # FIXME: haven't figured out how to compute it for missing data case ...
         # but this will not have an impact later since we've computed SVS instead
@@ -323,10 +323,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
     XtY = function() {
       if (is.null(private$.XtY))
         # J by R matrix
-        private$.XtY = t(sapply(1:private$J, function(j) Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*% 
-                                                                              (private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                                                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
-                                                                                     private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*% 
+        private$.XtY = t(sapply(1:private$J, function(j) Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*%
+                                                                              (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                                                                 t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
+                                                                                     private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                                               private$.Y[i,]))))
       if(nrow(private$.XtY) != private$J) private$.XtY = t(private$.XtY)
       return(private$.XtY)
@@ -338,10 +338,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       return(private$.XtX)
     },
     XtR = function() {
-      res = t(sapply(1:private$J, function(j) Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*% 
-                                                                   (private$missing_pattern[private$Y_missing_pattern_assign[i],] * 
-                                                                      t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] * 
-                                                                          private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*% 
+      res = t(sapply(1:private$J, function(j) Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*%
+                                                                   (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                                                      t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
+                                                                          private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                                    private$.residual[i,]))))
       if(nrow(res) != private$J) res = t(res)
       return(res)

@@ -148,12 +148,13 @@ MashRegression <- R6Class("MashRegression",
     .residual_variance_inv = NULL,
     compute_loglik_mat = function(scalar, bhat, sbhat) {
       if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
-        llik = mashr:::calc_lik_rcpp(t(bhat), t(sbhat),
-                                         private$residual_correlation,
-                                         matrix(0,0,0),
-                                         private$get_scaled_prior(scalar),
-                                         TRUE,
-                                         private$is_common_cov)$data
+        llik = mashr:::calc_lik_rcpp(t(bhat),
+                                    t(sbhat),
+                                    private$residual_correlation,
+                                    matrix(0,0,0),
+                                    private$get_scaled_prior(scalar),
+                                    TRUE,
+                                    private$is_common_cov)$data
       } else {
         # Here private$prior_variance_scale is either 0 or 1.
         # This line below assumes it is 1; will adjust it after for case of 0.
@@ -364,16 +365,16 @@ MashInitializer <- R6Class("MashInitializer",
       algorithm = match.arg(algorithm)
       sigma_rooti = list()
       U0 = list()
-      if (is.matrix(svs)) {
+      if (res$is_common_sbhat) {
         # sigma_rooti is R * R * P
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         for (i in 1:length(private$xU$xUlist)) {
-          if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(svs + private$xU$xUlist[[i]])
-          else sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(svs + private$xU$xUlist[[i]])$data
+          if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(svs[[1]] + private$xU$xUlist[[i]])
+          else sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(svs[[1]] + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
         Vinv = list()
-        Vinv[[1]] = invert_via_chol(svs)
+        Vinv[[1]] = invert_via_chol(svs[[1]])
         for (i in 1:length(private$xU$xUlist)) {
           U0[[i]] = private$xU$xUlist[[i]] %*% solve(Vinv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
         }
