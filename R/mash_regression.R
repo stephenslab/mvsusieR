@@ -11,13 +11,7 @@ MashRegression <- R6Class("MashRegression",
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = matlist2array(private$.prior_variance$xUlist)
-      private$.residual_variance = residual_variance
-      tryCatch({
-        private$.residual_variance_inv = invert_via_chol(residual_variance)
-      }, error = function(e) {
-        stop(paste0('Cannot compute inverse for residual_variance:\n', e))
-      })
-      private$residual_correlation = cov2cor(residual_variance)
+      self$residual_variance = residual_variance
       private$precomputed_cov_matrices = mash_initializer$precomputed
       if (is.na(private$.prior_variance$xUlist_inv) || is.null(private$.prior_variance$xUlist_inv))
         private$.prior_variance$xUlist_inv = 0
@@ -134,7 +128,12 @@ MashRegression <- R6Class("MashRegression",
       if (missing(v)) private$.residual_variance
       else {
         private$.residual_variance = v
-        private$.residual_variance_inv = invert_via_chol(v)
+        tryCatch({
+          private$.residual_variance_inv = invert_via_chol(v)
+        }, error = function(e) {
+          stop(paste0('Cannot compute inverse for residual_variance:\n', e))
+        })
+        private$residual_correlation = cov2cor(v)
       }
     }
   ),

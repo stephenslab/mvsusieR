@@ -7,14 +7,9 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     initialize = function(J, residual_variance, prior_variance) {
       private$J = J
       private$.prior_variance = prior_variance
-      private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
       private$prior_variance_scale = 1
-      tryCatch({
-        private$.residual_variance_inv = invert_via_chol(residual_variance)
-      }, error = function(e) {
-        warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
-      })
+      self$residual_variance = residual_variance
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0) {
       # d: data object
@@ -62,7 +57,11 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       if (missing(v)) private$.residual_variance
       else {
         private$.residual_variance = v
-        private$.residual_variance_inv = invert_via_chol(v)
+        tryCatch({
+          private$.residual_variance_inv = invert_via_chol(v)
+        }, error = function(e) {
+          warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
+        })
       }
     },
     prior_variance = function(v) {

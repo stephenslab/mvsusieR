@@ -51,7 +51,6 @@ SuSiE <- R6Class("SuSiE",
             d$compute_residual(fitted)
             for (l in 1:private$L) {
                 d$add_to_residual(private$SER[[l]]$predict(d))
-                if (private$to_estimate_residual_variance) private$SER[[l]]$residual_variance = private$sigma2
                 # For the first 10 iterations, don't do the check with zero when EM updates are used to estimate prior variance
                 # see https://github.com/stephenslab/mmbr/issues/26#issuecomment-612947198
                 private$SER[[l]]$fit(d, prior_weights=prior_weights, estimate_prior_variance_method=estimate_prior_variance_method,
@@ -176,6 +175,9 @@ SuSiE <- R6Class("SuSiE",
             private$sigma2 = (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample
         } else {
             private$sigma2 = private$compute_expected_sum_squared_residuals_univariate(d) / d$n_sample
+        }
+        for (l in 1:length(private$SER)) {
+            private$SER[[l]]$residual_variance = private$sigma2
         }
     },
     # expected squared residuals
