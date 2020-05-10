@@ -18,6 +18,7 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
     },
+    set_thread = function(value) private$n_thread = value,
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold = 0) {
       # FIXME: might have a better solution for it, but the problem is as follows:
       # When prior changes (private$prior_variance_scale != 1),
@@ -145,6 +146,7 @@ MashRegression <- R6Class("MashRegression",
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     .residual_variance_inv = NULL,
+    n_thread = 1,
     compute_loglik_mat = function(scalar, bhat, sbhat) {
       if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
         llik = mashr:::calc_lik_rcpp(t(bhat),
@@ -156,14 +158,16 @@ MashRegression <- R6Class("MashRegression",
                                     # should be matlist2array(d$svs), if t(sbhat) and private$residual_correlation are not empty
                                     0,
                                     TRUE,
-                                    private$is_common_cov)$data
+                                    private$is_common_cov,
+                                    private$n_thread)$data
       } else {
         # Here private$prior_variance_scale is either 0 or 1.
         # This line below assumes it is 1; will adjust it after for case of 0.
         llik = mashr:::calc_lik_precomputed_rcpp(t(bhat),
                                          private$precomputed_cov_matrices$sigma_rooti,
                                          TRUE,
-                                         private$is_common_cov)$data
+                                         private$is_common_cov,
+                                         private$n_thread)$data
         if (scalar == 0) {
           # The precomputed sigma_rooti is not correct
           # but the first column of llik is llik under the null anyways
@@ -203,7 +207,8 @@ MashRegression <- R6Class("MashRegression",
                               t(mixture_posterior_weights),
                               t(variable_posterior_weights),
                               private$prior_variance_scale,
-                              private$is_common_cov)
+                              private$is_common_cov,
+                              private$n_thread)
       } else {
         # Use precomputed quantities
         # here private$prior_variance_scale is either 0 or 1
@@ -218,7 +223,8 @@ MashRegression <- R6Class("MashRegression",
                               t(mixture_posterior_weights),
                               matrix(0,0,0),
                               private$prior_variance_scale,
-                              private$is_common_cov)
+                              private$is_common_cov,
+                              private$n_thread)
       }
       return(post)
     },
