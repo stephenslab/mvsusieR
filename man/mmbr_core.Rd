@@ -17,6 +17,7 @@ mmbr_core(
   check_null_threshold,
   precompute_covariances,
   compute_objective,
+  n_thread,
   max_iter,
   tol,
   track_fit,

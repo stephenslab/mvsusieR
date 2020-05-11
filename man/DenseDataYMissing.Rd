@@ -16,9 +16,9 @@ Regression data object with missing values in Y
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{DenseDataYMissing$new()}}
+\item \href{#method-adjust}{\code{DenseDataYMissing$adjust()}}
 \item \href{#method-standardize}{\code{DenseDataYMissing$standardize()}}
 \item \href{#method-compute_Xb}{\code{DenseDataYMissing$compute_Xb()}}
-\item \href{#method-compute_MXt}{\code{DenseDataYMissing$compute_MXt()}}
 \item \href{#method-get_sumstats}{\code{DenseDataYMissing$get_sumstats()}}
 \item \href{#method-clone}{\code{DenseDataYMissing$clone()}}
 }
@@ -27,6 +27,7 @@ Regression data object with missing values in Y
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="add_to_residual">}\href{../../mmbr/html/DenseData.html#method-add_to_residual}{\code{mmbr::DenseData$add_to_residual()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_MXt">}\href{../../mmbr/html/DenseData.html#method-compute_MXt}{\code{mmbr::DenseData$compute_MXt()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_residual">}\href{../../mmbr/html/DenseData.html#method-compute_residual}{\code{mmbr::DenseData$compute_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mmbr/html/DenseData.html#method-remove_from_residual}{\code{mmbr::DenseData$remove_from_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="rescale_coef">}\href{../../mmbr/html/DenseData.html#method-rescale_coef}{\code{mmbr::DenseData$rescale_coef()}}\out{</span>}
@@ -39,6 +40,15 @@ Regression data object with missing values in Y
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$new(X, Y)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-adjust"></a>}}
+\if{latex}{\out{\hypertarget{method-adjust}{}}}
+\subsection{Method \code{adjust()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$adjust(residual_variance, approximation = FALSE)}\if{html}{\out{</div>}}
 }
 
 }
@@ -61,20 +71,15 @@ Regression data object with missing values in Y
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_MXt"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_MXt}{}}}
-\subsection{Method \code{compute_MXt()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$compute_MXt(M)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get_sumstats"></a>}}
 \if{latex}{\out{\hypertarget{method-get_sumstats}{}}}
 \subsection{Method \code{get_sumstats()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$get_sumstats(residual_variances, residual_correlation = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$get_sumstats(
+  residual_variances,
+  residual_correlation = NULL,
+  sbhat_only = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 }

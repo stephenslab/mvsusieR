@@ -33,6 +33,7 @@
 #' Default set to 0.5 to correspond to squared correlation of 0.25,
 #' a commonly used threshold for genotype data in genetics studies.
 #' @param compute_univariate_zscore if TRUE outputs z-score from per variable univariate regression
+#' @param n_thread maximum number of threads to use for parallel computation (only applicable to mixture prior)
 #' @param max_iter maximum number of iterations to perform
 #' @param tol convergence tolerance
 #' @param verbose if TRUE outputs some progress messages
@@ -78,7 +79,7 @@ msusie = function(X,Y,L=10,
                  s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                  compute_univariate_zscore = FALSE,
                  precompute_covariances = FALSE,
-                 max_iter=100,tol=1e-3,
+                 n_thread=1,max_iter=100,tol=1e-3,
                  verbose=TRUE,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
@@ -113,7 +114,7 @@ msusie = function(X,Y,L=10,
   #
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-            precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
+            precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$null_index = -9
@@ -148,6 +149,7 @@ msusie = function(X,Y,L=10,
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
 #' Default set to 0.5 to correspond to squared correlation of 0.25,
 #' a commonly used threshold for genotype data in genetics studies.
+#' @param n_thread maximum number of threads to use for parallel computation (only applicable to mixture prior)
 #' @param max_iter maximum number of iterations to perform
 #' @param tol convergence tolerance
 #' @param z_thresh the z score threshold below which to call an effect null
@@ -194,7 +196,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
                       compute_objective=FALSE,
                       precompute_covariances = FALSE,
                       s_init = NULL,coverage=0.95,min_abs_corr=0.5,
-                      max_iter=100,tol=1e-3,z_thresh = 2,
+                      n_thread=1, max_iter=100,tol=1e-3,z_thresh = 2,
                       verbose=TRUE,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/nrow(R), nrow(R)))
   else prior_weights = prior_weights / sum(prior_weights)
@@ -224,7 +226,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
   }
   s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-                precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
+                precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$null_index = -9
@@ -240,12 +242,13 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
 #' @keywords internal
 mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-            precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose) {
+            precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose) {
   start_time = proc.time()
   if (is.numeric(prior_variance) && !is.matrix(prior_variance))
     residual_variance = as.numeric(residual_variance)
   # for now the type of prior_variance controls the type of regression
   if (is.numeric(prior_variance)) {
+    n_thread = NULL
     if (data$n_condition > 1 && !is.matrix(prior_variance))
       stop(paste("prior variance cannot be a number for multivariate analysis with", data$n_condition, "response variables."))
     if (is.matrix(prior_variance)) {
@@ -275,6 +278,10 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
   if (!estimate_prior_variance) estimate_prior_method = NULL
   # Below are the core computations
   SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance)
+  if (!is.null(n_thread)) {
+    if (n_thread<1) stop("number of threads cannot be smaller than 1")
+    SER_model$set_thread(floor(n_thread))
+  }
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit, track_prior=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_from(s_init)
   SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)

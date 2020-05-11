@@ -13,7 +13,7 @@ MASH initializer object
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{MashInitializer$new()}}
-\item \href{#method-compute_prior_ginv}{\code{MashInitializer$compute_prior_ginv()}}
+\item \href{#method-compute_prior_inv}{\code{MashInitializer$compute_prior_inv()}}
 \item \href{#method-precompute_cov_matrices}{\code{MashInitializer$precompute_cov_matrices()}}
 \item \href{#method-remove_precomputed}{\code{MashInitializer$remove_precomputed()}}
 \item \href{#method-clone}{\code{MashInitializer$clone()}}
@@ -38,11 +38,11 @@ MASH initializer object
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-compute_prior_ginv"></a>}}
-\if{latex}{\out{\hypertarget{method-compute_prior_ginv}{}}}
-\subsection{Method \code{compute_prior_ginv()}}{
+\if{html}{\out{<a id="method-compute_prior_inv"></a>}}
+\if{latex}{\out{\hypertarget{method-compute_prior_inv}{}}}
+\subsection{Method \code{compute_prior_inv()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MashInitializer$compute_prior_ginv()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{MashInitializer$compute_prior_inv()}\if{html}{\out{</div>}}
 }
 
 }

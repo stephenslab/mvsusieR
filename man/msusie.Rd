@@ -24,6 +24,7 @@ msusie(
   min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE,
   precompute_covariances = FALSE,
+  n_thread = 1,
   max_iter = 100,
   tol = 0.001,
   verbose = TRUE,
@@ -65,7 +66,7 @@ setting \code{check_null_threshold=NA} will skip the check and instead relying s
 \item{prior_tol}{when prior variance is estimated, compare the estimated value to this tol at the end of
 the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.}
 
-\item{s_init}{a previous susie fit with which to initialize}
+\item{s_init}{a previous model fit with which to initialize}
 
 \item{coverage}{coverage of confident sets. Default to 0.95 for 95\% credible interval.}
 
@@ -76,6 +77,8 @@ a commonly used threshold for genotype data in genetics studies.}
 \item{compute_univariate_zscore}{if TRUE outputs z-score from per variable univariate regression}
 
 \item{precompute_covariances}{if TRUE, precomputes various covariance quantities to speed up computations at the cost of increased memory usage}
+
+\item{n_thread}{maximum number of threads to use for parallel computation (only applicable to mixture prior)}
 
 \item{max_iter}{maximum number of iterations to perform}
 

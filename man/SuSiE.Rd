@@ -13,7 +13,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{SuSiE$new()}}
-\item \href{#method-init_coef}{\code{SuSiE$init_coef()}}
+\item \href{#method-init_from}{\code{SuSiE$init_from()}}
 \item \href{#method-fit}{\code{SuSiE$fit()}}
 \item \href{#method-get_objective}{\code{SuSiE$get_objective()}}
 \item \href{#method-clone}{\code{SuSiE$clone()}}
@@ -39,11 +39,11 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-init_coef"></a>}}
-\if{latex}{\out{\hypertarget{method-init_coef}{}}}
-\subsection{Method \code{init_coef()}}{
+\if{html}{\out{<a id="method-init_from"></a>}}
+\if{latex}{\out{\hypertarget{method-init_from}{}}}
+\subsection{Method \code{init_from()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SuSiE$init_coef(coef_index, coef_value, p, r)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SuSiE$init_from(model)}\if{html}{\out{</div>}}
 }
 
 }

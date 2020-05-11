@@ -22,6 +22,7 @@ msusie_rss(
   s_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
+  n_thread = 1,
   max_iter = 100,
   tol = 0.001,
   z_thresh = 2,
@@ -55,13 +56,15 @@ setting \code{check_null_threshold=NA} will skip the check and instead relying s
 \item{prior_tol}{when prior variance is estimated, compare the estimated value to this tol at the end of
 the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.}
 
-\item{s_init}{a previous susie fit with which to initialize}
+\item{s_init}{a previous model fit with which to initialize}
 
 \item{coverage}{coverage of confident sets. Default to 0.95 for 95\% credible interval.}
 
 \item{min_abs_corr}{minimum of absolute value of correlation allowed in a credible set.
 Default set to 0.5 to correspond to squared correlation of 0.25,
 a commonly used threshold for genotype data in genetics studies.}
+
+\item{n_thread}{maximum number of threads to use for parallel computation (only applicable to mixture prior)}
 
 \item{max_iter}{maximum number of iterations to perform}
 
