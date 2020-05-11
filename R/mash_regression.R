@@ -146,7 +146,7 @@ MashRegression <- R6Class("MashRegression",
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     .residual_variance_inv = NULL,
-    n_thread = 1,
+    n_thread = 4,
     compute_loglik_mat = function(scalar, bhat, sbhat) {
       if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
         llik = mashr:::calc_lik_rcpp(t(bhat),
