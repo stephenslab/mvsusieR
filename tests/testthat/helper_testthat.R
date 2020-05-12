@@ -40,9 +40,11 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
     data = NA
   } else if(summary){
     data = RSSData$new(z, R, 1e-08)
+    data$set_residual_variance(residual_variance)
   }else {
     data = DenseData$new(X,y)
     data$standardize(TRUE,TRUE)
+    data$set_residual_variance(residual_variance)
   }
   if(summary){
     return(list(X=X, X.sparse=X.sparse, z = z, R = R, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))

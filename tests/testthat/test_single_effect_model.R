@@ -4,7 +4,7 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     # Test fixed prior
     A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = NULL)
     kl = susieR:::SER_posterior_e_loglik(X,y,1,A$alpha*A$mu,A$alpha*A$mu2)- A$loglik
-    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
+    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
     d.copy = d$clone(T)
     B$fit(d.copy)
     B$compute_kl(d.copy)
@@ -15,7 +15,7 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     # Test estimated prior
     A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = "optim")
     kl = susieR:::SER_posterior_e_loglik(X,y,1,A$alpha*A$mu,A$alpha*A$mu2)- A$loglik
-    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
+    B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
     d.copy = d$clone(T)
     B$fit(d.copy, estimate_prior_variance_method='optim')
     B$compute_kl(d.copy)
@@ -33,7 +33,7 @@ test_that("mmbr is identical to susieR (RSS)", with(simulate_univariate(summary 
   Sigma = susieR:::update_Sigma(R, 1, z)
   A = susieR:::single_effect_regression_rss(z, Sigma, V, prior_weights = NULL, optimize_V = "none")
   kl = susieR:::SER_posterior_e_loglik_rss(R,Sigma,z,A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model
-  B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
+  B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
   d.copy = d$clone(T)
   B$fit(d.copy)
   B$compute_kl(d.copy)
@@ -44,7 +44,7 @@ test_that("mmbr is identical to susieR (RSS)", with(simulate_univariate(summary 
   # Test estimated prior
   A = susieR:::single_effect_regression_rss(z, Sigma, V, prior_weights = NULL, optimize_V = "optim")
   kl = susieR:::SER_posterior_e_loglik_rss(R,Sigma,z,A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model
-  B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, 1, V)
+  B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
   d.copy = d$clone(T)
   B$fit(d.copy, estimate_prior_variance_method='optim')
   B$compute_kl(d.copy)

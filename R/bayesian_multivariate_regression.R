@@ -4,30 +4,24 @@
 BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
   public = list(
-    initialize = function(J, residual_variance, prior_variance) {
+    initialize = function(J, prior_variance) {
       private$J = J
       private$.prior_variance = prior_variance
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
       private$prior_variance_scale = 1
-      self$residual_variance = residual_variance
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
-      if (use_residual) XtY = d$XtR
-      else XtY = d$XtY
-      # OLS estimates
       # bhat is J by R
-      # X2_sum is either a length J vector or J by R by R array
-      if(d$Y_has_missing){
-        bhat = t(sapply(1:d$n_effect, function(j) solve(d$X2_sum[j,,], XtY[j,])))
-        sbhat2 = lapply(1:d$n_effect, function(j) invert_via_chol(d$X2_sum[j,,]))
+      bhat = d$get_bhat(use_residual)
+      if(is.numeric(d$svs)){
+        # X2_sum is a length J vector
+        sbhat2 = lapply(1:d$n_effect, function(j) d$residual_variance / d$X2_sum[j])
       }else{
-        bhat = XtY / d$X2_sum
-        sbhat2 = lapply(1:length(d$X2_sum), function(j) private$.residual_variance / d$X2_sum[j])
+        sbhat2 = d$svs
       }
-      bhat[which(is.nan(bhat))] = 0
       for (j in 1:length(sbhat2)) {
         sbhat2[[j]][which(is.nan(sbhat2[[j]]) | is.infinite(sbhat2[[j]]))] = 1E6
       }
@@ -44,7 +38,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         }
       }
       # posterior
-      post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scale)
+      post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scale, d$svs_inv)
       private$.posterior_b1 = post$b1
       private$.posterior_b2 = post$b2
       if (save_var) private$.posterior_variance = post$cov
@@ -52,25 +46,12 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     }
   ),
   active = list(
-    residual_variance_inv = function() private$.residual_variance_inv,
-    residual_variance = function(v) {
-      if (missing(v)) private$.residual_variance
-      else {
-        private$.residual_variance = v
-        tryCatch({
-          private$.residual_variance_inv = invert_via_chol(v)
-        }, error = function(e) {
-          warning(paste0('Cannot compute inverse for residual variance due to error:\n', e, '\nELBO computation will thus be skipped.'))
-        })
-      }
-    },
     prior_variance = function(v) {
       if (missing(v)) private$prior_variance_scale
       else private$prior_variance_scale = v
     }
   ),
   private = list(
-    .residual_variance_inv = NULL,
     .prior_variance_inv = NULL,
     prior_variance_scale = NULL,
     loglik = function(scalar, bhat, S, prior_weights) {
@@ -135,9 +116,10 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
 #' @title Multiviate regression calculations
 #' @importFrom abind abind
 #' @keywords internal
-multivariate_regression = function(bhat, S, U) {
-  # FIXME: this can be pre-computed to save some computations
-  S_inv = lapply(1:length(S), function(j) invert_via_chol(S[[j]]))
+multivariate_regression = function(bhat, S, U, S_inv) {
+  if(is.numeric(S_inv)){
+    S_inv = lapply(1:length(S), function(j) invert_via_chol(S[[j]]))
+  }
   post_cov = lapply(1:length(S), function(j) U %*% solve(diag(nrow(U)) + S_inv[[j]] %*% U))
   lbf = sapply(1:length(S), function(j) 0.5 * (log(det(S[[j]])) - log(det(S[[j]]+U))) + 0.5*t(bhat[j,])%*%S_inv[[j]]%*%post_cov[[j]]%*%S_inv[[j]]%*%bhat[j,])
   lbf[which(is.nan(lbf))] = 0

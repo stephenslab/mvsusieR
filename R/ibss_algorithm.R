@@ -17,11 +17,9 @@ SuSiE <- R6Class("SuSiE",
         private$to_estimate_residual_variance = estimate_residual_variance
         private$to_compute_objective = compute_objective
         private$SER = lapply(1:private$L, function(l) SER$clone(deep=T))
-        private$sigma2 = SER$residual_variance
         private$elbo = vector()
         private$.niter = max_iter
         private$tol = tol
-
         if (track_pip) private$.pip_history = list()
         if (track_lbf) private$.lbf_history = list()
         if (track_prior_est) private$.prior_history = list()
@@ -41,7 +39,7 @@ SuSiE <- R6Class("SuSiE",
             if (!is.null(model$V)) private$SER[[i]]$prior_variance = model$V[i]
         }
     },
-    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, check_null_threshold=0, verbose=TRUE) {
+    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, precompute_covariances = FALSE, check_null_threshold=0, verbose=TRUE) {
         if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
                                     clear = TRUE, total = private$.niter, show_after = .5)
         else pb = null_progress_bar$new()
@@ -68,8 +66,11 @@ SuSiE <- R6Class("SuSiE",
                 private$add_back_zero_effects()
                 break
             }
-            if (private$to_estimate_residual_variance)
-                private$estimate_residual_variance(d)
+            if (private$to_estimate_residual_variance){
+                d$set_residual_variance(private$estimate_residual_variance(d), 
+                                        precompute_covariances=precompute_covariances,
+                                        quantities = c('residual_variance', 'effect_variance'))
+            }
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM")
                 private$trim_zero_effects()
             if (i == private$.niter) {
@@ -94,7 +95,6 @@ SuSiE <- R6Class("SuSiE",
     convergence = function() private$.convergence,
     # get prior effect size, because it might be updated during iterations
     prior_variance = function() sapply(1:private$L, function(l) private$SER[[l]]$prior_variance),
-    residual_variance = function() private$sigma2,
     kl = function() {
         if (!private$to_compute_objective) NA
         else sapply(1:private$L, function(l) private$SER[[l]]$kl)
@@ -124,7 +124,6 @@ SuSiE <- R6Class("SuSiE",
     .lbf_history = NULL, # keep track of lbf
     .prior_history = NULL, # keep track of prior estimates
     tol = NULL, # tolerance level for convergence
-    sigma2 = NULL, # residual variance
     essr = NULL,
     check_convergence = function(n) {
         if (n<=1) {
@@ -144,7 +143,7 @@ SuSiE <- R6Class("SuSiE",
             private$to_compute_objective = FALSE
         }
         if (private$to_compute_objective) {
-            if (is.matrix(private$SER[[1]]$residual_variance)) {
+            if (is.matrix(d$residual_variance)) {
                 expected_loglik = private$compute_expected_loglik_multivariate(d)
             } else {
                 expected_loglik = private$compute_expected_loglik_univariate(d)
@@ -158,26 +157,23 @@ SuSiE <- R6Class("SuSiE",
     # expected loglikelihood for SuSiE model
     compute_expected_loglik_univariate = function(d) {
         n = d$n_sample
-        residual_variance = private$sigma2
+        residual_variance = d$residual_variance
         essr = private$compute_expected_sum_squared_residuals_univariate(d)
         return(-(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr)
     },
     compute_expected_loglik_multivariate = function(d) {
-      expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(private$sigma2))
+      expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(d$residual_variance))
       essr = private$compute_expected_sum_squared_residuals_multivariate(d)
       return(expected_loglik - 0.5 * essr)
     },
     estimate_residual_variance = function(d) {
-        if (is.matrix(private$SER[[1]]$residual_variance)) {
+        if (is.matrix(d$residual_variance)) {
             # FIXME: to implement estimating a vector of length R, or even a scalar
             E1 = lapply(1:length(private$SER), function(l) t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1)
             E1 = crossprod(d$residual) - Reduce('+', E1)
-            private$sigma2 = (E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample
+            return((E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample)
         } else {
-            private$sigma2 = private$compute_expected_sum_squared_residuals_univariate(d) / d$n_sample
-        }
-        for (l in 1:length(private$SER)) {
-            private$SER[[l]]$residual_variance = private$sigma2
+            return(private$compute_expected_sum_squared_residuals_univariate(d) / d$n_sample)
         }
     },
     # expected squared residuals
@@ -199,7 +195,7 @@ SuSiE <- R6Class("SuSiE",
       }
     },
     compute_expected_sum_squared_residuals_multivariate = function(d) {
-      v_inv = private$SER[[1]]$residual_variance_inv
+      v_inv = d$residual_variance_inv
       E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
       E1 = tr(v_inv%*%crossprod(d$residual)) - sum(E1)
       return(E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))

@@ -3,29 +3,23 @@
 #' @keywords internal
 BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
   public = list(
-    initialize = function(J, residual_variance, prior_variance) {
+    initialize = function(J, prior_variance) {
       private$J = J
       private$.prior_variance = prior_variance
-      private$.residual_variance = residual_variance
       private$.posterior_b1 = matrix(0, J, 1)
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
-      if (use_residual) XtY = d$XtR
-      else XtY = d$XtY
-      # OLS estimates
       # bhat is J by R
-      # X2_sum is either a length J vector or J by R by R array
-      if(d$Y_has_missing){
-        bhat = matrix(sapply(1:d$n_effect, function(j) solve(d$X2_sum[j,,], XtY[j,])), d$n_effect, 1)
-        sbhat2 = as.numeric(1/d$X2_sum)
+      bhat = d$get_bhat(use_residual)
+      if(is.numeric(d$svs)){
+        # X2_sum is a length J vector
+        sbhat2 = d$sbhat^2
       }else{
-        bhat = XtY / d$X2_sum
-        sbhat2 = private$.residual_variance / d$X2_sum
+        sbhat2 = matrix(unlist(d$svs), ncol = 1)
       }
-      bhat[which(is.nan(bhat))] = 0
       sbhat2[which(is.nan(sbhat2) | is.infinite(sbhat2))] = 1E6
       if (save_summary_stats) {
         private$.bhat = bhat
@@ -62,18 +56,13 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (missing(v)) private$.prior_variance
       else private$.prior_variance = v
     },
-    posterior_variance = function() private$.posterior_variance,
-    residual_variance = function(v) {
-      if (missing(v)) private$.residual_variance
-      else private$.residual_variance = v
-    }
+    posterior_variance = function() private$.posterior_variance
   ),
   private = list(
     J = NULL,
     .bhat = NULL,
     .sbhat = NULL,
     .prior_variance = NULL, # prior on effect size
-    .residual_variance = NULL,
     .loglik_null = NULL,
     .lbf = NULL, # log Bayes factor
     .posterior_b1 = NULL, # posterior first moment

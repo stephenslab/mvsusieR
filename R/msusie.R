@@ -88,30 +88,13 @@ msusie = function(X,Y,L=10,
   } else {
     data = DenseData$new(X, Y)
   }
-  # check residual variance
-  if (is.null(residual_variance)) {
-    if (data$n_condition > 1) {
-      if (!data$Y_has_missing) residual_variance = cov(Y)
-      else stop("Unspecified residual_variance is not allowed in the presence of missing data in Y")
-    }
-    else residual_variance = var(Y, na.rm=T)
-  }
-  if (is.matrix(residual_variance)) {
-    if (any(is.na(diag(residual_variance))))
-      stop("Diagonal of residual_variance cannot be NA")
-    residual_variance[which(is.na(residual_variance))] = 0
-    mashr:::check_positive_definite(residual_variance)
-  }else {
-    if (is.na(residual_variance) || is.infinite(residual_variance))
-    stop("Invalid residual_variance")
-  }
-  # precompute residual variance inverse for missing data
-  if(data$Y_has_missing){
-    data$adjust(residual_variance)
-  }
+  # include residual variance in data
+  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'),
+                             quantities = 'residual_variance')
   data$standardize(intercept, standardize)
+  data$set_residual_variance(precompute_covariances=precompute_covariances, quantities='effect_variance')
   #
-  s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
+  s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
             precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
   # CS and PIP
@@ -213,16 +196,9 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
     else residual_variance = matrix(1)
   }
   #
-  if (is.matrix(residual_variance)) {
-    if (any(is.na(diag(residual_variance))))
-      stop("Diagonal of residual_variance cannot be NA")
-    residual_variance[which(is.na(residual_variance))] = 0
-    mashr:::check_positive_definite(residual_variance)
-  } else {
-    if (is.na(residual_variance) || is.infinite(residual_variance))
-      stop("Invalid residual_variance")
-  }
-  s = mmbr_core(data, s_init, L, residual_variance, prior_variance, prior_weights,
+  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'),
+                             precompute_covariances=precompute_covariances)
+  s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose)
   # CS and PIP
@@ -238,12 +214,10 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
 
 #' @title Core MMBR code
 #' @keywords internal
-mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_weights,
+mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
             precompute_covariances, compute_objective, max_iter, tol, track_fit, verbose) {
   start_time = proc.time()
-  if (is.numeric(prior_variance) && !is.matrix(prior_variance))
-    residual_variance = as.numeric(residual_variance)
   # for now the type of prior_variance controls the type of regression
   if (is.numeric(prior_variance)) {
     if (data$n_condition > 1 && !is.matrix(prior_variance))
@@ -252,13 +226,7 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
       base = BayesianMultivariateRegression
     } else {
       base = BayesianSimpleRegression
-      # Here prior variance is scaled prior variance
-      if (is.matrix(residual_variance)) {
-        if (!(nrow(residual_variance) == 1 && (ncol(residual_variance))))
-          stop("residual_variance should be a scalar.")
-        residual_variance = residual_variance[1,1]
-      }
-      prior_variance = prior_variance * residual_variance
+      prior_variance = prior_variance * data$residual_variance
     }
   } else {
     if (class(prior_variance)[1] != 'MashInitializer') stop("prior_variance should be a scalar for univariate response, or a matrix or MashInitializer object for multivariate response.")
@@ -266,18 +234,17 @@ mmbr_core = function(data, s_init, L, residual_variance, prior_variance, prior_w
     base = MashRegression
     if (!precompute_covariances)
       warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation can be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
-    if (data$Y_has_missing || precompute_covariances)
-      prior_variance$precompute_cov_matrices(data, residual_variance)
+    if (precompute_covariances)
+      prior_variance$precompute_cov_matrices(data)
     if (estimate_prior_variance && !is.null(estimate_prior_method) && estimate_prior_method == 'EM')
       prior_variance$compute_prior_inv()
-    residual_variance = as.matrix(residual_variance)
   }
   if (!estimate_prior_variance) estimate_prior_method = NULL
   # Below are the core computations
-  SER_model = SingleEffectModel(base)$new(data$n_effect, residual_variance, prior_variance)
+  SER_model = SingleEffectModel(base)$new(data$n_effect, prior_variance)
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit, track_prior=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_from(s_init)
-  SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)
+  SuSiE_model$fit(data, prior_weights, estimate_prior_method, precompute_covariances, check_null_threshold, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   ## clean up prior object
   if ('R6' %in% class(prior_variance)) prior_variance$remove_precomputed()

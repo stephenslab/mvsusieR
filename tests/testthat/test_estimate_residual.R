@@ -8,8 +8,9 @@ test_that("estimated residual variance in multivariate case is identical to univ
                     estimate_residual_variance = T, estimate_prior_variance = FALSE)
   d = DenseData$new(X,y)
   d$standardize(TRUE,TRUE)
+  d$set_residual_variance(as.numeric(cov(y)))
   # BayesianSimpleRegression
-  SER.simple = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, as.numeric(cov(y)), as.numeric(V))
+  SER.simple = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, as.numeric(V))
   B = SuSiE$new(SER.simple, L, estimate_residual_variance = T)
   d.copy = d$clone(T)
   B$fit(d.copy)
@@ -18,7 +19,8 @@ test_that("estimated residual variance in multivariate case is identical to univ
   expect_equal(A$sigma2, BA$sigma2)
 
   # BayesianMultivariateRegression
-  SER.multi = SingleEffectModel(BayesianMultivariateRegression)$new(d$n_effect, cov(y), V)
+  d$set_residual_variance(cov(y))
+  SER.multi = SingleEffectModel(BayesianMultivariateRegression)$new(d$n_effect, V)
   C = SuSiE$new(SER.multi, L, estimate_residual_variance = T)
   d.copy = d$clone(T)
   C$fit(d.copy)
@@ -29,8 +31,7 @@ test_that("estimated residual variance in multivariate case is identical to univ
   # Mash Regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-  residual_covar = cov(y)
-  SER.mash = SingleEffectModel(MashRegression)$new(ncol(X), residual_covar, mash_init)
+  SER.mash = SingleEffectModel(MashRegression)$new(ncol(X), mash_init)
   D = SuSiE$new(SER.mash, L, estimate_residual_variance = T)
   d.copy = d$clone(T)
   D$fit(d.copy)
@@ -46,6 +47,7 @@ test_that("estimated residual variance in multivariate case is identical to univ
   })
   R = cor(X)
   residual_var = as.numeric(var(y))
+  residual_cov = cov(y)
 
   # A = susieR::susie_rss(z, R, L = L, prior_variance = as.numeric(V),
   #                       residual_variance = 1, prior_weights = NULL,
@@ -53,7 +55,8 @@ test_that("estimated residual variance in multivariate case is identical to univ
   d = RSSData$new(z,R,1e-08)
 
   # BayesianSimpleRegression
-  SER.simple = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, as.numeric(cov(y)), as.numeric(V))
+  d$set_residual_variance(residual_var)
+  SER.simple = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, as.numeric(V))
   B = SuSiE$new(SER.simple, L, estimate_residual_variance = T)
   d.copy = d$clone(T)
   B$fit(d.copy)
@@ -62,7 +65,8 @@ test_that("estimated residual variance in multivariate case is identical to univ
   # expect_equal(A$sigma2, BA$sigma2)
 
   # BayesianMultivariateRegression
-  SER.multi = SingleEffectModel(BayesianMultivariateRegression)$new(d$n_effect, cov(y), V)
+  d$set_residual_variance(residual_cov)
+  SER.multi = SingleEffectModel(BayesianMultivariateRegression)$new(d$n_effect, V)
   C = SuSiE$new(SER.multi, L, estimate_residual_variance = T)
   d.copy = d$clone(T)
   C$fit(d.copy)
@@ -73,8 +77,7 @@ test_that("estimated residual variance in multivariate case is identical to univ
   # Mash Regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-  residual_covar = cov(y)
-  SER.mash = SingleEffectModel(MashRegression)$new(ncol(X), residual_covar, mash_init)
+  SER.mash = SingleEffectModel(MashRegression)$new(ncol(X), mash_init)
   D = SuSiE$new(SER.mash, L, estimate_residual_variance = T)
   d.copy = d$clone(T)
   D$fit(d.copy)

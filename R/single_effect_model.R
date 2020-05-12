@@ -6,8 +6,8 @@ SingleEffectModel <- function(base)
     R6Class("SingleEffectModel",
     inherit = base,
     public = list(
-        initialize = function(J, residual_variance, prior_variance) {
-            super$initialize(J, residual_variance, prior_variance)
+        initialize = function(J, prior_variance) {
+            super$initialize(J, prior_variance)
             private$.pip = rep(0, J)
         },
         fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, check_null_threshold=0, save_var=FALSE) {
@@ -21,7 +21,8 @@ SingleEffectModel <- function(base)
                 # when check_null_threshold = NA we skip this check with zero estimate
                 # see details in https://github.com/stephenslab/mmbr/issues/26
                 if (!is.na(check_null_threshold)) {
-                    if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_threshold >= private$loglik(V,private$cache$b,private$cache$s,prior_weights)) {
+                    if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_threshold >= 
+                        private$loglik(V,private$cache$b,private$cache$s,prior_weights)) {
                         V=0
                         # set the corresponding posterior also to zero
                         private$.posterior_b1 = private$.posterior_b1 * 0
@@ -51,28 +52,28 @@ SingleEffectModel <- function(base)
         .bxxb = NULL,
         # This is the expected loglik minus the loglik_null, that is, N(R|B,V) - N(R|0,V)
         compute_expected_loglik_partial = function(d) {
-            if (is.matrix(private$.residual_variance)) {
+            if (is.matrix(d$residual_variance)) {
                 private$compute_expected_loglik_partial_multivariate(d)
             } else {
                 private$compute_expected_loglik_partial_univariate(d)
             }
         },
         compute_expected_loglik_partial_univariate = function(d) {
-            return(- (0.5/private$.residual_variance) * (- 2*sum(self$posterior_b1*d$XtR) + sum(d$X2_sum*as.vector(self$posterior_b2))))
+            return(- (0.5/d$residual_variance) * (- 2*sum(self$posterior_b1*d$XtR) + sum(d$X2_sum*as.vector(self$posterior_b2))))
         },
         compute_expected_loglik_partial_multivariate = function(d) {
             # FIXME: Currently this computation does not work for case with missing data
             if (d$Y_has_missing) stop("compute_expected_loglik_partial_multivariate cannot yet work with missing data")
-            E1 = tr(private$.residual_variance_inv %*% t(self$posterior_b1) %*% d$XtR)
+            E1 = tr(d$residual_variance_inv %*% t(self$posterior_b1) %*% d$XtR)
             # posterior variance covariance matrix, weighted by PIP
             if (length(dim(private$.posterior_b2)) == 3) {
                 S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * private$.posterior_b2[,,j] - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
             } else {
                 S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]) - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
             }
-            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) tr(private$.residual_variance_inv %*% S[[j]])))
+            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) tr(d$residual_variance_inv %*% S[[j]])))
             private$.bxxb = Reduce('+', lapply(1:length(S), function(j) d$X2_sum[j] * S[[j]]))
-            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% private$.residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
+            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% d$residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
             private$.bxxb = Reduce('+', lapply(1:length(S), function(j) d$X2_sum[j] * tcrossprod(self$posterior_b1[j,]))) + private$.bxxb
             return(E1 - private$.vbxxb / 2)
         }

@@ -94,7 +94,7 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         KL = m$kl,
         lbf = m$lbf,
         V = m$prior_variance,
-        sigma2 = m$residual_variance,
+        sigma2 = d$residual_variance,
         elbo = m$get_objective(dump=TRUE),
         niter = m$niter,
         convergence = m$convergence,
