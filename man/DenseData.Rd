@@ -101,7 +101,11 @@ The regular regression data object
 \if{latex}{\out{\hypertarget{method-get_sumstats}{}}}
 \subsection{Method \code{get_sumstats()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DenseData$get_sumstats(residual_variances, residual_correlation = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DenseData$get_sumstats(
+  residual_variances,
+  residual_correlation = NULL,
+  sbhat_only = FALSE
+)}\if{html}{\out{</div>}}
 }
 
 }
