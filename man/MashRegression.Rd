@@ -32,7 +32,7 @@ MASH multiple regression object
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MashRegression$new(J, residual_variance, mash_initializer)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{MashRegression$new(J, mash_initializer)}\if{html}{\out{</div>}}
 }
 
 }

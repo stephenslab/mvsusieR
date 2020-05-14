@@ -31,7 +31,7 @@ Multiviate regression object
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BayesianMultivariateRegression$new(J, residual_variance, prior_variance)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BayesianMultivariateRegression$new(J, prior_variance)}\if{html}{\out{</div>}}
 }
 
 }

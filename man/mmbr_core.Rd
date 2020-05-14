@@ -8,7 +8,6 @@ mmbr_core(
   data,
   s_init,
   L,
-  residual_variance,
   prior_variance,
   prior_weights,
   estimate_residual_variance,

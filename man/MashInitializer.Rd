@@ -51,11 +51,7 @@ MASH initializer object
 \if{latex}{\out{\hypertarget{method-precompute_cov_matrices}{}}}
 \subsection{Method \code{precompute_cov_matrices()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MashInitializer$precompute_cov_matrices(
-  d,
-  residual_covariance,
-  algorithm = c("R", "cpp")
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{MashInitializer$precompute_cov_matrices(d, algorithm = c("R", "cpp"))}\if{html}{\out{</div>}}
 }
 
 }

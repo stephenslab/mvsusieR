@@ -4,7 +4,7 @@
 \alias{multivariate_regression}
 \title{Multiviate regression calculations}
 \usage{
-multivariate_regression(bhat, S, U)
+multivariate_regression(bhat, S, U, S_inv)
 }
 \description{
 Multiviate regression calculations

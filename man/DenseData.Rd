@@ -13,6 +13,8 @@ The regular regression data object
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{DenseData$new()}}
+\item \href{#method-set_residual_variance}{\code{DenseData$set_residual_variance()}}
+\item \href{#method-get_bhat}{\code{DenseData$get_bhat()}}
 \item \href{#method-standardize}{\code{DenseData$standardize()}}
 \item \href{#method-compute_Xb}{\code{DenseData$compute_Xb()}}
 \item \href{#method-compute_MXt}{\code{DenseData$compute_MXt()}}
@@ -20,7 +22,6 @@ The regular regression data object
 \item \href{#method-add_to_residual}{\code{DenseData$add_to_residual()}}
 \item \href{#method-compute_residual}{\code{DenseData$compute_residual()}}
 \item \href{#method-rescale_coef}{\code{DenseData$rescale_coef()}}
-\item \href{#method-get_sumstats}{\code{DenseData$get_sumstats()}}
 \item \href{#method-clone}{\code{DenseData$clone()}}
 }
 }
@@ -30,6 +31,29 @@ The regular regression data object
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$new(X, Y)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_residual_variance"></a>}}
+\if{latex}{\out{\hypertarget{method-set_residual_variance}{}}}
+\subsection{Method \code{set_residual_variance()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DenseData$set_residual_variance(
+  residual_variance = NULL,
+  numeric = FALSE,
+  precompute_covariances = TRUE,
+  quantities = c("residual_variance", "effect_variance")
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-get_bhat"></a>}}
+\if{latex}{\out{\hypertarget{method-get_bhat}{}}}
+\subsection{Method \code{get_bhat()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DenseData$get_bhat(use_residual = FALSE)}\if{html}{\out{</div>}}
 }
 
 }
@@ -93,19 +117,6 @@ The regular regression data object
 \subsection{Method \code{rescale_coef()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseData$rescale_coef(b)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_sumstats"></a>}}
-\if{latex}{\out{\hypertarget{method-get_sumstats}{}}}
-\subsection{Method \code{get_sumstats()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DenseData$get_sumstats(
-  residual_variances,
-  residual_correlation = NULL,
-  sbhat_only = FALSE
-)}\if{html}{\out{</div>}}
 }
 
 }
