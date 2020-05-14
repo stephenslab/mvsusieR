@@ -39,7 +39,7 @@ SuSiE <- R6Class("SuSiE",
             if (!is.null(model$V)) private$SER[[i]]$prior_variance = model$V[i]
         }
     },
-    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, precompute_covariances = FALSE, check_null_threshold=0, verbose=TRUE) {
+    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, check_null_threshold=0, verbose=TRUE) {
         if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
                                     clear = TRUE, total = private$.niter, show_after = .5)
         else pb = null_progress_bar$new()
@@ -67,8 +67,7 @@ SuSiE <- R6Class("SuSiE",
                 break
             }
             if (private$to_estimate_residual_variance){
-                d$set_residual_variance(private$estimate_residual_variance(d), 
-                                        precompute_covariances=precompute_covariances,
+                d$set_residual_variance(private$estimate_residual_variance(d),
                                         quantities = c('residual_variance', 'effect_variance'))
             }
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM")

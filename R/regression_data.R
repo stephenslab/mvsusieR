@@ -30,7 +30,7 @@ DenseData <- R6Class("DenseData",
       private$d = colSums(private$.X ^ 2)
     },
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE, 
-                                     precompute_covariances = FALSE,
+                                     precompute_covariances = TRUE,
                                      quantities = c('residual_variance','effect_variance')){
       if('residual_variance' %in% quantities){
         if (is.null(residual_variance)) {
@@ -234,7 +234,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       }
     },
     set_residual_variance = function(residual_variance=NULL, approximation = FALSE, numeric = FALSE,
-                                     precompute_covariances = TRUE,
                                      quantities = c('residual_variance','effect_variance')){
       if('residual_variance' %in% quantities){
         if (is.null(residual_variance)) {

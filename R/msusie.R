@@ -93,7 +93,7 @@ msusie = function(X,Y,L=10,
   data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'),
                              quantities = 'residual_variance')
   data$standardize(intercept, standardize)
-  data$set_residual_variance(precompute_covariances=precompute_covariances, quantities='effect_variance')
+  data$set_residual_variance(quantities='effect_variance')
   #
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
@@ -198,8 +198,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
     else residual_variance = matrix(1)
   }
   #
-  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'),
-                             precompute_covariances=precompute_covariances)
+  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'))
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose)
@@ -251,7 +250,7 @@ mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
   }
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit, track_prior=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_from(s_init)
-  SuSiE_model$fit(data, prior_weights, estimate_prior_method, precompute_covariances, check_null_threshold, verbose)
+  SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   ## clean up prior object
   if ('R6' %in% class(prior_variance)) prior_variance$remove_precomputed()

@@ -13,7 +13,7 @@ test_that("summary statistics are consistent in DenseData and DenseDataYMissing 
     d2 = DenseData$new(X,y)
     d2$set_residual_variance(residual_variance, quantities = 'residual_variance')
     d2$standardize(TRUE,FALSE)
-    d2$set_residual_variance(precompute_covariances=T, quantities = 'effect_variance')
+    d2$set_residual_variance(quantities = 'effect_variance')
     # for missing data
     expect_equal(d1$Y_has_missing, TRUE)
     # for complete data regular computation
@@ -118,7 +118,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   data2$set_residual_variance(quantities = 'effect_variance')
   fit2 = mmbr_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
-                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, track_fit=F, verbose=T)
+                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, track_fit=F, verbose=T, n_thread=1)
   
   expect_equal(fit1$alpha, fit2$alpha, tolerance = 1E-8)
   expect_equal(fit1$lbf, fit2$lbf, tolerance = 1E-8)
@@ -132,7 +132,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
   fit3 = expect_warning(mmbr_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
-                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, track_fit=F, verbose=T))
+                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, track_fit=F, verbose=T, n_thread=1))
   expect_equal(fit1$alpha, fit3$alpha, tolerance = 1E-8)
   expect_equal(fit1$lbf, fit3$lbf, tolerance = 1E-8)
   expect_equal(fit1$b1, fit3$b1, tolerance = 1E-8)
