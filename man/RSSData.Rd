@@ -26,7 +26,7 @@ Summary statistics object
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_MXt">}\href{../../mmbr/html/DenseData.html#method-compute_MXt}{\code{mmbr::DenseData$compute_MXt()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_residual">}\href{../../mmbr/html/DenseData.html#method-compute_residual}{\code{mmbr::DenseData$compute_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_Xb">}\href{../../mmbr/html/DenseData.html#method-compute_Xb}{\code{mmbr::DenseData$compute_Xb()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="get_bhat">}\href{../../mmbr/html/DenseData.html#method-get_bhat}{\code{mmbr::DenseData$get_bhat()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="get_coef">}\href{../../mmbr/html/DenseData.html#method-get_coef}{\code{mmbr::DenseData$get_coef()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mmbr/html/DenseData.html#method-remove_from_residual}{\code{mmbr::DenseData$remove_from_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="rescale_coef">}\href{../../mmbr/html/DenseData.html#method-rescale_coef}{\code{mmbr::DenseData$rescale_coef()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="set_residual_variance">}\href{../../mmbr/html/DenseData.html#method-set_residual_variance}{\code{mmbr::DenseData$set_residual_variance()}}\out{</span>}

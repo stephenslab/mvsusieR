@@ -25,7 +25,7 @@ MashRegression <- R6Class("MashRegression",
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
       # bhat is J by R
-      bhat = d$get_bhat(use_residual)
+      bhat = d$get_coef(use_residual)
       sbhat = d$sbhat
       private$is_common_cov = d$is_common_cov
       private$svs = d$svs

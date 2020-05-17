@@ -29,7 +29,7 @@ DenseData <- R6Class("DenseData",
       private$csd = rep(1, length = private$J)
       private$d = colSums(private$.X ^ 2)
     },
-    set_residual_variance = function(residual_variance=NULL, numeric = FALSE, 
+    set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      precompute_covariances = TRUE,
                                      quantities = c('residual_variance','effect_variance')){
       if('residual_variance' %in% quantities){
@@ -80,7 +80,7 @@ DenseData <- R6Class("DenseData",
         }
       }
     },
-    get_bhat = function(use_residual = FALSE){
+    get_coef = function(use_residual = FALSE){
       # XtY J by R matrix
       if (use_residual) XtY = self$XtR
       else XtY = self$XtY
@@ -303,7 +303,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         private$.is_common_sbhat = is_list_common(private$.svs)
       }
     },
-    get_bhat = function(use_residual = FALSE){
+    get_coef = function(use_residual = FALSE){
       if (use_residual) XtY = self$XtR
       else XtY = self$XtY
       bhat = t(sapply(1:private$J, function(j) solve(private$.svs_inv[[j]], XtY[j,])))

@@ -17,7 +17,7 @@ Regression data object with missing values in Y
 \itemize{
 \item \href{#method-new}{\code{DenseDataYMissing$new()}}
 \item \href{#method-set_residual_variance}{\code{DenseDataYMissing$set_residual_variance()}}
-\item \href{#method-get_bhat}{\code{DenseDataYMissing$get_bhat()}}
+\item \href{#method-get_coef}{\code{DenseDataYMissing$get_coef()}}
 \item \href{#method-standardize}{\code{DenseDataYMissing$standardize()}}
 \item \href{#method-compute_Xb}{\code{DenseDataYMissing$compute_Xb()}}
 \item \href{#method-rescale_coef}{\code{DenseDataYMissing$rescale_coef()}}
@@ -58,11 +58,11 @@ Regression data object with missing values in Y
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_bhat"></a>}}
-\if{latex}{\out{\hypertarget{method-get_bhat}{}}}
-\subsection{Method \code{get_bhat()}}{
+\if{html}{\out{<a id="method-get_coef"></a>}}
+\if{latex}{\out{\hypertarget{method-get_coef}{}}}
+\subsection{Method \code{get_coef()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$get_bhat(use_residual = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$get_coef(use_residual = FALSE)}\if{html}{\out{</div>}}
 }
 
 }

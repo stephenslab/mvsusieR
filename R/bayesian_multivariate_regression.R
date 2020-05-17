@@ -15,7 +15,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
       # bhat is J by R
-      bhat = d$get_bhat(use_residual)
+      bhat = d$get_coef(use_residual)
       if(is.numeric(d$svs)){
         # X2_sum is a length J vector
         sbhat2 = lapply(1:d$n_effect, function(j) d$residual_variance / d$X2_sum[j])

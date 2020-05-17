@@ -13,7 +13,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
       # bhat is J by R
-      bhat = d$get_bhat(use_residual)
+      bhat = d$get_coef(use_residual)
       if(is.numeric(d$svs)){
         # X2_sum is a length J vector
         sbhat2 = d$sbhat^2

@@ -14,7 +14,7 @@ The regular regression data object
 \itemize{
 \item \href{#method-new}{\code{DenseData$new()}}
 \item \href{#method-set_residual_variance}{\code{DenseData$set_residual_variance()}}
-\item \href{#method-get_bhat}{\code{DenseData$get_bhat()}}
+\item \href{#method-get_coef}{\code{DenseData$get_coef()}}
 \item \href{#method-standardize}{\code{DenseData$standardize()}}
 \item \href{#method-compute_Xb}{\code{DenseData$compute_Xb()}}
 \item \href{#method-compute_MXt}{\code{DenseData$compute_MXt()}}
@@ -49,11 +49,11 @@ The regular regression data object
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-get_bhat"></a>}}
-\if{latex}{\out{\hypertarget{method-get_bhat}{}}}
-\subsection{Method \code{get_bhat()}}{
+\if{html}{\out{<a id="method-get_coef"></a>}}
+\if{latex}{\out{\hypertarget{method-get_coef}{}}}
+\subsection{Method \code{get_coef()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DenseData$get_bhat(use_residual = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DenseData$get_coef(use_residual = FALSE)}\if{html}{\out{</div>}}
 }
 
 }
