@@ -470,3 +470,10 @@ is_diag_mat = function(x, tol=1E-10) {
     diag(y) <- rep(0, nrow(y))
     return(all(abs(y) < tol))
 }
+
+#' @title Check if matrix has constant columns
+#' @keywords internal
+is_zero_variance <- function(x) {
+  if (length(unique(x))==1) return(T)
+  else return(F)
+}

@@ -11,7 +11,8 @@ DenseData <- R6Class("DenseData",
       if (any(is.na(X))) {
         stop("Input X must not contain missing values.")
       }
-      if (any(dim(X) == 0)) stop('X input dimension is invalid.')
+      if (any(dim(X) == 0)) stop('Input X dimension is invalid.')
+      if (length(which(apply(X, 2, is_zero_variance)))) stop('Input X must not have constant columns (some columns have standard deviation zero)')
       private$.X = X
       private$.X_has_missing = any(is.na(private$.X))
       # FIXME: might want to allow for missing in X later?
