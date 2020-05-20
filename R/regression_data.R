@@ -70,14 +70,12 @@ DenseData <- R6Class("DenseData",
         if(precompute_covariances){
           private$.svs = lapply(1:private$J, function(j){
             res = private$.residual_variance /private$d[j]
-            res[which(is.nan(res) | is.infinite(res))] = 1E6
             return(res)
           })
           private$.svs_inv = lapply(1:private$J, function(j) private$.residual_variance_inv * private$d[j])
           private$.is_common_sbhat = is_list_common(private$.svs)
         }else{
           private$.sbhat = sqrt(do.call(rbind, lapply(1:private$J, function(j) diag(as.matrix(private$.residual_variance)) / private$d[j])))
-          private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E3
           private$.is_common_sbhat = is_mat_common(private$.sbhat)
         }
       }
