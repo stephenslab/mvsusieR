@@ -29,6 +29,7 @@ DenseData <- R6Class("DenseData",
       private$cm = rep(0, length = private$J)
       private$csd = rep(1, length = private$J)
       private$d = colSums(private$.X ^ 2)
+      private$d[private$d == 0] = 1E-6
     },
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      precompute_covariances = TRUE,
@@ -108,6 +109,7 @@ DenseData <- R6Class("DenseData",
       }
       private$.X = t( (t(private$.X) - private$cm) / private$csd )
       private$d = colSums(private$.X ^ 2)
+      private$d[private$d == 0] = 1E-6
     },
     compute_Xb = function(b) {
       # J by R
