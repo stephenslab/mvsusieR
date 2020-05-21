@@ -301,6 +301,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
                                                           t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                                               private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                        private$X_for_Y_missing[i,j,,]))
+          ind = which(diag(as.matrix(private$.svs_inv[[j]])) == 0)
+          if(length(ind)>0){
+            private$.svs_inv[[j]][ind, ind] = 1E-6
+          }
         }
         private$.svs = lapply(1:private$J, function(j) solve(private$.svs_inv[[j]]))
         private$.is_common_sbhat = is_list_common(private$.svs)
