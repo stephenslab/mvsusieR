@@ -12,9 +12,9 @@ DenseData <- R6Class("DenseData",
         stop("Input X must not contain missing values.")
       }
       if (any(dim(X) == 0)) stop('Input X dimension is invalid.')
+      if (length(which(apply(X, 2, is_zero_variance)))) stop('Input X must not have constant columns (some columns have standard deviation zero)')
       private$.X = X
       private$.X_has_missing = any(is.na(private$.X))
-      private$X_constant_columns = which(apply(X, 2, is_zero_variance))
       # FIXME: might want to allow for missing in X later?
       # see stephenslab/mmbr/#5
       if (private$.X_has_missing)
@@ -67,22 +67,17 @@ DenseData <- R6Class("DenseData",
         })
       }
       if('effect_variance' %in% quantities){
-        if (length(private$X_constant_columns)) {
-          if (length(almost.unique(private$d[-private$X_constant_columns])) == 1 && length(almost.unique((private$d))) != 1) {
-            # standard errors are no longer common across effects due to constants in X
-            cat("The following columns in X have constant values. The corresponding standard errors are zeros, and can drastically slow down computation in the current model. Please consider removing these columns:\n")
-            cat(private$X_constant_columns)
-          }
-        }
         if(precompute_covariances){
           private$.svs = lapply(1:private$J, function(j){
             res = private$.residual_variance /private$d[j]
+            res[which(is.nan(res) | is.infinite(res))] = 1E6
             return(res)
           })
           private$.svs_inv = lapply(1:private$J, function(j) private$.residual_variance_inv * private$d[j])
           private$.is_common_sbhat = is_list_common(private$.svs)
         }else{
           private$.sbhat = sqrt(do.call(rbind, lapply(1:private$J, function(j) diag(as.matrix(private$.residual_variance)) / private$d[j])))
+          private$.sbhat[which(is.nan(private$.sbhat) | is.infinite(private$.sbhat))] = 1E3
           private$.is_common_sbhat = is_mat_common(private$.sbhat)
         }
       }
@@ -195,7 +190,6 @@ DenseData <- R6Class("DenseData",
     Y_non_missing = NULL,
     .Y_has_missing = FALSE,
     .X_has_missing = NULL,
-    X_constant_columns = NULL,
     .residual_variance = NULL,
     .residual_variance_inv = NULL,
     .residual_correlation = NULL,
