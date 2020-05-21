@@ -231,9 +231,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       if(private$R > 1){
         for(i in 1:private$N){
           for(j in 1:private$J){
-            values = diag(private$X_for_Y_missing[i,j,,])
-            values[values == 0] = 1E-3
-            private$X_for_Y_missing[i,j,,] = diag(values)
+            private$X_for_Y_missing[i,j,,] = diag(diag(private$X_for_Y_missing[i,j,,]))
           }
         }
       }
@@ -348,10 +346,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         for(i in 1:private$N){
           for(j in 1:private$J){
             private$X_for_Y_missing[i,j,,] = private$X_for_Y_missing[i,j,,] - private$Ainv %*% C[j,,]
-            ind = which(diag(as.matrix(private$X_for_Y_missing[i,j,,])) == 0)
-            if(length(ind)>0){
-              private$X_for_Y_missing[i,j,ind,ind] = 1E-3  
-            }
           }
         }
       }
