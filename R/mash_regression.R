@@ -236,7 +236,6 @@ MashRegression <- R6Class("MashRegression",
 
 #' @title MASH initializer object
 #' @importFrom R6 R6Class
-#' @importFrom mashr expand_cov
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
@@ -255,7 +254,7 @@ MashInitializer <- R6Class("MashInitializer",
               all_zeros[l] = all(Ulist[[l]] == 0)
             }
           }
-          xUlist = expand_cov(Ulist, grid, usepointmass=TRUE)
+          xUlist = mashr:::expand_cov(Ulist, grid, usepointmass=TRUE)
         } else {
           if (!all(xUlist[[1]] == 0)) xUlist = c(list(matrix(0, nrow(xUlist[[1]]), ncol(xUlist[[1]]))), xUlist)
         }
