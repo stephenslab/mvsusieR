@@ -207,7 +207,8 @@ rm_collinear = function(mat, ...) {
         attr(mat, "collinear_counts") = NULL
     } else {
         attr(mat, "collinear_counts") = table(rmvd_coll[,'associated'])
-        attr(mat, "collinear_counts") = cbind(names(attr(mat, "collinear_counts")), attr(mat, "collinear_counts") + 1)
+        options(stringsAsFactors = FALSE)
+        attr(mat, "collinear_counts") = cbind(as.integer(names(attr(mat, "collinear_counts"))), attr(mat, "collinear_counts") + 1)
         colnames(attr(mat, "collinear_counts")) = c('associated', 'counts')
         rownames(attr(mat, "collinear_counts")) = NULL
     }
@@ -221,11 +222,13 @@ reconstruct_coll = function(mat, coll_cols, coll_counts, original_dim, adjust_co
     # m = rm_collinear(X1)
     # X2 = reconstruct_coll(m, attr(m, 'collinear_cols'), attr(m, 'collinear_counts'), attr(m, 'original_dim'))
     # sum(X1 - X2) == 0
-    get_count = function(idx) {
-        if (!adjust_counts) {
+    get_count = function(counts, idx, adjust_counts) {
+        if (!adjust_counts || ! (idx %in% counts[,"associated"])) {
             return (1)
         } else {
-            return (coll_counts[,"counts"][which(coll_counts[,"associated"] == idx)])
+            print(idx)
+            print(counts[,"counts"][which(counts[,"associated"] == idx)])
+            return (counts[,"counts"][which(counts[,"associated"] == idx)])
         }
     }
     vectorise = FALSE
@@ -238,7 +241,7 @@ reconstruct_coll = function(mat, coll_cols, coll_counts, original_dim, adjust_co
     res = matrix(NA, original_dim[1], original_dim[2])
     # first column should always be good,
     # and also duplicated columns always can be found in columns already established
-    res[,1] = mat[,1] / get_count(1)
+    res[,1] = mat[,1] / get_count(coll_counts, 1, adjust_counts)
     i = 2
     for (j in 2:ncol(res)) {
         if (j %in% coll_cols[,'removed']) {
@@ -247,7 +250,7 @@ reconstruct_coll = function(mat, coll_cols, coll_counts, original_dim, adjust_co
             res[,j] = res[,j0]
         } else {
             # a new column; have to take it from the next inline in input mat
-            res[,j] = mat[,i] / get_count(j)
+            res[,j] = mat[,i] / get_count(coll_counts, j, adjust_counts)
             i = i + 1
         }
     }
