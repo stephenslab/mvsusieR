@@ -157,6 +157,14 @@ almost.unique <- function(x,  tolerance = sqrt(.Machine$double.eps), ...)
   else x[!d]
 }
 
+#' @title `duplicated` function with a tolerance
+#' @keywords internal
+almost.duplicated <- function(x, tolerance = sqrt(.Machine$double.eps), ...)
+{
+  y <- round(x/tolerance, 0)
+  duplicated(y, ...)
+}
+
 #' @title A null progressbar, because currently `progressbar_enabled` feature does not work for `progress_bar`
 #' @importFrom R6 R6Class
 #' @keywords internal
