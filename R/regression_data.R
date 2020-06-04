@@ -338,14 +338,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
                                  t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) %*% private$.Y[i,] ))
         
-        # For variant j, Ainv sum_i X_{i,j} Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
-        C = array(0,dim = c(private$J, private$R, private$R)) # J by R by R array
-        for(j in 1:private$J){
-          C[j,,] = private$Ainv %*% Reduce('+', lapply(1:private$N, function(i) private$.X[i,j] * (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
-                                                                                    t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
-                                                                                        private$missing_pattern[private$Y_missing_pattern_assign[i],])) ))
-        }
-        
         # center Y
         private$Y_mean = as.numeric(private$Ainv %*% B)
         private$.Y = t(t(private$.Y) - private$Y_mean)
@@ -353,7 +345,11 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         
         # center X
         for(j in 1:private$J){
-          private$X_for_Y_missing[,j,,] = sweep(private$X_for_Y_missing[,j,,,drop=F], 3:4, C[j,,])
+          # For variant j, Ainv sum_i X_{i,j} Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
+          tmp = private$Ainv %*% Reduce('+', lapply(1:private$N, function(i) private$.X[i,j] * (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+                                                                                            t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
+                                                                                                private$missing_pattern[private$Y_missing_pattern_assign[i],])) ))
+          private$X_for_Y_missing[,j,,] = sweep(private$X_for_Y_missing[,j,,,drop=F], 3:4, tmp)
         }
       }
     },
