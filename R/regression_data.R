@@ -229,9 +229,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       private$.residual = private$.Y
       private$X_for_Y_missing = array(X, dim = c(private$N, private$J, private$R, private$R))
       if(private$R > 1){
-        for(i in 1:private$N){
-          for(j in 1:private$J){
-            private$X_for_Y_missing[i,j,,] = diag(diag(private$X_for_Y_missing[i,j,,]))
+        for(r in 1:(private$R-1)){
+          for(t in (r+1):private$R){
+            private$X_for_Y_missing[,,r,t] = 0
+            private$X_for_Y_missing[,,t,r] = 0
           }
         }
       }
@@ -330,27 +331,29 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         A = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] *
                                  t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) ))
+        private$Ainv = invert_via_chol(A)
+        
         # sum_i Gamma_i Sigma_i^{-1} Gamma_i y_i R by 1 matrix
         B = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] *
                                  t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) %*% private$.Y[i,] ))
-        # For variant j, sum_i X_{i,j} Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
+        
+        # For variant j, Ainv sum_i X_{i,j} Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
         C = array(0,dim = c(private$J, private$R, private$R)) # J by R by R array
         for(j in 1:private$J){
-          C[j,,] = Reduce('+', lapply(1:private$N, function(i) private$.X[i,j] * (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
+          C[j,,] = private$Ainv %*% Reduce('+', lapply(1:private$N, function(i) private$.X[i,j] * (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
                                                                                     t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                                                                         private$missing_pattern[private$Y_missing_pattern_assign[i],])) ))
         }
-        private$Ainv = invert_via_chol(A)
+        
         # center Y
         private$Y_mean = as.numeric(private$Ainv %*% B)
         private$.Y = t(t(private$.Y) - private$Y_mean)
         private$.Y[!private$Y_non_missing] = 0
+        
         # center X
-        for(i in 1:private$N){
-          for(j in 1:private$J){
-            private$X_for_Y_missing[i,j,,] = private$X_for_Y_missing[i,j,,] - private$Ainv %*% C[j,,]
-          }
+        for(j in 1:private$J){
+          private$X_for_Y_missing[,j,,] = sweep(private$X_for_Y_missing[,j,,,drop=F], 3:4, C[j,,])
         }
       }
     },
