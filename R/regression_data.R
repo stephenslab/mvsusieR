@@ -294,6 +294,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       }
       if('effect_variance' %in% quantities){
         private$.svs_inv = list()
+        private$.svs = list()
         for(j in 1:private$J){
           # For variant j, sum_i private$X_for_Y_missing[i,j,,] Gamma_i Sigma_i^{-1} Gamma_i private$X_for_Y_missing[i,j,,], R by R matrix
           # when there is no missing, it is sum(x_j^2) * Sigma^{-1}
@@ -302,12 +303,14 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
                                                           t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                                               private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                        private$X_for_Y_missing[i,j,,]))
-          ind = which(diag(as.matrix(private$.svs_inv[[j]])) == 0)
-          if(length(ind)>0){
-            private$.svs_inv[[j]][ind, ind] = 1E-6
-          }
+          private$.svs[[j]] = tryCatch(invert_via_chol(private$.svs_inv[[j]]), error = function(e){
+            invert_via_chol(private$.svs_inv[[j]] + 1e-8 * diag(private$R))} )
+          # ind = which(diag(as.matrix(private$.svs_inv[[j]])) == 0)
+          # if(length(ind)>0){
+          #   private$.svs_inv[[j]][ind, ind] = 1E-6
+          # }
         }
-        private$.svs = lapply(1:private$J, function(j) solve(private$.svs_inv[[j]]))
+        # private$.svs = lapply(1:private$J, function(j) solve(private$.svs_inv[[j]]))
         private$.is_common_sbhat = is_list_common(private$.svs)
       }
     },
