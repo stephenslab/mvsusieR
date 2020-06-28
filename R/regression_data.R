@@ -317,7 +317,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
     get_coef = function(use_residual = FALSE){
       if (use_residual) XtY = self$XtR
       else XtY = self$XtY
-      bhat = t(sapply(1:private$J, function(j) solve(private$.svs_inv[[j]], XtY[j,])))
+      bhat = t(sapply(1:private$J, function(j) private$.svs[[j]] %*% XtY[j,]))
       bhat[which(is.nan(bhat))] = 0
       if(private$R == 1){
         bhat = t(bhat)
@@ -335,17 +335,17 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
                                  t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) ))
         private$Ainv = invert_via_chol(A)
-        
+
         # sum_i Gamma_i Sigma_i^{-1} Gamma_i y_i R by 1 matrix
         B = Reduce('+', lapply(1:private$N, function(i) private$missing_pattern[private$Y_missing_pattern_assign[i],] *
                                  t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                      private$missing_pattern[private$Y_missing_pattern_assign[i],]) %*% private$.Y[i,] ))
-        
+
         # center Y
         private$Y_mean = as.numeric(private$Ainv %*% B)
         private$.Y = t(t(private$.Y) - private$Y_mean)
         private$.Y[!private$Y_non_missing] = 0
-        
+
         # center X
         for(j in 1:private$J){
           # For variant j, Ainv sum_i X_{i,j} Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
