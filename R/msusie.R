@@ -80,12 +80,12 @@ msusie = function(X,Y,L=10,
                  compute_univariate_zscore = FALSE,
                  precompute_covariances = FALSE,
                  n_thread=1,max_iter=100,tol=1e-3,
-                 verbose=TRUE,track_fit=FALSE) {
+                 verbose=TRUE,track_fit=FALSE,approximate=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
   # set data object
   if (any(is.na(Y))) {
-    data = DenseDataYMissing$new(X, Y)
+    data = DenseDataYMissing$new(X, Y, approximate)
   } else {
     data = DenseData$new(X, Y)
   }
