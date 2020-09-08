@@ -330,6 +330,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           if (private$R == 1) private$Y_mean = mean(private$.Y[private$Y_non_missing])
           else private$Y_mean = sapply(1:private$R, function(r) mean(private$.Y[private$Y_non_missing[,r],r]))
           private$.Y = t(t(private$.Y) - private$Y_mean)
+          private$.Y[!private$Y_non_missing] = 0
         }else{
           private$cm = matrix(0, private$J, private$R) # J by R
         }
