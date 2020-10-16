@@ -267,6 +267,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
             residual_variance_inv[[k]] = private$missing_pattern[k,]/residual_variance
           }else{
             eigenSigmak = eigen(t(residual_variance * private$missing_pattern[k,]) * private$missing_pattern[k,], symmetric = TRUE)
+            eigenSigmak$values[eigenSigmak$values < 0] = 0
             dinv = 1/(eigenSigmak$values)
             dinv[is.infinite(dinv)] = 0
             residual_variance_inv[[k]] = eigenSigmak$vectors %*% (dinv * t(eigenSigmak$vectors))
