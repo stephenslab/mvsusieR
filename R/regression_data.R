@@ -221,29 +221,23 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       private$approximate = approximate
       # store missing pattern
       private$missing_pattern = unique(private$Y_non_missing)
-      private$Y_missing_pattern_assign = numeric(private$N)
+      Y_missing_pattern_assign = numeric(private$N)
       for(k in 1:nrow(private$missing_pattern)){
         idx = which(apply(private$Y_non_missing, 1, function(x) identical(x, private$missing_pattern[k,])))
-        private$Y_missing_pattern_assign[idx] = k
+        Y_missing_pattern_assign[idx] = k
       }
+      private$Y_missing_pattern_assign = Y_missing_pattern_assign
       private$.Y[Y_missing] = 0
       private$.residual = private$.Y
       if(private$approximate){
-        private$X_for_Y_missing = array(X, dim = c(private$N, private$J, private$R))
+        X_for_Y_missing = array(private$.X, dim = c(private$N, private$J, private$R))
         for(r in 1:private$R) {
-          private$X_for_Y_missing[Y_missing[,r],,r] = NA
+          X_for_Y_missing[Y_missing[,r],,r] = NA
         }
       }else{
-        private$X_for_Y_missing = array(X, dim = c(private$N, private$J, private$R, private$R))
-        if(private$R > 1){
-          for(r in 1:(private$R-1)){
-            for(t in (r+1):private$R){
-              private$X_for_Y_missing[,,r,t] = 0
-              private$X_for_Y_missing[,,t,r] = 0
-            }
-          }
-        }
+        X_for_Y_missing = outer(private$.X,  diag(private$R))
       }
+      private$X_for_Y_missing = X_for_Y_missing
     },
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      quantities = c('residual_variance','effect_variance')){
@@ -266,18 +260,19 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         if(numeric){
           residual_variance = as.numeric(residual_variance)
         }
-        private$.residual_variance_inv = list()
+        residual_variance_inv = list()
         private$.residual_variance = residual_variance
         for(k in 1:nrow(private$missing_pattern)){
           if(private$R == 1){
-            private$.residual_variance_inv[[k]] = private$missing_pattern[k,]/residual_variance
+            residual_variance_inv[[k]] = private$missing_pattern[k,]/residual_variance
           }else{
             eigenSigmak = eigen(t(residual_variance * private$missing_pattern[k,]) * private$missing_pattern[k,], symmetric = TRUE)
             dinv = 1/(eigenSigmak$values)
             dinv[is.infinite(dinv)] = 0
-            private$.residual_variance_inv[[k]] = eigenSigmak$vectors %*% (dinv * t(eigenSigmak$vectors))
+            residual_variance_inv[[k]] = eigenSigmak$vectors %*% (dinv * t(eigenSigmak$vectors))
           }
         }
+        private$.residual_variance_inv = residual_variance_inv
         if(is.matrix(residual_variance)){
           private$.residual_correlation = cov2cor(residual_variance)
         }else{
@@ -285,29 +280,31 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         }
       }
       if('effect_variance' %in% quantities){
-        private$.svs_inv = list()
-        private$.svs = list()
+        svs_inv = list()
+        svs = list()
         for(j in 1:private$J){
           # For variant j, sum_i private$X_for_Y_missing[i,j,,] Gamma_i Sigma_i^{-1} Gamma_i private$X_for_Y_missing[i,j,,], R by R matrix
           # when there is no missing, it is sum(x_j^2) * Sigma^{-1}
           if(private$approximate){
-            private$.svs_inv[[j]] = Reduce('+', lapply(1:private$N, function(i)
+            svs_inv[[j]] = Reduce('+', lapply(1:private$N, function(i)
                                                          t(t((private$missing_pattern[private$Y_missing_pattern_assign[i],] *
                                                             t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                                                 private$missing_pattern[private$Y_missing_pattern_assign[i],])) *
                                                          private$X_for_Y_missing[i,j,])* private$X_for_Y_missing[i,j,])))
-            private$.svs[[j]] = tryCatch(invert_via_chol(private$.svs_inv[[j]]), error = function(e){
-              invert_via_chol(private$.svs_inv[[j]] + 1e-8 * diag(private$R))} )
+            svs[[j]] = tryCatch(invert_via_chol(svs_inv[[j]]), error = function(e){
+              invert_via_chol(svs_inv[[j]] + 1e-8 * diag(private$R))} )
           }else{
-            private$.svs_inv[[j]] = Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*%
+            svs_inv[[j]] = Reduce('+', lapply(1:private$N, function(i) private$X_for_Y_missing[i,j,,] %*%
                                                          (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
                                                             t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                                                 private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                          private$X_for_Y_missing[i,j,,]))
-            private$.svs[[j]] = tryCatch(invert_via_chol(private$.svs_inv[[j]]), error = function(e){
-              invert_via_chol(private$.svs_inv[[j]] + 1e-8 * diag(private$R))} )
+            svs[[j]] = tryCatch(invert_via_chol(svs_inv[[j]]), error = function(e){
+              invert_via_chol(svs_inv[[j]] + 1e-8 * diag(private$R))} )
           }
         }
+        private$.svs_inv = svs_inv
+        private$.svs = svs
         private$.is_common_sbhat = is_list_common(private$.svs)
       }
     },
@@ -336,14 +333,16 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         }
         private$csd = matrix(1, private$J, private$R)
         # scale X when Y has missing, and compute colSums(X^2)
+        X_for_Y_missing = private$X_for_Y_missing
         for(r in 1:private$R){
           if (scale) {
             private$csd[,r] = colSds(private$X_for_Y_missing[,,r], center = private$cm[,r], na.rm = TRUE)
             private$csd[private$csd[,r]==0, r] = 1
           }
-          private$X_for_Y_missing[,,r] = t( (t(private$X_for_Y_missing[,,r]) - private$cm[,r]) / private$csd[,r] )
-          private$X_for_Y_missing[,,r][is.na(private$X_for_Y_missing[,,r])] = 0
+          X_for_Y_missing[,,r] = t( (t(X_for_Y_missing[,,r]) - private$cm[,r]) / private$csd[,r] )
+          X_for_Y_missing[,,r][is.na(X_for_Y_missing[,,r])] = 0
         }
+        private$X_for_Y_missing = X_for_Y_missing
       }else{
         if(scale==TRUE){
           private$csd = colSds(private$.X, center = 0)
@@ -368,13 +367,15 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           private$.Y[!private$Y_non_missing] = 0
           
           # center X
+          X_for_Y_missing = private$X_for_Y_missing
           for(j in 1:private$J){
             # For variant j, Ainv sum_i X_{i,j} Gamma_i Sigma_i^{-1} Gamma_i R by R matrix
             tmp = private$Ainv %*% Reduce('+', lapply(1:private$N, function(i) private$.X[i,j] * (private$missing_pattern[private$Y_missing_pattern_assign[i],] *
                                                                                                     t(private$.residual_variance_inv[[private$Y_missing_pattern_assign[i]]] *
                                                                                                         private$missing_pattern[private$Y_missing_pattern_assign[i],])) ))
-            private$X_for_Y_missing[,j,,] = sweep(private$X_for_Y_missing[,j,,,drop=F], 3:4, tmp)
+            X_for_Y_missing[,j,,] = sweep(X_for_Y_missing[,j,,,drop=F], 3:4, tmp)
           }
+          private$X_for_Y_missing = X_for_Y_missing
         }
       }
     },
