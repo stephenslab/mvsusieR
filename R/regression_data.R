@@ -446,7 +446,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
                                                                                        private$missing_pattern[private$Y_missing_pattern_assign[i],])) %*%
                                                                                 private$.Y[i,]))))
         }
-      if(nrow(private$.XtY) != private$J) private$.XtY = t(private$.XtY)
+      if(private$R == 1) private$.XtY = t(private$.XtY)
       return(private$.XtY)
     },
     XtX = function() {
