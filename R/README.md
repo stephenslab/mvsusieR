@@ -24,13 +24,14 @@ Implementation-wise,
 ## A note on `R6` class
 
 `R6` is pretty [easy to learn](https://r6.r-lib.org/articles/Introduction.html) just by the length of its documentation.
-However the constraint that [`private` cannot have same name as `public` and `active`](https://github.com/r-lib/R6/issues/200) is annoying.
 
 A couple of quick pointers on `R6` class if you don't want to bother reading its documentation:
 
 1. Convention `private$<name>` refers to private member (ie, variable) or method (ie, function); convention `self$<name>` refers to public member or method, or, active bindings. Please be careful which to use.
 2. If you've got a class `A` to set `B` via `B=A` then modify `B`, you will also be modifying `A`! To prevent this from happening you've got to use this: `B=A$clone(deep=TRUE)`.
 3. If class `A2` is inherited from `A1`, and suppose `a` is an instance of `A2`, then both `inherits(a, "A2")` and `inherits(a, "A1")` will be true. If `a` is instance of `A1` then only the latter is true.
+4. [`private` cannot have same name as `public` and `active`](https://github.com/r-lib/R6/issues/200).
+5. Using `private$` and `self$` can have some overhead which can be [substential for some applications](https://github.com/r-lib/R6/issues/212). I therefore use `portable=FALSE` and use `<<-` for class member assignment.
 
 I use the following convention in my code:
 
@@ -38,6 +39,6 @@ I use the following convention in my code:
 2. For variables meant to be used outside class I expose them to `active`.
     - By default active bindings for private variables are read-only, appear as `function()`; an attempt to assign values to them will raise an error.
     - Some active bindings will allow setting values of variables, and appear as `function(v)`.
-    - Private members to be exposed to `active`, for the time being, will follow the convention of `.<name>` and the corresponding exposed variable will be `<name>`. This is the annoying constraint I was referring to above. Hopefully the R6 developers can change the behavior or convince me to believe it is good idea.
+    - Private members follows the convention of `.<name>` and the corresponding exposed variable will be `<name>` if exposed to `active`.
 
 Otherwise, the only downside as I found using `R6` is that the trace back for errors is not as clear as without using it. But R language in general doesn't have good error trace back (compared to Python which can point to you the exact lines of codes that are problematic), so `R6` is not making it that much worse.
