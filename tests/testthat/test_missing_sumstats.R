@@ -52,21 +52,21 @@ test_that("When R = 1, result from missing data is same as the result using obse
   residual_var = as.numeric(var(y))
   data1 = DenseData$new(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F])
   data1$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data1$standardize(TRUE,FALSE)
+  data1$standardize(TRUE,TRUE)
   data1$set_residual_variance(quantities = 'effect_variance')
   fit1 = BayesianSimpleRegression$new(ncol(X), prior_var)
   fit1$fit(data1, save_summary_stats = T)
   
   data2 = DenseDataYMissing$new(X,y_missing)
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data2$standardize(TRUE,FALSE)
+  data2$standardize(TRUE,TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
   fit2 = BayesianSimpleRegression$new(ncol(X), prior_var)
   fit2$fit(data2, save_summary_stats = T)
   
   data3 = DenseDataYMissing$new(X,y_missing,approximate=TRUE)
   data3$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data3$standardize(TRUE,FALSE)
+  data3$standardize(TRUE,TRUE)
   data3$set_residual_variance(quantities = 'effect_variance')
   fit3 = BayesianSimpleRegression$new(ncol(X), prior_var)
   fit3$fit(data3, save_summary_stats = T)
@@ -89,21 +89,21 @@ test_that("With full observations, the results are same for DenseDataYMissing an
   residual_var = cov(y)
   data1 = DenseData$new(X, y)
   data1$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data1$standardize(TRUE, FALSE)
+  data1$standardize(TRUE, TRUE)
   data1$set_residual_variance(quantities = 'effect_variance')
   fit1 = BayesianMultivariateRegression$new(ncol(X), prior_var)
   fit1$fit(data1, save_summary_stats = T)
 
   data2 = expect_warning(DenseDataYMissing$new(X,y))
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data2$standardize(TRUE,FALSE)
+  data2$standardize(TRUE,TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
   fit2 = BayesianMultivariateRegression$new(ncol(X), prior_var)
   fit2$fit(data2, save_summary_stats = T)
   
   data3 = expect_warning(DenseDataYMissing$new(X,y,approximate=TRUE))
   data3$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data3$standardize(TRUE,FALSE)
+  data3$standardize(TRUE,TRUE)
   data3$set_residual_variance(quantities = 'effect_variance')
   fit3 = BayesianMultivariateRegression$new(ncol(X), prior_var)
   fit3$fit(data3, save_summary_stats = T)
@@ -144,17 +144,17 @@ test_that("When R = 1, estimated prior variance with missing data agrees with fu
   residual_var = as.numeric(var(y))
   fit1 = msusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
               prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
-              intercept=T, standardize = F,
+              intercept=T, standardize = T,
               estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
   fit2 = msusie(X, y_missing, L=L,
               prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
-              intercept=T, standardize = F, 
+              intercept=T, standardize = T, 
               estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
   fit3 = msusie(X, y_missing, L=L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
-                intercept=T, standardize = F, 
+                intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM',
                 approximate=TRUE)
   
@@ -178,12 +178,12 @@ test_that("With full observation, the estimated prior variance are same for Dens
   residual_var = cov(y)
   fit1 = msusie(X, y, L = L, 
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
-                intercept=T, standardize = F, 
+                intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
   data2 = expect_warning(DenseDataYMissing$new(X,y))
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data2$standardize(TRUE,FALSE)
+  data2$standardize(TRUE,TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
   fit2 = mmbr_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
@@ -191,7 +191,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   
   data3 = expect_warning(DenseDataYMissing$new(X,y,approximate=TRUE))
   data3$set_residual_variance(residual_var, quantities = 'residual_variance')
-  data3$standardize(TRUE,FALSE)
+  data3$standardize(TRUE,TRUE)
   data3$set_residual_variance(quantities = 'effect_variance')
   fit3 = mmbr_core(data3, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
@@ -234,5 +234,31 @@ test_that("With full observation, the estimated prior variance are same for Dens
   expect_equal(fit1$b2, fit5$b2, tolerance = 1E-8)
   expect_equal(fit1$coef, fit5$coef, tolerance = 1E-8, check.attributes = FALSE)
   expect_equal(fit1$V, fit5$V, tolerance = 1E-8)
+}))
+
+test_that("With diagonal residual variance, the results are same for DenseDataYMissing with and without approximation.", with(simulate_multivariate(r=3, center_scale = F, y_missing = 0.5),{
+  # Multivariate regression
+  prior_var = V
+  residual_var = diag(diag(cov(y)))
+  
+  data1 = DenseDataYMissing$new(X,y_missing, approximate = FALSE)
+  data1$set_residual_variance(residual_var, quantities = 'residual_variance')
+  data1$standardize(TRUE,TRUE)
+  data1$set_residual_variance(quantities = 'effect_variance')
+  fit1 = BayesianMultivariateRegression$new(ncol(X), prior_var)
+  fit1$fit(data1, save_summary_stats = T)
+  
+  data2 = DenseDataYMissing$new(X,y_missing,approximate=TRUE)
+  data2$set_residual_variance(residual_var, quantities = 'residual_variance')
+  data2$standardize(TRUE,TRUE)
+  data2$set_residual_variance(quantities = 'effect_variance')
+  fit2 = BayesianMultivariateRegression$new(ncol(X), prior_var)
+  fit2$fit(data2, save_summary_stats = T)
+  
+  expect_equal(fit1$bhat, fit2$bhat)
+  expect_equal(fit1$sbhat, fit2$sbhat)
+  expect_equal(fit1$posterior_b1, fit2$posterior_b1)
+  expect_equal(fit1$posterior_b2, fit2$posterior_b2)
+  expect_equal(fit1$lbf, fit2$lbf)
 }))
 
