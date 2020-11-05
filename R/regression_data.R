@@ -273,8 +273,8 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
             .residual_variance_inv[[k]] <<- matrix(0, .R, .R)
             if(sum(.missing_pattern[k,])>0){
               Vk = .residual_variance[which(.missing_pattern[k,]), which(.missing_pattern[k,])]
-              eigenVk <<- eigen(Vk, symmetric = TRUE)
-              dinv <<- 1/(eigenVk$values)
+              eigenVk = eigen(Vk, symmetric = TRUE)
+              dinv = 1/(eigenVk$values)
               .residual_variance_eigen[[k]] <<- eigenVk$values
               .residual_variance_inv[[k]][which(.missing_pattern[k,]), which(.missing_pattern[k,])] <<- eigenVk$vectors %*% (dinv * t(eigenVk$vectors))
             }else{
@@ -324,9 +324,9 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
     standardize = function(center, scale) {
       # precompute scale
       if(center){
-        cm_x <<- colMeans(.X_for_Y_missing, na.rm=T) # J by R
+        cm_x = colMeans(.X_for_Y_missing, na.rm=T) # J by R
       }else{
-        cm_x <<- matrix(0, .J, .R) # J by R
+        cm_x = matrix(0, .J, .R) # J by R
       }
       .csd <<- matrix(1, .J, .R)
       for(r in 1:.R){
@@ -455,13 +455,13 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
     },
     XtR = function() {
       # V_i^(-1) r_i = z_i
-      VinvR <<- t(sapply(1:.N, function(i) .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*% .residual[i,])) # N by R
-      if(.R == 1) VinvR <<- t(VinvR)
+      VinvR = t(sapply(1:.N, function(i) .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*% .residual[i,])) # N by R
+      if(.R == 1) VinvR = t(VinvR)
       if(.approximate){
-        res <<- t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvR) ))
+        res = t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvR) ))
       }else{
         # sum_{i=1}^N X_for_Y_missing_exact[i,j,,]^T z_i
-        res <<- t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvR) - crossprod(.Xbar[j,,], colSums(VinvR)) ))
+        res = t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvR) - crossprod(.Xbar[j,,], colSums(VinvR)) ))
         # res = t(sapply(1:.J, function(j) Reduce('+', lapply(1:.N, function(i) crossprod(.X_for_Y_missing_exact[i,j,,],
         #                                                              (.residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
         #                                                              .residual[i,]))))))
