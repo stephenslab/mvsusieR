@@ -430,10 +430,10 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
   active = list(
     XtY = function() {
       # J by R matrix
-      if (is.null(.XtY))
+      if (is.null(.XtY)){
         # V_i^(-1) y_i = z_i
-        VinvY <<- t(sapply(1:.N, function(i) .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*% .Y[i,])) # N by R
-        if(.R == 1) VinvY <<- t(VinvY)
+        VinvY = t(sapply(1:.N, function(i) .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*% .Y[i,])) # N by R
+        if(.R == 1) VinvY = t(VinvY)
         if(.approximate){
           .XtY <<- t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvY) ))
           # .XtY <<- t(sapply(1:.J, function(j) Reduce('+', lapply(1:.N, function(i) (.residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%.Y[i,]) * .X_for_Y_missing[i,j,]) )))
@@ -444,7 +444,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           #                                                                          .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
           #                                                                       .Y[i,])))))
         }
-
+      }
       if (.R == 1) .XtY <<- t(.XtY)
       return(.XtY)
     },
