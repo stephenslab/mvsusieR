@@ -77,7 +77,6 @@ SingleEffectModel <- function(base)
               pb2 = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]))
             }
             if (d$Y_has_missing){
-              browser()
               Xb = d$compute_Xb(self$posterior_b1)
               E1 = sum(sapply(1:d$n_sample, function(i) crossprod(d$residual[i,], d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% Xb[i,])))
               private$.vbxxb = sum(sapply(1:length(pb2), function(j) tr(d$svs_inv[[j]] %*% pb2[[j]])))

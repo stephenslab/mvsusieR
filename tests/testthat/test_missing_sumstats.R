@@ -262,3 +262,69 @@ test_that("With diagonal residual variance, the results are same for DenseDataYM
   expect_equal(fit1$lbf, fit2$lbf)
 }))
 
+test_that("When R = 1, the elbo with missing data agrees with full data", with(simulate_multivariate(r=1, center_scale = F, y_missing = 0.5), {
+  prior_var = V[1,1]
+  residual_var = as.numeric(var(y))
+  fit1 = msusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
+                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
+                intercept=T, standardize = T,
+                estimate_residual_variance=F, estimate_prior_variance=F)
+  
+  fit2 = msusie(X, y_missing, L=L,
+                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
+                intercept=T, standardize = T, 
+                estimate_residual_variance=F, estimate_prior_variance=F)
+  
+  fit3 = msusie(X, y_missing, L=L,
+                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
+                intercept=T, standardize = T, 
+                estimate_residual_variance=F, estimate_prior_variance=F,
+                approximate=TRUE)
+  
+  expect_equal(fit1$elbo, fit2$elbo)
+  expect_equal(fit1$elbo, fit3$elbo)
+}))
+
+test_that("With full observation, the elbo are same for DenseDataYMissing and DenseData", with(simulate_multivariate(r=3, center_scale = F), {
+  # Multivariate regression
+  prior_var = V
+  residual_var = cov(y)
+  fit1 = msusie(X, y, L = L, 
+                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
+                intercept=T, standardize = T, 
+                estimate_residual_variance=F, estimate_prior_variance=F)
+  
+  data2 = expect_warning(DenseDataYMissing$new(X,y))
+  data2$set_residual_variance(residual_var, quantities = 'residual_variance')
+  data2$standardize(TRUE,TRUE)
+  data2$set_residual_variance(quantities = 'effect_variance')
+  fit2 = mmbr_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
+                   estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
+                   precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3, track_fit=F, verbose=T, n_thread=1)
+  
+  data3 = expect_warning(DenseDataYMissing$new(X,y,approximate=TRUE))
+  data3$set_residual_variance(residual_var, quantities = 'residual_variance')
+  data3$standardize(TRUE,TRUE)
+  data3$set_residual_variance(quantities = 'effect_variance')
+  fit3 = mmbr_core(data3, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
+                   estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
+                   precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3, track_fit=F, verbose=T, n_thread=1)
+  
+  expect_equal(fit1$elbo, fit2$elbo)
+  expect_equal(fit1$elbo, fit3$elbo)
+  
+  # Mash regression
+  null_weight = 0
+  mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
+  fit4 = expect_warning(mmbr_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+                                  estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
+                                  precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3, track_fit=F, verbose=T, n_thread=1))
+  
+  fit5 = expect_warning(mmbr_core(data3, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+                                  estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
+                                  precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3, track_fit=F, verbose=T, n_thread=1))
+  
+  expect_equal(fit1$elbo, fit4$elbo)
+  expect_equal(fit1$elbo, fit5$elbo)
+}))
+
