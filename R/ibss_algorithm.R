@@ -152,8 +152,9 @@ SuSiE <- R6Class("SuSiE",
     # expected loglikelihood for SuSiE model
     compute_expected_loglik_univariate = function(d) {
         if(d$Y_has_missing){
-          expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * table(d$Y_missing_pattern_assign)) - 
-            0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * table(d$Y_missing_pattern_assign))
+          Y_missing_assign =  table(d$Y_missing_pattern_assign)
+          expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) - 
+            0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * Y_missing_assign)
           essr = private$compute_expected_sum_squared_residuals_univariate(d)
           return(expected_loglik - 0.5 * essr)
         }else{
@@ -165,8 +166,9 @@ SuSiE <- R6Class("SuSiE",
     },
     compute_expected_loglik_multivariate = function(d) {
       if(d$Y_has_missing){
-        expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * table(d$Y_missing_pattern_assign)) - 
-          0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * table(d$Y_missing_pattern_assign))
+        Y_missing_assign =  table(d$Y_missing_pattern_assign)
+        expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) - 
+          0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * Y_missing_assign)
         essr = private$compute_expected_sum_squared_residuals_multivariate(d)
       }else{
         expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(d$residual_variance))
@@ -177,7 +179,7 @@ SuSiE <- R6Class("SuSiE",
     estimate_residual_variance = function(d) {
         if (is.matrix(d$residual_variance)) {
             # FIXME: to implement estimating a vector of length R, or even a scalar
-            E1 = lapply(1:length(private$SER), function(l) t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1)
+            E1 = lapply(1:length(private$SER), function(l) crossprod(private$SER[[l]]$posterior_b1, d$XtX %*% private$SER[[l]]$posterior_b1))
             E1 = crossprod(d$residual) - Reduce('+', E1)
             return((E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample)
         } else {
