@@ -59,23 +59,40 @@ SingleEffectModel <- function(base)
             }
         },
         compute_expected_loglik_partial_univariate = function(d) {
-            return(- (0.5/d$residual_variance) * (- 2*sum(self$posterior_b1*d$XtR) + sum(d$X2_sum*as.vector(self$posterior_b2))))
+            if(d$Y_has_missing){
+              Xb = d$compute_Xb(self$posterior_b1)
+              resid_var_inv = unlist(d$residual_variance_inv)[d$Y_missing_pattern_assign]
+              E1 = sum(d$residual * Xb * resid_var_inv)
+              private$.vbxxb = sum(self$posterior_b2*unlist(d$svs_inv))
+              return(E1 - (private$.vbxxb / 2))
+            }else{
+              return(- (0.5/d$residual_variance) * (- 2*sum(self$posterior_b1*d$XtR) + sum(d$X2_sum*as.vector(self$posterior_b2))))
+            }
         },
         compute_expected_loglik_partial_multivariate = function(d) {
-            # FIXME: Currently this computation does not work for case with missing data
-            if (d$Y_has_missing) stop("compute_expected_loglik_partial_multivariate cannot yet work with missing data")
-            E1 = tr(d$residual_variance_inv %*% t(self$posterior_b1) %*% d$XtR)
             # posterior variance covariance matrix, weighted by PIP
             if (length(dim(private$.posterior_b2)) == 3) {
-                S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * private$.posterior_b2[,,j] - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
+              pb2 = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * private$.posterior_b2[,,j])
             } else {
-                S = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]) - tcrossprod(private$.pip[j] * private$.posterior_b1[j,]))
+              pb2 = lapply(1:nrow(private$.posterior_b1), function(j) private$.pip[j] * matrix(private$.posterior_b2[j,]))
             }
-            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) tr(d$residual_variance_inv %*% S[[j]])))
-            private$.bxxb = Reduce('+', lapply(1:length(S), function(j) d$X2_sum[j] * S[[j]]))
-            private$.vbxxb = sum(d$X2_sum * sapply(1:length(S), function(j) t(self$posterior_b1[j,]) %*% d$residual_variance_inv %*% self$posterior_b1[j,])) + private$.vbxxb
-            private$.bxxb = Reduce('+', lapply(1:length(S), function(j) d$X2_sum[j] * tcrossprod(self$posterior_b1[j,]))) + private$.bxxb
-            return(E1 - private$.vbxxb / 2)
+            if (d$Y_has_missing){
+              Xb = d$compute_Xb(self$posterior_b1)
+              E1 = sum(sapply(1:d$n_sample, function(i) crossprod(d$residual[i,], d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% Xb[i,])))
+              # OR
+              # XtR = d$XtR
+              # E1 = sum(sapply(1:d$n_effect, function(j) sum(d$XtR[j,] * self$posterior_b1[j,])))
+
+              private$.vbxxb = sum(sapply(1:length(pb2), function(j) tr(d$svs_inv[[j]] %*% pb2[[j]])))
+              return(E1 - (private$.vbxxb / 2))
+            }else{
+              E1 = tr(d$residual_variance_inv %*% crossprod(self$posterior_b1, d$XtR))
+              E2 = tr(d$residual_variance_inv %*% crossprod(d$XtR, self$posterior_b1))
+              private$.vbxxb = sum(d$X2_sum * sapply(1:length(pb2), function(j) tr(d$residual_variance_inv %*% pb2[[j]])))
+              private$.bxxb = Reduce('+', lapply(1:length(pb2), function(j) d$X2_sum[j] * pb2[[j]]))
+              return((E1 + E2 - private$.vbxxb) / 2)
+            }
+            
         }
     ),
     active = list(

@@ -86,6 +86,7 @@ msusie = function(X,Y,L=10,
   # set data object
   if (any(is.na(Y))) {
     data = DenseDataYMissing$new(X, Y, approximate)
+    estimate_residual_variance = FALSE
   } else {
     data = DenseData$new(X, Y)
   }

@@ -137,10 +137,6 @@ SuSiE <- R6Class("SuSiE",
         }
     },
     compute_objective = function(d) {
-        if (d$Y_has_missing && private$to_compute_objective) {
-            warning("ELBO calculation with missing data in Y has not been implemented.")
-            private$to_compute_objective = FALSE
-        }
         if (private$to_compute_objective) {
             if (is.matrix(d$residual_variance)) {
                 expected_loglik = private$compute_expected_loglik_multivariate(d)
@@ -155,14 +151,27 @@ SuSiE <- R6Class("SuSiE",
     },
     # expected loglikelihood for SuSiE model
     compute_expected_loglik_univariate = function(d) {
-        n = d$n_sample
-        residual_variance = d$residual_variance
-        essr = private$compute_expected_sum_squared_residuals_univariate(d)
-        return(-(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr)
+        if(d$Y_has_missing){
+          expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * table(d$Y_missing_pattern_assign)) - 
+            0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * table(d$Y_missing_pattern_assign))
+          essr = private$compute_expected_sum_squared_residuals_univariate(d)
+          return(expected_loglik - 0.5 * essr)
+        }else{
+          n = d$n_sample
+          residual_variance = d$residual_variance
+          essr = private$compute_expected_sum_squared_residuals_univariate(d)
+          return(-(n/2) * log(2*pi* residual_variance) - (1/(2*residual_variance)) * essr)
+        }
     },
     compute_expected_loglik_multivariate = function(d) {
-      expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(d$residual_variance))
-      essr = private$compute_expected_sum_squared_residuals_multivariate(d)
+      if(d$Y_has_missing){
+        expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * table(d$Y_missing_pattern_assign)) - 
+          0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * table(d$Y_missing_pattern_assign))
+        essr = private$compute_expected_sum_squared_residuals_multivariate(d)
+      }else{
+        expected_loglik = -(d$n_sample * d$n_condition / 2) * log(2*pi) - d$n_sample / 2 * log(det(d$residual_variance))
+        essr = private$compute_expected_sum_squared_residuals_multivariate(d)
+      }
       return(expected_loglik - 0.5 * essr)
     },
     estimate_residual_variance = function(d) {
@@ -188,15 +197,35 @@ SuSiE <- R6Class("SuSiE",
         return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
       } else {
         # full data, DenseData object
-        Xr = d$compute_MXt(Eb1)
-        Xrsum = colSums(Xr)
-        return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
+        if(d$Y_has_missing){
+          resid_var_inv = unlist(d$residual_variance_inv)[d$Y_missing_pattern_assign]
+          E1 = sapply(1:length(private$SER), function(l){
+            Xb = d$compute_Xb(private$SER[[l]]$posterior_b1)
+            sum(Xb^2 * resid_var_inv)
+          })
+          E1 = sum(d$residual^2 * resid_var_inv) - sum(E1)
+          return(E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
+        }else{
+          Xr = d$compute_MXt(Eb1)
+          Xrsum = colSums(Xr)
+          return(sum((d$Y-Xrsum)^2) - sum(Xr^2) + sum(d$X2_sum*t(Eb2)))
+        }
       }
     },
     compute_expected_sum_squared_residuals_multivariate = function(d) {
-      v_inv = d$residual_variance_inv
-      E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
-      E1 = tr(v_inv%*%crossprod(d$residual)) - sum(E1)
+      if(d$Y_has_missing){
+        E1 = sapply(1:length(private$SER), function(l){
+          Xb = d$compute_Xb(private$SER[[l]]$posterior_b1)
+          sum(sapply(1:d$n_sample, function(i) crossprod(Xb[i,], 
+                                                         d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% Xb[i, ])  ))
+        })
+        E1 = sum(sapply(1:d$n_sample, function(i) crossprod(d$residual[i,], 
+                                                            d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% d$residual[i,]) )) - sum(E1)
+      }else{
+        v_inv = d$residual_variance_inv
+        E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
+        E1 = tr(v_inv%*%crossprod(d$residual)) - sum(E1)
+      }
       return(E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
     },
     trim_zero_effects = function() {
