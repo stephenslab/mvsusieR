@@ -34,6 +34,17 @@ pseudo_inverse = function(x, tol=sqrt(.Machine$double.eps)){
   return(list(inv = xinv, rank = sum(Positive)))
 }
 
+#' @title Check if x is diagonal matrix
+#' @keywords internal
+isDiagonal = function(x, tol=sqrt(.Machine$double.eps)){
+  if(is.matrix(x)){
+    diag(x) <- rep(0, nrow(x))
+    return(all(abs(x) < tol))
+  }else{
+    return(TRUE)
+  }
+}
+
 #' @title Find trace of diag matrix
 #' @keywords internal
 tr = function (m) {

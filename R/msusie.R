@@ -85,6 +85,12 @@ msusie = function(X,Y,L=10,
   else prior_weights = prior_weights / sum(prior_weights)
   # set data object
   if (any(is.na(Y))) {
+    # When the residual variance is a diagonal matrix,
+    # the approximate version has the same result as the exact version,
+    # and it is faster, so we aet approximate = T
+    if(isDiagonal(residual_variance)){
+      approximate = TRUE
+    }
     data = DenseDataYMissing$new(X, Y, approximate)
     estimate_residual_variance = FALSE
   } else {
