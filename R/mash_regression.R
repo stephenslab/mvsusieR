@@ -10,8 +10,8 @@ MashRegression <- R6Class("MashRegression",
       private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = matlist2array(private$.prior_variance$xUlist)
       private$precomputed_cov_matrices = mash_initializer$precomputed
-      if (is.na(private$.prior_variance$xUlist_inv) || is.null(private$.prior_variance$xUlist_inv))
-        private$.prior_variance$xUlist_inv = 0
+      if (is.na(private$.prior_variance$xUlist_inv_drank) || is.null(private$.prior_variance$xUlist_inv_drank))
+        private$.prior_variance$xUlist_inv_drank = 0
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
     },
@@ -148,7 +148,7 @@ MashRegression <- R6Class("MashRegression",
                               private$get_scaled_prior(private$prior_variance_scale),
                               # because we define the scalar with respect to the original prior
                               # the inverse should always be the original.
-                              private$.prior_variance$xUlist_inv,
+                              private$.prior_variance$xUlist_inv_drank,
                               0,
                               t(mixture_posterior_weights),
                               t(variable_posterior_weights),
@@ -164,7 +164,7 @@ MashRegression <- R6Class("MashRegression",
                               matrix(0,0,0), matrix(0,0,0),
                               matlist2array(svs_inv),
                               private$get_scaled_prior(private$prior_variance_scale),
-                              private$.prior_variance$xUlist_inv,
+                              private$.prior_variance$xUlist_inv_drank,
                               private$precomputed_cov_matrices$U0 * private$prior_variance_scale,
                               t(mixture_posterior_weights),
                               matrix(0,0,0),
@@ -295,12 +295,15 @@ MashInitializer <- R6Class("MashInitializer",
         private$xU = list(pi = c(null_weight, prior_weights * (1 - null_weight)), xUlist = xUlist)
       },
     compute_prior_inv = function() {
-      # compute generalized inverse for prior matrices
+      # compute pseudo inverse for prior matrices and divided by its rank
       # this is relevant to the EM update of prior variance scalar
       tryCatch({
-        private$xU$xUlist_inv = matlist2array(lapply(1:length(private$xU$xUlist), function(i) invert_via_chol(private$xU$xUlist[[i]])$inv))
+        private$xU$xUlist_inv_drank = matlist2array(lapply(1:length(private$xU$xUlist), function(i){
+          uinv = pseudo_inverse(private$xU$xUlist[[i]])
+          uinv$inv / uinv$rank
+        }))
         }, error = function(e) {
-          private$xU$xUlist_inv = NA
+          private$xU$xUlist_inv_drank = NA
         })
     },
     precompute_cov_matrices = function(d, algorithm = c('R', 'cpp')) {
