@@ -64,7 +64,7 @@ DenseData <- R6Class("DenseData",
         }
         .residual_variance <<- residual_variance
         tryCatch({
-          .residual_variance_inv <<- invert_via_chol(residual_variance)
+          .residual_variance_inv <<- invert_via_chol(residual_variance)$inv
         }, error = function(e) {
           stop(paste0('Cannot compute inverse for residual_variance:\n', e))
         })
@@ -298,14 +298,14 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           if(.approximate){
             .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]] * 
                                                                        .X_for_Y_missing[i,j,]) * .X_for_Y_missing[i,j,]))
-            .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]]), error = function(e){
-              invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))} )
+            .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]])$inv, error = function(e){
+              invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))$inv} )
           }else{
             .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) crossprod(.X_for_Y_missing_exact[i,j,,],
                                                    .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
                                                    .X_for_Y_missing_exact[i,j,,])))
-            .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]]), error = function(e){
-              invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))} )
+            .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]])$inv, error = function(e){
+              invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))$inv} )
           }
         }
         .is_common_sbhat <<- is_list_common(.svs)
@@ -355,7 +355,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           # sum_i V_i^{-1} R by R matrix
           Vinvsum = Reduce('+', lapply(1:nrow(.missing_pattern), function(i)
                                    .residual_variance_inv[[i]] * sum(.Y_missing_pattern_assign == i)))
-          .Vinvsuminv <<- invert_via_chol(Vinvsum)
+          .Vinvsuminv <<- invert_via_chol(Vinvsum)$inv
           
           # sum_i V_i^{-1} y_i R by 1 matrix
           Ysum = Reduce('+', lapply(1:.N, function(i)

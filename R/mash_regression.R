@@ -298,7 +298,7 @@ MashInitializer <- R6Class("MashInitializer",
       # compute generalized inverse for prior matrices
       # this is relevant to the EM update of prior variance scalar
       tryCatch({
-        private$xU$xUlist_inv = matlist2array(lapply(1:length(private$xU$xUlist), function(i) invert_via_chol(private$xU$xUlist[[i]])))
+        private$xU$xUlist_inv = matlist2array(lapply(1:length(private$xU$xUlist), function(i) invert_via_chol(private$xU$xUlist[[i]])$inv))
         }, error = function(e) {
           private$xU$xUlist_inv = NA
         })
@@ -320,7 +320,7 @@ MashInitializer <- R6Class("MashInitializer",
         # sigma_rooti is R * R * P
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
         for (i in 1:length(private$xU$xUlist)) {
-          if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(d$svs[[1]] + private$xU$xUlist[[i]])
+          if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(d$svs[[1]] + private$xU$xUlist[[i]])$inv
           else sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(d$svs[[1]] + private$xU$xUlist[[i]])$data
         }
         # this is in prepartion for some constants used in posterior calculation
@@ -336,7 +336,7 @@ MashInitializer <- R6Class("MashInitializer",
           for (j in 1:d$n_effect) {
             for (i in 1:length(private$xU$xUlist)) {
               if (algorithm == 'R') {
-                sigma_rooti[[k]] = invert_chol_tri(d$svs[[j]] + private$xU$xUlist[[i]])
+                sigma_rooti[[k]] = invert_chol_tri(d$svs[[j]] + private$xU$xUlist[[i]])$inv
               } else {
                 sigma_rooti[[k]] = mashr:::inv_chol_tri_rcpp(d$svs[[j]] + private$xU$xUlist[[i]])$data
               }

@@ -64,7 +64,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       lV = optim(par=0, fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
       return(exp(lV))
     },
-    estimate_prior_variance_em_direct_inv = function(pip, inv_function = invert_via_chol) {
+    estimate_prior_variance_em_direct_inv = function(pip, inv_function = pseudo_inverse) {
       # Update directly using inverse of prior matrix
       # This is very similar to updating the univariate case via EM,
       # \sigma_0^2 = \mathrm{tr}(S_0^{-1} E[bb^T])/r
@@ -81,7 +81,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         if (ncol(private$.posterior_b2) != 1) stop("Data dimension is incorrect for posterior_b2")
         mu2 = matrix(sum(pip * private$.posterior_b2[,1]), 1,1)
       }
-      V = sum(diag(private$.prior_variance_inv %*% mu2)) / nrow(private$.prior_variance)
+      V = sum(diag(private$.prior_variance_inv$inv %*% mu2)) / private$.prior_variance_inv$rank
       return(V)
     },
     estimate_prior_variance_em_inv_safe = function(pip) {
@@ -91,7 +91,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # and the scalar from previous update (private$prior_variance_scale)
       # U = \sigma_0 S_0
       U = private$prior_variance_scale * private$.prior_variance
-      S_inv = lapply(1:private$J, function(j) invert_via_chol(private$cache$s[[j]]))
+      S_inv = lapply(1:private$J, function(j) invert_via_chol(private$cache$s[[j]]))$inv
       # posterior covariance pre-multipled by U^{-1}
       post_cov_U = lapply(1:private$J, function(j) solve(diag(nrow(U)) + S_inv[[j]] %*% U))
       # posterior first moment pre-multipled by U^{-1}
@@ -103,7 +103,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
     },
     estimate_prior_variance_em = function(pip) {
       tryCatch({
-          return(private$estimate_prior_variance_em_direct_inv(pip, inv_function = invert_via_chol))
+          return(private$estimate_prior_variance_em_direct_inv(pip, inv_function = pseudo_inverse))
         },
         error = function(e) {
           return(private$estimate_prior_variance_em_inv_safe(pip))

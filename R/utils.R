@@ -10,14 +10,28 @@ muffled_chol = function(x, ...)
 #' @title Invert a symmetric, positive definite square matrix via its Choleski decomposition
 #' @keywords internal
 invert_via_chol = function(x) {
-  if (all(x==0)) return(x)
-  return(chol2inv(muffled_chol(x)))
+  if (all(x==0)) return(list(inv=x, rank=0))
+  return(list(inv=chol2inv(muffled_chol(x)), rank=nrow(x)))
 }
 
 #' @title Invert SPD via triangular back-fitting
 #' @keywords internal
 invert_chol_tri = function(x) {
-  return(t(backsolve(muffled_chol(x), diag(nrow(x)))))
+  return(list(inv=t(backsolve(muffled_chol(x), diag(nrow(x)))), rank=nrow(x)))
+}
+
+#' @title Pseudo inverse of matrix
+#' @keywords internal
+pseudo_inverse = function(x, tol=sqrt(.Machine$double.eps)){
+  xsvd <- svd(x)
+  Positive <- xsvd$d > max(tol * xsvd$d[1L], 0)
+  if(all(Positive)){
+    xinv <- xsvd$v %*% (1/xsvd$d * t(xsvd$u))
+  }else{
+    xinv <- xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) * 
+                                            t(xsvd$u[, Positive, drop = FALSE]))
+  }
+  return(list(inv = xinv, rank = sum(Positive)))
 }
 
 #' @title Find trace of diag matrix
