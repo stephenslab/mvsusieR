@@ -39,7 +39,7 @@ Regression data object with missing values in Y
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$new(X, Y)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$new(X, Y, approximate = FALSE)}\if{html}{\out{</div>}}
 }
 
 }
@@ -50,7 +50,6 @@ Regression data object with missing values in Y
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DenseDataYMissing$set_residual_variance(
   residual_variance = NULL,
-  approximation = FALSE,
   numeric = FALSE,
   quantities = c("residual_variance", "effect_variance")
 )}\if{html}{\out{</div>}}

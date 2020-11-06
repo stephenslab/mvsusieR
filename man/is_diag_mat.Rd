@@ -4,7 +4,7 @@
 \alias{is_diag_mat}
 \title{Check if matrix is diag}
 \usage{
-is_diag_mat(x, tol = 1e-10)
+is_diag_mat(x, tol = 0.0000000001)
 }
 \description{
 Check if matrix is diag

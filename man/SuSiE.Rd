@@ -67,7 +67,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
 \if{latex}{\out{\hypertarget{method-get_objective}{}}}
 \subsection{Method \code{get_objective()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SuSiE$get_objective(dump = FALSE, warning_tol = 1e-06)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SuSiE$get_objective(dump = FALSE, warning_tol = 0.000001)}\if{html}{\out{</div>}}
 }
 
 }

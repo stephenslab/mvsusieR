@@ -17,7 +17,7 @@ msusie(
   estimate_prior_variance = TRUE,
   estimate_prior_method = "EM",
   check_null_threshold = 0,
-  prior_tol = 1e-09,
+  prior_tol = 0.000000001,
   compute_objective = FALSE,
   s_init = NULL,
   coverage = 0.95,
@@ -28,7 +28,8 @@ msusie(
   max_iter = 100,
   tol = 0.001,
   verbose = TRUE,
-  track_fit = FALSE
+  track_fit = FALSE,
+  approximate = FALSE
 )
 }
 \arguments{

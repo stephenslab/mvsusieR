@@ -10,7 +10,7 @@ create_mash_prior(
   sample_data = NULL,
   null_weight = NULL,
   use_grid = FALSE,
-  weights_tol = 1e-10,
+  weights_tol = 0.0000000001,
   max_mixture_len = 40,
   include_indices = NULL,
   ...
