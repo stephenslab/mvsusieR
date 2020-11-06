@@ -297,7 +297,11 @@ MashInitializer <- R6Class("MashInitializer",
       # this is relevant to the EM update of prior variance scalar
         private$xU$xUlist_inv_drank = matlist2array(lapply(1:length(private$xU$xUlist), function(i){
           uinv = pseudo_inverse(private$xU$xUlist[[i]])
-          uinv$inv / uinv$rank
+          if(uinv$rank == 0){
+            uinv$inv
+          }else{
+            uinv$inv / uinv$rank
+          }
         }))
     },
     precompute_cov_matrices = function(d, algorithm = c('R', 'cpp')) {
