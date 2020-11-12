@@ -302,9 +302,17 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
               .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) ((.X_for_Y_missing[i,j,] - .Xbar[j,,])^2) * 
                                                      .residual_variance_inv[[.Y_missing_pattern_assign[i]]]))
             }else{
-              .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) crossprod(diag(.X_for_Y_missing[i,j,]) - .Xbar[j,,],
-                                                                               .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
-                                                                                 (diag(.X_for_Y_missing[i,j,]) - .Xbar[j,,]) )))
+              A1_list = list()
+              A2_list = list()
+              for(i in 1:.N){
+                A1_list[[i]] = t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]] * 
+                                   .X_for_Y_missing[i,j,]) * .X_for_Y_missing[i,j,]
+                A2_list[[i]] = t(t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]]) * .X_for_Y_missing[i,j,])
+              }
+              A1 = Reduce('+', A1_list)
+              A2 = Reduce('+', A2_list)
+              Vinvsum = Reduce('+', lapply(1:nrow(.missing_pattern), function(i) .residual_variance_inv[[i]] * sum(.Y_missing_pattern_assign == i)))
+              .svs_inv[[j]] <<- A1 - crossprod(.Xbar[j,,], A2) - crossprod(A2, .Xbar[j,,]) + crossprod(.Xbar[j,,], Vinvsum %*% .Xbar[j,,])
             }
             .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]])$inv, error = function(e){
               invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))$inv} )
