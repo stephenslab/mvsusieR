@@ -233,9 +233,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       for(r in 1:.R) {
         .X_for_Y_missing[.Y_missing[,r],,r] <<- NA
       }
-      if(.approximate == FALSE){
-        .X_for_Y_missing_exact <<- outer(.X,  diag(.R))
-      }
     },
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      quantities = c('residual_variance','effect_variance')){
@@ -293,7 +290,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         .svs_inv <<- list()
         .svs <<- list()
         for(j in 1:.J){
-          # For variant j, sum_i X_for_Y_missing_exact[i,j,,] V_i^{-1} X_for_Y_missing_exact[i,j,,], R by R matrix
+          # R by R matrix
           # when there is no missing, it is sum(x_j^2) * V^{-1}
           if(.approximate){
             .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]] * 
@@ -301,9 +298,14 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
             .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]])$inv, error = function(e){
               invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))$inv} )
           }else{
-            .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) crossprod(.X_for_Y_missing_exact[i,j,,],
-                                                   .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
-                                                   .X_for_Y_missing_exact[i,j,,])))
+            if(.R == 1){
+              .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) ((.X_for_Y_missing[i,j,] - .Xbar[j,,])^2) * 
+                                                     .residual_variance_inv[[.Y_missing_pattern_assign[i]]]))
+            }else{
+              .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) crossprod(diag(.X_for_Y_missing[i,j,]) - .Xbar[j,,],
+                                                                               .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
+                                                                                 (diag(.X_for_Y_missing[i,j,]) - .Xbar[j,,]) )))
+            }
             .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]])$inv, error = function(e){
               invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))$inv} )
           }
@@ -336,9 +338,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         }
         .X_for_Y_missing[,,r] <<- t( (t(.X_for_Y_missing[,,r]) - cm_x[,r]) / .csd[,r] )
         .X_for_Y_missing[,,r][is.na(.X_for_Y_missing[,,r])] <<- 0
-        if(.approximate == FALSE){
-          .X_for_Y_missing_exact[,,r,r] <<- .X_for_Y_missing[,,r]
-        }
       }
       
       if(.approximate){
@@ -371,7 +370,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           for(j in 1:.J){
             # For variant j, Vinvsuminv sum_i V_i^{-1} X_{i,j} R by R matrix
             .Xbar[j,,] <<- .Vinvsuminv %*% Reduce('+', lapply(1:.N, function(i) t(t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]]) * .X_for_Y_missing[i,j,]) ))
-            .X_for_Y_missing_exact[,j,,] <<- sweep(.X_for_Y_missing_exact[,j,,,drop=F], 3:4, .Xbar[j,,])
           }
         }
       }
@@ -385,9 +383,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       }else{
         Xbarb = Reduce('+', lapply(1:.J, function(j) .Xbar[j,,] %*% b[j,]))
         Xb = sapply(1:.R, function(r) .X_for_Y_missing[,,r] %*% b[,r]) - matrix(Xbarb, .N, .R,byrow = TRUE)
-        # Xb = t(sapply(1:.N, function(i){
-        #   Reduce('+', lapply(1:.J, function(j) .X_for_Y_missing_exact[i,j,,] %*% b[j,]))
-        # }))
       }
       if(nrow(Xb) != .N) Xb = t(Xb)
       return(Xb)
@@ -438,11 +433,8 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           .XtY <<- t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvY) ))
           # .XtY <<- t(sapply(1:.J, function(j) Reduce('+', lapply(1:.N, function(i) (.residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%.Y[i,]) * .X_for_Y_missing[i,j,]) )))
         }else{
-          # sum_{i=1}^N X_for_Y_missing_exact[i,j,,]^T z_i
+          # sum_{i=1}^N (diag(X_for_Y_missing[i,j,]) - Xbar[j,,])^T z_i
           .XtY <<- t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvY) - crossprod(.Xbar[j,,], colSums(VinvY)) ))
-          # .XtY <<- t(sapply(1:.J, function(j) Reduce('+', lapply(1:.N, function(i) crossprod(.X_for_Y_missing_exact[i,j,,],
-          #                                                                          .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
-          #                                                                       .Y[i,])))))
         }
       }
       if (.R == 1) .XtY <<- t(.XtY)
@@ -460,11 +452,8 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       if(.approximate){
         res = t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvR) ))
       }else{
-        # sum_{i=1}^N X_for_Y_missing_exact[i,j,,]^T z_i
+        # sum_{i=1}^N (diag(X_for_Y_missing[i,j,]) - Xbar[j,,])^T z_i
         res = t(sapply(1:.J, function(j) colSums(.X_for_Y_missing[,j,] * VinvR) - crossprod(.Xbar[j,,], colSums(VinvR)) ))
-        # res = t(sapply(1:.J, function(j) Reduce('+', lapply(1:.N, function(i) crossprod(.X_for_Y_missing_exact[i,j,,],
-        #                                                              (.residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*%
-        #                                                              .residual[i,]))))))
       }
       if(nrow(res) != .J) res = t(res)
       return(res)
@@ -474,7 +463,6 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
   ),
   private = list(
     .X_for_Y_missing = NULL,
-    .X_for_Y_missing_exact = NULL,
     .Y_non_missing = NULL,
     .missing_pattern = NULL,
     .Y_missing_pattern_assign = NULL,
