@@ -219,7 +219,6 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
   return(s)
 }
 
-
 #' @title Core MMBR code
 #' @keywords internal
 mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
@@ -238,15 +237,22 @@ mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
       prior_variance = prior_variance * data$residual_variance
     }
   } else {
-    if (class(prior_variance)[1] != 'MashInitializer') stop("prior_variance should be a scalar for univariate response, or a matrix or MashInitializer object for multivariate response.")
-    if (prior_variance$n_condition != data$n_condition) stop("Dimension mismatch between input prior covariance and response variable data.")
-    base = MashRegression
-    if (!precompute_covariances)
-      warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation can be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
-    if (precompute_covariances)
-      prior_variance$precompute_cov_matrices(data)
-    if (estimate_prior_variance && !is.null(estimate_prior_method) && estimate_prior_method == 'EM')
-      prior_variance$compute_prior_inv()
+    if (class(prior_variance)[1] == 'MashInitializer') {
+      if (prior_variance$n_condition != data$n_condition) stop("Dimension mismatch between input prior covariance and response variable data.")
+      base = MashRegression
+      if (!precompute_covariances)
+        warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation can be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
+      if (precompute_covariances)
+        prior_variance$precompute_cov_matrices(data)
+      if (estimate_prior_variance && !is.null(estimate_prior_method) && estimate_prior_method == 'EM')
+        prior_variance$compute_prior_inv()
+    } else if (is.null(prior_variance)) {
+      # FIXME: a temporary interface for MS for methylation data
+      base = NIGMGRegression
+      prior_variance = data$n_condition 
+    } else {
+      stop("prior_variance should be a scalar for univariate response, or a matrix or MashInitializer object for multivariate response.")
+    }
   }
   if (!estimate_prior_variance) estimate_prior_method = NULL
   # Below are the core computations

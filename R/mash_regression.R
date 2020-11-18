@@ -15,7 +15,6 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scale = 1
     },
-    set_thread = function(value) private$n_thread = value,
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold = 0) {
       # When prior changes (private$prior_variance_scale != 1),
       # we can no longer use precomputed quantities
@@ -98,7 +97,6 @@ MashRegression <- R6Class("MashRegression",
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     residual_correlation = NULL,
-    n_thread = 4,
     compute_loglik_mat = function(scalar, bhat, sbhat) {
       if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
         llik = mashr:::calc_lik_rcpp(t(bhat),

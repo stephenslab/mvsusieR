@@ -43,7 +43,8 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
         private$.lbf = as.vector(private$.lbf)
       private$.lbf[sbhat2==Inf] = 0
-    }
+    },
+    set_thread = function(value) private$n_thread = value
   ),
   active = list(
     loglik_null = function() private$.loglik_null,
@@ -69,6 +70,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     .posterior_b2 = NULL, # posterior second moment
     .posterior_variance = NULL, # posterior second moment
     cache = NULL, # some cached data
+    n_thread = 4,
     loglik = function(V, betahat, shat2, prior_weights) {
       lbf = dnorm(betahat,0,sqrt(V+shat2),log=TRUE) - dnorm(betahat,0,sqrt(shat2),log=TRUE)
       #log(bf) on each SNP
