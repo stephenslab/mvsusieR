@@ -197,7 +197,12 @@ SuSiE <- R6Class("SuSiE",
         # However, computational complexity may be different (depending on the dimension of XtX)
         XB2 = sum((Eb1 %*% d$XtX) * Eb1)
         return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
-      } else {
+      } else if (inherits(d, "SSData")){
+        XB2 = sum((Eb1 %*% d$XtX) * Eb1)
+        EB = colSums(Eb1)
+        return(as.numeric(d$YtY - 2*sum(EB * d$XtY) + sum(EB * d$compute_MXt(EB)) -
+          XB2 + sum(d$X2_sum * t(Eb2))))
+      }else {
         # full data, DenseData object
         if(d$Y_has_missing){
           resid_var_inv = unlist(d$residual_variance_inv)[d$Y_missing_pattern_assign]
@@ -223,6 +228,14 @@ SuSiE <- R6Class("SuSiE",
         })
         E1 = sum(sapply(1:d$n_sample, function(i) crossprod(d$residual[i,], 
                                                             d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% d$residual[i,]) )) - sum(E1)
+      }else if(inherits(d, "SSData")){
+        v_inv = d$residual_variance_inv
+        E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
+        Eb1 = aperm(abind::abind(lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),along=3), c(3,1,2))
+        Eb1 = do.call(cbind, lapply(1:dim(Eb1)[3], function(i) colSums(Eb1[,,i]))) # J by R
+        E2 = crossprod(Eb1, d$XtY)
+        E3 = crossprod(Eb1,d$XtX) %*% Eb1
+        E1 = tr(v_inv%*%(d$YtY - E2 - t(E2) + E3)) - sum(E1)
       }else{
         v_inv = d$residual_variance_inv
         E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))

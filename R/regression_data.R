@@ -556,3 +556,91 @@ RSSData <- R6Class("RSSData",
     }
   )
 )
+
+#' @title Sufficient statistics object
+# XtX, XtY, YtY, N
+#' @importFrom R6 R6Class
+#' @keywords internal
+SSData <- R6Class("SSData", inherit = DenseData,
+  portable = FALSE,
+  public = list(
+    initialize = function(XtX, XtY, YtY, N) {
+      if (ncol(XtX) != nrow(XtY))
+        stop(paste0("The dimension of XtX (",nrow(XtX)," by ",ncol(XtX),
+                    ") does not agree with expected (",nrow(XtY)," by ",
+                    nrow(XtY),")"))
+      if (!susieR:::is_symmetric_matrix(XtX))
+        stop("XtX is not a symmetric matrix")
+      if (any(is.infinite(XtY)))
+        stop("XtY contains infinite values")
+      if (!(is.double(XtX) & is.matrix(XtX)) & !inherits(XtX,"CsparseMatrix"))
+        stop("Input XtX must be a double-precision matrix, or a sparse matrix")
+      if (any(is.na(XtX)))
+        stop("XtX matrix contains NAs")
+
+      .XtX <<- XtX
+      if (is.null(dim(XtY))) .XtY <<- matrix(XtY,length(XtY),1)
+      else .XtY <<- XtY
+      .YtY <<- YtY
+      .Y_has_missing <<- FALSE
+      .Xtresidual <<- .XtY
+      .R <<- ncol(.XtY)
+      .N <<- N
+      .J <<- ncol(.XtX)
+      # quantities involved in center and scaling
+      .cm <<- rep(0, length = .J)
+      .csd <<- rep(1, length = .J)
+      .d <<- diag(.XtX)
+      .d[.d == 0] <<- 1E-6
+      },
+    standardize = function(scale) {
+      if (scale) {
+        dXtX = diag(.XtX)
+        .csd <<- sqrt(dXtX/(.N-1))
+        .csd[.csd == 0] <<- 1
+        .XtX <<- (1/.csd) * t((1/.csd) * XtX)
+        .XtY <<- (1/.csd) * XtY
+        .d <<- diag(.XtX)
+        .d[.d == 0] <<- 1E-6
+      }
+    },
+    compute_Xb = function(b) {
+      # J by R
+      # tcrossprod(A,B) performs A%*%t(B) but faster
+      tcrossprod(.XtX,t(b))
+    },
+    compute_MXt = function(M) {
+      # tcrossprod(A,B) performs A%*%t(B) but faster
+      tcrossprod(M, .XtX)
+    },
+    remove_from_residual = function(value) {
+      .Xtresidual <<- .Xtresidual - value
+    },
+    add_to_residual = function(value) {
+      .Xtresidual <<- .Xtresidual + value
+    },
+    compute_residual = function(fitted) {
+      .Xtresidual <<- .XtY - fitted
+    },
+    rescale_coef = function(b) {
+      coefs = b/.csd
+      if (is.null(dim(coefs))) {
+        intercept = 0
+        c(intercept, coefs)
+      } else {
+        intercept = 0
+        mat = as.matrix(rbind(intercept, coefs))
+        rownames(mat) = NULL
+        return(mat)
+      }
+    }),
+  active = list(
+    YtY = function() .YtY,
+    XtX = function() .XtX,
+    XtY = function() .XtY,
+    XtR = function() .Xtresidual,
+    residual = function() .Xtresidual
+    )
+)
+
+
