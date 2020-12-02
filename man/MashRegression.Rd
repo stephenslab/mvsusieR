@@ -16,7 +16,6 @@ MASH multiple regression object
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{MashRegression$new()}}
-\item \href{#method-set_thread}{\code{MashRegression$set_thread()}}
 \item \href{#method-fit}{\code{MashRegression$fit()}}
 \item \href{#method-clone}{\code{MashRegression$clone()}}
 }
@@ -24,6 +23,7 @@ MASH multiple regression object
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
+\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="BayesianSimpleRegression" data-id="set_thread">}\href{../../mmbr/html/BayesianSimpleRegression.html#method-set_thread}{\code{mmbr::BayesianSimpleRegression$set_thread()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -33,15 +33,6 @@ MASH multiple regression object
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MashRegression$new(J, mash_initializer)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_thread"></a>}}
-\if{latex}{\out{\hypertarget{method-set_thread}{}}}
-\subsection{Method \code{set_thread()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{MashRegression$set_thread(value)}\if{html}{\out{</div>}}
 }
 
 }

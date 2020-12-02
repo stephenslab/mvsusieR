@@ -14,6 +14,7 @@ Bayesian multiple regression object
 \itemize{
 \item \href{#method-new}{\code{BayesianSimpleRegression$new()}}
 \item \href{#method-fit}{\code{BayesianSimpleRegression$fit()}}
+\item \href{#method-set_thread}{\code{BayesianSimpleRegression$set_thread()}}
 \item \href{#method-clone}{\code{BayesianSimpleRegression$clone()}}
 }
 }
@@ -40,6 +41,15 @@ Bayesian multiple regression object
   estimate_prior_variance_method = NULL,
   check_null_threshold = 0
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_thread"></a>}}
+\if{latex}{\out{\hypertarget{method-set_thread}{}}}
+\subsection{Method \code{set_thread()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BayesianSimpleRegression$set_thread(value)}\if{html}{\out{</div>}}
 }
 
 }
