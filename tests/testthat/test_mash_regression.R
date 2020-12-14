@@ -94,7 +94,7 @@ test_that("Degenerated mash regression is identical to univariate BR RSS", with(
   ss = susieR:::univariate_regression(X, y)
   z = ss$betahat/ss$sebetahat
   R = cor(X)
-  data = RSSData$new(z,R,1e-08)
+  data = RSSData$new(z,R,tol=1e-08)
   data$set_residual_variance(residual_var)
   A = BayesianSimpleRegression$new(ncol(X), prior_var)
   A$fit(data, save_summary_stats = T)
@@ -122,7 +122,7 @@ test_that("Single component mash regression is identical to multivariate BR RSS"
     ss$betahat/ss$sebetahat
     })
   R = cor(X)
-  data = RSSData$new(z,R, 1e-08)
+  data = RSSData$new(z,R, tol=1e-08)
   data$set_residual_variance(residual_var)
   A = BayesianMultivariateRegression$new(ncol(X), V)
   A$fit(data, save_summary_stats = T)
@@ -144,7 +144,7 @@ test_that("Single component mash regression is identical to multivariate BR RSS"
     ss$betahat/ss$sebetahat
   })
   R = cor(X)
-  data = RSSData$new(z,R,1e-08)
+  data = RSSData$new(z,R,tol=1e-08)
   data$set_residual_variance(residual_var)
   A = BayesianMultivariateRegression$new(ncol(X), V)
   A$fit(data, save_summary_stats = T)
@@ -170,7 +170,7 @@ test_that("Mash regression + precomputed cov is identical to not precompute (RSS
     ss$betahat/ss$sebetahat
   })
   R = cor(X)
-  data = RSSData$new(z,R,1e-08)
+  data = RSSData$new(z,R,tol=1e-08)
   data$set_residual_variance(residual_covar)
   null_weight = 0
 

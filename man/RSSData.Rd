@@ -39,7 +39,7 @@ Summary statistics object
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSData$new(Z, R, tol)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{RSSData$new(Z, R = NULL, eigenR = NULL, tol)}\if{html}{\out{</div>}}
 }
 
 }

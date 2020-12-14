@@ -210,7 +210,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$null_index = -9
-    s$sets = susie_get_cs(s, coverage=coverage, X=X, min_abs_corr=min_abs_corr)
+    s$sets = susie_get_cs(s, coverage=coverage, Xcorr=cov2cor(XtX), min_abs_corr=min_abs_corr)
     s$pip = susie_get_pip(s, prior_tol=prior_tol)
     s$null_index = NULL
   }
@@ -221,6 +221,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' @title SUm of Single Effect (SuSiE) Regression using Summary Statistics Z and R
 #' @param Z a J by R matrix of z scores
 #' @param R a J by J LD matrix
+#' @param eigenR a list containing eigenvalues (values) and eigenvectors (vectors) of R. One of R and eigenR must be specified.
 #' @param L maximum number of non-zero effects
 #' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
 #' @param residual_variance the residual variance (defaults to 1)
@@ -274,7 +275,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' @importFrom stats var
 #' @importFrom susieR susie_get_cs susie_get_pip
 #' @export
-msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
+msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
                       prior_variance=50,
                       residual_variance=NULL,
                       prior_weights=NULL,
@@ -290,7 +291,7 @@ msusie_rss = function(Z,R,L=10,r_tol = 1e-08,
   if (is.null(prior_weights)) prior_weights = c(rep(1/nrow(R), nrow(R)))
   else prior_weights = prior_weights / sum(prior_weights)
 
-  data = RSSData$new(Z, R, r_tol)
+  data = RSSData$new(Z, R, eigenR, r_tol)
   if (is.null(residual_variance)) {
     if (data$n_condition > 1) {
       max_absz = apply(abs(data$XtY),1, max)

@@ -489,38 +489,52 @@ RSSData <- R6Class("RSSData",
   inherit = DenseData,
   portable = FALSE,
   public = list(
-    initialize = function(Z, R, tol) {
+    initialize = function(Z, R=NULL, eigenR=NULL, tol) {
       if(any(is.infinite(Z))){
         stop('Z scores contain infinite value.')
-      }
-      # Check NA in R
-      if (any(is.na(R))) {
-        stop('R matrix contains missing values.')
-      }
-      # Check input R.
-      if (!susieR:::is_symmetric_matrix(R)) {
-        stop('R is not a symmetric matrix.')
-      }
-      if (!(is.double(R) &
-            is.matrix(R)) & !inherits(R, "CsparseMatrix")) {
-        stop("Input R must be a double-precision matrix, or a sparse matrix.")
       }
       if (is.null(dim(Z))) {
         Z = matrix(Z, length(Z), 1)
       }
-      if (nrow(R) != nrow(Z)) {
-        stop(paste0('The dimension of correlation matrix (',nrow(R),' by ',ncol(R),
-            ') does not agree with expected (',nrow(Z),' by ',nrow(Z),')'))
+      if(is.null(R) & is.null(eigenR)){
+        stop('At least one of R and eigen-decomposition of R should be provided.')
       }
+      if(!is.null(eigenR)){
+        if(any(names(eigenR) != c("values", "vectors"))){
+          stop('eigen-decomposition of R must contains 2 elements with the following names: values, vectors')
+        }
+        if(nrow(eigenR$vectors) != nrow(Z)){
+          stop('The dimension of eigenvectors of R does not agree with expected.')
+        }
+        .eigenR <- eigenR
+      }
+      if(!is.null(R)){
+        # Check NA in R
+        if (any(is.na(R))) {
+          stop('R matrix contains missing values.')
+        }
+        # Check input R.
+        if (!susieR:::is_symmetric_matrix(R)) {
+          stop('R is not a symmetric matrix.')
+        }
+        if (!(is.double(R) &
+              is.matrix(R)) & !inherits(R, "CsparseMatrix")) {
+          stop("Input R must be a double-precision matrix, or a sparse matrix.")
+        }
+        if (nrow(R) != nrow(Z)) {
+          stop(paste0('The dimension of correlation matrix (',nrow(R),' by ',ncol(R),
+                      ') does not agree with expected (',nrow(Z),' by ',nrow(Z),')'))
+        }
+        .XtX <<- R
+      }
+
       # replace NA in z with 0
       if (any(is.na(Z))) {
         warning('NA values in Z-scores are replaced with 0.')
         Z[is.na(Z)] = 0
       }
-      .XtX <<- R
-      .J <<- nrow(R)
-      if (is.null(dim(Z))) .R <<- 1
-      else .R <<- ncol(Z)
+      .J <<- nrow(Z)
+      .R <<- ncol(Z)
       private$check_semi_pd(tol)
       .X <<- t(.eigenvectors[, .eigenvalues !=0]) * .eigenvalues[.eigenvalues != 0] ^ (0.5)
       .Y <<- (t(.eigenvectors[, .eigenvalues != 0]) * .eigenvalues[.eigenvalues != 0] ^ (-0.5)) %*% Z
@@ -538,20 +552,25 @@ RSSData <- R6Class("RSSData",
   ),
   private = list(
     .UUt = NULL,
+    .eigenR = NULL,
     .eigenvectors = NULL,
     .eigenvalues = NULL,
     check_semi_pd = function(tol) {
-      eigenR = eigen(.XtX, symmetric = TRUE)
-      eigenR$values[abs(eigenR$values) < tol] = 0
-      if (any(eigenR$values < 0)) {
-        eigenR$values[eigenR$values < 0] = 0
+      if(is.null(.eigenR)){
+        .eigenR <<- eigen(.XtX, symmetric = TRUE)
+      }
+      .eigenR$values[abs(.eigenR$values) < tol] = 0
+      
+      if (any(.eigenR$values < 0)) {
+        .eigenR$values[.eigenR$values < 0] = 0
         warning('Negative eigenvalues are set to 0.')
       }
-      .XtX <<- eigenR$vectors %*% (t(eigenR$vectors) * eigenR$values)
+      
+      .XtX <<- .eigenR$vectors %*% (t(.eigenR$vectors) * .eigenR$values)
       .csd <<- rep(1, length = .J)
       .d <<- diag(.XtX)
-      .eigenvectors <<- eigenR$vectors
-      .eigenvalues <<- eigenR$values
+      .eigenvectors <<- .eigenR$vectors
+      .eigenvalues <<- .eigenR$values
       .UUt <<- tcrossprod(.eigenvectors[, which(.eigenvalues > 0)])
     }
   )

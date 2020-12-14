@@ -39,7 +39,7 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
     # FIXME: sparse data not supported
     data = NA
   } else if(summary){
-    data = RSSData$new(z, R, 1e-08)
+    data = RSSData$new(z, R, eigenR=NULL, tol=1e-08)
     data$set_residual_variance(residual_variance)
   }else {
     data = DenseData$new(X,y)

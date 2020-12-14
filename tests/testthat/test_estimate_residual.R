@@ -52,7 +52,7 @@ test_that("estimated residual variance in multivariate case is identical to univ
   # A = susieR::susie_rss(z, R, L = L, prior_variance = as.numeric(V),
   #                       residual_variance = 1, prior_weights = NULL,
   #                       estimate_residual_variance = T, estimate_prior_variance = FALSE, check_z = F)
-  d = RSSData$new(z,R,1e-08)
+  d = RSSData$new(z,R,tol=1e-08)
 
   # BayesianSimpleRegression
   d$set_residual_variance(residual_var)

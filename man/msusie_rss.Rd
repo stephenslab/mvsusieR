@@ -6,7 +6,8 @@
 \usage{
 msusie_rss(
   Z,
-  R,
+  R = NULL,
+  eigenR = NULL,
   L = 10,
   r_tol = 1e-08,
   prior_variance = 50,
@@ -34,6 +35,8 @@ msusie_rss(
 \item{Z}{a J by R matrix of z scores}
 
 \item{R}{a J by J LD matrix}
+
+\item{eigenR}{a list containing eigenvalues (values) and eigenvectors (vectors) of R. One of R and eigenR must be specified.}
 
 \item{L}{maximum number of non-zero effects}
 
