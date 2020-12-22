@@ -506,7 +506,7 @@ RSSData <- R6Class("RSSData",
         if(nrow(eigenR$vectors) != nrow(Z)){
           stop('The dimension of eigenvectors of R does not agree with expected.')
         }
-        .eigenR <- eigenR
+        .eigenR <<- eigenR
       }
       if(!is.null(R)){
         # Check NA in R
@@ -556,22 +556,22 @@ RSSData <- R6Class("RSSData",
     .eigenvectors = NULL,
     .eigenvalues = NULL,
     check_semi_pd = function(tol) {
-      if(is.null(.eigenR)){
-        .eigenR <<- eigen(.XtX, symmetric = TRUE)
+      if(is.null(private$.eigenR)){
+        private$.eigenR <<- eigen(.XtX, symmetric = TRUE)
       }
-      .eigenR$values[abs(.eigenR$values) < tol] = 0
+      private$.eigenR$values[abs(.eigenR$values) < tol] = 0
       
-      if (any(.eigenR$values < 0)) {
-        .eigenR$values[.eigenR$values < 0] = 0
+      if (any(private$.eigenR$values < 0)) {
+        private$.eigenR$values[private$.eigenR$values < 0] = 0
         warning('Negative eigenvalues are set to 0.')
       }
       
-      .XtX <<- .eigenR$vectors %*% (t(.eigenR$vectors) * .eigenR$values)
+      .XtX <<- private$.eigenR$vectors %*% (t(private$.eigenR$vectors) * private$.eigenR$values)
       .csd <<- rep(1, length = .J)
       .d <<- diag(.XtX)
-      .eigenvectors <<- .eigenR$vectors
-      .eigenvalues <<- .eigenR$values
-      .UUt <<- tcrossprod(.eigenvectors[, which(.eigenvalues > 0)])
+      private$.eigenvectors <<- private$.eigenR$vectors
+      private$.eigenvalues <<- private$.eigenR$values
+      private$.UUt <<- tcrossprod(private$.eigenvectors[, which(private$.eigenvalues > 0)])
     }
   )
 )
@@ -612,6 +612,57 @@ SSData <- R6Class("SSData", inherit = DenseData,
       .d <<- diag(.XtX)
       .d[.d == 0] <<- 1E-6
       },
+    set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
+                                     precompute_covariances = TRUE,
+                                     quantities = c('residual_variance','effect_variance')){
+      if('residual_variance' %in% quantities){
+        if (is.null(residual_variance)) {
+          residual_variance = cov2cor(.YtY)
+          if (.R > 1) {
+            residual_variance = cov2cor(.YtY)
+          }
+          else residual_variance = .YtY/.N
+        }
+        if(numeric){
+          residual_variance = as.numeric(residual_variance)
+        }
+        if (is.matrix(residual_variance)) {
+          if(nrow(residual_variance) != .R){
+            stop(paste0("The residual variance is not a ", .R, ' by ', .R, ' matrix.'))
+          }
+          if (any(is.na(diag(residual_variance))))
+            stop("Diagonal of residual_variance cannot be NA")
+          residual_variance[which(is.na(residual_variance))] = 0
+          mashr:::check_positive_definite(residual_variance)
+          .residual_correlation <<- cov2cor(as.matrix(residual_variance))
+        }else {
+          if (is.na(residual_variance) || is.infinite(residual_variance))
+            stop("Invalid residual_variance")
+          .residual_correlation <<- 1
+        }
+        .residual_variance <<- residual_variance
+        tryCatch({
+          .residual_variance_inv <<- invert_via_chol(residual_variance)$inv
+        }, error = function(e) {
+          stop(paste0('Cannot compute inverse for residual_variance:\n', e))
+        })
+      }
+      if('effect_variance' %in% quantities){
+        if(precompute_covariances){
+          .svs <<- lapply(1:.J, function(j){
+            res = .residual_variance /.d[j]
+            res[which(is.nan(res) | is.infinite(res))] = 1E6
+            return(res)
+          })
+          .svs_inv <<- lapply(1:.J, function(j) .residual_variance_inv * .d[j])
+          .is_common_sbhat <<- is_list_common(.svs)
+        }else{
+          .sbhat <<- sqrt(do.call(rbind, lapply(1:.J, function(j) diag(as.matrix(.residual_variance)) / .d[j])))
+          .sbhat[which(is.nan(.sbhat) | is.infinite(.sbhat))] <<- 1E3
+          .is_common_sbhat <<- is_mat_common(.sbhat)
+        }
+      }
+    },
     standardize = function(scale) {
       if (scale) {
         dXtX = diag(.XtX)

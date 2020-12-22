@@ -288,21 +288,19 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
                       s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                       n_thread=1, max_iter=100,tol=1e-3,z_thresh = 2,
                       verbose=TRUE,track_fit=FALSE) {
-  if (is.null(prior_weights)) prior_weights = c(rep(1/nrow(R), nrow(R)))
+  
+  if (is.null(prior_weights)){
+    if(is.null(dim(Z))){
+      prior_weights = c(rep(1/length(Z), length(Z)))
+    }else{
+      prior_weights = c(rep(1/nrow(Z), nrow(Z)))
+    }
+  }
   else prior_weights = prior_weights / sum(prior_weights)
 
   data = RSSData$new(Z, R, eigenR, r_tol)
   if (is.null(residual_variance)) {
-    if (data$n_condition > 1) {
-      max_absz = apply(abs(data$XtY),1, max)
-      nullish = which(max_absz < z_thresh)
-      if(length(nullish)<data$n_condition){
-        stop("not enough null data to estimate null correlation")
-      }
-      nullish_z = data$XtY[nullish,]
-      residual_variance = cor(nullish_z)
-    }
-    else residual_variance = matrix(1)
+    residual_variance = diag(data$n_condition)
   }
   #
   data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'))
