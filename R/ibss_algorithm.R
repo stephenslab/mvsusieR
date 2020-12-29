@@ -232,7 +232,11 @@ SuSiE <- R6Class("SuSiE",
         v_inv = d$residual_variance_inv
         E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
         Eb1 = aperm(abind::abind(lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),along=3), c(3,1,2))
-        Eb1 = do.call(cbind, lapply(1:dim(Eb1)[3], function(i) colSums(Eb1[,,i]))) # J by R
+        if(dim(Eb1)[1] == 1){
+          Eb1 = Eb1[1,,]
+        }else{
+          Eb1 = do.call(cbind, lapply(1:dim(Eb1)[3], function(i) colSums(Eb1[,,i]))) # J by R
+        }
         E2 = crossprod(Eb1, d$XtY)
         E3 = crossprod(Eb1,d$XtX) %*% Eb1
         E1 = tr(v_inv%*%(d$YtY - E2 - t(E2) + E3)) - sum(E1)
