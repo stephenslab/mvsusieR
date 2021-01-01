@@ -545,8 +545,6 @@ RSSData <- R6Class("RSSData",
     }
   ),
   active = list(
-    XtX = function() .XtX,
-    XtY = function() .XtY,
     # n_sample doesn't mean sample size here, it means the number of non zero eigenvalues
     n_sample = function() sum(.eigenvalues > 0)
   ),

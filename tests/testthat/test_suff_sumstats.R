@@ -1,4 +1,4 @@
-context("Test missing data computation")
+context("Test sufficient data computation")
 
 test_that("summary statistics are consistent in DenseData and SSData objects", with(simulate_multivariate(r=3), {
   residual_variance = cov(y)
