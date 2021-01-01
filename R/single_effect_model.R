@@ -82,13 +82,12 @@ SingleEffectModel <- function(base)
               private$.vbxxb = sum(sapply(1:length(pb2), function(j) tr(d$svs_inv[[j]] %*% pb2[[j]])))
               return(E1 - (private$.vbxxb / 2))
             }else{
-              E1 = tr(d$residual_variance_inv %*% crossprod(self$posterior_b1, d$XtR))
-              E2 = tr(d$residual_variance_inv %*% crossprod(d$XtR, self$posterior_b1))
+              E1 = crossprod(self$posterior_b1, d$XtR)
+              E1 = tr(d$residual_variance_inv %*% (E1 + t(E1)))
               private$.vbxxb = sum(d$X2_sum * sapply(1:length(pb2), function(j) tr(d$residual_variance_inv %*% pb2[[j]])))
               private$.bxxb = Reduce('+', lapply(1:length(pb2), function(j) d$X2_sum[j] * pb2[[j]]))
-              return((E1 + E2 - private$.vbxxb) / 2)
+              return((E1 - private$.vbxxb) / 2)
             }
-            
         }
     ),
     active = list(

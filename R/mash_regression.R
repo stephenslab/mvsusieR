@@ -286,7 +286,7 @@ MashInitializer <- R6Class("MashInitializer",
           mashr:::check_covmat_basics(xUlist[[i]])
           u_rows[i] = nrow(xUlist[[i]])
           if (!mashr:::issemidef(xUlist[[i]]))
-            stop("All U_scaled matrices should be positive semi-definite")
+            stop(paste0("The prior matrices ", i, " should be positive semi-definite."))
         }
         if (length(unique(u_rows)) > 1) stop("Ulist contains matrices of different dimensions.")
         prior_weights = prior_weights / sum(prior_weights)
