@@ -16,6 +16,7 @@ Sufficient statistics object
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{SSData$new()}}
+\item \href{#method-set_residual_variance}{\code{SSData$set_residual_variance()}}
 \item \href{#method-standardize}{\code{SSData$standardize()}}
 \item \href{#method-compute_Xb}{\code{SSData$compute_Xb()}}
 \item \href{#method-compute_MXt}{\code{SSData$compute_MXt()}}
@@ -30,7 +31,6 @@ Sufficient statistics object
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="get_coef">}\href{../../mmbr/html/DenseData.html#method-get_coef}{\code{mmbr::DenseData$get_coef()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="set_residual_variance">}\href{../../mmbr/html/DenseData.html#method-set_residual_variance}{\code{mmbr::DenseData$set_residual_variance()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -40,6 +40,20 @@ Sufficient statistics object
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SSData$new(XtX, XtY, YtY, N)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-set_residual_variance"></a>}}
+\if{latex}{\out{\hypertarget{method-set_residual_variance}{}}}
+\subsection{Method \code{set_residual_variance()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SSData$set_residual_variance(
+  residual_variance = NULL,
+  numeric = FALSE,
+  precompute_covariances = TRUE,
+  quantities = c("residual_variance", "effect_variance")
+)}\if{html}{\out{</div>}}
 }
 
 }

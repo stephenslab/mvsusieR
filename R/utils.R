@@ -28,7 +28,7 @@ pseudo_inverse = function(x, tol=sqrt(.Machine$double.eps)){
   if(all(Positive)){
     xinv <- xsvd$v %*% (1/xsvd$d * t(xsvd$u))
   }else{
-    xinv <- xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) * 
+    xinv <- xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) *
                                             t(xsvd$u[, Positive, drop = FALSE]))
   }
   return(list(inv = xinv, rank = sum(Positive)))
@@ -326,24 +326,11 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
 #' @title Get lfsr per condition per CS
 #' @param lfsr a L by P matrix of single effect lfsr
 #' @param alpha a L by P matrix of cross-condition posterior inclusion probability
-#' @param sets a list of credible set output from SuSiE model
 #' @keywords internal
-mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
+mmbr_get_one_cs_lfsr = function(lfsr, alpha) {
     # fix data dimension issue due to R's ingenuity
     if (is.null(nrow(lfsr))) lfsr = matrix(lfsr, 1, length(lfsr))
-    for (i in 1:nrow(lfsr)) {
-      if (i %in% sets$cs_index) {
-       pos = sets$cs[[which(sets$cs_index == i)]]
-       zeroed = which(!(1:ncol(lfsr) %in% pos))
-       alpha[i, zeroed] = 0
-       # normalize them to sum to one
-       alpha[i,] = alpha[i,] / sum(alpha[i,])
-     } else {
-       alpha[i, ] = 0
-     }
-    }
-    true_sign_mat = alpha * (1 - lfsr)
-    pmax(0, 1 - rowSums(true_sign_mat))
+    pmax(0, rowSums(alpha * lfsr))
 }
 
 #' @title Local false sign rate (lfsr) for credible sets
@@ -352,7 +339,7 @@ mmbr_get_one_cs_lfsr = function(lfsr, alpha, sets) {
 #' @return a L by R matrix of lfsr
 #' @export
 mmbr_get_cs_lfsr = function(m) {
-    do.call(cbind, lapply(1:dim(m$lfsr)[3], function(r) mmbr_get_one_cs_lfsr(m$lfsr[,,r], m$alpha, m$sets)))
+    do.call(cbind, lapply(1:dim(m$lfsr)[3], function(r) mmbr_get_one_cs_lfsr(m$lfsr[,,r], m$alpha)))
 }
 
 #' @title Get lfsr per condition per variable

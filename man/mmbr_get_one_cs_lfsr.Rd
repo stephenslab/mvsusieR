@@ -4,14 +4,12 @@
 \alias{mmbr_get_one_cs_lfsr}
 \title{Get lfsr per condition per CS}
 \usage{
-mmbr_get_one_cs_lfsr(lfsr, alpha, sets)
+mmbr_get_one_cs_lfsr(lfsr, alpha)
 }
 \arguments{
 \item{lfsr}{a L by P matrix of single effect lfsr}
 
 \item{alpha}{a L by P matrix of cross-condition posterior inclusion probability}
-
-\item{sets}{a list of credible set output from SuSiE model}
 }
 \description{
 Get lfsr per condition per CS
