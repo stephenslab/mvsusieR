@@ -145,7 +145,7 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
     return(s)
 }
 
-#' @title Compute condition specific posterior inclusion probability. 
+#' @title Compute condition specific posterior inclusion probability.
 #' @description This is only relevant when canonical priors are used
 #' @param m M&M model
 #' @param prior_obj prior mixture object
@@ -333,11 +333,15 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
 #' @return a L by R matrix of lfsr
 #' @export
 mmbr_single_effect_lfsr = function(clfsr, alpha) {
-    do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
+  if(any(is.na(clfsr))){
+    return(NA)
+  }else{
+    return(do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
       clfsrr = clfsr[,,r]
       if (is.null(nrow(clfsrr))) clfsrr = matrix(clfsrr, 1, length(clfsrr))
       pmax(0, rowSums(alpha * clfsrr))
-    }))
+    })))
+  }
 }
 
 #' @title Local false sign rate (lfsr) for variables
@@ -348,12 +352,16 @@ mmbr_single_effect_lfsr = function(clfsr, alpha) {
 #' @return a P by R matrix of lfsr
 #' @export
 mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
-  if (weighted) alpha = alpha
-  else alpha = matrix(1, nrow(alpha), ncol(alpha))
-  do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
-    true_sign_mat = alpha * (1 - clfsr[,,r])
-    pmax(1E-20, 1 - colSums(true_sign_mat))
-  }))
+  if(any(is.na(clfsr))){
+    return(NA)
+  }else{
+    if (weighted) alpha = alpha
+    else alpha = matrix(1, nrow(alpha), ncol(alpha))
+    return(do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
+      true_sign_mat = alpha * (1 - clfsr[,,r])
+      pmax(1E-20, 1 - colSums(true_sign_mat))
+    })))
+  }
 }
 
 #' @title Make bubble heatmap to display mmbr result
