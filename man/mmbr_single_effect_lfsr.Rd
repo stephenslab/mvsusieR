@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{mmbr_single_effect_lfsr}
 \alias{mmbr_single_effect_lfsr}
-\title{Local false sign rate (lfsr) for credible sets}
+\title{Local false sign rate (lfsr) for single effects}
 \usage{
 mmbr_single_effect_lfsr(clfsr, alpha)
 }
@@ -15,8 +15,8 @@ mmbr_single_effect_lfsr(clfsr, alpha)
 a L by R matrix of lfsr
 }
 \description{
-Local false sign rate (lfsr) for credible sets
+Local false sign rate (lfsr) for single effects
 }
 \details{
-This computes the lfsr of CS identified for each condition.
+This computes the lfsr of single effects for each condition.
 }

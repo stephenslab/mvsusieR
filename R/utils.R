@@ -326,8 +326,8 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
   return(list(X=X,y=y,y_missing=y_missing,d=diag(t(X)%*%X), n=n,p=p,r=r,V=scaled_prior_variance * cov(y),b=beta))
 }
 
-#' @title Local false sign rate (lfsr) for credible sets
-#' @details This computes the lfsr of CS identified for each condition.
+#' @title Local false sign rate (lfsr) for single effects
+#' @details This computes the lfsr of single effects for each condition.
 #' @param alpha L by P matrix
 #' @param clfsr L by P by R conditonal lfsr
 #' @return a L by R matrix of lfsr
