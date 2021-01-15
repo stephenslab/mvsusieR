@@ -333,7 +333,7 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
 #' @return a L by R matrix of lfsr
 #' @export
 mmbr_single_effect_lfsr = function(clfsr, alpha) {
-  if(any(is.na(clfsr))){
+  if(!is.array(clfsr) && is.na(clfsr)){
     return(NA)
   }else{
     return(do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
@@ -352,7 +352,7 @@ mmbr_single_effect_lfsr = function(clfsr, alpha) {
 #' @return a P by R matrix of lfsr
 #' @export
 mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
-  if(any(is.na(clfsr))){
+  if(!is.array(clfsr) && is.na(clfsr)){
     return(NA)
   }else{
     if (weighted) alpha = alpha
