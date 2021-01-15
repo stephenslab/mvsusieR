@@ -106,7 +106,7 @@ SuSiE <- R6Class("SuSiE",
     prior_history = function() lapply(ifelse(private$.niter>1, 2, 1):length(private$.prior_history), function(i) private$.prior_history[[i]]),
     posterior_b1 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),
     posterior_b2 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b2),
-    lfsr = function() lapply(1:private$L, function(l) private$SER[[l]]$lfsr),
+    clfsr = function() lapply(1:private$L, function(l) private$SER[[l]]$lfsr),
     mixture_posterior_weights = function() lapply(1:private$L, function(l) private$SER[[l]]$mixture_posterior_weights)
   ),
   private = list(
@@ -153,7 +153,7 @@ SuSiE <- R6Class("SuSiE",
     compute_expected_loglik_univariate = function(d) {
         if(d$Y_has_missing){
           Y_missing_assign =  table(d$Y_missing_pattern_assign)
-          expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) - 
+          expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) -
             0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * Y_missing_assign)
           essr = private$compute_expected_sum_squared_residuals_univariate(d)
           return(expected_loglik - 0.5 * essr)
@@ -167,7 +167,7 @@ SuSiE <- R6Class("SuSiE",
     compute_expected_loglik_multivariate = function(d) {
       if(d$Y_has_missing){
         Y_missing_assign =  table(d$Y_missing_pattern_assign)
-        expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) - 
+        expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) -
           0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * Y_missing_assign)
         essr = private$compute_expected_sum_squared_residuals_multivariate(d)
       }else{
@@ -223,10 +223,10 @@ SuSiE <- R6Class("SuSiE",
       if(d$Y_has_missing){
         E1 = sapply(1:length(private$SER), function(l){
           Xb = d$compute_Xb(private$SER[[l]]$posterior_b1)
-          sum(sapply(1:d$n_sample, function(i) crossprod(Xb[i,], 
+          sum(sapply(1:d$n_sample, function(i) crossprod(Xb[i,],
                                                          d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% Xb[i, ])  ))
         })
-        E1 = sum(sapply(1:d$n_sample, function(i) crossprod(d$residual[i,], 
+        E1 = sum(sapply(1:d$n_sample, function(i) crossprod(d$residual[i,],
                                                             d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% d$residual[i,]) )) - sum(E1)
       }else if(inherits(d, "SSData")){
         v_inv = d$residual_variance_inv

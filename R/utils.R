@@ -107,10 +107,10 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
       if (length(dim(m$mixture_posterior_weights[[1]])) < 2) mixture_weights = t(do.call(cbind, m$mixture_posterior_weights))
       else mixture_weights = aperm(abind::abind(m$mixture_posterior_weights,along=3), c(3,1,2))
     }
-    if (is.null(m$lfsr[[1]])) lfsr = NA
+    if (is.null(m$clfsr[[1]])) clfsr = NA
     else {
-      if (length(dim(m$lfsr[[1]])) < 2) lfsr = t(do.call(cbind, m$lfsr))
-      else lfsr = aperm(abind::abind(m$lfsr,along=3), c(3,1,2))
+      if (length(dim(m$clfsr[[1]])) < 2) clfsr = t(do.call(cbind, m$clfsr))
+      else clfsr = aperm(abind::abind(m$clfsr,along=3), c(3,1,2))
     }
     s = list(
         alpha = t(m$pip),
@@ -125,7 +125,9 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         convergence = m$convergence,
         coef = d$rescale_coef(b),
         mixture_weights = mixture_weights,
-        lfsr = lfsr
+        conditional_lfsr = clfsr,
+        lfsr = mmbr_get_lfsr(clfsr, t(m$pip)),
+        single_effect_lfsr = mmbr_single_effect_lfsr(clfsr, t(m$pip))
         )
     if (!is.null(m$pip_history)) s$alpha_history = m$pip_history
     if (!is.null(m$lbf_history)) s$lbf_history = m$lbf_history
@@ -324,43 +326,34 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
   return(list(X=X,y=y,y_missing=y_missing,d=diag(t(X)%*%X), n=n,p=p,r=r,V=scaled_prior_variance * cov(y),b=beta))
 }
 
-#' @title Get lfsr per condition per CS
-#' @param lfsr a L by P matrix of single effect lfsr
-#' @param alpha a L by P matrix of cross-condition posterior inclusion probability
-#' @keywords internal
-mmbr_get_one_cs_lfsr = function(lfsr, alpha) {
-    # fix data dimension issue due to R's ingenuity
-    if (is.null(nrow(lfsr))) lfsr = matrix(lfsr, 1, length(lfsr))
-    pmax(0, rowSums(alpha * lfsr))
-}
-
 #' @title Local false sign rate (lfsr) for credible sets
 #' @details This computes the lfsr of CS identified for each condition.
-#' @param m a mmbr fit, the output of `mmbr::susie()`
+#' @param alpha L by P matrix
+#' @param clfsr L by P by R conditonal lfsr
 #' @return a L by R matrix of lfsr
 #' @export
-mmbr_get_cs_lfsr = function(m) {
-    do.call(cbind, lapply(1:dim(m$lfsr)[3], function(r) mmbr_get_one_cs_lfsr(m$lfsr[,,r], m$alpha)))
-}
-
-#' @title Get lfsr per condition per variable
-#' @importFrom stats pnorm
-#' @keywords internal
-mmbr_get_one_variable_lfsr = function(lfsr, alpha) {
-    true_sign_mat = alpha * (1 - lfsr)
-    pmax(1E-20, 1 - colSums(true_sign_mat))
+mmbr_single_effect_lfsr = function(clfsr, alpha) {
+    do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
+      clfsrr = clfsr[,,r]
+      if (is.null(nrow(clfsrr))) clfsrr = matrix(clfsrr, 1, length(clfsrr))
+      pmax(0, rowSums(alpha * clfsrr))
+    }))
 }
 
 #' @title Local false sign rate (lfsr) for variables
 #' @details This computes the lfsr of variables for each condition.
-#' @param m a mmbr fit, the output of `mmbr::susie()`
+#' @param alpha L by P matrix
+#' @param clfsr L by P by R conditonal lfsr
 #' @param weighted TRUE to weight lfsr by PIP; FALSE otherwise.
 #' @return a P by R matrix of lfsr
 #' @export
-mmbr_get_lfsr = function(m, weighted = TRUE) {
-  if (weighted) alpha = m$alpha
-  else alpha = matrix(1, nrow(m$alpha), ncol(m$alpha))
-  do.call(cbind, lapply(1:dim(m$lfsr)[3], function(r) mmbr_get_one_variable_lfsr(m$lfsr[,,r], alpha)))
+mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
+  if (weighted) alpha = alpha
+  else alpha = matrix(1, nrow(alpha), ncol(alpha))
+  do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
+    true_sign_mat = alpha * (1 - clfsr[,,r])
+    pmax(1E-20, 1 - colSums(true_sign_mat))
+  }))
 }
 
 #' @title Make bubble heatmap to display mmbr result
