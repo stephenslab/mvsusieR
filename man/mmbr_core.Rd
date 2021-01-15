@@ -19,6 +19,7 @@ mmbr_core(
   n_thread,
   max_iter,
   tol,
+  prior_tol,
   track_fit,
   verbose
 )

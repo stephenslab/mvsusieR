@@ -64,7 +64,7 @@
 #' res = msusie(X,y,L=10)
 #'
 #' @importFrom stats var
-#' @importFrom susieR susie_get_cs susie_get_pip
+#' @importFrom susieR susie_get_cs 
 #' @export
 msusie = function(X,Y,L=10,
                  prior_variance=0.2,
@@ -104,13 +104,10 @@ msusie = function(X,Y,L=10,
   #
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-            precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose)
+            precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    s$null_index = -9
     s$sets = susie_get_cs(s, coverage=coverage, X=X, min_abs_corr=min_abs_corr)
-    s$pip = susie_get_pip(s, prior_tol=prior_tol)
-    s$null_index = NULL
   }
   # report z-scores from univariate regression
   if (compute_univariate_zscore) {
@@ -178,7 +175,7 @@ msusie = function(X,Y,L=10,
 #' res = msusie_ss(XtX,XtY,YtY,n,L=10)
 #'
 #' @importFrom stats var
-#' @importFrom susieR susie_get_cs susie_get_pip
+#' @importFrom susieR susie_get_cs 
 #' @export
 msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
                             prior_variance=50,
@@ -206,13 +203,10 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   #
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-                precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose)
+                precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    s$null_index = -9
     s$sets = susie_get_cs(s, coverage=coverage, Xcorr=cov2cor(XtX), min_abs_corr=min_abs_corr)
-    s$pip = susie_get_pip(s, prior_tol=prior_tol)
-    s$null_index = NULL
   }
   return(s)
 }
@@ -273,7 +267,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' res = msusie_rss(z,R,L=10)
 #'
 #' @importFrom stats var
-#' @importFrom susieR susie_get_cs susie_get_pip
+#' @importFrom susieR susie_get_cs 
 #' @export
 msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
                       prior_variance=50,
@@ -306,22 +300,20 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
   data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'))
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-                precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose)
+                precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    s$null_index = -9
     s$sets = susie_get_cs(s, coverage=coverage, Xcorr=data$XtX, min_abs_corr=min_abs_corr)
-    s$pip = susie_get_pip(s, prior_tol=prior_tol)
-    s$null_index = NULL
   }
   return(s)
 }
 
 #' @title Core MMBR code
+#' @importFrom susieR susie_get_pip 
 #' @keywords internal
 mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-            precompute_covariances, compute_objective, n_thread, max_iter, tol, track_fit, verbose) {
+            precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose) {
   start_time = proc.time()
   # for now the type of prior_variance controls the type of regression
   if (is.numeric(prior_variance)) {
@@ -363,6 +355,7 @@ mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
   if (!is.null(s_init)) SuSiE_model$init_from(s_init)
   SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
+  s$pip = susie_get_pip(s, prior_tol=prior_tol)
   ## clean up prior object
   if ('R6' %in% class(prior_variance)) prior_variance$remove_precomputed()
   s$walltime = proc.time() - start_time

@@ -143,7 +143,8 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
     return(s)
 }
 
-#' @title Compute condition specific posterior inclusion probability
+#' @title Compute condition specific posterior inclusion probability. 
+#' @description This is only relevant when canonical priors are used
 #' @param m M&M model
 #' @param prior_obj prior mixture object
 #' @return P by R matrix of PIP per condition

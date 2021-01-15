@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{mmbr_get_pip_per_condition}
 \alias{mmbr_get_pip_per_condition}
-\title{Compute condition specific posterior inclusion probability}
+\title{Compute condition specific posterior inclusion probability.}
 \usage{
 mmbr_get_pip_per_condition(m, prior_obj)
 }
@@ -15,6 +15,6 @@ mmbr_get_pip_per_condition(m, prior_obj)
 P by R matrix of PIP per condition
 }
 \description{
-Compute condition specific posterior inclusion probability
+This is only relevant when canonical priors are used
 }
 \keyword{internal}
