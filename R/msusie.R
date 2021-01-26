@@ -97,10 +97,13 @@ msusie = function(X,Y,L=10,
     data = DenseData$new(X, Y)
   }
   # include residual variance in data
-  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'),
+  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer')),
                              quantities = 'residual_variance')
   data$standardize(intercept, standardize)
   data$set_residual_variance(quantities='effect_variance')
+  if (standardize && (!is.numeric(prior_variance) || is.matrix(prior_variance))) {
+    # Scale prior variance
+  }
   #
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
@@ -196,7 +199,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   
   data = SSData$new(XtX, XtY, YtY, N)
   # include residual variance in data
-  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'),
+  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer')),
                              quantities = 'residual_variance')
   data$standardize(standardize)
   data$set_residual_variance(quantities='effect_variance')
@@ -297,7 +300,7 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
     residual_variance = diag(data$n_condition)
   }
   #
-  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || class(prior_variance)[1] == 'MashInitializer'))
+  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer')))
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
@@ -327,7 +330,7 @@ mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
       prior_variance = prior_variance * data$residual_variance
     }
   } else {
-    if (class(prior_variance)[1] == 'MashInitializer') {
+    if (inherits(prior_variance, 'MashInitializer')) {
       if (prior_variance$n_condition != data$n_condition) stop("Dimension mismatch between input prior covariance and response variable data.")
       base = MashRegression
       if (!precompute_covariances)
@@ -357,7 +360,7 @@ mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   s$pip = susie_get_pip(s, prior_tol=prior_tol)
   ## clean up prior object
-  if ('R6' %in% class(prior_variance)) prior_variance$remove_precomputed()
+  if (inherits(prior_variance, "MashInitializer")) prior_variance$remove_precomputed()
   s$walltime = proc.time() - start_time
   return(s)
 }
