@@ -81,8 +81,20 @@ msusie = function(X,Y,L=10,
                  precompute_covariances = FALSE,
                  n_thread=1,max_iter=100,tol=1e-3,
                  verbose=TRUE,track_fit=FALSE,approximate=FALSE) {
+  # adjust prior weights
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
+  # adjust prior effects
+  is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
+  #if (standardize && !is_numeric_prior) {
+    # Scale prior variance
+    # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
+    #sigma = sapply(1:ncol(Y), function(i) sd(Y[,i], na.rm=T))
+    #n = sapply(1:ncol(Y), function(i) length(which(!is.na(Y[,1]))))
+    #sigma = sigma / sqrt(n)
+    #if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
+    #else prior_variance$scale_prior_variance(sigma)
+  #}
   # set data object
   if (any(is.na(Y))) {
     # When the residual variance is a diagonal matrix,
@@ -97,13 +109,9 @@ msusie = function(X,Y,L=10,
     data = DenseData$new(X, Y)
   }
   # include residual variance in data
-  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer')),
-                             quantities = 'residual_variance')
+  data$set_residual_variance(residual_variance, numeric = is_numeric_prior, quantities = 'residual_variance')
   data$standardize(intercept, standardize)
   data$set_residual_variance(quantities='effect_variance')
-  if (standardize && (!is.numeric(prior_variance) || is.matrix(prior_variance))) {
-    # Scale prior variance
-  }
   #
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,

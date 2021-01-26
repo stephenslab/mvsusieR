@@ -357,7 +357,10 @@ MashInitializer <- R6Class("MashInitializer",
       private$inv_mats = list(U0 = matlist2array(U0),
                               sigma_rooti = matlist2array(sigma_rooti))
     },
-    remove_precomputed = function() private$inv_mats = NULL
+    remove_precomputed = function() private$inv_mats = NULL,
+    scale_prior_variance = function(sigma) {
+      private$xU = lapply(1:length(private$xU), function(i) scale_covariance(private$xU[[i]], sigma))
+    }
   ),
   active = list(
       n_condition = function() nrow(private$xU$xUlist[[1]]),

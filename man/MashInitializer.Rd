@@ -16,6 +16,7 @@ MASH initializer object
 \item \href{#method-compute_prior_inv}{\code{MashInitializer$compute_prior_inv()}}
 \item \href{#method-precompute_cov_matrices}{\code{MashInitializer$precompute_cov_matrices()}}
 \item \href{#method-remove_precomputed}{\code{MashInitializer$remove_precomputed()}}
+\item \href{#method-scale_prior_variance}{\code{MashInitializer$scale_prior_variance()}}
 \item \href{#method-clone}{\code{MashInitializer$clone()}}
 }
 }
@@ -61,6 +62,15 @@ MASH initializer object
 \subsection{Method \code{remove_precomputed()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{MashInitializer$remove_precomputed()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-scale_prior_variance"></a>}}
+\if{latex}{\out{\hypertarget{method-scale_prior_variance}{}}}
+\subsection{Method \code{scale_prior_variance()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{MashInitializer$scale_prior_variance(sigma)}\if{html}{\out{</div>}}
 }
 
 }

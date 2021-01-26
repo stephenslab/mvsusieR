@@ -584,3 +584,10 @@ is_zero_variance <- function(x) {
   if (length(unique(x))==1) return(T)
   else return(F)
 }
+
+#'@title Scale prior matrix 
+#' @keywords internal
+scale_covariance <- function(mat, sigma) {
+  # faster way to implement diag(sigma) %*% mat %*% diag(sigma)
+  t(mat * sigma) * sigma
+}
