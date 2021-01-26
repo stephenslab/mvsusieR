@@ -49,21 +49,28 @@ test_that("mmbr is identical to susieR when prior is a scalar", with(simulate_un
 test_that("mash regression in SuSiE is identical to univariate case", with(simulate_multivariate(r=1), {
     # Test fixed prior fixed residual
     residual_var = as.numeric(var(y))
-    scaled_prior_var = V[1,1] / residual_var
-    A = msusie(X,y,L=L,prior_variance=scaled_prior_var,
+    sigma = sd(y)
+    n = length(y)
+    sigma = sigma / sqrt(n)
+    prior_var = as.numeric(scale_covariance(V[1,1]/residual_var, sigma))
+    A = msusie(X,y,L=L,prior_variance=prior_var,
                 estimate_residual_variance=FALSE,
                 estimate_prior_variance=FALSE,
                 compute_objective=FALSE)
     m_init = MashInitializer$new(list(V), 1, 1, 0)
-    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, 
+               estimate_prior_variance=FALSE, precompute_covariances=TRUE)
     expect_susie_equal(A,B,F,F)
 }))
 
 test_that("multivariate regression in SuSiE is identical to univariate case", with(simulate_multivariate(r=1), {
     # Test fixed prior fixed residual
     residual_var = as.numeric(var(y))
-    scaled_prior_var = V[1,1] / residual_var
-    A = msusie(X,y,L=L,prior_variance=scaled_prior_var,
+    sigma = sd(y)
+    n = length(y)
+    sigma = sigma / sqrt(n)
+    prior_var = as.numeric(scale_covariance(V[1,1]/residual_var, sigma))
+    A = msusie(X,y,L=L,prior_variance=prior_var,
                 estimate_residual_variance=FALSE,
                 estimate_prior_variance=FALSE,
                 compute_objective=FALSE, precompute_covariances=TRUE)
@@ -73,8 +80,11 @@ test_that("multivariate regression in SuSiE is identical to univariate case", wi
 
 test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=3), {
     m_init = MashInitializer$new(list(V), 1, 1, 0)
-    A = expect_warning(msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=FALSE))
-    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE, estimate_residual_variance=FALSE)
+    A = expect_warning(msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, 
+                              estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, 
+                              precompute_covariances=FALSE))
+    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, 
+               precompute_covariances=TRUE, estimate_prior_variance=FALSE, estimate_residual_variance=FALSE)
     expect_susie_equal(A,B,F,F)
 }))
 

@@ -84,17 +84,20 @@ msusie = function(X,Y,L=10,
   # adjust prior weights
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
+  if(inherits(prior_variance, 'MashInitializer')){
+    prior_variance = prior_variance$clone(deep=T)
+  }
   # adjust prior effects
   is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
-  #if (standardize && !is_numeric_prior) {
+  if (standardize && !is_numeric_prior) {
     # Scale prior variance
     # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
-    #sigma = sapply(1:ncol(Y), function(i) sd(Y[,i], na.rm=T))
-    #n = sapply(1:ncol(Y), function(i) length(which(!is.na(Y[,1]))))
-    #sigma = sigma / sqrt(n)
-    #if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
-    #else prior_variance$scale_prior_variance(sigma)
-  #}
+    sigma = sapply(1:ncol(Y), function(i) sd(Y[,i], na.rm=T))
+    n = sapply(1:ncol(Y), function(i) length(which(!is.na(Y[,1]))))
+    sigma = sigma / sqrt(n)
+    if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
+    else prior_variance$scale_prior_variance(sigma)
+  }
   # set data object
   if (any(is.na(Y))) {
     # When the residual variance is a diagonal matrix,
@@ -205,9 +208,22 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(XtX), ncol(XtX)))
   else prior_weights = prior_weights / sum(prior_weights)
   
+  if(inherits(prior_variance, 'MashInitializer')){
+    prior_variance = prior_variance$clone(deep=T)
+  }
+  is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
+  if (standardize && !is_numeric_prior) {
+    # Scale prior variance
+    # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
+    sigma = sqrt(diag(YtY)/(N-1))
+    sigma = sigma / sqrt(N)
+    if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
+    else prior_variance$scale_prior_variance(sigma)
+  }
+  
   data = SSData$new(XtX, XtY, YtY, N)
   # include residual variance in data
-  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer')),
+  data$set_residual_variance(residual_variance, numeric = is_numeric_prior,
                              quantities = 'residual_variance')
   data$standardize(standardize)
   data$set_residual_variance(quantities='effect_variance')
@@ -303,6 +319,10 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
   }
   else prior_weights = prior_weights / sum(prior_weights)
 
+  if(inherits(prior_variance, 'MashInitializer')){
+    prior_variance = prior_variance$clone(deep=T)
+  }
+  
   data = RSSData$new(Z, R, eigenR, r_tol)
   if (is.null(residual_variance)) {
     residual_variance = diag(data$n_condition)

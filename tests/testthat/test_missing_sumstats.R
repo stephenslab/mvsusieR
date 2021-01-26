@@ -181,6 +181,11 @@ test_that("With full observation, the estimated prior variance are same for Dens
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
+  
+  sigma = sapply(1:ncol(y), function(i) sd(y[,i], na.rm=T))
+  n = sapply(1:ncol(y), function(i) length(which(!is.na(y[,1]))))
+  sigma = sigma / sqrt(n)
+  prior_var = scale_covariance(prior_var, sigma)
   data2 = expect_warning(DenseDataYMissing$new(X,y))
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
   data2$standardize(TRUE,TRUE)
@@ -213,6 +218,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   # Mash regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
+  mash_init$scale_prior_variance(sigma)
   fit4 = expect_warning(mmbr_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
                    precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbose=T, n_thread=1))
@@ -294,6 +300,10 @@ test_that("With full observation, the elbo are same for DenseDataYMissing and De
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F)
   
+  sigma = sapply(1:ncol(y), function(i) sd(y[,i], na.rm=T))
+  n = sapply(1:ncol(y), function(i) length(which(!is.na(y[,1]))))
+  sigma = sigma / sqrt(n)
+  prior_var = scale_covariance(prior_var, sigma)
   data2 = expect_warning(DenseDataYMissing$new(X,y))
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
   data2$standardize(TRUE,TRUE)
@@ -316,6 +326,7 @@ test_that("With full observation, the elbo are same for DenseDataYMissing and De
   # Mash regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
+  mash_init$scale_prior_variance(sigma)
   fit4 = expect_warning(mmbr_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                                   estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
                                   precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3,prior_tol=1e-9, track_fit=F, verbose=T, n_thread=1))
