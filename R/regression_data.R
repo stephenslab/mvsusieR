@@ -6,13 +6,7 @@ DenseData <- R6Class("DenseData",
   portable = FALSE,
   public = list(
     initialize = function(X,Y) {
-      # Check input X.
-      if (!(is.double(X) & is.matrix(X)) & !inherits(X,"CsparseMatrix"))
-        stop("Input X must be a double-precision matrix, or a sparse matrix.")
-      if (any(is.na(X))) {
-        stop("Input X must not contain missing values.")
-      }
-      if (any(dim(X) == 0)) stop('Input X dimension is invalid.')
+      is_numeric_matrix(X, 'X')
       if (length(which(apply(X, 2, is_zero_variance)))) stop('Input X must not have constant columns (some columns have standard deviation zero)')
       .X <<- X
       .X_has_missing <<- any(is.na(.X))
@@ -509,17 +503,10 @@ RSSData <- R6Class("RSSData",
         .eigenR <<- eigenR
       }
       if(!is.null(R)){
-        # Check NA in R
-        if (any(is.na(R))) {
-          stop('R matrix contains missing values.')
-        }
+        is_numeric_matrix(R, "R")
         # Check input R.
         if (!susieR:::is_symmetric_matrix(R)) {
           stop('R is not a symmetric matrix.')
-        }
-        if (!(is.double(R) &
-              is.matrix(R)) & !inherits(R, "CsparseMatrix")) {
-          stop("Input R must be a double-precision matrix, or a sparse matrix.")
         }
         if (nrow(R) != nrow(Z)) {
           stop(paste0('The dimension of correlation matrix (',nrow(R),' by ',ncol(R),
@@ -590,10 +577,7 @@ SSData <- R6Class("SSData", inherit = DenseData,
         stop("XtX is not a symmetric matrix")
       if (any(is.infinite(XtY)))
         stop("XtY contains infinite values")
-      if (!(is.double(XtX) & is.matrix(XtX)) & !inherits(XtX,"CsparseMatrix"))
-        stop("Input XtX must be a double-precision matrix, or a sparse matrix")
-      if (any(is.na(XtX)))
-        stop("XtX matrix contains NAs")
+      is_numeric_matrix(XtX)
 
       .XtX <<- XtX
       if (is.null(dim(XtY))) .XtY <<- matrix(XtY,length(XtY),1)
@@ -609,7 +593,7 @@ SSData <- R6Class("SSData", inherit = DenseData,
       .csd <<- rep(1, length = .J)
       .d <<- diag(.XtX)
       .d[.d == 0] <<- 1E-6
-      },
+    },
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      precompute_covariances = TRUE,
                                      quantities = c('residual_variance','effect_variance')){

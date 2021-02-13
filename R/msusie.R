@@ -89,6 +89,7 @@ msusie = function(X,Y,L=10,
   }
   # adjust prior effects
   is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
+  if (!is.null(dim(Y)) && is_numeric_prior) stop("Please specify prior variance for the multivariate response Y")
   if (standardize && !is_numeric_prior) {
     # Scale prior variance
     # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
@@ -207,11 +208,11 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
                             verbose=TRUE,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(XtX), ncol(XtX)))
   else prior_weights = prior_weights / sum(prior_weights)
-  
   if(inherits(prior_variance, 'MashInitializer')){
     prior_variance = prior_variance$clone(deep=T)
   }
   is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
+  if (!is.null(dim(YtY)) && is_numeric_prior) stop("Please specify prior variance for the multivariate response Y")
   if (standardize && !is_numeric_prior) {
     # Scale prior variance
     # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
@@ -318,6 +319,8 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
     }
   }
   else prior_weights = prior_weights / sum(prior_weights)
+  is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
+  if (!is.null(dim(Z)) && is_numeric_prior) stop("Please specify prior variance for the multivariate z-scores")
 
   if(inherits(prior_variance, 'MashInitializer')){
     prior_variance = prior_variance$clone(deep=T)
@@ -328,7 +331,7 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
     residual_variance = diag(data$n_condition)
   }
   #
-  data$set_residual_variance(residual_variance, numeric = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer')))
+  data$set_residual_variance(residual_variance, numeric = is_numeric_prior)
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
