@@ -96,6 +96,8 @@ msusie = function(X,Y,L=10,
     sigma = sapply(1:ncol(Y), function(i) sd(Y[,i], na.rm=T))
     n = sapply(1:ncol(Y), function(i) length(which(!is.na(Y[,1]))))
     sigma = sigma / sqrt(n)
+    # Make sigma numerically more robust against extreme values
+    if (estimate_prior_variance) sigma = sigma / max(sigma)
     if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
     else prior_variance$scale_prior_variance(sigma)
   }
@@ -218,6 +220,8 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
     # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
     sigma = sqrt(diag(YtY)/(N-1))
     sigma = sigma / sqrt(N)
+    # Make sigma numerically more robust against extreme values
+    if (estimate_prior_variance) sigma = sigma / max(sigma)
     if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
     else prior_variance$scale_prior_variance(sigma)
   }

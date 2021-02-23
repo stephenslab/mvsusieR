@@ -185,6 +185,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   sigma = sapply(1:ncol(y), function(i) sd(y[,i], na.rm=T))
   n = sapply(1:ncol(y), function(i) length(which(!is.na(y[,1]))))
   sigma = sigma / sqrt(n)
+  sigma = sigma / max(sigma)
   prior_var = scale_covariance(prior_var, sigma)
   data2 = expect_warning(DenseDataYMissing$new(X,y))
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
