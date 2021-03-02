@@ -57,7 +57,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm
   prior_weights = NULL,
   estimate_prior_variance_method = NULL,
   check_null_threshold = 0,
-  verbose = TRUE
+  verbosity = 1
 )}\if{html}{\out{</div>}}
 }
 

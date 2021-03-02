@@ -40,7 +40,7 @@
 #' @param n_thread maximum number of threads to use for parallel computation (only applicable to mixture prior)
 #' @param max_iter maximum number of iterations to perform
 #' @param tol convergence tolerance
-#' @param verbose if TRUE outputs some progress messages
+#' @param verbosity set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.
 #' @param track_fit add an attribute \code{trace} to output that saves some current quantities of all iterations
 #' @return a susie fit, which is a list with some or all of the following elements\cr
 #' \item{alpha}{an L by p matrix of posterior inclusion probabilites}
@@ -85,7 +85,7 @@ msusie = function(X,Y,L=10,
                  compute_univariate_zscore = FALSE,
                  precompute_covariances = FALSE,
                  n_thread=1,max_iter=100,tol=1e-3,
-                 verbose=TRUE,track_fit=FALSE) {
+                 verbosity=2,track_fit=FALSE) {
   # adjust prior weights
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)
@@ -126,7 +126,7 @@ msusie = function(X,Y,L=10,
   #
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-            precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
+            precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$sets = susie_get_cs(s, coverage=coverage, X=X, min_abs_corr=min_abs_corr)
@@ -164,7 +164,7 @@ msusie = function(X,Y,L=10,
 #' @param n_thread maximum number of threads to use for parallel computation (only applicable to mixture prior)
 #' @param max_iter maximum number of iterations to perform
 #' @param tol convergence tolerance
-#' @param verbose if TRUE outputs some progress messages
+#' @param verbosity set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.
 #' @param track_fit add an attribute \code{trace} to output that saves some current quantities of all iterations
 #' @return a susie fit, which is a list with some or all of the following elements\cr
 #' \item{alpha}{an L by p matrix of posterior inclusion probabilites}
@@ -212,7 +212,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
                             precompute_covariances = FALSE,
                             s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                             n_thread=1, max_iter=100,tol=1e-3,
-                            verbose=TRUE,track_fit=FALSE) {
+                            verbosity=2,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(XtX), ncol(XtX)))
   else prior_weights = prior_weights / sum(prior_weights)
   if(inherits(prior_variance, 'MashInitializer')){
@@ -240,7 +240,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   #
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-                precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
+                precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$sets = susie_get_cs(s, coverage=coverage, Xcorr=cov2cor(XtX), min_abs_corr=min_abs_corr)
@@ -274,7 +274,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' @param max_iter maximum number of iterations to perform
 #' @param tol convergence tolerance
 #' @param z_thresh the z score threshold below which to call an effect null
-#' @param verbose if TRUE outputs some progress messages
+#' @param verbosity set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.
 #' @param track_fit add an attribute \code{trace} to output that saves some current quantities of all iterations
 #' @return a susie fit, which is a list with some or all of the following elements\cr
 #' \item{alpha}{an L by p matrix of posterior inclusion probabilites}
@@ -318,7 +318,7 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
                       precompute_covariances = FALSE,
                       s_init = NULL,coverage=0.95,min_abs_corr=0.5,
                       n_thread=1, max_iter=100,tol=1e-3,z_thresh = 2,
-                      verbose=TRUE,track_fit=FALSE) {
+                      verbosity=2,track_fit=FALSE) {
   
   if (is.null(prior_weights)){
     if(is.null(dim(Z))){
@@ -343,7 +343,7 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
   data$set_residual_variance(residual_variance, numeric = is_numeric_prior)
   s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-                precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose)
+                precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$sets = susie_get_cs(s, coverage=coverage, Xcorr=data$XtX, min_abs_corr=min_abs_corr)
@@ -356,7 +356,7 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
 #' @keywords internal
 mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-            precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbose) {
+            precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity) {
   start_time = proc.time()
   # for now the type of prior_variance controls the type of regression
   if (is.numeric(prior_variance)) {
@@ -396,7 +396,7 @@ mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
   }
   SuSiE_model = SuSiE$new(SER_model, L, estimate_residual_variance, compute_objective, max_iter, tol, track_pip=track_fit, track_lbf=track_fit, track_prior=track_fit)
   if (!is.null(s_init)) SuSiE_model$init_from(s_init)
-  SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbose)
+  SuSiE_model$fit(data, prior_weights, estimate_prior_method, check_null_threshold, verbosity)
   s = report_susie_model(data, SuSiE_model, estimate_prior_variance)
   s$pip = susie_get_pip(s, prior_tol=prior_tol)
   ## clean up prior object

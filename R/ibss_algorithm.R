@@ -39,8 +39,8 @@ SuSiE <- R6Class("SuSiE",
             if (!is.null(model$V)) private$SER[[i]]$prior_variance = model$V[i]
         }
     },
-    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, check_null_threshold=0, verbose=TRUE) {
-        if (verbose) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
+    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, check_null_threshold=0, verbosity=1) {
+        if (verbosity==1) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
                                     clear = TRUE, total = private$.niter, show_after = .5)
         else pb = null_progress_bar$new()
         for (i in 1:private$.niter) {
@@ -76,7 +76,11 @@ SuSiE <- R6Class("SuSiE",
                 warning(paste("IBSS failed to converge after", i, "iterations. Perhaps you should increase max_iter and try again."))
                 private$add_back_zero_effects()
             }
-            pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
+            if (verbosity>1) {
+              message(paste("Iteration", i, "delta =", private$.convergence$delta))
+            } else {
+              pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
+            }
         }
     },
     get_objective = function(dump = FALSE, warning_tol = 1E-6) {

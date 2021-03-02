@@ -21,7 +21,7 @@ mmbr_core(
   tol,
   prior_tol,
   track_fit,
-  verbose
+  verbosity
 )
 }
 \description{

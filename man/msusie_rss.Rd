@@ -27,7 +27,7 @@ msusie_rss(
   max_iter = 100,
   tol = 0.001,
   z_thresh = 2,
-  verbose = TRUE,
+  verbosity = 2,
   track_fit = FALSE
 )
 }
@@ -75,7 +75,7 @@ a commonly used threshold for genotype data in genetics studies.}
 
 \item{z_thresh}{the z score threshold below which to call an effect null}
 
-\item{verbose}{if TRUE outputs some progress messages}
+\item{verbosity}{set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.}
 
 \item{track_fit}{add an attribute \code{trace} to output that saves some current quantities of all iterations}
 }
