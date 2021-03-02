@@ -18,6 +18,10 @@
 #' Whatever the value of standardize, the coefficients (returned from `coef`) are for X on the original input scale.
 #' Any column of X that has zero variance is not standardized, but left as is.
 #' @param intercept Should intercept be fitted (default=TRUE) or set to zero (FALSE). The latter is generally not recommended.
+#' @param approximate indicates whether to use approximate computation for intercept when there are missing values in Y (default = FALSE). 
+#' The approximation saves some computational time. 
+#' When the \code{residual_variance} is a diagonal matrix, \code{approximate = TRUE} gives same result as \code{approximate = FALSE} with less running time.
+#' This parameter is only used when there are missing values in Y and \code{intercept} = TRUE. 
 #' @param estimate_residual_variance indicates whether to estimate residual variance (currently only works for univariate Y input)
 #' @param estimate_prior_variance indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)
 #' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
@@ -71,6 +75,7 @@ msusie = function(X,Y,L=10,
                  residual_variance=NULL,
                  prior_weights=NULL,
                  standardize=TRUE,intercept=TRUE,
+                 approximate=FALSE,
                  estimate_residual_variance=FALSE,
                  estimate_prior_variance=TRUE,
                  estimate_prior_method='EM',
@@ -80,7 +85,7 @@ msusie = function(X,Y,L=10,
                  compute_univariate_zscore = FALSE,
                  precompute_covariances = FALSE,
                  n_thread=1,max_iter=100,tol=1e-3,
-                 verbose=TRUE,track_fit=FALSE,approximate=FALSE) {
+                 verbose=TRUE,track_fit=FALSE) {
   # adjust prior weights
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(X), ncol(X)))
   else prior_weights = prior_weights / sum(prior_weights)

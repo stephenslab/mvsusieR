@@ -13,6 +13,7 @@ msusie(
   prior_weights = NULL,
   standardize = TRUE,
   intercept = TRUE,
+  approximate = FALSE,
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "EM",
@@ -28,8 +29,7 @@ msusie(
   max_iter = 100,
   tol = 0.001,
   verbose = TRUE,
-  track_fit = FALSE,
-  approximate = FALSE
+  track_fit = FALSE
 )
 }
 \arguments{
@@ -53,6 +53,11 @@ Whatever the value of standardize, the coefficients (returned from `coef`) are f
 Any column of X that has zero variance is not standardized, but left as is.}
 
 \item{intercept}{Should intercept be fitted (default=TRUE) or set to zero (FALSE). The latter is generally not recommended.}
+
+\item{approximate}{indicates whether to use approximate computation for intercept when there are missing values in Y (default = FALSE). 
+The approximation saves some computational time. 
+When the \code{residual_variance} is a diagonal matrix, \code{approximate = TRUE} gives same result as \code{approximate = FALSE} with less running time.
+This parameter is only used when there are missing values in Y and \code{intercept} = TRUE.}
 
 \item{estimate_residual_variance}{indicates whether to estimate residual variance (currently only works for univariate Y input)}
 
