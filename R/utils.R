@@ -540,11 +540,11 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
       if (!(item %in% names(sample_data))) stop(paste("Cannot find", item, "in sample_data input"))
     }
     if (is.null(sample_data$center)) {
-      write("Assuming intercept is fitted (otherwise please set 'sample_data$center=F')", stderr())
+      #message("Assuming intercept is fitted (otherwise please set 'sample_data$center=F')", stderr())
       sample_data$center = T
     }
     if (is.null(sample_data$scale)) {
-      write("Assuming X is not yet scaled and will scale X (otherwise please set 'sample_data$scale=F')", stderr())
+      #message("Assuming X is not yet scaled and will scale X (otherwise please set 'sample_data$scale=F')", stderr())
       sample_data$scale = T
     }
     # compute canonical covariances
