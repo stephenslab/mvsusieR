@@ -135,6 +135,9 @@ msusie = function(X,Y,L=10,
   if (compute_univariate_zscore) {
     s$z = susieR:::calc_z(X,Y,center=intercept,scale=standardize)
   }
+  # FIXME: need a better approach
+  s$variable_names = colnames(X)
+  s$condition_names = colnames(Y)
   return(s)
 }
 
