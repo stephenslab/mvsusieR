@@ -368,7 +368,7 @@ mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
 #' @param m a mmbr fit, the output of `mmbr::susie()`
 #' @return a plot object
 #' @export
-mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat = FALSE) {
+mmbr_plot = function(m, weighted_effect = FALSE, cs_only = TRUE, original_sumstat = FALSE) {
   if (original_sumstat) {
     if (!("bhat" %in% names(m)) || !("shat") %in% names(m))
       stop("The original summary statistics 'bhat' and 'shat' should present in input object in order to plot original summary statistics")
@@ -379,8 +379,9 @@ mmbr_plot = function(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat 
     logp = -log10(p)
     top_snp = which(logp == max(logp, na.rm=TRUE), arr.ind = TRUE)[1]
   } else {
-    bhat = m$coef[-1,]
-    p = mmbr_get_lfsr(m, weighted = weighted_lfsr)
+    if (weighted_effect) bhat = m$coef[-1,]
+    else bhat = colSums(m$b1, dim=1)
+    p = m$lfsr
     top_snp = NULL
   }
   # get table of effect size estimates and PIP, for all conditions.
