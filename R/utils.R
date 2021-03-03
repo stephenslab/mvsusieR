@@ -368,24 +368,25 @@ mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
 #' @param m a mmbr fit, the output of `mmbr::susie()`
 #' @return a plot object
 #' @export
-mmbr_plot = function(m, weighted_effect = FALSE, cs_only = TRUE, original_sumstat = FALSE) {
-  if (original_sumstat) {
-    if (!("bhat" %in% names(m)) || !("shat") %in% names(m))
-      stop("The original summary statistics 'bhat' and 'shat' should present in input object in order to plot original summary statistics")
-    if (nrow(m$bhat) != nrow(m$coef[-1,]) || nrow(m$shat) != nrow(m$coef[-1,]))
-      stop(paste("Summary statistic matrix should have", nrow(m$coef[-1,]), "rows (no intercept term)."))
-    bhat = m$bhat
-    p = pnorm(-abs(m$bhat/m$shat))
+mmbr_plot = function(m, weighted_effect = FALSE, cs_only = TRUE, plot_z = FALSE) {
+  if (plot_z) {
+    if (!("z" %in% names(m)))
+      stop("Cannot find the z score summary statistics.")
+    if (nrow(m$z) != nrow(m$coef[-1,]))
+      stop(paste("z score matrix should have", nrow(m$coef[-1,]), "rows (no intercept term)."))
+    bhat = m$z
+    p = pnorm(-abs(m$z))
     logp = -log10(p)
     top_snp = which(logp == max(logp, na.rm=TRUE), arr.ind = TRUE)[1]
   } else {
     if (weighted_effect) bhat = m$coef[-1,]
     else bhat = colSums(m$b1, dim=1)
+    if (is.na(m$lfsr)) stop("Cannot make bubble plot without lfsr information (currently only implemented for mixture prior)")
     p = m$lfsr
     top_snp = NULL
   }
   # get table of effect size estimates and PIP, for all conditions.
-  table = data.frame(matrix(NA, prod(dim(p)), ncol(bhat)))
+  table = data.frame(matrix(NA, prod(dim(p)), 5))
   colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs')
   x_names = rownames(bhat)
   y_names = colnames(bhat)
@@ -421,7 +422,7 @@ mmbr_plot = function(m, weighted_effect = FALSE, cs_only = TRUE, original_sumsta
     scale_x_discrete(limits = unique(table$x)) +
     scale_y_discrete(limits = unique(table$y)) +
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))), low="#022968", mid="white", high="#800000", space="Lab") +
-    labs(size=paste0("-log10(", ifelse(original_sumstat, "p", "lfsr"), ")"), colour="Effect size") +
+    labs(size=paste0("-log10(", ifelse(plot_z, "p", "lfsr"), ")"), colour=ifelse(plot_z, "z-score", "Effect size")) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
         axis.text.y = element_text(size = 15, color = "black"),
