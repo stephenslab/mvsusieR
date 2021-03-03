@@ -19,7 +19,7 @@ msusie(
   estimate_prior_method = "EM",
   check_null_threshold = 0,
   prior_tol = 1e-09,
-  compute_objective = FALSE,
+  compute_objective = TRUE,
   s_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,

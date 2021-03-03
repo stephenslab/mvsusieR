@@ -4,7 +4,7 @@
 \alias{mmbr_plot}
 \title{Make bubble heatmap to display mmbr result}
 \usage{
-mmbr_plot(m, weighted_lfsr = FALSE, cs_only = TRUE, original_sumstat = FALSE)
+mmbr_plot(m, weighted_effect = FALSE, cs_only = TRUE, plot_z = FALSE)
 }
 \arguments{
 \item{m}{a mmbr fit, the output of `mmbr::susie()`}

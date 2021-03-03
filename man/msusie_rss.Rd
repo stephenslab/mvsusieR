@@ -18,7 +18,7 @@ msusie_rss(
   estimate_prior_method = "EM",
   check_null_threshold = 0,
   prior_tol = 1e-09,
-  compute_objective = FALSE,
+  compute_objective = TRUE,
   precompute_covariances = FALSE,
   s_init = NULL,
   coverage = 0.95,
