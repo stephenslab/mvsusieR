@@ -359,7 +359,7 @@ mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
     else alpha = matrix(1, nrow(alpha), ncol(alpha))
     return(do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
       true_sign_mat = alpha * (1 - clfsr[,,r])
-      pmax(1E-20, 1 - colSums(true_sign_mat))
+      pmax(1E-20, 1 - apply(true_sign_mat, 2, max))
     })))
   }
 }
