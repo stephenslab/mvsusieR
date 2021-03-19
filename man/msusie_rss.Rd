@@ -6,14 +6,11 @@
 \usage{
 msusie_rss(
   Z,
-  R = NULL,
-  eigenR = NULL,
+  R,
   L = 10,
-  r_tol = 1e-08,
   prior_variance = 50,
   residual_variance = NULL,
   prior_weights = NULL,
-  estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "EM",
   check_null_threshold = 0,
@@ -26,7 +23,6 @@ msusie_rss(
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
-  z_thresh = 2,
   verbosity = 2,
   track_fit = FALSE
 )
@@ -36,8 +32,6 @@ msusie_rss(
 
 \item{R}{a J by J LD matrix}
 
-\item{eigenR}{a list containing eigenvalues (values) and eigenvectors (vectors) of R. One of R and eigenR must be specified.}
-
 \item{L}{maximum number of non-zero effects}
 
 \item{prior_variance}{Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights}
@@ -45,8 +39,6 @@ msusie_rss(
 \item{residual_variance}{the residual variance (defaults to 1)}
 
 \item{prior_weights}{a p vector of prior probability that each element is non-zero}
-
-\item{estimate_residual_variance}{indicates whether to estimate residual variance (currently only works for univariate Y input)}
 
 \item{estimate_prior_variance}{indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)}
 
@@ -72,8 +64,6 @@ a commonly used threshold for genotype data in genetics studies.}
 \item{max_iter}{maximum number of iterations to perform}
 
 \item{tol}{convergence tolerance}
-
-\item{z_thresh}{the z score threshold below which to call an effect null}
 
 \item{verbosity}{set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.}
 

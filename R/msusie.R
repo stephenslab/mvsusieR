@@ -259,7 +259,6 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
 #' @param residual_variance the residual variance (defaults to 1)
 #' @param prior_weights a p vector of prior probability that each element is non-zero
-#' @param estimate_residual_variance indicates whether to estimate residual variance (currently only works for univariate Y input)
 #' @param estimate_prior_variance indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)
 #' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
 #' @param check_null_threshold when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
@@ -311,7 +310,6 @@ msusie_rss = function(Z,R,L=10,
                       prior_variance=50,
                       residual_variance=NULL,
                       prior_weights=NULL,
-                      estimate_residual_variance=FALSE,
                       estimate_prior_variance=TRUE,
                       estimate_prior_method='EM',
                       check_null_threshold=0, prior_tol=1E-9,
@@ -328,11 +326,6 @@ msusie_rss = function(Z,R,L=10,
     Z[is.na(Z)] = 0
   }
   is_numeric_matrix(R,'R')
-  
-  if(estimate_residual_variance){
-    warning("mvSuSiE doesn't estimate residual variance.")
-    estimate_residual_variance = FALSE
-  }
   
   if(is.null(dim(Z))){
     N = length(Z)

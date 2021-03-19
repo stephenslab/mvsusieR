@@ -10,7 +10,7 @@ msusie_suff_stat(
   YtY,
   N,
   L = 10,
-  prior_variance = 50,
+  prior_variance = 0.2,
   residual_variance = NULL,
   prior_weights = NULL,
   standardize = TRUE,
