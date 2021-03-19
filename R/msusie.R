@@ -203,7 +203,7 @@ msusie = function(X,Y,L=10,
 #' @importFrom susieR susie_get_cs 
 #' @export
 msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
-                            prior_variance=50,
+                            prior_variance=0.2,
                             residual_variance=NULL,
                             prior_weights=NULL,
                             standardize=TRUE,
@@ -255,7 +255,6 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' @title SUm of Single Effect (SuSiE) Regression using Summary Statistics Z and R
 #' @param Z a J by R matrix of z scores
 #' @param R a J by J LD matrix
-#' @param eigenR a list containing eigenvalues (values) and eigenvectors (vectors) of R. One of R and eigenR must be specified.
 #' @param L maximum number of non-zero effects
 #' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
 #' @param residual_variance the residual variance (defaults to 1)
@@ -276,7 +275,6 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' @param n_thread maximum number of threads to use for parallel computation (only applicable to mixture prior)
 #' @param max_iter maximum number of iterations to perform
 #' @param tol convergence tolerance
-#' @param z_thresh the z score threshold below which to call an effect null
 #' @param verbosity set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.
 #' @param track_fit add an attribute \code{trace} to output that saves some current quantities of all iterations
 #' @return a susie fit, which is a list with some or all of the following elements\cr
@@ -309,7 +307,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' @importFrom stats var
 #' @importFrom susieR susie_get_cs 
 #' @export
-msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
+msusie_rss = function(Z,R,L=10,
                       prior_variance=50,
                       residual_variance=NULL,
                       prior_weights=NULL,
@@ -320,37 +318,55 @@ msusie_rss = function(Z,R=NULL,eigenR=NULL,L=10,r_tol = 1e-08,
                       compute_objective=TRUE,
                       precompute_covariances = FALSE,
                       s_init = NULL,coverage=0.95,min_abs_corr=0.5,
-                      n_thread=1, max_iter=100,tol=1e-3,z_thresh = 2,
+                      n_thread=1, max_iter=100,tol=1e-3,
                       verbosity=2,track_fit=FALSE) {
-  
-  if (is.null(prior_weights)){
-    if(is.null(dim(Z))){
-      prior_weights = c(rep(1/length(Z), length(Z)))
-    }else{
-      prior_weights = c(rep(1/nrow(Z), nrow(Z)))
-    }
-  }
-  else prior_weights = prior_weights / sum(prior_weights)
   is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
   if (!is.null(dim(Z)) && ncol(Z) > 1 && is_numeric_prior) stop("Please specify prior variance for the multivariate z-scores")
-
-  if(inherits(prior_variance, 'MashInitializer')){
-    prior_variance = prior_variance$clone(deep=T)
+  
+  if (any(is.na(Z))) {
+    warning('NA values in Z-scores are replaced with 0.')
+    Z[is.na(Z)] = 0
+  }
+  is_numeric_matrix(R,'R')
+  
+  if(estimate_residual_variance){
+    warning("mvSuSiE doesn't estimate residual variance.")
+    estimate_residual_variance = FALSE
   }
   
-  data = RSSData$new(Z, R, eigenR, r_tol)
-  if (is.null(residual_variance)) {
-    residual_variance = diag(data$n_condition)
+  if(is.null(dim(Z))){
+    N = length(Z)
+  }else{
+    N = nrow(Z)
   }
-  #
-  data$set_residual_variance(residual_variance, numeric = is_numeric_prior)
-  s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
-                estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-                precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
-  # CS and PIP
-  if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    s$sets = susie_get_cs(s, coverage=coverage, Xcorr=data$XtX, min_abs_corr=min_abs_corr)
+  if(is.null(residual_variance)){
+    if(is.null(dim(Z))){
+      YtY = N - 1
+    }else{
+      if(ncol(Z) == 1){
+        YtY = (N - 1)
+      }else{
+        YtY = (N - 1) * diag(ncol(Z))
+      }
+    }
+  }else{
+    YtY = (N - 1) * residual_variance
   }
+  
+  s = msusie_suff_stat(XtX=R, XtY=Z, YtY=YtY, N=N, L=L,
+                       prior_variance=prior_variance,
+                       residual_variance=residual_variance,
+                       prior_weights=prior_weights,
+                       standardize=FALSE,
+                       estimate_residual_variance=FALSE,
+                       estimate_prior_variance=estimate_prior_variance,
+                       estimate_prior_method=estimate_prior_method,
+                       check_null_threshold=check_null_threshold, prior_tol=prior_tol,
+                       compute_objective=compute_objective,
+                       precompute_covariances = precompute_covariances,
+                       s_init = s_init,coverage=coverage,min_abs_corr=min_abs_corr,
+                       n_thread=n_thread, max_iter=max_iter,tol=tol,
+                       verbosity=verbosity,track_fit=track_fit)
   return(s)
 }
 

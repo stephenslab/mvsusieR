@@ -117,6 +117,10 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     },
     estimate_prior_variance_optim = function(betahat, shat2, prior_weights, ...) {
       lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
+      if(private$neg_loglik_logscale(log(private$.prior_variance),betahat,shat2,prior_weights) < 
+         private$neg_loglik_logscale(lV,betahat,shat2,prior_weights)){
+        lV = log(private$.prior_variance)
+      }
       return(exp(lV))
     },
     estimate_prior_variance_em = function(pip) {

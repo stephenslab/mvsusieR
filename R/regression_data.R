@@ -569,19 +569,19 @@ SSData <- R6Class("SSData", inherit = DenseData,
   portable = FALSE,
   public = list(
     initialize = function(XtX, XtY, YtY, N) {
-      if (ncol(XtX) != nrow(XtY))
-        stop(paste0("The dimension of XtX (",nrow(XtX)," by ",ncol(XtX),
-                    ") does not agree with expected (",nrow(XtY)," by ",
-                    nrow(XtY),")"))
-      if (!susieR:::is_symmetric_matrix(XtX))
-        stop("XtX is not a symmetric matrix")
-      if (any(is.infinite(XtY)))
-        stop("XtY contains infinite values")
-      is_numeric_matrix(XtX)
-
-      .XtX <<- XtX
       if (is.null(dim(XtY))) .XtY <<- matrix(XtY,length(XtY),1)
       else .XtY <<- XtY
+      if (ncol(XtX) != nrow(.XtY))
+        stop(paste0("The dimension of XtX (",nrow(XtX)," by ",ncol(XtX),
+                    ") does not agree with expected (",nrow(.XtY)," by ",
+                    nrow(.XtY),")"))
+      if (!susieR:::is_symmetric_matrix(XtX))
+        stop("XtX is not a symmetric matrix")
+      if (any(is.infinite(.XtY)))
+        stop("XtY contains infinite values")
+      is_numeric_matrix(XtX, 'XtX')
+      
+      .XtX <<- XtX
       .YtY <<- YtY
       .Y_has_missing <<- FALSE
       .Xtresidual <<- .XtY
@@ -599,11 +599,10 @@ SSData <- R6Class("SSData", inherit = DenseData,
                                      quantities = c('residual_variance','effect_variance')){
       if('residual_variance' %in% quantities){
         if (is.null(residual_variance)) {
-          residual_variance = cov2cor(.YtY)
           if (.R > 1) {
             residual_variance = cov2cor(.YtY)
           }
-          else residual_variance = .YtY/.N
+          else residual_variance = .YtY/(.N-1)
         }
         if(numeric){
           residual_variance = as.numeric(residual_variance)

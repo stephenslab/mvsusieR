@@ -27,12 +27,8 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
 
 test_that("mmbr is identical to susieR (RSS)", with(simulate_univariate(summary = T), {
   # Test fixed prior
-  attr(R, 'eigen') = eigen(R, symmetric = T)
-  R = susieR:::set_R_attributes(R, 1e-08)
-  attr(R, 'lambda') = 0
-  Sigma = susieR:::update_Sigma(R, 1, z)
-  A = susieR:::single_effect_regression_rss(z, Sigma, V, prior_weights = NULL, optimize_V = "none")
-  kl = susieR:::SER_posterior_e_loglik_rss(R,Sigma,z,A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model
+  A = susieR:::single_effect_regression_ss(z, diag(R), V, prior_weights = NULL, optimize_V = "none")
+  kl = susieR:::SER_posterior_e_loglik_ss(diag(R), z, 1, A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model
   B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
   d.copy = d$clone(T)
   B$fit(d.copy)
@@ -42,8 +38,8 @@ test_that("mmbr is identical to susieR (RSS)", with(simulate_univariate(summary 
   expect_equal(A$lbf_model, B$lbf)
   expect_equal(kl, B$kl)
   # Test estimated prior
-  A = susieR:::single_effect_regression_rss(z, Sigma, V, prior_weights = NULL, optimize_V = "optim")
-  kl = susieR:::SER_posterior_e_loglik_rss(R,Sigma,z,A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model
+  A = susieR:::single_effect_regression_ss(z, diag(R), V, prior_weights = NULL, optimize_V = "optim")
+  kl = susieR:::SER_posterior_e_loglik_ss(diag(R),z,1,A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model
   B = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
   d.copy = d$clone(T)
   B$fit(d.copy, estimate_prior_variance_method='optim')
