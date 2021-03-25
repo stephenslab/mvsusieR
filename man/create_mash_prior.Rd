@@ -11,7 +11,7 @@ create_mash_prior(
   null_weight = NULL,
   use_grid = FALSE,
   weights_tol = 1e-10,
-  max_mixture_len = 40,
+  max_mixture_len = -1,
   include_indices = NULL,
   ...
 )
@@ -31,7 +31,7 @@ if available. Use `null_weight = 0` to override the behavior.}
 \item{weights_tol}{filter out priors with weights smaller than weights_tol}
 
 \item{max_mixture_len}{only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
-Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.}
+Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to use all input prior matrices.}
 
 \item{include_indices}{postprocess input prior to only include conditions from this indices}
 

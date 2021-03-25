@@ -499,14 +499,14 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' @param use_grid expand mixture by grid values as in MASH (not necessary when prior scalar is estimated)
 #' @param weights_tol filter out priors with weights smaller than weights_tol
 #' @param max_mixture_len only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
-#' Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to length 40.
+#' Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to use all input prior matrices.
 #' @param include_indices postprocess input prior to only include conditions from this indices
 #' @param ... other parameters, for mmbr:::create_cov_canonical
 #' @return mash prior object for use with msusie() function
 #' @details ...
 #' @export
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL,
-                             null_weight = NULL, use_grid = FALSE, weights_tol = 1E-10, max_mixture_len = 40,
+                             null_weight = NULL, use_grid = FALSE, weights_tol = 1E-10, max_mixture_len = -1,
                              include_indices = NULL, ...) {
   if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 2)
     stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
