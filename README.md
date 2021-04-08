@@ -4,9 +4,9 @@
 
 To automatically retrieve and install `mmbr` from this repository,
 
-   ```R
-   devtools::install_github("stephenslab/mmbr")
-   ```
+```R
+devtools::install_github("stephenslab/mmbr")
+```
 
 ## Quick Start
 
