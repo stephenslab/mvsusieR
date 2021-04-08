@@ -1,11 +1,11 @@
 Encoding: UTF-8
 Type: Package
 Package: mvsusieR
-Title: Multivariate Bayesian variable selection regression
+Title: Multivariate Bayesian Variable Selection Regression
 Description: A more general implementation of the Sum of SIngle
     Effects (SuSiE) regression for Bayesian variable selection.
 Date: 2021-04-08
-Version: 0.0.3.0431
+Version: 0.0.3.0432
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="gaow@uchicago.edu"),
              person("Yuxin","Zou",role="aut"),

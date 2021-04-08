@@ -1,18 +1,19 @@
-# mmbr
+# mvsusieR
 
 ## Setup
 
-To automatically retrieve and install `mmbr` from this repository,
+To automatically retrieve and install the latest version of the R
+package from this repository, run
 
-   ```R
-   devtools::install_github("stephenslab/mmbr")
-   ```
+```r
+devtools::install_github("stephenslab/mvsusieR")
+```
 
 ## Quick Start
 
-[Here](https://stephenslab.github.io/mmbr/articles/prediction.html) is
-a quick document to show `mmbr` in action.  For more documentation and
-examples please visit: https://stephenslab.github.io/mmbr
+[Here](https://stephenslab.github.io/mvsusieR/articles/prediction.html) is
+a quick document to show mvsusieR in action.  For more documentation and
+examples please visit: https://stephenslab.github.io/mvsusieR
 
 ## Developer notes
 
@@ -25,9 +26,10 @@ in the shell:
 
     ```bash
     VERSION=`grep Version DESCRIPTION | awk '{print $2}'`
-    R CMD build --resave-data --no-build-vignettes mmbr
-    R CMD INSTALL mmbr_$VERSION.tar.gz
-    R CMD check --as-cran --ignore-vignettes mmbr_$VERSION.tar.gz
+    R CMD build --resave-data --no-build-vignettes mvsusieR
+    R CMD INSTALL mvsusieR_$VERSION.tar.gz
+    R CMD check --as-cran --ignore-vignettes mvsusieR_$VERSION.tar.gz
     ```
 
-+ Run `pkgdown::build_site(lazy=T,examples=F)` to build the website.
++ Run `pkgdown::build_site(lazy = TRUE,examples = FALSE)` to build the
+  website.
