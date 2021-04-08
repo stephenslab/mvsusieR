@@ -5,7 +5,7 @@
 To automatically retrieve and install `mmbr` from this repository,
 
 ```R
-devtools::install_github("stephenslab/mmbr")
+devtools::install_github("stephenslab/mvsusieR@mmbr")
 ```
 
 ## Quick Start
