@@ -1,18 +1,18 @@
 Encoding: UTF-8
 Type: Package
-Package: mmbr
+Package: mvsusieR
 Title: Multivariate Bayesian variable selection regression
-Description: A more general implementation of the Sum of SIngle Effects (SuSiE)
-    regression for Bayesian variable selection
+Description: A more general implementation of the Sum of SIngle
+    Effects (SuSiE) regression for Bayesian variable selection.
 Date: 2021-04-08
-Version: 0.0.3.0430
+Version: 0.0.3.0431
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="gaow@uchicago.edu"),
              person("Yuxin","Zou",role="aut"),
              person("Peter","Carbonetto",role="aut"),
              person("Matthew","Stephens",role="aut"))
-URL: https://github.com/stephenslab/mmbr
-BugReports: https://github.com/stephenslab/mmbr/issues
+URL: https://github.com/stephenslab/mvsusieR
+BugReports: https://github.com/stephenslab/mvsusieR/issues
 License: MIT + file LICENSE
 LazyData: true
 NeedsCompilation: no
