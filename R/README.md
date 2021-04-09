@@ -18,7 +18,7 @@ Implementation-wise,
 
 ## Misc
 
-- `msusie.R` implements interface `msusie()` function.
+- `mvsusie.R` implements interface `mvsusie()` function.
 - `utils.R` contains some utility functions.
 
 ## A note on `R6` class

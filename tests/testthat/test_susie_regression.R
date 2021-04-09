@@ -53,12 +53,12 @@ test_that("mash regression in SuSiE is identical to univariate case", with(simul
     n = length(y)
     sigma = sigma / sqrt(n)
     prior_var = as.numeric(scale_covariance(V[1,1]/residual_var, sigma))
-    A = msusie(X,y,L=L,prior_variance=prior_var,
+    A = mvsusie(X,y,L=L,prior_variance=prior_var,
                 estimate_residual_variance=FALSE,
                 estimate_prior_variance=FALSE,
                 compute_objective=FALSE)
     m_init = MashInitializer$new(list(V), 1, 1, 0)
-    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, 
+    B = mvsusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, 
                estimate_prior_variance=FALSE, precompute_covariances=TRUE)
     expect_susie_equal(A,B,F,F)
 }))
@@ -70,20 +70,20 @@ test_that("multivariate regression in SuSiE is identical to univariate case", wi
     n = length(y)
     sigma = sigma / sqrt(n)
     prior_var = as.numeric(scale_covariance(V[1,1]/residual_var, sigma))
-    A = msusie(X,y,L=L,prior_variance=prior_var,
+    A = mvsusie(X,y,L=L,prior_variance=prior_var,
                 estimate_residual_variance=FALSE,
                 estimate_prior_variance=FALSE,
                 compute_objective=FALSE, precompute_covariances=TRUE)
-    B = msusie(X,y,L=L,prior_variance=V,compute_objective=FALSE, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+    B = mvsusie(X,y,L=L,prior_variance=V,compute_objective=FALSE, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
     expect_susie_equal(A,B,F,F)
 }))
 
 test_that("mash regression in SuSiE agrees with when various covariance quantities are precomputed", with(simulate_multivariate(r=3), {
     m_init = MashInitializer$new(list(V), 1, 1, 0)
-    A = expect_warning(msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, 
+    A = expect_warning(mvsusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, 
                               estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, 
                               precompute_covariances=FALSE))
-    B = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, 
+    B = mvsusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, 
                precompute_covariances=TRUE, estimate_prior_variance=FALSE, estimate_residual_variance=FALSE)
     expect_susie_equal(A,B,F,F)
 }))
@@ -91,28 +91,28 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
 test_that("mash regression in SuSiE agrees with BMR using one component prior matrix", with(simulate_multivariate(r=3), {
     m_init = create_mash_prior(mixture_prior = list(matrices=list(V)))
     # don't compare ELBO
-    A = msusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
-    B = msusie(X,y,L=L,prior_variance=V, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE)
+    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+    B = mvsusie(X,y,L=L,prior_variance=V, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE)
     expect_susie_equal(A,B,F,F)
     # compare ELBO
-    A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
-    B = msusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=FALSE)
+    A = mvsusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+    B = mvsusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=FALSE)
     expect_susie_equal(A,B,F,F)
     # compare estimate prior variance "simple" method
-    A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple', precompute_covariances=TRUE)
-    B = msusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple')
+    A = mvsusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple', precompute_covariances=TRUE)
+    B = mvsusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'simple')
     expect_susie_equal(A,B,F,F)
     # compare estimate prior variance "EM" method
-    A = msusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM', precompute_covariances=TRUE)
-    B = msusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
+    A = mvsusie(X,y,L=L,prior_variance=m_init, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM', precompute_covariances=TRUE)
+    B = mvsusie(X,y,L=L,prior_variance=V, compute_objective=T, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
     expect_susie_equal(A,B,F,F)
 }))
 
 test_that("customized initialization interface", with(simulate_multivariate(r=3), {
     # not sure what to test here ...
     m_init = create_mash_prior(mixture_prior = list(matrices = list(V), weights = 1), null_weight=0)
-    A = msusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
-    B = msusie(X,y,L=L,prior_variance=m_init,s_init=A,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
+    A = mvsusie(X,y,L=L,prior_variance=m_init,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
+    B = mvsusie(X,y,L=L,prior_variance=m_init,s_init=A,compute_objective=FALSE, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
     # let's just test of null is null ...
     null_weight = 0.2
     m_init = create_mash_prior(sample_data = list(X=X,Y=y,center=T,scale=T,residual_variance=cov(y)),
@@ -149,11 +149,11 @@ test_that("mash regression in SuSiE is identical to univariate case (RSS)", with
   R = cor(X)
   residual_var = as.numeric(var(y))
   prior_var = V[1,1]
-  A = msusie_rss(z,R,L=L,prior_variance=prior_var,
+  A = mvsusie_rss(z,R,L=L,prior_variance=prior_var,
              estimate_prior_variance=FALSE,
              compute_objective=FALSE)
   m_init = MashInitializer$new(list(V), 1, 1, 0)
-  B = msusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE,estimate_prior_variance=FALSE,
+  B = mvsusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE,estimate_prior_variance=FALSE,
                  precompute_covariances=TRUE)
   expect_susie_equal(A,B,F,F)
 }))
@@ -165,8 +165,8 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
   })
   R = cor(X)
   m_init = MashInitializer$new(list(V), 1, 1, 0)
-  A = expect_warning(msusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=FALSE))
-  B = msusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
+  A = expect_warning(mvsusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=FALSE))
+  B = mvsusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
   expect_susie_equal(A,B,F,F)
 }))
 
@@ -177,11 +177,11 @@ test_that("mash regression in SuSiE agrees with BMR using one component prior ma
   })
   R = cor(X)
   m_init = create_mash_prior(mixture_prior = list(matrices=list(V)))
-  A = msusie_rss(z,R,L=L,prior_variance=m_init, precompute_covariances=TRUE)
-  B = msusie_rss(z,R,L=L,prior_variance=V, precompute_covariances=TRUE)
+  A = mvsusie_rss(z,R,L=L,prior_variance=m_init, precompute_covariances=TRUE)
+  B = mvsusie_rss(z,R,L=L,prior_variance=V, precompute_covariances=TRUE)
   expect_susie_equal(A,B,F,F)
-  A = msusie_rss(z,R,L=L,prior_variance=m_init, compute_objective=T, precompute_covariances=TRUE)
-  B = msusie_rss(z,R,L=L,prior_variance=V, compute_objective=T, precompute_covariances=TRUE)
+  A = mvsusie_rss(z,R,L=L,prior_variance=m_init, compute_objective=T, precompute_covariances=TRUE)
+  B = mvsusie_rss(z,R,L=L,prior_variance=V, compute_objective=T, precompute_covariances=TRUE)
   expect_susie_equal(A,B,F,F)
 }))
 
@@ -193,8 +193,8 @@ test_that("customized initialization interface (RSS)", with(simulate_multivariat
   })
   R = cor(X)
   m_init = create_mash_prior(mixture_prior = list(matrices = list(V), weights = 1), null_weight=0)
-  A = msusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
-  B = msusie_rss(z,R,L=L,prior_variance=m_init,s_init=A,compute_objective=FALSE, precompute_covariances=TRUE)
+  A = mvsusie_rss(z,R,L=L,prior_variance=m_init,compute_objective=FALSE, precompute_covariances=TRUE)
+  B = mvsusie_rss(z,R,L=L,prior_variance=m_init,s_init=A,compute_objective=FALSE, precompute_covariances=TRUE)
   # let's just test of null is null ...
   null_weight = 0.2
   m_init = create_mash_prior(sample_data = list(X=X,Y=y,center=T,scale=T,residual_variance=cov(y)),

@@ -142,17 +142,17 @@ test_that("With full observations, the results are same for DenseDataYMissing an
 test_that("When R = 1, estimated prior variance with missing data agrees with full data", with(simulate_multivariate(r=1, center_scale = F, y_missing = 0.5), {
   prior_var = V[1,1]
   residual_var = as.numeric(var(y))
-  fit1 = msusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
+  fit1 = mvsusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
               prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
               intercept=T, standardize = T,
               estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
-  fit2 = msusie(X, y_missing, L=L,
+  fit2 = mvsusie(X, y_missing, L=L,
               prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
               intercept=T, standardize = T, 
               estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
-  fit3 = msusie(X, y_missing, L=L,
+  fit3 = mvsusie(X, y_missing, L=L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM',
@@ -176,7 +176,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   # Multivariate regression
   prior_var = V
   residual_var = cov(y)
-  fit1 = msusie(X, y, L = L, 
+  fit1 = mvsusie(X, y, L = L, 
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -272,17 +272,17 @@ test_that("With diagonal residual variance, the results are same for DenseDataYM
 test_that("When R = 1, the elbo with missing data agrees with full data", with(simulate_multivariate(r=1, center_scale = F, y_missing = 0.5), {
   prior_var = V[1,1]
   residual_var = as.numeric(var(y))
-  fit1 = msusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
+  fit1 = mvsusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
   
-  fit2 = msusie(X, y_missing, L=L,
+  fit2 = mvsusie(X, y_missing, L=L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F)
   
-  fit3 = msusie(X, y_missing, L=L,
+  fit3 = mvsusie(X, y_missing, L=L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F,
@@ -296,7 +296,7 @@ test_that("With full observation, the elbo are same for DenseDataYMissing and De
   # Multivariate regression
   prior_var = V
   residual_var = cov(y)
-  fit1 = msusie(X, y, L = L, 
+  fit1 = mvsusie(X, y, L = L, 
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F)

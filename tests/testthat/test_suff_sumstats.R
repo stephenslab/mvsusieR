@@ -99,7 +99,7 @@ test_that("With full observations, the results are same for SSData and DenseData
 test_that("When R = 1, estimated prior variance with ss data agrees with full data", with(simulate_multivariate(r=1, center_scale = F), {
   prior_var = V[1,1]
   residual_var = as.numeric(var(y))
-  fit1 = msusie(X,y, L = L,
+  fit1 = mvsusie(X,y, L = L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -109,7 +109,7 @@ test_that("When R = 1, estimated prior variance with ss data agrees with full da
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = msusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                 standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -126,7 +126,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   # Multivariate regression
   prior_var = V
   residual_var = cov(y)
-  fit1 = msusie(X, y, L = L, 
+  fit1 = mvsusie(X, y, L = L, 
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -136,7 +136,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = msusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
                           prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -151,7 +151,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   # Mash regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
-  fit3 = msusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
                           prior_variance=mash_init, residual_variance = residual_var, compute_objective=F, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM',
@@ -168,7 +168,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
 test_that("When R = 1, the elbo using sufficient data agrees with full data", with(simulate_multivariate(r=1, center_scale = F), {
   prior_var = V[1,1]
   residual_var = as.numeric(var(y))
-  fit1 = msusie(X,y, L = L,
+  fit1 = mvsusie(X,y, L = L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
@@ -178,7 +178,7 @@ test_that("When R = 1, the elbo using sufficient data agrees with full data", wi
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = msusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F)
@@ -190,7 +190,7 @@ test_that("With full observation, the elbo are same for SSData and DenseData", w
   # Multivariate regression
   prior_var = V
   residual_var = cov(y)
-  fit1 = msusie(X, y, L = L, 
+  fit1 = mvsusie(X, y, L = L, 
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F)
@@ -200,14 +200,14 @@ test_that("With full observation, the elbo are same for SSData and DenseData", w
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = msusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
                           prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=F)
   # Mash regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
-  fit3 = msusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
                           prior_variance=mash_init, residual_variance = residual_var, compute_objective=T, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=F,

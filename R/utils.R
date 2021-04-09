@@ -502,7 +502,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to use all input prior matrices.
 #' @param include_indices postprocess input prior to only include conditions from this indices
 #' @param ... other parameters, for mvsusieR:::create_cov_canonical
-#' @return mash prior object for use with msusie() function
+#' @return mash prior object for use with mvsusie() function
 #' @details ...
 #' @export
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL,

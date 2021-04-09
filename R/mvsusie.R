@@ -65,12 +65,12 @@
 #' beta[1:4] = 1
 #' X = matrix(rnorm(n*p),nrow=n,ncol=p)
 #' y = X %*% beta + rnorm(n)
-#' res = msusie(X,y,L=10)
+#' res = mvsusie(X,y,L=10)
 #'
 #' @importFrom stats var
 #' @importFrom susieR susie_get_cs 
 #' @export
-msusie = function(X,Y,L=10,
+mvsusie = function(X,Y,L=10,
                  prior_variance=0.2,
                  residual_variance=NULL,
                  prior_weights=NULL,
@@ -197,12 +197,12 @@ msusie = function(X,Y,L=10,
 #' XtX = crossprod(X)
 #' XtY = crossprod(X, y)
 #' YtY = crossprod(y)
-#' res = msusie_ss(XtX,XtY,YtY,n,L=10)
+#' res = mvsusie_ss(XtX,XtY,YtY,n,L=10)
 #'
 #' @importFrom stats var
 #' @importFrom susieR susie_get_cs 
 #' @export
-msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
+mvsusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
                             prior_variance=0.2,
                             residual_variance=NULL,
                             prior_weights=NULL,
@@ -301,12 +301,12 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
 #' y = X %*% beta + rnorm(n)
 #' R = t(X) %*% X
 #' z = susieR:::calc_z(X,y)
-#' res = msusie_rss(z,R,L=10)
+#' res = mvsusie_rss(z,R,L=10)
 #'
 #' @importFrom stats var
 #' @importFrom susieR susie_get_cs 
 #' @export
-msusie_rss = function(Z,R,L=10,
+mvsusie_rss = function(Z,R,L=10,
                       prior_variance=50,
                       residual_variance=NULL,
                       prior_weights=NULL,
@@ -346,7 +346,7 @@ msusie_rss = function(Z,R,L=10,
     YtY = (N - 1) * residual_variance
   }
   
-  s = msusie_suff_stat(XtX=R, XtY=Z, YtY=YtY, N=N, L=L,
+  s = mvsusie_suff_stat(XtX=R, XtY=Z, YtY=YtY, N=N, L=L,
                        prior_variance=prior_variance,
                        residual_variance=residual_variance,
                        prior_weights=prior_weights,

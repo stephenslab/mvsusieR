@@ -38,7 +38,7 @@ Use `max_mixture_len=-1` to include all input weights after weights_tol filterin
 \item{...}{other parameters, for mvsusieR:::create_cov_canonical}
 }
 \value{
-mash prior object for use with msusie() function
+mash prior object for use with mvsusie() function
 }
 \description{
 Create mash prior object

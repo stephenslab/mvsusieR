@@ -72,7 +72,7 @@ prior_covar <- create_mash_prior(sample_data = list(X=X[-test_num, ],Y=y,residua
 Then, we fit the mvsusie model to the training set.
 
 ```{r}
-m <- msusie(X[-test_num, ], y, L=L, prior_variance=prior_covar)
+m <- mvsusie(X[-test_num, ], y, L=L, prior_variance=prior_covar)
 ```
 
 Finally, we use the parameter estimates from the training set to predict phenotypes in the test set. The accuracy of prediction is calculated as the correlation between true and predicted phenotypes.
