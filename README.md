@@ -6,7 +6,7 @@ To automatically retrieve and install the latest version of the R
 package from this repository, run
 
 ```r
-devtools::install_github("stephenslab/mvsusieR")
+remotes::install_github("stephenslab/mvsusieR")
 ```
 
 ## Quick Start

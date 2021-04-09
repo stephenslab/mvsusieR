@@ -126,8 +126,8 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
         coef = d$rescale_coef(b),
         mixture_weights = mixture_weights,
         conditional_lfsr = clfsr,
-        lfsr = mmbr_get_lfsr(clfsr, t(m$pip)),
-        single_effect_lfsr = mmbr_single_effect_lfsr(clfsr, t(m$pip))
+        lfsr = mvsusie_get_lfsr(clfsr, t(m$pip)),
+        single_effect_lfsr = mvsusie_single_effect_lfsr(clfsr, t(m$pip))
         )
     if (!is.null(m$pip_history)) s$alpha_history = m$pip_history
     if (!is.null(m$lbf_history)) s$lbf_history = m$lbf_history
@@ -151,14 +151,14 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
 #' @param prior_obj prior mixture object
 #' @return P by R matrix of PIP per condition
 #' @keywords internal
-mmbr_get_pip_per_condition = function(m, prior_obj) {
-  condition_pip = mmbr_get_alpha_per_condition(m, prior_obj)
+mvsusie_get_pip_per_condition = function(m, prior_obj) {
+  condition_pip = mvsusie_get_alpha_per_condition(m, prior_obj)
   return(do.call(cbind, lapply(1:dim(condition_pip)[3], function(r) apply(condition_pip[,,r], 2, function(x) 1-prod(1-x)))))
 }
 
 #' @title Compute condition specific posterior inclusion probability per effect
 #' @keywords internal
-mmbr_get_alpha_per_condition = function(m, prior_obj) {
+mvsusie_get_alpha_per_condition = function(m, prior_obj) {
   condition_indicator = do.call(rbind, lapply(1:length(prior_obj$prior_variance$xUlist), function(i) as.integer(diag(prior_obj$prior_variance$xUlist[[i]]) != 0)))
   condition_pip = array(0, dim=dim(m$b1))
   for (r in 1:dim(condition_pip)[3]) {
@@ -302,7 +302,7 @@ reconstruct_coll = function(mat, coll_cols, coll_counts, original_dim, adjust_co
 #' @param s number of effect variables per condition if greater than 1; otherwise percentage of effect variables per condition
 #' @param center_scale FALSE by default
 #' @export
-mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
+mvsusie_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
   X = matrix(rnorm(n*p,0,1),n,p)
   if (s>=1) {
     beta = matrix(0, p, r)
@@ -332,7 +332,7 @@ mmbr_sim1 = function(n=200,p=500,r=2,s=4,center_scale=FALSE,y_missing=NULL) {
 #' @param clfsr L by P by R conditonal lfsr
 #' @return a L by R matrix of lfsr
 #' @export
-mmbr_single_effect_lfsr = function(clfsr, alpha) {
+mvsusie_single_effect_lfsr = function(clfsr, alpha) {
   if(!is.array(clfsr) && is.na(clfsr)){
     return(NA)
   }else{
@@ -351,7 +351,7 @@ mmbr_single_effect_lfsr = function(clfsr, alpha) {
 #' @param weighted TRUE to weight lfsr by PIP; FALSE otherwise.
 #' @return a P by R matrix of lfsr
 #' @export
-mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
+mvsusie_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
   if(!is.array(clfsr) && is.na(clfsr)){
     return(NA)
   }else{
@@ -364,11 +364,12 @@ mmbr_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
   }
 }
 
-#' @title Make bubble heatmap to display mmbr result
-#' @param m a mmbr fit, the output of `mmbr::susie()`
+#' @title Make bubble heatmap to display mvsusie result
+#' @param m a mvsusie fit, the output of `mvsusieR::susie()`
 #' @return a plot object
 #' @export
-mmbr_plot = function(m, weighted_effect = FALSE, cs_only = TRUE, plot_z = FALSE) {
+mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
+                        plot_z = FALSE) {
   if (plot_z) {
     if (!("z" %in% names(m)))
       stop("Cannot find the z score summary statistics.")
@@ -439,9 +440,9 @@ mmbr_plot = function(m, weighted_effect = FALSE, cs_only = TRUE, plot_z = FALSE)
 #' @param newx a new value for X at which to do predictions
 #' @return a matrix of predicted values for each condition
 #' @details This function computes predicted values from a susie fit and a new value of X
-#' @export predict.mmbr
+#' @export predict.mvsusie
 #' @export
-predict.mmbr <- function (object, newx) {
+predict.mvsusie <- function (object, newx) {
       s <- object
   for(i in 1:ncol(s$coef)){
           if(i==1){res <- s$intercept[i] + newx %*% s$coef[-1, i]} else if(i>1){
@@ -460,9 +461,9 @@ predict.mmbr <- function (object, newx) {
 #' @return a list of canonical covariance matrices
 #' @details This function computes canonical covariance matrices to be provided to mash
 #' @examples
-#'  mmbr:::create_cov_canonical(3)
-#'  mmbr:::create_cov_canonical(3, singletons=F)
-#'  mmbr:::create_cov_canonical(3, hetgrid=NULL)
+#'  mvsusieR:::create_cov_canonical(3)
+#'  mvsusieR:::create_cov_canonical(3, singletons=F)
+#'  mvsusieR:::create_cov_canonical(3, hetgrid=NULL)
 #' @keywords internal
 create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
   mats <- list()
@@ -501,7 +502,7 @@ create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 
 #' @param max_mixture_len only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
 #' Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to use all input prior matrices.
 #' @param include_indices postprocess input prior to only include conditions from this indices
-#' @param ... other parameters, for mmbr:::create_cov_canonical
+#' @param ... other parameters, for mvsusieR:::create_cov_canonical
 #' @return mash prior object for use with msusie() function
 #' @details ...
 #' @export

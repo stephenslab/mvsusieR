@@ -10,7 +10,7 @@ Multiviate regression object with NIG-MG prior
 }
 \keyword{internal}
 \section{Super classes}{
-\code{\link[mmbr:BayesianSimpleRegression]{mmbr::BayesianSimpleRegression}} -> \code{\link[mmbr:BayesianMultivariateRegression]{mmbr::BayesianMultivariateRegression}} -> \code{NIGMGRegression}
+\code{\link[mvsusieR:BayesianSimpleRegression]{mvsusieR::BayesianSimpleRegression}} -> \code{\link[mvsusieR:BayesianMultivariateRegression]{mvsusieR::BayesianMultivariateRegression}} -> \code{NIGMGRegression}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -23,7 +23,7 @@ Multiviate regression object with NIG-MG prior
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="BayesianSimpleRegression" data-id="set_thread">}\href{../../mmbr/html/BayesianSimpleRegression.html#method-set_thread}{\code{mmbr::BayesianSimpleRegression$set_thread()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="BayesianSimpleRegression" data-id="set_thread">}\href{../../mvsusieR/html/BayesianSimpleRegression.html#method-set_thread}{\code{mvsusieR::BayesianSimpleRegression$set_thread()}}\out{</span>}
 }
 \out{</details>}
 }

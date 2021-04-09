@@ -50,7 +50,7 @@ SuSiE <- R6Class("SuSiE",
             for (l in 1:private$L) {
                 d$add_to_residual(private$SER[[l]]$predict(d))
                 # For the first 10 iterations, don't do the check with zero when EM updates are used to estimate prior variance
-                # see https://github.com/stephenslab/mmbr/issues/26#issuecomment-612947198
+                # see https://github.com/stephenslab/mvsusieR/issues/26#issuecomment-612947198
                 private$SER[[l]]$fit(d, prior_weights=prior_weights, estimate_prior_variance_method=estimate_prior_variance_method,
                                     check_null_threshold=ifelse(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM" && i <= 10, NA, check_null_threshold))
                 if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)

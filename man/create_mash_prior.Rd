@@ -35,7 +35,7 @@ Use `max_mixture_len=-1` to include all input weights after weights_tol filterin
 
 \item{include_indices}{postprocess input prior to only include conditions from this indices}
 
-\item{...}{other parameters, for mmbr:::create_cov_canonical}
+\item{...}{other parameters, for mvsusieR:::create_cov_canonical}
 }
 \value{
 mash prior object for use with msusie() function

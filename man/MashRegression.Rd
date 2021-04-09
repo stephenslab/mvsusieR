@@ -10,7 +10,7 @@ MASH multiple regression object
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[mmbr:BayesianSimpleRegression]{mmbr::BayesianSimpleRegression}} -> \code{MashRegression}
+\code{\link[mvsusieR:BayesianSimpleRegression]{mvsusieR::BayesianSimpleRegression}} -> \code{MashRegression}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -23,7 +23,7 @@ MASH multiple regression object
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="BayesianSimpleRegression" data-id="set_thread">}\href{../../mmbr/html/BayesianSimpleRegression.html#method-set_thread}{\code{mmbr::BayesianSimpleRegression$set_thread()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="BayesianSimpleRegression" data-id="set_thread">}\href{../../mvsusieR/html/BayesianSimpleRegression.html#method-set_thread}{\code{mvsusieR::BayesianSimpleRegression$set_thread()}}\out{</span>}
 }
 \out{</details>}
 }

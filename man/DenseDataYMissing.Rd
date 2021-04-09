@@ -10,7 +10,7 @@ Regression data object with missing values in Y
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[mmbr:DenseData]{mmbr::DenseData}} -> \code{DenseDataYMissing}
+\code{\link[mvsusieR:DenseData]{mvsusieR::DenseData}} -> \code{DenseDataYMissing}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -27,10 +27,10 @@ Regression data object with missing values in Y
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="add_to_residual">}\href{../../mmbr/html/DenseData.html#method-add_to_residual}{\code{mmbr::DenseData$add_to_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_MXt">}\href{../../mmbr/html/DenseData.html#method-compute_MXt}{\code{mmbr::DenseData$compute_MXt()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_residual">}\href{../../mmbr/html/DenseData.html#method-compute_residual}{\code{mmbr::DenseData$compute_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mmbr/html/DenseData.html#method-remove_from_residual}{\code{mmbr::DenseData$remove_from_residual()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="add_to_residual">}\href{../../mvsusieR/html/DenseData.html#method-add_to_residual}{\code{mvsusieR::DenseData$add_to_residual()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_MXt">}\href{../../mvsusieR/html/DenseData.html#method-compute_MXt}{\code{mvsusieR::DenseData$compute_MXt()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_residual">}\href{../../mvsusieR/html/DenseData.html#method-compute_residual}{\code{mvsusieR::DenseData$compute_residual()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mvsusieR/html/DenseData.html#method-remove_from_residual}{\code{mvsusieR::DenseData$remove_from_residual()}}\out{</span>}
 }
 \out{</details>}
 }

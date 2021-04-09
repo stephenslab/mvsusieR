@@ -97,7 +97,7 @@ msusie = function(X,Y,L=10,
   if (!is.null(dim(Y)) && ncol(Y) > 1 && is_numeric_prior) stop("Please specify prior variance for the multivariate response Y")
   if (standardize && !is_numeric_prior) {
     # Scale prior variance
-    # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
+    # https://github.com/stephenslab/mvsusieR/blob/master/inst/prototypes/prior_matrices_scale.ipynb
     sigma = sapply(1:ncol(Y), function(i) sd(Y[,i], na.rm=T))
     n = sapply(1:ncol(Y), function(i) length(which(!is.na(Y[,1]))))
     sigma = sigma / sqrt(n)
@@ -124,7 +124,7 @@ msusie = function(X,Y,L=10,
   data$standardize(intercept, standardize)
   data$set_residual_variance(quantities='effect_variance')
   #
-  s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
+  s = mvsusie_core(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
             precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
   # CS and PIP
@@ -225,7 +225,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   if (!is.null(dim(YtY)) && nrow(YtY) > 1 && is_numeric_prior) stop("Please specify prior variance for the multivariate response Y")
   if (standardize && !is_numeric_prior) {
     # Scale prior variance
-    # https://github.com/stephenslab/mmbr/blob/master/inst/prototypes/prior_matrices_scale.ipynb
+    # https://github.com/stephenslab/mvsusieR/blob/master/inst/prototypes/prior_matrices_scale.ipynb
     sigma = sqrt(diag(YtY)/(N-1))
     sigma = sigma / sqrt(N)
     # Make sigma numerically more robust against extreme values
@@ -241,7 +241,7 @@ msusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   data$standardize(standardize)
   data$set_residual_variance(quantities='effect_variance')
   #
-  s = mmbr_core(data, s_init, L, prior_variance, prior_weights,
+  s = mvsusie_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
   # CS and PIP
@@ -363,10 +363,10 @@ msusie_rss = function(Z,R,L=10,
   return(s)
 }
 
-#' @title Core MMBR code
+#' @title Core mvsusie code
 #' @importFrom susieR susie_get_pip 
 #' @keywords internal
-mmbr_core = function(data, s_init, L, prior_variance, prior_weights,
+mvsusie_core = function(data, s_init, L, prior_variance, prior_weights,
             estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
             precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity) {
   start_time = proc.time()

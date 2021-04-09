@@ -19,7 +19,7 @@ SingleEffectModel <- function(base)
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
                 V = private$estimate_prior_variance_em(private$.pip)
                 # when check_null_threshold = NA we skip this check with zero estimate
-                # see details in https://github.com/stephenslab/mmbr/issues/26
+                # see details in https://github.com/stephenslab/mvsusieR/issues/26
                 if (!is.na(check_null_threshold)) {
                     if (private$loglik(0,private$cache$b,private$cache$s,prior_weights) + check_null_threshold >= 
                         private$loglik(V,private$cache$b,private$cache$s,prior_weights)) {

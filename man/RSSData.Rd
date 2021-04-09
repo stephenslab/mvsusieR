@@ -10,7 +10,7 @@ Summary statistics object
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[mmbr:DenseData]{mmbr::DenseData}} -> \code{RSSData}
+\code{\link[mvsusieR:DenseData]{mvsusieR::DenseData}} -> \code{RSSData}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -22,15 +22,15 @@ Summary statistics object
 \if{html}{
 \out{<details ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="add_to_residual">}\href{../../mmbr/html/DenseData.html#method-add_to_residual}{\code{mmbr::DenseData$add_to_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_MXt">}\href{../../mmbr/html/DenseData.html#method-compute_MXt}{\code{mmbr::DenseData$compute_MXt()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_residual">}\href{../../mmbr/html/DenseData.html#method-compute_residual}{\code{mmbr::DenseData$compute_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_Xb">}\href{../../mmbr/html/DenseData.html#method-compute_Xb}{\code{mmbr::DenseData$compute_Xb()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="get_coef">}\href{../../mmbr/html/DenseData.html#method-get_coef}{\code{mmbr::DenseData$get_coef()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mmbr/html/DenseData.html#method-remove_from_residual}{\code{mmbr::DenseData$remove_from_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="rescale_coef">}\href{../../mmbr/html/DenseData.html#method-rescale_coef}{\code{mmbr::DenseData$rescale_coef()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="set_residual_variance">}\href{../../mmbr/html/DenseData.html#method-set_residual_variance}{\code{mmbr::DenseData$set_residual_variance()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="standardize">}\href{../../mmbr/html/DenseData.html#method-standardize}{\code{mmbr::DenseData$standardize()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="add_to_residual">}\href{../../mvsusieR/html/DenseData.html#method-add_to_residual}{\code{mvsusieR::DenseData$add_to_residual()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_MXt">}\href{../../mvsusieR/html/DenseData.html#method-compute_MXt}{\code{mvsusieR::DenseData$compute_MXt()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_Xb">}\href{../../mvsusieR/html/DenseData.html#method-compute_Xb}{\code{mvsusieR::DenseData$compute_Xb()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_residual">}\href{../../mvsusieR/html/DenseData.html#method-compute_residual}{\code{mvsusieR::DenseData$compute_residual()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="get_coef">}\href{../../mvsusieR/html/DenseData.html#method-get_coef}{\code{mvsusieR::DenseData$get_coef()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mvsusieR/html/DenseData.html#method-remove_from_residual}{\code{mvsusieR::DenseData$remove_from_residual()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="rescale_coef">}\href{../../mvsusieR/html/DenseData.html#method-rescale_coef}{\code{mvsusieR::DenseData$rescale_coef()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="set_residual_variance">}\href{../../mvsusieR/html/DenseData.html#method-set_residual_variance}{\code{mvsusieR::DenseData$set_residual_variance()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="standardize">}\href{../../mvsusieR/html/DenseData.html#method-standardize}{\code{mvsusieR::DenseData$standardize()}}\out{</span>}
 }
 \out{</details>}
 }

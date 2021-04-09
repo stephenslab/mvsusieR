@@ -25,8 +25,8 @@ Compute a list of canonical covariance matrices
 This function computes canonical covariance matrices to be provided to mash
 }
 \examples{
- mmbr:::create_cov_canonical(3)
- mmbr:::create_cov_canonical(3, singletons=F)
- mmbr:::create_cov_canonical(3, hetgrid=NULL)
+ mvsusieR:::create_cov_canonical(3)
+ mvsusieR:::create_cov_canonical(3, singletons=F)
+ mvsusieR:::create_cov_canonical(3, hetgrid=NULL)
 }
 \keyword{internal}

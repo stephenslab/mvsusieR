@@ -12,8 +12,8 @@ fsusie = function(X, Y, L=2, K=3, prior_weights=NULL,
   data = DenseData$new(X, Y)
   data$set_residual_variance(residual_variance=diag(ncol(Y)), quantities = "residual_variance")
   #
-  s = mmbr_core(data, NULL, L, NULL, prior_weights,
-            F, F, NULL, 0, F, compute_objective, 1, max_iter, tol, track_fit, verbosity)
+  s = mvsusie_core(data, NULL, L, NULL, prior_weights,
+                   F, F, NULL, 0, F, compute_objective, 1, max_iter, tol, track_fit, verbosity)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$null_index = -9

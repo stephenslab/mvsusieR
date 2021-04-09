@@ -10,7 +10,7 @@ Sufficient statistics object
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[mmbr:DenseData]{mmbr::DenseData}} -> \code{SSData}
+\code{\link[mvsusieR:DenseData]{mvsusieR::DenseData}} -> \code{SSData}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -30,7 +30,7 @@ Sufficient statistics object
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
-\item \out{<span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="get_coef">}\href{../../mmbr/html/DenseData.html#method-get_coef}{\code{mmbr::DenseData$get_coef()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="get_coef">}\href{../../mvsusieR/html/DenseData.html#method-get_coef}{\code{mvsusieR::DenseData$get_coef()}}\out{</span>}
 }
 \out{</details>}
 }
