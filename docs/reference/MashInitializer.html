@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>MASH initializer object — MashInitializer • mmbr</title>
+<title>MASH initializer object — MashInitializer • mvsusieR</title>
 
 
 <!-- jquery -->
@@ -72,8 +72,8 @@ MASH initializer object" />
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.0305</span>
+        <a class="navbar-link" href="../index.html">mvsusieR</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.3.0436</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@ MASH initializer object" />
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stephenslab/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mvsusieR">Source</a>
 </li>
       </ul>
       
@@ -107,7 +107,7 @@ MASH initializer object" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>MASH initializer object</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mmbr/blob/master/R/mash_regression.R'><code>R/mash_regression.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mvsusieR/blob/master/R/mash_regression.R'><code>R/mash_regression.R</code></a></small>
     <div class="hidden name"><code>MashInitializer.Rd</code></div>
     </div>
 
@@ -125,9 +125,10 @@ MASH initializer object" />
 
 <ul>
 <li><p><a href='#method-new'><code>MashInitializer$new()</code></a></p></li>
-<li><p><a href='#method-compute_prior_ginv'><code>MashInitializer$compute_prior_ginv()</code></a></p></li>
+<li><p><a href='#method-compute_prior_inv'><code>MashInitializer$compute_prior_inv()</code></a></p></li>
 <li><p><a href='#method-precompute_cov_matrices'><code>MashInitializer$precompute_cov_matrices()</code></a></p></li>
 <li><p><a href='#method-remove_precomputed'><code>MashInitializer$remove_precomputed()</code></a></p></li>
+<li><p><a href='#method-scale_prior_variance'><code>MashInitializer$scale_prior_variance()</code></a></p></li>
 <li><p><a href='#method-clone'><code>MashInitializer$clone()</code></a></p></li>
 </ul>
 <p><hr>
@@ -146,26 +147,28 @@ MASH initializer object" />
 )</pre><p></div></p>
 
 <p><hr>
-<a id="method-compute_prior_ginv"></a></p><h3>Method <code>compute_prior_ginv()</code></h3>
+<a id="method-compute_prior_inv"></a></p><h3>Method <code>compute_prior_inv()</code></h3>
 
 <h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>MashInitializer</span>$<span class='fu'>compute_prior_ginv</span>()</pre><p></div></p>
+<p><div class="r"></p><pre><span class='no'>MashInitializer</span>$<span class='fu'>compute_prior_inv</span>()</pre><p></div></p>
 
 <p><hr>
 <a id="method-precompute_cov_matrices"></a></p><h3>Method <code>precompute_cov_matrices()</code></h3>
 
 <h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>MashInitializer</span>$<span class='fu'>precompute_cov_matrices</span>(
-  <span class='no'>d</span>,
-  <span class='no'>residual_covariance</span>,
-  <span class='kw'>algorithm</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"R"</span>, <span class='st'>"cpp"</span>)
-)</pre><p></div></p>
+<p><div class="r"></p><pre><span class='no'>MashInitializer</span>$<span class='fu'>precompute_cov_matrices</span>(<span class='no'>d</span>, <span class='kw'>algorithm</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"R"</span>, <span class='st'>"cpp"</span>))</pre><p></div></p>
 
 <p><hr>
 <a id="method-remove_precomputed"></a></p><h3>Method <code>remove_precomputed()</code></h3>
 
 <h3>Usage</h3>
 <p><div class="r"></p><pre><span class='no'>MashInitializer</span>$<span class='fu'>remove_precomputed</span>()</pre><p></div></p>
+
+<p><hr>
+<a id="method-scale_prior_variance"></a></p><h3>Method <code>scale_prior_variance()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre><span class='no'>MashInitializer</span>$<span class='fu'>scale_prior_variance</span>(<span class='no'>sigma</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-clone"></a></p><h3>Method <code>clone()</code></h3>

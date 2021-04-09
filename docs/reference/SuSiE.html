@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SUm of SIngle Effect (SuSiE) regression IBSS algorithm — SuSiE • mmbr</title>
+<title>SUm of SIngle Effect (SuSiE) regression IBSS algorithm — SuSiE • mvsusieR</title>
 
 
 <!-- jquery -->
@@ -72,8 +72,8 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.0305</span>
+        <a class="navbar-link" href="../index.html">mvsusieR</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.3.0436</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stephenslab/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mvsusieR">Source</a>
 </li>
       </ul>
       
@@ -107,7 +107,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>SUm of SIngle Effect (SuSiE) regression IBSS algorithm</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mmbr/blob/master/R/ibss_algorithm.R'><code>R/ibss_algorithm.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mvsusieR/blob/master/R/ibss_algorithm.R'><code>R/ibss_algorithm.R</code></a></small>
     <div class="hidden name"><code>SuSiE.Rd</code></div>
     </div>
 
@@ -125,7 +125,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
 
 <ul>
 <li><p><a href='#method-new'><code>SuSiE$new()</code></a></p></li>
-<li><p><a href='#method-init_coef'><code>SuSiE$init_coef()</code></a></p></li>
+<li><p><a href='#method-init_from'><code>SuSiE$init_from()</code></a></p></li>
 <li><p><a href='#method-fit'><code>SuSiE$fit()</code></a></p></li>
 <li><p><a href='#method-get_objective'><code>SuSiE$get_objective()</code></a></p></li>
 <li><p><a href='#method-clone'><code>SuSiE$clone()</code></a></p></li>
@@ -147,10 +147,10 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
 )</pre><p></div></p>
 
 <p><hr>
-<a id="method-init_coef"></a></p><h3>Method <code>init_coef()</code></h3>
+<a id="method-init_from"></a></p><h3>Method <code>init_from()</code></h3>
 
 <h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>SuSiE</span>$<span class='fu'>init_coef</span>(<span class='no'>coef_index</span>, <span class='no'>coef_value</span>, <span class='no'>p</span>, <span class='no'>r</span>)</pre><p></div></p>
+<p><div class="r"></p><pre><span class='no'>SuSiE</span>$<span class='fu'>init_from</span>(<span class='no'>model</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-fit"></a></p><h3>Method <code>fit()</code></h3>
@@ -161,7 +161,7 @@ SUm of SIngle Effect (SuSiE) regression IBSS algorithm" />
   <span class='kw'>prior_weights</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>estimate_prior_variance_method</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>check_null_threshold</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>
+  <span class='kw'>verbosity</span> <span class='kw'>=</span> <span class='fl'>1</span>
 )</pre><p></div></p>
 
 <p><hr>

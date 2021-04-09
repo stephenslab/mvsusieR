@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Regression data object with missing values in Y — DenseDataYMissing • mmbr</title>
+<title>Regression data object with missing values in Y — DenseDataYMissing • mvsusieR</title>
 
 
 <!-- jquery -->
@@ -72,8 +72,8 @@ Regression data object with missing values in Y" />
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.0305</span>
+        <a class="navbar-link" href="../index.html">mvsusieR</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.3.0436</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@ Regression data object with missing values in Y" />
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stephenslab/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mvsusieR">Source</a>
 </li>
       </ul>
       
@@ -107,7 +107,7 @@ Regression data object with missing values in Y" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Regression data object with missing values in Y</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mmbr/blob/master/R/regression_data.R'><code>R/regression_data.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mvsusieR/blob/master/R/regression_data.R'><code>R/regression_data.R</code></a></small>
     <div class="hidden name"><code>DenseDataYMissing.Rd</code></div>
     </div>
 
@@ -120,7 +120,7 @@ Regression data object with missing values in Y" />
 
     <h2 class="hasAnchor" id="super-class"><a class="anchor" href="#super-class"></a>Super class</h2>
 
-    <p><code><a href='DenseData.html'>mmbr::DenseData</a></code> -&gt; <code>DenseDataYMissing</code></p>
+    <p><code>mvsusieR::DenseData</code> -&gt; <code>DenseDataYMissing</code></p>
     <h2 class="hasAnchor" id="methods"><a class="anchor" href="#methods"></a>Methods</h2>
 
     
@@ -128,18 +128,19 @@ Regression data object with missing values in Y" />
 
 <ul>
 <li><p><a href='#method-new'><code>DenseDataYMissing$new()</code></a></p></li>
+<li><p><a href='#method-set_residual_variance'><code>DenseDataYMissing$set_residual_variance()</code></a></p></li>
+<li><p><a href='#method-get_coef'><code>DenseDataYMissing$get_coef()</code></a></p></li>
 <li><p><a href='#method-standardize'><code>DenseDataYMissing$standardize()</code></a></p></li>
 <li><p><a href='#method-compute_Xb'><code>DenseDataYMissing$compute_Xb()</code></a></p></li>
-<li><p><a href='#method-compute_MXt'><code>DenseDataYMissing$compute_MXt()</code></a></p></li>
-<li><p><a href='#method-get_sumstats'><code>DenseDataYMissing$get_sumstats()</code></a></p></li>
+<li><p><a href='#method-rescale_coef'><code>DenseDataYMissing$rescale_coef()</code></a></p></li>
 <li><p><a href='#method-clone'><code>DenseDataYMissing$clone()</code></a></p></li>
 </ul>
 <p><details open ><summary>Inherited methods</summary>
 <ul>
-<li><p><span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="add_to_residual"><a href='../../mmbr/html/DenseData.html#method-add_to_residual'><code>mmbr::DenseData$add_to_residual()</code></a></span></p></li>
-<li><p><span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="compute_residual"><a href='../../mmbr/html/DenseData.html#method-compute_residual'><code>mmbr::DenseData$compute_residual()</code></a></span></p></li>
-<li><p><span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="remove_from_residual"><a href='../../mmbr/html/DenseData.html#method-remove_from_residual'><code>mmbr::DenseData$remove_from_residual()</code></a></span></p></li>
-<li><p><span class="pkg-link" data-pkg="mmbr" data-topic="DenseData" data-id="rescale_coef"><a href='../../mmbr/html/DenseData.html#method-rescale_coef'><code>mmbr::DenseData$rescale_coef()</code></a></span></p></li>
+<li><p><span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="add_to_residual"><a href='../../mvsusieR/html/DenseData.html#method-add_to_residual'><code>mvsusieR::DenseData$add_to_residual()</code></a></span></p></li>
+<li><p><span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_MXt"><a href='../../mvsusieR/html/DenseData.html#method-compute_MXt'><code>mvsusieR::DenseData$compute_MXt()</code></a></span></p></li>
+<li><p><span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_residual"><a href='../../mvsusieR/html/DenseData.html#method-compute_residual'><code>mvsusieR::DenseData$compute_residual()</code></a></span></p></li>
+<li><p><span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="remove_from_residual"><a href='../../mvsusieR/html/DenseData.html#method-remove_from_residual'><code>mvsusieR::DenseData$remove_from_residual()</code></a></span></p></li>
 </ul>
 </details>
 
@@ -147,7 +148,23 @@ Regression data object with missing values in Y" />
 <a id="method-new"></a></p><h3>Method <code>new()</code></h3>
 
 <h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>new</span>(<span class='no'>X</span>, <span class='no'>Y</span>)</pre><p></div></p>
+<p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>new</span>(<span class='no'>X</span>, <span class='no'>Y</span>, <span class='kw'>approximate</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre><p></div></p>
+
+<p><hr>
+<a id="method-set_residual_variance"></a></p><h3>Method <code>set_residual_variance()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>set_residual_variance</span>(
+  <span class='kw'>residual_variance</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>numeric</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>quantities</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"residual_variance"</span>, <span class='st'>"effect_variance"</span>)
+)</pre><p></div></p>
+
+<p><hr>
+<a id="method-get_coef"></a></p><h3>Method <code>get_coef()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>get_coef</span>(<span class='kw'>use_residual</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-standardize"></a></p><h3>Method <code>standardize()</code></h3>
@@ -162,16 +179,10 @@ Regression data object with missing values in Y" />
 <p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>compute_Xb</span>(<span class='no'>b</span>)</pre><p></div></p>
 
 <p><hr>
-<a id="method-compute_MXt"></a></p><h3>Method <code>compute_MXt()</code></h3>
+<a id="method-rescale_coef"></a></p><h3>Method <code>rescale_coef()</code></h3>
 
 <h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>compute_MXt</span>(<span class='no'>M</span>)</pre><p></div></p>
-
-<p><hr>
-<a id="method-get_sumstats"></a></p><h3>Method <code>get_sumstats()</code></h3>
-
-<h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>get_sumstats</span>(<span class='no'>residual_variances</span>, <span class='kw'>residual_correlation</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre><p></div></p>
+<p><div class="r"></p><pre><span class='no'>DenseDataYMissing</span>$<span class='fu'>rescale_coef</span>(<span class='no'>b</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-clone"></a></p><h3>Method <code>clone()</code></h3>

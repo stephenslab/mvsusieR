@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bayesian multiple regression object — BayesianSimpleRegression • mmbr</title>
+<title>Bayesian multiple regression object — BayesianSimpleRegression • mvsusieR</title>
 
 
 <!-- jquery -->
@@ -72,8 +72,8 @@ Bayesian multiple regression object" />
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.0305</span>
+        <a class="navbar-link" href="../index.html">mvsusieR</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.3.0436</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@ Bayesian multiple regression object" />
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stephenslab/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mvsusieR">Source</a>
 </li>
       </ul>
       
@@ -107,7 +107,7 @@ Bayesian multiple regression object" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Bayesian multiple regression object</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mmbr/blob/master/R/bayesian_simple_regression.R'><code>R/bayesian_simple_regression.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mvsusieR/blob/master/R/bayesian_simple_regression.R'><code>R/bayesian_simple_regression.R</code></a></small>
     <div class="hidden name"><code>BayesianSimpleRegression.Rd</code></div>
     </div>
 
@@ -126,13 +126,14 @@ Bayesian multiple regression object" />
 <ul>
 <li><p><a href='#method-new'><code>BayesianSimpleRegression$new()</code></a></p></li>
 <li><p><a href='#method-fit'><code>BayesianSimpleRegression$fit()</code></a></p></li>
+<li><p><a href='#method-set_thread'><code>BayesianSimpleRegression$set_thread()</code></a></p></li>
 <li><p><a href='#method-clone'><code>BayesianSimpleRegression$clone()</code></a></p></li>
 </ul>
 <p><hr>
 <a id="method-new"></a></p><h3>Method <code>new()</code></h3>
 
 <h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>BayesianSimpleRegression</span>$<span class='fu'>new</span>(<span class='no'>J</span>, <span class='no'>residual_variance</span>, <span class='no'>prior_variance</span>)</pre><p></div></p>
+<p><div class="r"></p><pre><span class='no'>BayesianSimpleRegression</span>$<span class='fu'>new</span>(<span class='no'>J</span>, <span class='no'>prior_variance</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-fit"></a></p><h3>Method <code>fit()</code></h3>
@@ -147,6 +148,12 @@ Bayesian multiple regression object" />
   <span class='kw'>estimate_prior_variance_method</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>check_null_threshold</span> <span class='kw'>=</span> <span class='fl'>0</span>
 )</pre><p></div></p>
+
+<p><hr>
+<a id="method-set_thread"></a></p><h3>Method <code>set_thread()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre><span class='no'>BayesianSimpleRegression</span>$<span class='fu'>set_thread</span>(<span class='no'>value</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-clone"></a></p><h3>Method <code>clone()</code></h3>

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>The regular regression data object — DenseData • mmbr</title>
+<title>The regular regression data object — DenseData • mvsusieR</title>
 
 
 <!-- jquery -->
@@ -72,8 +72,8 @@ The regular regression data object" />
         <span class="icon-bar"></span>
       </button>
       <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">mmbr</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1.0305</span>
+        <a class="navbar-link" href="../index.html">mvsusieR</a>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.3.0436</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@ The regular regression data object" />
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/stephenslab/mmbr">Source</a>
+  <a href="https://github.com/stephenslab/mvsusieR">Source</a>
 </li>
       </ul>
       
@@ -107,7 +107,7 @@ The regular regression data object" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>The regular regression data object</h1>
-    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mmbr/blob/master/R/regression_data.R'><code>R/regression_data.R</code></a></small>
+    <small class="dont-index">Source: <a href='https://github.com/stephenslab/mvsusieR/blob/master/R/regression_data.R'><code>R/regression_data.R</code></a></small>
     <div class="hidden name"><code>DenseData.Rd</code></div>
     </div>
 
@@ -125,6 +125,8 @@ The regular regression data object" />
 
 <ul>
 <li><p><a href='#method-new'><code>DenseData$new()</code></a></p></li>
+<li><p><a href='#method-set_residual_variance'><code>DenseData$set_residual_variance()</code></a></p></li>
+<li><p><a href='#method-get_coef'><code>DenseData$get_coef()</code></a></p></li>
 <li><p><a href='#method-standardize'><code>DenseData$standardize()</code></a></p></li>
 <li><p><a href='#method-compute_Xb'><code>DenseData$compute_Xb()</code></a></p></li>
 <li><p><a href='#method-compute_MXt'><code>DenseData$compute_MXt()</code></a></p></li>
@@ -132,7 +134,6 @@ The regular regression data object" />
 <li><p><a href='#method-add_to_residual'><code>DenseData$add_to_residual()</code></a></p></li>
 <li><p><a href='#method-compute_residual'><code>DenseData$compute_residual()</code></a></p></li>
 <li><p><a href='#method-rescale_coef'><code>DenseData$rescale_coef()</code></a></p></li>
-<li><p><a href='#method-get_sumstats'><code>DenseData$get_sumstats()</code></a></p></li>
 <li><p><a href='#method-clone'><code>DenseData$clone()</code></a></p></li>
 </ul>
 <p><hr>
@@ -140,6 +141,23 @@ The regular regression data object" />
 
 <h3>Usage</h3>
 <p><div class="r"></p><pre><span class='no'>DenseData</span>$<span class='fu'>new</span>(<span class='no'>X</span>, <span class='no'>Y</span>)</pre><p></div></p>
+
+<p><hr>
+<a id="method-set_residual_variance"></a></p><h3>Method <code>set_residual_variance()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre><span class='no'>DenseData</span>$<span class='fu'>set_residual_variance</span>(
+  <span class='kw'>residual_variance</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>numeric</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>precompute_covariances</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>quantities</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"residual_variance"</span>, <span class='st'>"effect_variance"</span>)
+)</pre><p></div></p>
+
+<p><hr>
+<a id="method-get_coef"></a></p><h3>Method <code>get_coef()</code></h3>
+
+<h3>Usage</h3>
+<p><div class="r"></p><pre><span class='no'>DenseData</span>$<span class='fu'>get_coef</span>(<span class='kw'>use_residual</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-standardize"></a></p><h3>Method <code>standardize()</code></h3>
@@ -182,12 +200,6 @@ The regular regression data object" />
 
 <h3>Usage</h3>
 <p><div class="r"></p><pre><span class='no'>DenseData</span>$<span class='fu'>rescale_coef</span>(<span class='no'>b</span>)</pre><p></div></p>
-
-<p><hr>
-<a id="method-get_sumstats"></a></p><h3>Method <code>get_sumstats()</code></h3>
-
-<h3>Usage</h3>
-<p><div class="r"></p><pre><span class='no'>DenseData</span>$<span class='fu'>get_sumstats</span>(<span class='no'>residual_variances</span>, <span class='kw'>residual_correlation</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre><p></div></p>
 
 <p><hr>
 <a id="method-clone"></a></p><h3>Method <code>clone()</code></h3>

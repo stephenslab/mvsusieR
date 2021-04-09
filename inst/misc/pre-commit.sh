@@ -34,6 +34,6 @@ else
 	fi
         echo "Running unit tests ..."
         R --slave -e 'devtools::test()'
-        R --slave -e 'library(mmbr); tests = testthat::test_examples(".")'
+        R --slave -e 'library(mvsusieR); tests = testthat::test_examples(".")'
     fi
 fi
