@@ -1,2 +1,8 @@
 ^docs$
 ^_pkgdown\.yml$
+^config\.yml$
+^Makefile$
+^release$
+^config\.yml$
+^R/README\.md$
+

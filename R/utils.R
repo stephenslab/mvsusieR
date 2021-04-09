@@ -381,7 +381,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     top_snp = which(logp == max(logp, na.rm=TRUE), arr.ind = TRUE)[1]
   } else {
     if (weighted_effect) bhat = m$coef[-1,]
-    else bhat = colSums(m$b1, dim=1)
+    else bhat = colSums(m$b1, dims=1)
     if (is.na(m$lfsr)) stop("Cannot make bubble plot without lfsr information (currently only implemented for mixture prior)")
     p = m$lfsr
     top_snp = NULL
@@ -417,7 +417,6 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       colors[which(xtable[,2] == i)] = as.integer(i) + 2
     }
   }
-  library(ggplot2)
   p = ggplot(table) +
     geom_point(aes(x = x, y = y, colour = effect_size , size = mlog10lfsr)) +
     scale_x_discrete(limits = unique(table$x)) +
