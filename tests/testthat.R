@@ -1,4 +1,3 @@
 library(testthat)
-library(mmbr)
-
-test_check("mmbr")
+library(mvsusieR)
+test_check("mvsusieR")

@@ -15,15 +15,16 @@ knitr::opts_chunk$set(collapse = TRUE,comment = "#",fig.width = 5,
                       fig.cap = "&nbsp;",dpi = 120)
 ```
 
-This vignette demonstrates `mmbr` in the context of prediction. We first simulate three phenotypes
-($y_1$, $y_2$, $y_3$) and genotypes at $P = 1000$ loci ($X$) for $N = 500$ individuals. Then, the goal is
-to predict phenotypes from genotypes for $N_{test} = 100$ individuals, training our model on the remaining 
-$N_{training} = 400$ individuals.
+This vignette demonstrates mvsusieR in the context of prediction. We
+first simulate three phenotypes ($y_1$, $y_2$, $y_3$) and genotypes at
+$P = 1000$ loci ($X$) for $N = 500$ individuals. Then, the goal is to
+predict phenotypes from genotypes for $N_{test} = 100$ individuals,
+training our model on the remaining $N_{training} = 400$ individuals.
 
 ```{r}
-library(mmbr)
+library(mvsusieR)
 set.seed(1234)
-options(stringsAsFactors = F)
+options(stringsAsFactors = FALSE)
 ```
 
 ## The data-set
@@ -56,7 +57,7 @@ head(beta2)
 head(beta3)
 ```
 
-## Prediction with `mmbr`
+## Prediction with mvsusieR
 
 For starters, we assume there are at most 10 causal variables (i.e., set `L = 10`), select the first 100 individuals as the training set,
 and derive the prior from data:
@@ -68,7 +69,7 @@ y <- cbind(y1[-test_num], y2[-test_num], y3[-test_num])
 prior_covar <- create_mash_prior(sample_data = list(X=X[-test_num, ],Y=y,residual_variance=cov(y)), max_mixture_len=-1)
 ```
 
-Then, we fit the `mmbr` model to the training set.
+Then, we fit the mvsusie model to the training set.
 
 ```{r}
 m <- msusie(X[-test_num, ], y, L=L, prior_variance=prior_covar)
@@ -77,7 +78,7 @@ m <- msusie(X[-test_num, ], y, L=L, prior_variance=prior_covar)
 Finally, we use the parameter estimates from the training set to predict phenotypes in the test set. The accuracy of prediction is calculated as the correlation between true and predicted phenotypes.
 
 ```{r}
-pred <- predict.mmbr(m, X[test_num, ])
+pred <- predict.mvsusie(m, X[test_num, ])
 
 results <- matrix(c(cor(pred[, 1], y1[test_num, ]), cor(pred[, 2], y2[test_num, ]), cor(pred[, 3], y3[test_num, ])), nrow=3, ncol=1)
 results
