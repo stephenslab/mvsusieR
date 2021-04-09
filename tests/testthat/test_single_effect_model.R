@@ -1,6 +1,6 @@
 context("Test Single Effect regression")
 
-test_that("mmbr is identical to susieR", with(simulate_univariate(), {
+test_that("mvsusieR is identical to susieR", with(simulate_univariate(), {
     # Test fixed prior
     A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = NULL)
     kl = susieR:::SER_posterior_e_loglik(X,y,1,A$alpha*A$mu,A$alpha*A$mu2)- A$loglik
@@ -25,7 +25,7 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     expect_equal(kl, B$kl)
 }))
 
-test_that("mmbr is identical to susieR (RSS)", with(simulate_univariate(summary = T), {
+test_that("mvsusieR is identical to susieR (RSS)", with(simulate_univariate(summary = T), {
   # Test fixed prior
   A = susieR:::single_effect_regression_ss(z, diag(R), V, prior_weights = NULL, optimize_V = "none")
   kl = susieR:::SER_posterior_e_loglik_ss(diag(R), z, 1, A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model

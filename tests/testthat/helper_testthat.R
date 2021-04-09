@@ -56,7 +56,7 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
 
 simulate_multivariate = function(n=100,p=100,r=2,center_scale=TRUE,y_missing=0) {
   set.seed(1)
-  res = mmbr_sim1(n,p,r,4,center_scale=center_scale,y_missing=y_missing)
+  res = mvsusie_sim1(n,p,r,4,center_scale=center_scale,y_missing=y_missing)
   res$L = 10
   return(res)
 }

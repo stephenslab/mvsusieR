@@ -1,6 +1,6 @@
 context("Test check for convergence using ELBO or not")
 
-test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(), {
+test_that("mvsusieR gets same result checking ELBO or not", with(simulate_univariate(), {
     # Do not estimate prior variance
     SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
     A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
@@ -25,7 +25,7 @@ test_that("mmbr get same result checking ELBO or not", with(simulate_univariate(
     expect_susie_equal(A,B,T,F,tol=5E-4)
 }))
 
-test_that("mmbr get same result checking ELBO or not RSS", with(simulate_univariate(summary = T), {
+test_that("mvsusieR gets same result checking ELBO or not RSS", with(simulate_univariate(summary = T), {
   # Do not estimate prior variance
   SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
   A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)

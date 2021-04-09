@@ -191,7 +191,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
   data2$standardize(TRUE,TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
-  fit2 = mmbr_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit2 = mvsusie_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
                    precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
   
@@ -199,7 +199,7 @@ test_that("With full observation, the estimated prior variance are same for Dens
   data3$set_residual_variance(residual_var, quantities = 'residual_variance')
   data3$standardize(TRUE,TRUE)
   data3$set_residual_variance(quantities = 'effect_variance')
-  fit3 = mmbr_core(data3, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit3 = mvsusie_core(data3, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
                    precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
   
@@ -220,11 +220,11 @@ test_that("With full observation, the estimated prior variance are same for Dens
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
   mash_init$scale_prior_variance(sigma)
-  fit4 = expect_warning(mmbr_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit4 = expect_warning(mvsusie_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
                    precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1))
   
-  fit5 = expect_warning(mmbr_core(data3, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit5 = expect_warning(mvsusie_core(data3, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                                   estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
                                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1))
   
@@ -309,7 +309,7 @@ test_that("With full observation, the elbo are same for DenseDataYMissing and De
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
   data2$standardize(TRUE,TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
-  fit2 = mmbr_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit2 = mvsusie_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
                    precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3, prior_tol=1e-9, track_fit=F, verbosity=0, n_thread=1)
   
@@ -317,7 +317,7 @@ test_that("With full observation, the elbo are same for DenseDataYMissing and De
   data3$set_residual_variance(residual_var, quantities = 'residual_variance')
   data3$standardize(TRUE,TRUE)
   data3$set_residual_variance(quantities = 'effect_variance')
-  fit3 = mmbr_core(data3, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit3 = mvsusie_core(data3, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
                    precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3,prior_tol=1e-9, track_fit=F, verbosity=0, n_thread=1)
   
@@ -328,11 +328,11 @@ test_that("With full observation, the elbo are same for DenseDataYMissing and De
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
   mash_init$scale_prior_variance(sigma)
-  fit4 = expect_warning(mmbr_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit4 = expect_warning(mvsusie_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                                   estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
                                   precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3,prior_tol=1e-9, track_fit=F, verbosity=0, n_thread=1))
   
-  fit5 = expect_warning(mmbr_core(data3, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit5 = expect_warning(mvsusie_core(data3, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                                   estimate_residual_variance=F, estimate_prior_variance=F, estimate_prior_method='EM', check_null_threshold=0,
                                   precompute_covariances=F, compute_objective=T, max_iter=100, tol=1e-3,prior_tol=1e-9, track_fit=F, verbosity=0, n_thread=1))
   

@@ -8,13 +8,13 @@ navbar:
       href: reference/index.html
   right:
     - text: "Source"
-      href: https://github.com/stephenslab/mmbr
+      href: https://github.com/stephenslab/mvsusieR
 
 articles:
   - title: "Vignettes"
     desc: >
       The following vignettes provide detailed illustrations of the
-      mmbr package, as well as guidance on correct application of the
+      mvsusieR package, as well as guidance on correct application of the
       statistical methods.
     contents:
     - prediction

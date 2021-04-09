@@ -1,6 +1,6 @@
 context("Test Bayesian multiple regression")
 
-test_that("mmbr is identical to susieR", with(simulate_univariate(), {
+test_that("mvsusieR is identical to susieR", with(simulate_univariate(), {
     # Test fixed prior
     A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = NULL)
     B = BayesianSimpleRegression$new(d$n_effect, V)
@@ -18,7 +18,7 @@ test_that("mmbr is identical to susieR", with(simulate_univariate(), {
     expect_equal(A$lbf, as.vector(B$lbf))
 }))
 
-test_that("mmbr_RSS is identical to susieR_RSS", with(simulate_univariate(summary=T), {
+test_that("mvsusieR_RSS is identical to susieR_RSS", with(simulate_univariate(summary=T), {
   # Test fixed prior
   A = susieR:::single_effect_regression_ss(z, diag(R), V, prior_weights = NULL, optimize_V = "none")
   B = BayesianSimpleRegression$new(d$n_effect, V)

@@ -1,5 +1,5 @@
 default:
-	Rscript -e "install.packages('./', type='source', repos=NULL)" && Rscript -e "library(mmbr); testthat::test_examples('.')"
+	Rscript -e "install.packages('./', type='source', repos=NULL)" && Rscript -e "library(mvsusieR); testthat::test_examples('.')"
 
 document:
 	Rscript -e "devtools::document()"
@@ -10,4 +10,4 @@ html:
 	./release
 	rm -r prototypes
 pkg_down:
-	R --slave -e "pkgdown::build_site(lazy=T,examples=F)"
+	R --slave -e "pkgdown::build_site(lazy = TTRUE,examples = FALSE)"

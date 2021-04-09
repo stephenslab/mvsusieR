@@ -1,5 +1,5 @@
 name: 'R package for the M&M method for regression'
-repo: 'http://github.com/stephenslab/mmbr'
+repo: 'http://github.com/stephenslab/mvsusieR
 footer: "&copy 2017-2019 Gao Wang at Stephens Lab, University of Chicago"
 include_dir: ['prototypes']
 skip_homepage: True
