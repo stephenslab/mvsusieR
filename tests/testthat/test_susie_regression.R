@@ -1,5 +1,4 @@
 context("Test SuSiE regression")
-skip("Skip test_susie_regression.R")
 
 test_that("mvsusieR is identical to susieR when prior is a scalar", with(simulate_univariate(), {
     # Test fixed prior fixed residual
