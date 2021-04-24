@@ -236,7 +236,7 @@ MashRegression <- R6Class("MashRegression",
 #' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, weights_tol = 1E-10, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
+      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, weights_tol = 1E-10, null_tol = 5E-7, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
         all_zeros = vector()
         if (is.null(xUlist)) {
           if (is.null(Ulist)) stop("Either xUlist or Ulist have to be non-null")
@@ -248,7 +248,7 @@ MashInitializer <- R6Class("MashInitializer",
           if (!is.null(include_conditions)) {
             for (l in 1:length(Ulist)) {
               Ulist[[l]] = Ulist[[l]][include_conditions, include_conditions]
-              all_zeros[l] = all(Ulist[[l]] == 0)
+              all_zeros[l] = all(abs(Ulist[[l]])< null_tol)
             }
           }
           xUlist = mashr:::expand_cov(Ulist, grid, usepointmass=TRUE)
