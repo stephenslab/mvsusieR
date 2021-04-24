@@ -79,6 +79,9 @@ MashRegression <- R6Class("MashRegression",
         private$cache$SER_posterior_mixture_weights = private$get_SER_posterior_mixture_weights(llik, prior_weights, private$.prior_variance$pi)
         private$cache$mixture_prior_variance_scale = post$prior_scale_em_update
       }
+      # 7. clean up workspace
+      rm(post)
+      rm(llik)
     }
   ),
   active = list(
