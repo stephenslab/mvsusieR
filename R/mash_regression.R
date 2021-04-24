@@ -241,19 +241,18 @@ MashInitializer <- R6Class("MashInitializer",
         if (is.null(xUlist)) {
           if (is.null(Ulist)) stop("Either xUlist or Ulist have to be non-null")
           for (l in 1:length(Ulist)) {
-              if (all(Ulist[[l]] == 0))
-              stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
+              if (all(abs(Ulist[[l]])< null_tol)) stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
           }
-          if (any(grid<=0)) stop("grid values should be greater than zero")
-          if (!is.null(include_conditions)) {
-            for (l in 1:length(Ulist)) {
-              Ulist[[l]] = Ulist[[l]][include_conditions, include_conditions]
-              all_zeros[l] = all(abs(Ulist[[l]])< null_tol)
-            }
-          }
+          if (any(grid<=0)) stop("grid values should be greater than zero") 
           xUlist = mashr:::expand_cov(Ulist, grid, usepointmass=TRUE)
         } else {
           if (!all(xUlist[[1]] == 0)) xUlist = c(list(matrix(0, nrow(xUlist[[1]]), ncol(xUlist[[1]]))), xUlist)
+        }
+        if (!is.null(include_conditions)) {
+            for (l in 1:length(xUlist)) {
+              xUlist[[l]] = xUlist[[l]][include_conditions, include_conditions]
+              if (l > 1) all_zeros[l-1] = all(abs(xUlist[[l]])< null_tol)
+            }
         }
         plen = length(xUlist) - 1
         if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
