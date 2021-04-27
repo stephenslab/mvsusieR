@@ -122,23 +122,21 @@ test_that("customized initialization interface", with(simulate_multivariate(r=3)
 
 test_that("mvsusieR is identical to susieR (RSS)", with(simulate_univariate(summary = T), {
   # Test fixed prior fixed residual
-  A = susieR::susie_rss(z, R, L = L, prior_variance = V, residual_variance = 1, prior_weights = NULL,
-                        estimate_residual_variance = FALSE, estimate_prior_variance = F)
+  A = susieR::susie_rss(z, R, L = L, prior_variance = V, estimate_prior_variance = F)
   SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
   B = SuSiE$new(SER, L, estimate_residual_variance = FALSE)
   d.copy = d$clone(T)
   B$fit(d.copy)
   BA = report_susie_model(d.copy, B)
-  expect_susieR_equal(A, BA, F, F)
+  expect_susieR_equal(A, BA, F, F, rss=T)
   # Test estimated prior fixed residual
-  A = susieR::susie_rss(z, R, L = L, prior_variance = V, residual_variance = 1, prior_weights = NULL,
-                        estimate_residual_variance = FALSE, estimate_prior_variance = TRUE)
+  A = susieR::susie_rss(z, R, L = L, prior_variance = V, estimate_prior_variance = TRUE)
   SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
   B = SuSiE$new(SER, L, estimate_residual_variance = FALSE)
   d.copy = d$clone(T)
   B$fit(d.copy,estimate_prior_variance_method='optim')
   BA = report_susie_model(d.copy, B)
-  expect_susieR_equal(A, BA, T, F, 1E-5)
+  expect_susieR_equal(A, BA, T, F, 1E-5, rss = T)
 }))
 
 test_that("mash regression in SuSiE is identical to univariate case (RSS)", with(simulate_multivariate(r=1), {

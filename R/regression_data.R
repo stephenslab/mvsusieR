@@ -130,11 +130,11 @@ DenseData <- R6Class("DenseData",
       coefs = b/.csd
       if (is.null(dim(coefs))) {
         if (!is.null(.Y_mean)) intercept = .Y_mean - sum(.cm * coefs)
-        else intercept = 0
+        else intercept = NA
         c(intercept, coefs)
       } else {
         if (!is.null(.Y_mean)) intercept = .Y_mean - colSums(.cm * coefs)
-        else intercept = 0
+        else intercept = NA
         mat = as.matrix(rbind(intercept, coefs))
         rownames(mat) = NULL
         return(mat)
@@ -568,7 +568,7 @@ RSSData <- R6Class("RSSData",
 SSData <- R6Class("SSData", inherit = DenseData,
   portable = FALSE,
   public = list(
-    initialize = function(XtX, XtY, YtY, N) {
+    initialize = function(XtX, XtY, YtY, N, X_colmeans, Y_colmeans) {
       if (is.null(dim(XtY))) .XtY <<- matrix(XtY,length(XtY),1)
       else .XtY <<- XtY
       if (ncol(XtX) != nrow(.XtY))
@@ -593,6 +593,23 @@ SSData <- R6Class("SSData", inherit = DenseData,
       .csd <<- rep(1, length = .J)
       .d <<- diag(.XtX)
       .d[.d == 0] <<- 1E-6
+      
+      if(all(!is.null(X_colmeans), !is.null(Y_colmeans))){
+        if(length(X_colmeans) == 1 && X_colmeans == 0){
+          X_colmeans = numeric(.J)
+        }
+        if(length(Y_colmeans) == 1 && Y_colmeans == 0){
+          y_colmeans = numeric(.R)
+        }
+        if(length(X_colmeans) != .J){
+          stop('The length of X_colmeans does not agree with number of variables.')
+        }
+        if(length(Y_colmeans) != .R){
+          stop('The length of Y_colmeans does not agree with number of conditions.')
+        }
+      }
+      .cm <<- X_colmeans
+      .Y_mean <<- Y_colmeans
     },
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      precompute_covariances = TRUE,
@@ -675,11 +692,20 @@ SSData <- R6Class("SSData", inherit = DenseData,
     },
     rescale_coef = function(b) {
       coefs = b/.csd
+      
       if (is.null(dim(coefs))) {
-        intercept = 0
+        if(any(is.null(.cm), is.null(.Y_mean))){
+          intercept = NA
+        }else{
+          intercept = .Y_mean - sum(.cm * coefs)
+        }
         c(intercept, coefs)
       } else {
-        intercept = 0
+        if(any(is.null(.cm), is.null(.Y_mean))){
+          intercept = NA
+        }else{
+          intercept = .Y_mean - colSums(.cm * coefs)
+        }
         mat = as.matrix(rbind(intercept, coefs))
         rownames(mat) = NULL
         return(mat)

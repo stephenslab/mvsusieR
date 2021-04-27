@@ -10,6 +10,8 @@ mvsusie_suff_stat(
   YtY,
   N,
   L = 10,
+  X_colmeans = NULL,
+  Y_colmeans = NULL,
   prior_variance = 0.2,
   residual_variance = NULL,
   prior_weights = NULL,
@@ -41,6 +43,14 @@ mvsusie_suff_stat(
 \item{N}{sample size}
 
 \item{L}{maximum number of non-zero effects}
+
+\item{X_colmeans}{A J-vector of column means of \eqn{X}. If it is
+provided with \code{Y_colmeans}, we compute the correct intercept.
+Otherwise, the intercept is NA.}
+
+\item{Y_colmeans}{An R-vector of column means of \eqn{Y}. If it is
+provided with \code{X_colmeans}, we compute the correct intercept.
+Otherwise, the intercept is NA.}
 
 \item{prior_variance}{Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights}
 
@@ -109,11 +119,13 @@ beta = rep(0,p)
 beta[1:4] = 1
 X = matrix(rnorm(n*p),nrow=n,ncol=p)
 y = X \%*\% beta + rnorm(n)
-X = t(t(X) - colMeans(X))
-y = t(t(y) - colMeans(y))
+X_colmeans = colMeans(X)
+Y_colmeans = colMeans(y)
+X = t(t(X) - X_colmeans)
+y = t(t(y) - Y_colmeans)
 XtX = crossprod(X)
 XtY = crossprod(X, y)
 YtY = crossprod(y)
-res = mvsusie_ss(XtX,XtY,YtY,n,L=10)
+res = mvsusie_ss(XtX,XtY,YtY,n,L=10,X_colmeans,Y_colmeans)
 
 }

@@ -39,7 +39,7 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
     # FIXME: sparse data not supported
     data = NA
   } else if(summary){
-    data = SSData$new(R, z, length(z)-1, length(z))
+    data = SSData$new(R, z, 1, 2, NULL, NULL)
     data$set_residual_variance(residual_variance)
   }else {
     data = DenseData$new(X,y)
@@ -66,14 +66,16 @@ compute_cov_diag <- function(Y){
   return(covar)
 }
 
-expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-8) {
+expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, 
+                               tol = 1E-8, rss = FALSE) {
   expect_equal(A$alpha, BA$alpha, tolerance = tol)
   expect_equal(A$lbf, BA$lbf, tolerance = tol)
   if (!is.na(A$KL) && !is.na(BA$KL)) expect_equal(A$KL, BA$KL, tolerance = tol)
   expect_equal(A$alpha * A$mu, BA$b1, tolerance = tol)
   expect_equal(A$alpha * A$mu2, BA$b2, tolerance = tol)
   if (!is.na(A$elbo) && !is.na(BA$elbo)) expect_equal(A$elbo, BA$elbo, tolerance = tol)
-  expect_equal(as.vector(A$fitted), as.vector(BA$fitted), tolerance = tol)
+  if (!rss) expect_equal(as.vector(A$fitted), as.vector(BA$fitted), tolerance = tol)
+  if (rss) expect_equal(as.vector(A$Rr), as.vector(BA$fitted), tolerance = tol)
   expect_equal(coef(A), BA$coef, tolerance = tol)
   if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2, tolerance = tol)
   if (estimate_prior_variance) expect_equal(A$V, BA$V, tolerance = tol)

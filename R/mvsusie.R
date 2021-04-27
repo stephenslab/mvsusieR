@@ -147,6 +147,12 @@ mvsusie = function(X,Y,L=10,
 #' @param YtY an R by R matrix
 #' @param N sample size
 #' @param L maximum number of non-zero effects
+#' @param X_colmeans A J-vector of column means of \eqn{X}. If it is
+#'   provided with \code{Y_colmeans}, we compute the correct intercept.
+#'   Otherwise, the intercept is NA.
+#' @param Y_colmeans An R-vector of column means of \eqn{Y}. If it is
+#'   provided with \code{X_colmeans}, we compute the correct intercept.
+#'   Otherwise, the intercept is NA.
 #' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
 #' @param residual_variance the residual variance (defaults to 1)
 #' @param prior_weights a p vector of prior probability that each element is non-zero
@@ -192,17 +198,20 @@ mvsusie = function(X,Y,L=10,
 #' beta[1:4] = 1
 #' X = matrix(rnorm(n*p),nrow=n,ncol=p)
 #' y = X %*% beta + rnorm(n)
-#' X = t(t(X) - colMeans(X))
-#' y = t(t(y) - colMeans(y))
+#' X_colmeans = colMeans(X)
+#' Y_colmeans = colMeans(y)
+#' X = t(t(X) - X_colmeans)
+#' y = t(t(y) - Y_colmeans)
 #' XtX = crossprod(X)
 #' XtY = crossprod(X, y)
 #' YtY = crossprod(y)
-#' res = mvsusie_ss(XtX,XtY,YtY,n,L=10)
+#' res = mvsusie_ss(XtX,XtY,YtY,n,L=10,X_colmeans,Y_colmeans)
 #'
 #' @importFrom stats var
 #' @importFrom susieR susie_get_cs 
 #' @export
 mvsusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
+                             X_colmeans = NULL, Y_colmeans = NULL,
                             prior_variance=0.2,
                             residual_variance=NULL,
                             prior_weights=NULL,
@@ -234,7 +243,7 @@ mvsusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
     else prior_variance$scale_prior_variance(sigma)
   }
   
-  data = SSData$new(XtX, XtY, YtY, N)
+  data = SSData$new(XtX, XtY, YtY, N, X_colmeans, Y_colmeans)
   # include residual variance in data
   data$set_residual_variance(residual_variance, numeric = is_numeric_prior,
                              quantities = 'residual_variance')
@@ -328,25 +337,12 @@ mvsusie_rss = function(Z,R,L=10,
   is_numeric_matrix(R,'R')
   
   if(is.null(dim(Z))){
-    N = length(Z)
+    YtY = 1
   }else{
-    N = nrow(Z)
-  }
-  if(is.null(residual_variance)){
-    if(is.null(dim(Z))){
-      YtY = N - 1
-    }else{
-      if(ncol(Z) == 1){
-        YtY = (N - 1)
-      }else{
-        YtY = (N - 1) * diag(ncol(Z))
-      }
-    }
-  }else{
-    YtY = (N - 1) * residual_variance
+    YtY = diag(ncol(Z))
   }
   
-  s = mvsusie_suff_stat(XtX=R, XtY=Z, YtY=YtY, N=N, L=L,
+  s = mvsusie_suff_stat(XtX=R, XtY=Z, YtY=YtY, N=2, L=L,
                        prior_variance=prior_variance,
                        residual_variance=residual_variance,
                        prior_weights=prior_weights,

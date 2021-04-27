@@ -24,8 +24,8 @@ Summary statistics object
 \itemize{
 \item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="add_to_residual">}\href{../../mvsusieR/html/DenseData.html#method-add_to_residual}{\code{mvsusieR::DenseData$add_to_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_MXt">}\href{../../mvsusieR/html/DenseData.html#method-compute_MXt}{\code{mvsusieR::DenseData$compute_MXt()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_residual">}\href{../../mvsusieR/html/DenseData.html#method-compute_residual}{\code{mvsusieR::DenseData$compute_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_Xb">}\href{../../mvsusieR/html/DenseData.html#method-compute_Xb}{\code{mvsusieR::DenseData$compute_Xb()}}\out{</span>}
+\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_residual">}\href{../../mvsusieR/html/DenseData.html#method-compute_residual}{\code{mvsusieR::DenseData$compute_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="get_coef">}\href{../../mvsusieR/html/DenseData.html#method-get_coef}{\code{mvsusieR::DenseData$get_coef()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mvsusieR/html/DenseData.html#method-remove_from_residual}{\code{mvsusieR::DenseData$remove_from_residual()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="rescale_coef">}\href{../../mvsusieR/html/DenseData.html#method-rescale_coef}{\code{mvsusieR::DenseData$rescale_coef()}}\out{</span>}

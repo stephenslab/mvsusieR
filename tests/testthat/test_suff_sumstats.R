@@ -6,13 +6,15 @@ test_that("summary statistics are consistent in DenseData and SSData objects", w
   X = matrix(runif(ncol(X) * nrow(X)), nrow(X), ncol(X))
   # missing value computations, for a test.
   # set `missing_code` to NULL to force using missing data computation routines
-  X.c = t(t(X) - colMeans(X))
-  y.c = t(t(y) - colMeans(y))
+  X_colmeans = colMeans(X)
+  Y_colmeans = colMeans(y)
+  X.c = t(t(X) - X_colmeans)
+  y.c = t(t(y) - Y_colmeans)
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
   N = n
-  d1 = SSData$new(XtX,XtY,YtY,N)
+  d1 = SSData$new(XtX,XtY,YtY,N,X_colmeans,Y_colmeans)
   d1$set_residual_variance(residual_variance, quantities = 'residual_variance')
   d1$standardize(FALSE)
   d1$set_residual_variance(quantities = 'effect_variance')
@@ -36,12 +38,14 @@ test_that("When R = 1, result from ss data is same as the result using full data
   fit1 = BayesianSimpleRegression$new(ncol(X), prior_var)
   fit1$fit(data1, save_summary_stats = T)
   
-  X.c = t(t(X) - colMeans(X))
-  y.c = t(t(y) - colMeans(y))
+  X_colmeans = colMeans(X)
+  Y_colmeans = colMeans(y)
+  X.c = t(t(X) - X_colmeans)
+  y.c = t(t(y) - Y_colmeans)
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  data2 = SSData$new(XtX, XtY, YtY, n)
+  data2 = SSData$new(XtX, XtY, YtY, n, X_colmeans,Y_colmeans)
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
   data2$standardize(TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
@@ -66,12 +70,14 @@ test_that("With full observations, the results are same for SSData and DenseData
   fit1 = BayesianMultivariateRegression$new(ncol(X), prior_var)
   fit1$fit(data1, save_summary_stats = T)
   
-  X.c = t(t(X) - colMeans(X))
-  y.c = t(t(y) - colMeans(y))
+  X_colmeans = colMeans(X)
+  Y_colmeans = colMeans(y)
+  X.c = t(t(X) - X_colmeans)
+  y.c = t(t(y) - Y_colmeans)
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  data2 = SSData$new(XtX, XtY, YtY, n)
+  data2 = SSData$new(XtX, XtY, YtY, n, X_colmeans,Y_colmeans)
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
   data2$standardize(TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
@@ -104,12 +110,14 @@ test_that("When R = 1, estimated prior variance with ss data agrees with full da
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
-  X.c = t(t(X) - colMeans(X))
-  y.c = t(t(y) - colMeans(y))
+  X_colmeans = colMeans(X)
+  Y_colmeans = colMeans(y)
+  X.c = t(t(X) - X_colmeans)
+  y.c = t(t(y) - Y_colmeans)
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                 standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -118,7 +126,7 @@ test_that("When R = 1, estimated prior variance with ss data agrees with full da
   expect_equal(fit1$lbf, fit2$lbf)
   expect_equal(fit1$b1, fit2$b1)
   expect_equal(fit1$b2, fit2$b2)
-  expect_equal(fit1$coef[-1], fit2$coef[-1])
+  expect_equal(fit1$coef, fit2$coef)
   expect_equal(fit1$V, fit2$V)
 }))
 
@@ -131,12 +139,14 @@ test_that("With full observation, the estimated prior variance are same for SSDa
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
-  X.c = t(t(X) - colMeans(X))
-  y.c = t(t(y) - colMeans(y))
+  X_colmeans = colMeans(X)
+  Y_colmeans = colMeans(y)
+  X.c = t(t(X) - X_colmeans)
+  y.c = t(t(y) - Y_colmeans)
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                           prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -145,13 +155,13 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   expect_equal(fit1$lbf, fit2$lbf)
   expect_equal(fit1$b1, fit2$b1)
   expect_equal(fit1$b2, fit2$b2)
-  expect_equal(fit1$coef[-1,], fit2$coef[-1,])
+  expect_equal(fit1$coef, fit2$coef)
   expect_equal(fit1$V, fit2$V)
   
   # Mash regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
-  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                           prior_variance=mash_init, residual_variance = residual_var, compute_objective=F, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM',
@@ -161,7 +171,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   expect_equal(fit1$lbf, fit3$lbf)
   expect_equal(fit1$b1, fit3$b1)
   expect_equal(fit1$b2, fit3$b2)
-  expect_equal(fit1$coef[-1,], fit3$coef[-1,])
+  expect_equal(fit1$coef, fit3$coef)
   expect_equal(fit1$V, fit3$V)
 }))
 
@@ -173,12 +183,14 @@ test_that("When R = 1, the elbo using sufficient data agrees with full data", wi
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
   
-  X.c = t(t(X) - colMeans(X))
-  y.c = t(t(y) - colMeans(y))
+  X_colmeans = colMeans(X)
+  Y_colmeans = colMeans(y)
+  X.c = t(t(X) - X_colmeans)
+  y.c = t(t(y) - Y_colmeans)
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                 standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F)
@@ -195,19 +207,21 @@ test_that("With full observation, the elbo are same for SSData and DenseData", w
                 intercept=T, standardize = T, 
                 estimate_residual_variance=F, estimate_prior_variance=F)
   
-  X.c = t(t(X) - colMeans(X))
-  y.c = t(t(y) - colMeans(y))
+  X_colmeans = colMeans(X)
+  Y_colmeans = colMeans(y)
+  X.c = t(t(X) - X_colmeans)
+  y.c = t(t(y) - Y_colmeans)
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
                           prior_variance=prior_var, residual_variance = residual_var, compute_objective=T, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=F)
   # Mash regression
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
-  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,
+  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
                           prior_variance=mash_init, residual_variance = residual_var, compute_objective=T, 
                           standardize = T, 
                           estimate_residual_variance=F, estimate_prior_variance=F,

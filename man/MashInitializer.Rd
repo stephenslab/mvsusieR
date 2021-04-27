@@ -31,6 +31,7 @@ MASH initializer object
   prior_weights = NULL,
   null_weight = 0,
   weights_tol = 1e-10,
+  null_tol = 5e-07,
   top_mixtures = 20,
   xUlist = NULL,
   include_conditions = NULL

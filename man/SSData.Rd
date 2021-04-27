@@ -39,7 +39,7 @@ Sufficient statistics object
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SSData$new(XtX, XtY, YtY, N)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SSData$new(XtX, XtY, YtY, N, X_colmeans, Y_colmeans)}\if{html}{\out{</div>}}
 }
 
 }
