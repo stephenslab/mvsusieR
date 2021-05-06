@@ -280,7 +280,7 @@ MashInitializer <- R6Class("MashInitializer",
           xUlist = xUlist[c(1, which.comp + 1)]
         }
         # Check on xUlist
-        u_rows = vector()
+        u_rows = vector(length=length(xUlist))
         for (i in 1:length(xUlist)) {
           mashr:::check_covmat_basics(xUlist[[i]])
           u_rows[i] = nrow(xUlist[[i]])
@@ -294,9 +294,10 @@ MashInitializer <- R6Class("MashInitializer",
     compute_prior_inv = function() {
       # compute pseudo inverse for prior matrices and divided by its rank
       # this is relevant to the EM update of prior variance scalar
-      Uinv = list()
-      Urank = numeric(length(private$xU$xUlist))
-      for(i in 1:length(private$xU$xUlist)){
+      K = length(private$xU$xUlist)
+      Uinv = vector("list", length = K)
+      Urank = numeric(K)
+      for(i in 1:K){
         uinv = pseudo_inverse(private$xU$xUlist[[i]])
         Uinv[[i]] = uinv$inv
         Urank[i] = uinv$rank
@@ -315,42 +316,39 @@ MashInitializer <- R6Class("MashInitializer",
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
       # FIXME: compute this in parallel in the future
       algorithm = match.arg(algorithm)
-      sigma_rooti = list()
-      U0 = list()
+
       if (d$is_common_cov) {
+        K = length(private$xU$xUlist)
         # sigma_rooti is R * R * P
         # this is in preparation for some constants used in dmvnrom() for likelihood calculations
-        for (i in 1:length(private$xU$xUlist)) {
+        sigma_rooti = vector("list", length = K)
+        # this is in prepartion for some constants used in posterior calculation
+        U0 = vector("list", length = K)
+        for (i in 1:K) {
           if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(d$svs[[1]] + private$xU$xUlist[[i]])$inv
           else sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(d$svs[[1]] + private$xU$xUlist[[i]])$data
-        }
-        # this is in prepartion for some constants used in posterior calculation
-        for (i in 1:length(private$xU$xUlist)) {
           U0[[i]] = private$xU$xUlist[[i]] %*% solve(d$svs_inv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
         }
       } else {
-          # have to do this for every effect
-          # sigma_rooti and U0 will be R * R * (J * P)
-          # and Vinv will be a J list, not a matrix
-          # this is in preparation for some constants used in dmvnrom() for likelihood calculations
-          k = 1
-          for (j in 1:d$n_effect) {
-            for (i in 1:length(private$xU$xUlist)) {
-              if (algorithm == 'R') {
-                sigma_rooti[[k]] = invert_chol_tri(d$svs[[j]] + private$xU$xUlist[[i]])$inv
-              } else {
-                sigma_rooti[[k]] = mashr:::inv_chol_tri_rcpp(d$svs[[j]] + private$xU$xUlist[[i]])$data
-              }
-              k = k + 1
+        # have to do this for every effect
+        # sigma_rooti and U0 will be R * R * (J * P)
+        # and Vinv will be a J list, not a matrix
+        # this is in preparation for some constants used in dmvnrom() for likelihood calculations
+        K = length(private$xU$xUlist) * d$n_effect
+        sigma_rooti = vector("list", length = K)
+        U0 = vector("list", length = K)
+        k = 1
+        for (j in 1:d$n_effect) {
+          for (i in 1:length(private$xU$xUlist)) {
+            if (algorithm == 'R') {
+              sigma_rooti[[k]] = invert_chol_tri(d$svs[[j]] + private$xU$xUlist[[i]])$inv
+            } else {
+              sigma_rooti[[k]] = mashr:::inv_chol_tri_rcpp(d$svs[[j]] + private$xU$xUlist[[i]])$data
             }
+            U0[[k]] = private$xU$xUlist[[i]] %*% solve(d$svs_inv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+            k = k + 1
           }
-          k = 1
-          for (j in 1:d$n_effect) {
-            for (i in 1:length(private$xU$xUlist)) {
-                U0[[k]] = private$xU$xUlist[[i]] %*% solve(d$svs_inv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
-                k = k + 1
-            }
-          }
+        }
       }
       private$inv_mats = list(U0 = matlist2array(U0),
                               sigma_rooti = matlist2array(sigma_rooti))
@@ -362,6 +360,7 @@ MashInitializer <- R6Class("MashInitializer",
   ),
   active = list(
       n_condition = function() nrow(private$xU$xUlist[[1]]),
+      n_component = function() length(private$xU$xUlist),
       prior_variance = function() private$xU,
       precomputed = function() private$inv_mats
   ),

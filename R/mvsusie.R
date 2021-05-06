@@ -106,6 +106,11 @@ mvsusie = function(X,Y,L=10,
     if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
     else prior_variance$scale_prior_variance(sigma)
   }
+  if (verbosity>1) {
+    message("Initializing data object ...")
+    message(paste("Dimension of X matrix:", nrow(X), ncol(X)))
+    message(paste("Dimension of Y matrix:", nrow(Y), ncol(Y)))
+  }
   # set data object
   if (any(is.na(Y))) {
     # When the residual variance is a diagonal matrix,
@@ -381,6 +386,10 @@ mvsusie_core = function(data, s_init, L, prior_variance, prior_weights,
     if (inherits(prior_variance, 'MashInitializer')) {
       if (prior_variance$n_condition != data$n_condition) stop("Dimension mismatch between input prior covariance and response variable data.")
       base = MashRegression
+      if (verbosity > 1) {
+        message("Initializing prior object ...")
+        message(paste("Number of components in the mixture prior:", prior_variance$n_component))
+      }
       if (!precompute_covariances)
         warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation can be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
       if (precompute_covariances)
