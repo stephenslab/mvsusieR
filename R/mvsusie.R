@@ -405,6 +405,10 @@ mvsusie_core = function(data, s_init, L, prior_variance, prior_weights,
     }
   }
   if (!estimate_prior_variance) estimate_prior_method = NULL
+  if (verbosity > 1 && "pryr" %in% installed.packages()) {
+    message(paste("Memory used by data object", round(pryr::object_size(data)/1024^3, 3), "GB"))
+    message(paste("Memory used by prior object", round(pryr::object_size(prior_variance)/1024^3, 3), "GB"))
+  }
   # Below are the core computations
   SER_model = SingleEffectModel(base)$new(data$n_effect, prior_variance)
   if (!is.null(n_thread)) {
