@@ -38,7 +38,7 @@ MashRegression <- R6Class("MashRegression",
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && !is.null(private$precomputed_cov_matrices$U0)) {
         # Cannot use precomputed quantities if prior variance scalar is being estimated
         # we set it to null so it will not be used later
-        private$precomputed_cov_matrices$U0 = NULL
+        stop("Precomputed covariance matrices U0 should not be used when prior variance scalar is estimated.")
       }
       # Fit MASH model
       # 1. compute log-likelihood matrix given current estimates
@@ -51,7 +51,7 @@ MashRegression <- R6Class("MashRegression",
       private$.mixture_posterior_weights = private$compute_mixture_posterior_weights(private$.prior_variance$pi, llik)
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == 'EM') {
         variable_posterior_weights = private$compute_variable_posterior_weights(prior_weights, llik)
-        private$cache = list(b=bhat, s=sbhat, update_scale=T)
+        private$cache = list(b=bhat, s=sbhat)
       } else {
         variable_posterior_weights = matrix(0,0,0)
       }
@@ -84,15 +84,11 @@ MashRegression <- R6Class("MashRegression",
   ),
   active = list(
     mixture_posterior_weights = function() private$.mixture_posterior_weights,
-    lfsr = function() private$.lfsr,
-    prior_variance = function(v) {
-      if (missing(v)) private$prior_variance_scale
-      else private$prior_variance_scale = v
-    }
+    lfsr = function() private$.lfsr
   ),
   private = list(
+    .prior_variance = NULL,
     precomputed_cov_matrices = NULL,
-    prior_variance_scale = NULL,
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     residual_correlation = NULL,

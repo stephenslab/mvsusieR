@@ -32,7 +32,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
         if (estimate_prior_variance_method == "EM") {
-          private$cache = list(b=bhat, s=sbhat2, update_scale=T)
+          private$cache = list(b=bhat, s=sbhat2)
         } else {
           private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
         }
@@ -45,15 +45,9 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$.lbf = post$lbf
     }
   ),
-  active = list(
-    prior_variance = function(v) {
-      if (missing(v)) private$prior_variance_scale
-      else private$prior_variance_scale = v
-    }
-  ),
   private = list(
+    .prior_variance = NULL,
     .prior_variance_inv = NULL,
-    prior_variance_scale = NULL,
     loglik = function(scalar, bhat, S, prior_weights) {
       U = private$.prior_variance * scalar
       lbf = multivariate_lbf(bhat, S, U)

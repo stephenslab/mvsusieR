@@ -394,7 +394,8 @@ mvsusie_core = function(data, s_init, L, prior_variance, prior_weights,
         warning("precompute_covariances option is set to FALSE by default to save memory usage with MASH prior. The computation can be a lot slower as a result. It is recommended that you try setting it to TRUE, see if there is a memory usage issue and only switch back if it is a problem.")
       if (precompute_covariances)
         prior_variance$precompute_cov_matrices(data)
-      if (estimate_prior_variance && !is.null(estimate_prior_method) && estimate_prior_method == 'EM')
+      estimate_prior_scalar = estimate_prior_variance && !is.null(estimate_prior_method) && estimate_prior_method == 'EM'
+      if (estimate_prior_scalar)
         prior_variance$compute_prior_inv()
     } else if (is.null(prior_variance)) {
       # FIXME: a temporary interface for MS for methylation data

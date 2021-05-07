@@ -5,7 +5,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
   public = list(
     initialize = function(J, prior_variance) {
       private$J = J
-      private$.prior_variance = prior_variance
+      private$prior_variance_scale = prior_variance
       private$.posterior_b1 = matrix(0, J, 1)
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0) {
@@ -28,18 +28,18 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       # deal with prior variance: can be "estimated" across effects
       if(!is.null(estimate_prior_variance_method)) {
         if (estimate_prior_variance_method == "EM") {
-          private$cache = list(b=bhat, s=sbhat2, update_scale=F)
+          private$cache = list(b=bhat, s=sbhat2)
         } else {
-          private$.prior_variance = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method, check_null_threshold=check_null_threshold)
+          private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method, check_null_threshold=check_null_threshold)
         }
       }
       # posterior
-      post_var = (1/private$.prior_variance + 1/sbhat2)^(-1) # posterior variance
+      post_var = (1/private$prior_variance_scale + 1/sbhat2)^(-1) # posterior variance
       if (save_var) private$.posterior_variance = post_var
       private$.posterior_b1 = post_var * bhat /sbhat2
       private$.posterior_b2 = post_var + private$.posterior_b1^2 # second moment
       # Bayes factor
-      private$.lbf = dnorm(bhat,0,sqrt(private$.prior_variance+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
+      private$.lbf = dnorm(bhat,0,sqrt(private$prior_variance_scale+sbhat2),log=TRUE) - dnorm(bhat,0,sqrt(sbhat2),log=TRUE)
       if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
         private$.lbf = as.vector(private$.lbf)
       private$.lbf[sbhat2==Inf] = 0
@@ -54,8 +54,8 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     bhat = function() private$.bhat,
     sbhat = function() private$.sbhat,
     prior_variance = function(v) {
-      if (missing(v)) private$.prior_variance
-      else private$.prior_variance = v
+      if (missing(v)) private$prior_variance_scale
+      else private$prior_variance_scale = v
     },
     posterior_variance = function() private$.posterior_variance
   ),
@@ -63,7 +63,7 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     J = NULL,
     .bhat = NULL,
     .sbhat = NULL,
-    .prior_variance = NULL, # prior on effect size
+    prior_variance_scale = NULL, # prior on effect size
     .loglik_null = NULL,
     .lbf = NULL, # log Bayes factor
     .posterior_b1 = NULL, # posterior first moment
@@ -117,9 +117,9 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
     },
     estimate_prior_variance_optim = function(betahat, shat2, prior_weights, ...) {
       lV = optim(par=log(max(c(betahat^2-shat2, 1), na.rm = TRUE)), fn=private$neg_loglik_logscale, betahat=betahat, shat2=shat2, prior_weights = prior_weights, ...)$par
-      if(private$neg_loglik_logscale(log(private$.prior_variance),betahat,shat2,prior_weights) < 
+      if(private$neg_loglik_logscale(log(private$prior_variance_scale),betahat,shat2,prior_weights) < 
          private$neg_loglik_logscale(lV,betahat,shat2,prior_weights)){
-        lV = log(private$.prior_variance)
+        lV = log(private$prior_variance_scale)
       }
       return(exp(lV))
     },
@@ -127,6 +127,6 @@ BayesianSimpleRegression <- R6Class("BayesianSimpleRegression",
       V = sum(pip*private$.posterior_b2)
       return(V)
     },
-    estimate_prior_variance_simple = function() private$.prior_variance
+    estimate_prior_variance_simple = function() private$prior_variance_scale
   )
 )
