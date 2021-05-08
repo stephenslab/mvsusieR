@@ -10,7 +10,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
       private$prior_variance_scalar = 1
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0, precomputed_quantity=NULL) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0) {
       # d: data object
       # use_residual: fit with residual instead of with Y,
       # a special feature for when used with SuSiE algorithm
