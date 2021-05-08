@@ -30,6 +30,8 @@ MashRegression <- R6Class("MashRegression",
         private$.bhat = bhat
         private$.sbhat = sbhat
       }
+      private$is_common_cov = d$is_common_cov
+      private$svs = matlist2array(d$svs)
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
         if (estimate_prior_variance_method != 'simple')
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
@@ -38,11 +40,12 @@ MashRegression <- R6Class("MashRegression",
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && !is.null(private$precomputed_cov_matrices$U0)) {
         # Cannot use precomputed quantities if prior variance scalar is being estimated
         # we set it to null so it will not be used later
-        stop("Precomputed covariance matrices U0 should not be used when prior variance scalar is estimated.")
+        private$precomputed_cov_matrices$U0 = NULL
+        #stop("Precomputed covariance matrices U0 should not be used when prior variance scalar is estimated.")
       }
       # Fit MASH model
       # 1. compute log-likelihood matrix given current estimates
-      llik = private$compute_loglik_mat(private$prior_variance_scale, bhat, sbhat, d$svs, d$is_common_cov)
+      llik = private$compute_loglik_mat(private$prior_variance_scale, bhat, sbhat)
       # 2. lbf
       lbf_obj = private$compute_lbf(llik)
       private$.lbf = lbf_obj$lbf
@@ -61,7 +64,7 @@ MashRegression <- R6Class("MashRegression",
       # 2. need ELBO to estimate residual variance
       # 3. need to update prior via EM
       # but let's compute it here anyways
-      post = private$compute_posterior(bhat, sbhat, d$svs_inv, d$is_common_cov, private$.mixture_posterior_weights, variable_posterior_weights)
+      post = private$compute_posterior(bhat, sbhat, matlist2array(d$svs_inv), private$.mixture_posterior_weights, variable_posterior_weights)
       private$.posterior_b1 = post$post_mean
       private$.posterior_b2 = post$post_cov + matlist2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
       if (save_var) private$.posterior_variance = post$post_cov
@@ -89,10 +92,12 @@ MashRegression <- R6Class("MashRegression",
   private = list(
     .prior_variance = NULL,
     precomputed_cov_matrices = NULL,
+    is_common_cov = NULL,
+    svs = NULL,
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     residual_correlation = NULL,
-    compute_loglik_mat = function(scalar, bhat, sbhat, svs, is_common_cov) {
+    compute_loglik_mat = function(scalar, bhat, sbhat) {
       if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
         llik = mashr:::calc_lik_rcpp(t(bhat),
                                     # t(sbhat) and d$residual_correlation can both be empty (matrix(0,0,0)) if SVS is provided
@@ -101,9 +106,9 @@ MashRegression <- R6Class("MashRegression",
                                     matrix(0,0,0),
                                     private$get_scaled_prior(scalar),
                                     # should be matlist2array(d$svs), if t(sbhat) and d$residual_correlation are not empty
-                                    matlist2array(svs),
+                                    private$svs,
                                     TRUE,
-                                    is_common_cov,
+                                    private$is_common_cov,
                                     private$n_thread)$data
       } else {
         # Here private$prior_variance_scale is either 0 or 1.
@@ -111,7 +116,7 @@ MashRegression <- R6Class("MashRegression",
         llik = mashr:::calc_lik_precomputed_rcpp(t(bhat),
                                          private$precomputed_cov_matrices$sigma_rooti,
                                          TRUE,
-                                         is_common_cov,
+                                         private$is_common_cov,
                                          private$n_thread)$data
         if (scalar == 0) {
           # The precomputed sigma_rooti is not correct
@@ -130,14 +135,14 @@ MashRegression <- R6Class("MashRegression",
                           paste(rows,collapse=", "), "\n"))
       return(llik)
     },
-    compute_posterior = function(bhat, sbhat, svs_inv, is_common_cov, mixture_posterior_weights, variable_posterior_weights) {
+    compute_posterior = function(bhat, sbhat, svs_inv, mixture_posterior_weights, variable_posterior_weights) {
       if (is.null(private$precomputed_cov_matrices$U0) || (private$prior_variance_scale != 1 && private$prior_variance_scale != 0)) {
         post = mashr:::calc_sermix_rcpp(t(bhat),
                               # sbhat is not needed (can safely be replaced by matrix(0,0,0)) IF Vinv is provided
                               t(sbhat),
                               # residual correlation is not needed (can safely be replaced by matrix(0,0,0)) IF Vinv is provided
                               private$residual_correlation,
-                              matlist2array(svs_inv),
+                              svs_inv,
                               private$get_scaled_prior(private$prior_variance_scale),
                               # because we define the scalar with respect to the original prior
                               # the inverse should always be the original.
@@ -145,7 +150,7 @@ MashRegression <- R6Class("MashRegression",
                               0,
                               t(mixture_posterior_weights),
                               t(variable_posterior_weights),
-                              is_common_cov,
+                              private$is_common_cov,
                               private$n_thread)
       } else {
         # Use precomputed quantities
@@ -154,13 +159,13 @@ MashRegression <- R6Class("MashRegression",
                               # No need for sbhat and residual correlation when Vinv is precomputed
                               # So we just put in an empty matrix for them (matrix(0,0,0)).
                               matrix(0,0,0), matrix(0,0,0),
-                              matlist2array(svs_inv),
+                              svs_inv,
                               private$get_scaled_prior(private$prior_variance_scale),
                               private$.prior_variance$xUlist_inv,
                               private$precomputed_cov_matrices$U0 * private$prior_variance_scale,
                               t(mixture_posterior_weights),
                               matrix(0,0,0),
-                              is_common_cov,
+                              private$is_common_cov,
                               private$n_thread)
       }
       return(post)

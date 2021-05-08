@@ -74,9 +74,13 @@ expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_
   expect_equal(A$alpha * A$mu, BA$b1, tolerance = tol)
   expect_equal(A$alpha * A$mu2, BA$b2, tolerance = tol)
   if (!is.na(A$elbo) && !is.na(BA$elbo)) expect_equal(A$elbo, BA$elbo, tolerance = tol)
-  if (!rss) expect_equal(as.vector(A$fitted), as.vector(BA$fitted), tolerance = tol)
-  if (rss) expect_equal(as.vector(A$Rr), as.vector(BA$fitted), tolerance = tol)
-  expect_equal(coef(A), BA$coef, tolerance = tol)
+  if (rss) {
+    expect_equal(as.vector(A$Rr), as.vector(BA$fitted), tolerance = tol)
+    expect_equal(coef(A)[-1], BA$coef[-1], tolerance = tol)
+  } else {
+    expect_equal(as.vector(A$fitted), as.vector(BA$fitted), tolerance = tol)
+    expect_equal(coef(A), BA$coef, tolerance = tol)
+  }
   if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2, tolerance = tol)
   if (estimate_prior_variance) expect_equal(A$V, BA$V, tolerance = tol)
 }
