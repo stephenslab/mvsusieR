@@ -8,7 +8,7 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       private$J = J
       private$.prior_variance = prior_variance
       private$.posterior_b1 = matrix(0, J, nrow(prior_variance))
-      private$prior_variance_scale = 1
+      private$prior_variance_scalar = 1
     },
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold=0, precomputed_quantity=NULL) {
       # d: data object
@@ -34,11 +34,11 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
         if (estimate_prior_variance_method == "EM") {
           private$cache = list(b=bhat, s=sbhat2)
         } else {
-          private$prior_variance_scale = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
+          private$prior_variance_scalar = private$estimate_prior_variance(bhat,sbhat2,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
         }
       }
       # posterior
-      post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scale, d$svs_inv)
+      post = multivariate_regression(bhat, sbhat2, private$.prior_variance * private$prior_variance_scalar, d$svs_inv)
       private$.posterior_b1 = post$b1
       private$.posterior_b2 = post$b2
       if (save_var) private$.posterior_variance = post$cov
@@ -82,16 +82,16 @@ BayesianMultivariateRegression <- R6Class("BayesianMultivariateRegression",
       # Instead of computing S_0^{-1} and E[bb^T] we compute them as one quantity to avoid explicit inverse
       # We need S_inv a J vector of R by R matrices (private$cache$s), bhat a J by R vector (private$cache$b),
       # the original prior matrix S_0 (private$.prior_variance)
-      # and the scalar from previous update (private$prior_variance_scale)
+      # and the scalar from previous update (private$prior_variance_scalar)
       # U = \sigma_0 S_0
-      U = private$prior_variance_scale * private$.prior_variance
+      U = private$prior_variance_scalar * private$.prior_variance
       S_inv = lapply(1:private$J, function(j) invert_via_chol(private$cache$s[[j]]))$inv
       # posterior covariance pre-multipled by U^{-1}
       post_cov_U = lapply(1:private$J, function(j) solve(diag(nrow(U)) + S_inv[[j]] %*% U))
       # posterior first moment pre-multipled by U^{-1}
       post_b1_U = lapply(1:private$J, function(j) post_cov_U[[j]] %*% (S_inv[[j]] %*% private$cache$b[j,]))
       # posterior 2nd moment pre-multiplied by S_0^{-1}
-      b2_U = lapply(1:private$J, function(j) private$prior_variance_scale * (tcrossprod(post_b1_U[[j]]) %*% U + post_cov_U[[j]]))
+      b2_U = lapply(1:private$J, function(j) private$prior_variance_scalar * (tcrossprod(post_b1_U[[j]]) %*% U + post_cov_U[[j]]))
       V = sum(diag(Reduce("+", lapply(1:private$J, function(j) pip[j] * b2_U[[j]])))) / nrow(U)
       return(V)
     },

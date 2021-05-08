@@ -279,7 +279,7 @@ SuSiE <- R6Class("SuSiE",
             private$.lbf_history[[length(private$.lbf_history) + 1]] = self$lbf
         }
         if (!is.null(private$.prior_history)) {
-            private$.prior_history[[length(private$.prior_history) + 1]] = sapply(1:private$L, function(l) ifelse(is.null(private$SER[[l]]$prior_variance_scale), private$SER[[l]]$prior_variance, private$SER[[l]]$prior_variance_scale))
+            private$.prior_history[[length(private$.prior_history) + 1]] = sapply(1:private$L, function(l) ifelse(is.null(private$SER[[l]]$prior_variance_scalar), private$SER[[l]]$prior_variance, private$SER[[l]]$prior_variance_scalar))
         }
     }
   )

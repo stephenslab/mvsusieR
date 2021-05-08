@@ -30,7 +30,7 @@ SingleEffectModel <- function(base)
                         private$.lbf = private$.lbf * 0
                     }
                 }
-                private$prior_variance_scale = V
+                private$prior_variance_scalar = V
                 private$cache = NULL
             }
         },
