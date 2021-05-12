@@ -164,8 +164,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                           prior_variance=mash_init, residual_variance = residual_var, compute_objective=F, 
                           standardize = T, 
-                          estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM',
-                          precompute_covariances=T)
+                          estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
   expect_equal(fit1$alpha, fit3$alpha)
   expect_equal(fit1$lbf, fit3$lbf)

@@ -15,7 +15,7 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scalar = 1
     },
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold = 0) {
+    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold = 0, verbose = FALSE) {
       # When prior changes (private$prior_variance_scalar != 1),
       # we can no longer use precomputed quantities
       # because the precomputed quantities will be wrong in scale.
@@ -37,15 +37,19 @@ MashRegression <- R6Class("MashRegression",
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
         private$prior_variance_scalar = private$estimate_prior_variance(bhat,sbhat,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
       }
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && !is.null(private$precomputed_cov_matrices$U0)) {
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && !is.null(private$precomputed_cov_matrices)) {
         # Cannot use precomputed quantities if prior variance scalar is being estimated
-        # we set it to null so it will not be used later
-        private$precomputed_cov_matrices$U0 = NULL
-        #stop("Precomputed covariance matrices U0 should not be used when prior variance scalar is estimated.")
+        # this should have been already ensured of in the main mvsusie() interface
+        stop("Precomputed quantities should not be used when prior variance scalar is estimated.")
       }
       # Fit MASH model
       # 1. compute log-likelihood matrix given current estimates
+      if (verbose) {
+        st = proc.time()
+        message("Computing loglik matrix ...")
+      }
       llik = private$compute_loglik_mat(private$prior_variance_scalar, bhat, sbhat)
+      if (verbose) message(paste("Time elapsed:", (proc.time() - st)[3]))
       # 2. lbf
       lbf_obj = private$compute_lbf(llik)
       private$.lbf = lbf_obj$lbf
@@ -64,7 +68,12 @@ MashRegression <- R6Class("MashRegression",
       # 2. need ELBO to estimate residual variance
       # 3. need to update prior via EM
       # but let's compute it here anyways
+      if (verbose) {
+        st = proc.time()
+        message("Computing posterior ...")
+      }
       post = private$compute_posterior(bhat, sbhat, matlist2array(d$svs_inv), private$.mixture_posterior_weights, variable_posterior_weights)
+      if (verbose) message(paste("Time elapsed:", (proc.time() - st)[3]))
       private$.posterior_b1 = post$post_mean
       private$.posterior_b2 = post$post_cov + matlist2array(lapply(1:nrow(post$post_mean), function(i) tcrossprod(post$post_mean[i,])))
       if (save_var) private$.posterior_variance = post$post_cov

@@ -220,13 +220,13 @@ test_that("With full observation, the estimated prior variance are same for Dens
   null_weight = 0
   mash_init = MashInitializer$new(list(V), 1, 1-null_weight, null_weight)
   mash_init$scale_prior_variance(sigma)
-  fit4 = expect_warning(mvsusie_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit4 = mvsusie_core(data2, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                    estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
-                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1))
+                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
   
-  fit5 = expect_warning(mvsusie_core(data3, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
+  fit5 = mvsusie_core(data3, s_init=NULL, L=L, prior_variance=mash_init, prior_weights=c(rep(1/ncol(X), ncol(X))),
                                   estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
-                                  precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1))
+                                  precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
   
   expect_equal(fit1$alpha, fit4$alpha, tolerance = 1E-8)
   expect_equal(fit1$lbf, fit4$lbf, tolerance = 1E-8)
