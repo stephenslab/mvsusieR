@@ -324,7 +324,8 @@ MashInitializer <- R6Class("MashInitializer",
       # The input should be sbhat data matrix
       # d[j,] can be different for different conditions due to missing Y data
       # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
-      # FIXME: compute this in parallel in the future
+      # FIXME: rewrite it in C++ using this non-copy trick:
+      # http://lists.r-forge.r-project.org/pipermail/rcpp-devel/2016-September/009363.html
       algorithm = match.arg(algorithm)
 
       if (d$is_common_cov) {
@@ -335,8 +336,11 @@ MashInitializer <- R6Class("MashInitializer",
         # this is in prepartion for some constants used in posterior calculation
         U0 = vector("list", length = K)
         for (i in 1:K) {
-          if (algorithm == 'R') sigma_rooti[[i]] = invert_chol_tri(d$svs[[1]] + private$xU$xUlist[[i]])$inv
-          else sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(d$svs[[1]] + private$xU$xUlist[[i]])$data
+          #if (algorithm == 'R') {
+            sigma_rooti[[i]] = invert_chol_tri(d$svs[[1]] + private$xU$xUlist[[i]])$inv
+          #} else {
+          #  sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(d$svs[[1]] + private$xU$xUlist[[i]])$data
+          #}
           U0[[i]] = private$xU$xUlist[[i]] %*% solve(d$svs_inv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
         }
       } else {
@@ -350,11 +354,11 @@ MashInitializer <- R6Class("MashInitializer",
         k = 1
         for (j in 1:d$n_effect) {
           for (i in 1:length(private$xU$xUlist)) {
-            if (algorithm == 'R') {
+            #if (algorithm == 'R') {
               sigma_rooti[[k]] = invert_chol_tri(d$svs[[j]] + private$xU$xUlist[[i]])$inv
-            } else {
-              sigma_rooti[[k]] = mashr:::inv_chol_tri_rcpp(d$svs[[j]] + private$xU$xUlist[[i]])$data
-            }
+            #} else {
+            #  sigma_rooti[[k]] = mashr:::inv_chol_tri_rcpp(d$svs[[j]] + private$xU$xUlist[[i]])$data
+            #}
             U0[[k]] = private$xU$xUlist[[i]] %*% solve(d$svs_inv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
             k = k + 1
           }
