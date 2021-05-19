@@ -382,7 +382,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   } else {
     if (weighted_effect) bhat = m$coef[-1,]
     else bhat = colSums(m$b1, dims=1)
-    if (is.na(m$lfsr)) stop("Cannot make bubble plot without lfsr information (currently only implemented for mixture prior)")
+    if (all(is.na(m$lfsr))) stop("Cannot make bubble plot without lfsr information (currently only implemented for mixture prior)")
     p = m$lfsr
     top_snp = NULL
   }
@@ -406,11 +406,10 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       table[which(table$x %in% variables),]$cs = i
       j = j + 1
     }
-    # mark top_snp if available, as a CS by itself
-    if (!is.null(top_snp)) {
-        table[which(table$x == x_names[top_snp]),]$cs = 0
+    if (cs_only){
+      colors = colors[which(!is.na(table$cs))]
+      table = table[which(!is.na(table$cs)),]
     }
-    if (cs_only) table = table[which(!is.na(table$cs)),]
     # get colors for x-axis by CS,
     xtable = unique(cbind(table$x, table$cs))
     for (i in unique(xtable[,2])) {
@@ -418,18 +417,29 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     }
   }
   p = ggplot(table) +
-    geom_point(aes(x = x, y = y, colour = effect_size , size = mlog10lfsr)) +
+    geom_point(aes(x = x, y = y, colour = effect_size, size = mlog10lfsr)) +
     scale_x_discrete(limits = unique(table$x)) +
     scale_y_discrete(limits = unique(table$y)) +
-    scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))), low="#022968", mid="white", high="#800000", space="Lab") +
-    labs(size=paste0("-log10(", ifelse(plot_z, "p", "lfsr"), ")"), colour=ifelse(plot_z, "z-score", "Effect size")) +
+    scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))),
+                          low="navy", mid="grey88", high="red4", space="Lab") +
+    scale_size_binned(name = paste0("-log10(", ifelse(plot_z, "p", "lfsr"), ")"),
+                          n.breaks = 6) +
+    labs(colour=ifelse(plot_z, "z-score", "Effect size")) +
+    guides(size = guide_legend(order = 1), colour = guide_colorbar(order = 2)) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
         axis.text.y = element_text(size = 15, color = "black"),
         axis.title.x = element_blank(),
         axis.title.y = element_blank())
-  w = length(unique(table$x)) * 0.5
-  h = length(unique(table$y)) * 0.9
+  if (!is.null(top_snp)) {
+    xnode = which(unique(table$x) == x_names[top_snp])
+    p = p + geom_rect(aes(ymin=1-0.5,
+                          ymax=length(unique(table$y)) + 0.5,
+                          xmin=xnode-0.5,
+                          xmax=xnode+0.5), color="black", alpha=0, fill = 'white')
+  }
+  w = length(unique(table$x)) * 0.8
+  h = length(unique(table$y)) * 0.7
   cat(paste("Suggested PDF canvas width:", w, "height:", h, "\n"))
   return(list(plot=p, width=w, height=h))
 }
@@ -587,7 +597,7 @@ is_zero_variance <- function(x) {
   else return(F)
 }
 
-#'@title Scale prior matrix 
+#'@title Scale prior matrix
 #' @keywords internal
 scale_covariance <- function(mat, sigma) {
   # faster way to implement diag(sigma) %*% mat %*% diag(sigma)
