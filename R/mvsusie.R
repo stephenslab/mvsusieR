@@ -262,6 +262,9 @@ mvsusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$sets = susie_get_cs(s, coverage=coverage, Xcorr=cov2cor(XtX), min_abs_corr=min_abs_corr)
   }
+  s$variable_names = colnames(XtX)
+  s$condition_names = colnames(XtY)
+  
   return(s)
 }
 
