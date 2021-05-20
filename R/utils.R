@@ -421,7 +421,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     scale_x_discrete(limits = unique(table$x)) +
     scale_y_discrete(limits = unique(table$y)) +
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))),
-                          low="navy", mid="grey88", high="red4", space="Lab") +
+                          low="blue3", mid="grey88", high="red3", space="Lab") +
     scale_size_binned(name = paste0("-log10(", ifelse(plot_z, "p", "lfsr"), ")"),
                           n.breaks = 6) +
     labs(colour=ifelse(plot_z, "z-score", "Effect size")) +
