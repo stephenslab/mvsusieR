@@ -432,11 +432,14 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
         axis.title.x = element_blank(),
         axis.title.y = element_blank())
   if (!is.null(top_snp)) {
-    xnode = which(unique(table$x) == x_names[top_snp])
-    p = p + geom_rect(aes(ymin=1-0.5,
-                          ymax=length(unique(table$y)) + 0.5,
-                          xmin=xnode-0.5,
-                          xmax=xnode+0.5), color="black", alpha=0, fill = 'white')
+    if(top_snp %in% unlist(m$sets$cs)){
+      xnode = which(unique(table$x) == x_names[top_snp])
+      
+      p = p + geom_rect(aes(ymin=1-0.5,
+                            ymax=length(unique(table$y)) + 0.5,
+                            xmin=xnode-0.5,
+                            xmax=xnode+0.5), color="black", alpha=0, fill = 'white')
+    }
   }
   w = length(unique(table$x)) * 0.6 + 3
   h = length(unique(table$y)) * 0.7
