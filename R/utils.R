@@ -438,7 +438,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
                           xmin=xnode-0.5,
                           xmax=xnode+0.5), color="black", alpha=0, fill = 'white')
   }
-  w = length(unique(table$x)) * 0.7 + 3
+  w = length(unique(table$x)) * 0.6 + 3
   h = length(unique(table$y)) * 0.7
   cat(paste("Suggested PDF canvas width:", w, "height:", h, "\n"))
   return(list(plot=p, width=w, height=h))
