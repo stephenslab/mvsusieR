@@ -369,7 +369,7 @@ mvsusie_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
 #' @return a plot object
 #' @export
 mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
-                        plot_z = FALSE) {
+                        plot_z = FALSE, pos = NULL, lfsr_threshold = 0.05) {
   if (plot_z) {
     if (!("z" %in% names(m)))
       stop("Cannot find the z score summary statistics.")
@@ -386,6 +386,13 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     p = m$lfsr
     top_snp = NULL
   }
+  if(is.null(pos)){
+    pos = 1:nrow(p)
+  }else{
+    if (!all(pos %in% 1:nrow(p))) 
+      stop("Provided position is outside the range of variables")
+  }
+  
   # get table of effect size estimates and PIP, for all conditions.
   table = data.frame(matrix(NA, prod(dim(p)), 5))
   colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs')
@@ -398,12 +405,16 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   table$effect_size = as.vector(t(bhat))
   table$mlog10lfsr = -log10(as.vector(t(p)))
   colors = rep('black', length(table$x))
+  table$effect_size[table$mlog10lfsr <= -log10(lfsr_threshold)] = NA
+  
   # add CS to this table.
   if (!is.null(m$sets$cs_index)) {
     j = 1
     for (i in m$sets$cs_index) {
+      # conditions_rem = y_names[m$single_effect_lfsr[i,] >= CS_lfsr]
       variables = x_names[m$sets$cs[[j]]]
       table[which(table$x %in% variables),]$cs = i
+      # table[which((table$x %in% variables) & (table$y %in% conditions_rem)),]$effect_size= NA
       j = j + 1
     }
     if (cs_only){
@@ -416,14 +427,20 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       colors[which(xtable[,2] == i)] = as.integer(i) + 2
     }
   }
+  
+  rowidx = which(table$x %in% x_names[pos])
+  table = table[rowidx,]
+  colors = colors[pos]
+  
   p = ggplot(table) +
     geom_point(aes(x = x, y = y, colour = effect_size, size = mlog10lfsr)) +
     scale_x_discrete(limits = unique(table$x)) +
     scale_y_discrete(limits = unique(table$y)) +
-    scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size)), max(abs(table$effect_size))),
-                          low="blue3", mid="grey88", high="red3", space="Lab") +
+    scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size), na.rm=TRUE), 
+                                                  max(abs(table$effect_size), na.rm=TRUE)),
+                          low="blue3", mid="grey88", high="red3", space="Lab", na.value="white") +
     scale_size_binned(name = paste0("-log10(", ifelse(plot_z, "p", "lfsr"), ")"),
-                          n.breaks = 6) +
+                      n.breaks = 6) +
     labs(colour=ifelse(plot_z, "z-score", "Effect size")) +
     guides(size = guide_legend(order = 1), colour = guide_colorbar(order = 2)) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
