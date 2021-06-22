@@ -369,68 +369,69 @@ mvsusie_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
 #' @return a plot object
 #' @export
 mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
-                        plot_z = FALSE, pos = NULL, lfsr_threshold = 0.05) {
+                        plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05) {
   if (plot_z) {
     if (!("z" %in% names(m)))
       stop("Cannot find the z score summary statistics.")
     if (nrow(m$z) != nrow(m$coef[-1,]))
       stop(paste("z score matrix should have", nrow(m$coef[-1,]), "rows (no intercept term)."))
-    bhat = m$z
-    p = pnorm(-abs(m$z))
+    effects = m$z
+    p = pnorm(-abs(m$z))*2
     logp = -log10(p)
     top_snp = which(logp == max(logp, na.rm=TRUE), arr.ind = TRUE)[1]
   } else {
-    if (weighted_effect) bhat = m$coef[-1,]
-    else bhat = colSums(m$b1, dims=1)
-    if (all(is.na(m$lfsr))) stop("Cannot make bubble plot without lfsr information (currently only implemented for mixture prior)")
-    p = m$lfsr
+    if (weighted_effect) effects = m$coef[-1,]
+    else effects = colSums(m$b1, dims=1)
+    # if (all(is.na(m$lfsr))) stop("Cannot make bubble plot without lfsr information (currently only implemented for mixture prior)")
+    # p = m$lfsr
     top_snp = NULL
   }
   if(is.null(pos)){
-    pos = 1:nrow(p)
+    pos = 1:nrow(effects)
   }else{
-    if (!all(pos %in% 1:nrow(p))) 
+    if (!all(pos %in% 1:nrow(effects))) 
       stop("Provided position is outside the range of variables")
   }
   
-  # get table of effect size estimates and PIP, for all conditions.
-  table = data.frame(matrix(NA, prod(dim(p)), 5))
-  colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs')
   x_names = m$variable_names
   y_names = m$condition_names
-  if (is.null(x_names)) x_names = paste('variable', 1:nrow(p))
-  if (is.null(y_names)) y_names = paste('condition', 1:ncol(p))
-  table$y = rep(y_names, length(x_names))
-  table$x = rep(x_names, each = length(y_names))
-  table$effect_size = as.vector(t(bhat))
-  table$mlog10lfsr = -log10(as.vector(t(p)))
-  colors = rep('black', length(table$x))
-  table$effect_size[table$mlog10lfsr <= -log10(lfsr_threshold)] = NA
+  if (is.null(x_names)) x_names = paste('variable', 1:nrow(effects))
+  if (is.null(y_names)) y_names = paste('condition', 1:ncol(effects))
+  rownames(effects) = x_names
+  colnames(effects) = y_names
+  
+  table = reshape2::melt(effects)
+  colnames(table) = c('x', 'y', 'effect_size')
+  table$cs = NA
+  table$mlog10lfsr = 0
+  table$color = 'black'
+  if(plot_z){
+    table$mlog10lfsr = as.vector(logp)
+  }
   
   # add CS to this table.
   if (!is.null(m$sets$cs_index)) {
     j = 1
     for (i in m$sets$cs_index) {
-      # conditions_rem = y_names[m$single_effect_lfsr[i,] >= CS_lfsr]
+      condition_idx = which(m$single_effect_lfsr[i,] < cslfsr_threshold)
+      condition_sig = y_names[condition_idx]
       variables = x_names[m$sets$cs[[j]]]
       table[which(table$x %in% variables),]$cs = i
-      # table[which((table$x %in% variables) & (table$y %in% conditions_rem)),]$effect_size= NA
+      table[which(table$x %in% variables),]$color = as.integer(i) + 2
+      table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1E-20, m$single_effect_lfsr[i,])),
+                                                             each = length(variables))
+      table[-which((table$x %in% variables) & (table$y %in% condition_sig)),]$effect_size= NA
       j = j + 1
     }
     if (cs_only){
-      colors = colors[which(!is.na(table$cs))]
       table = table[which(!is.na(table$cs)),]
-    }
-    # get colors for x-axis by CS,
-    xtable = unique(cbind(table$x, table$cs))
-    for (i in unique(xtable[,2])) {
-      colors[which(xtable[,2] == i)] = as.integer(i) + 2
     }
   }
   
   rowidx = which(table$x %in% x_names[pos])
   table = table[rowidx,]
-  colors = colors[pos]
+  
+  colors = unique(cbind(table$x, table$cs, table$color))[,3]
   
   p = ggplot(table) +
     geom_point(aes(x = x, y = y, colour = effect_size, size = mlog10lfsr)) +
@@ -439,9 +440,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size), na.rm=TRUE), 
                                                   max(abs(table$effect_size), na.rm=TRUE)),
                           low="blue3", mid="grey88", high="red3", space="Lab", na.value="white") +
-    scale_size_binned(name = paste0("-log10(", ifelse(plot_z, "p", "lfsr"), ")"),
-                      n.breaks = 6) +
-    labs(colour=ifelse(plot_z, "z-score", "Effect size")) +
+    labs(size=paste0("-log10(", ifelse(plot_z, "p", "CS lfsr"), ")"), colour=ifelse(plot_z, "z-score", "Effect size")) +
     guides(size = guide_legend(order = 1), colour = guide_colorbar(order = 2)) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
