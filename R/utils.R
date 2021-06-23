@@ -402,23 +402,20 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   y_names = m$condition_names
   if (is.null(x_names)) x_names = paste('variable', 1:nrow(effects))
   if (is.null(y_names)) y_names = paste('condition', 1:ncol(effects))
-  rownames(effects) = x_names
-  colnames(effects) = y_names
   
-  table = reshape2::melt(effects)
-  colnames(table) = c('x', 'y', 'effect_size')
-  table$cs = NA
-  table$mlog10lfsr = NA
-  table$color = 'black'
+  table = data.frame(matrix(NA, prod(dim(effects)), 6))
+  colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs', 'color')
+  table$y = rep(y_names, length(x_names))
+  table$x = rep(x_names, each = length(y_names))
   if(plot_z){
-    table$mlog10lfsr = as.vector(logp)
+    table$mlog10lfsr = as.vector(t(logp))
+    table$effect_size = as.vector(t(effects))
   }
   
   # add CS to this table.
   if (!is.null(m$sets$cs_index)) {
     if(plot_z == FALSE){
-      effects = table$effect_size
-      table$effect_size = NA
+      effects = as.vector(t(effects))
     }
     j = 1
     for (i in m$sets$cs_index) {
@@ -429,7 +426,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       table[which(table$x %in% variables),]$color = as.integer(i) + 2
       if(plot_z == FALSE){
         table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1E-20, m$single_effect_lfsr[i,])),
-                                                               each = length(variables))
+                                                               length(variables))
         idx = which((table$x %in% variables) & (table$y %in% condition_sig))
         table[idx,]$effect_size = effects[idx]
       }
@@ -455,10 +452,10 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     labs(size=paste0("-log10(", ifelse(plot_z, "p", "CS lfsr"), ")"), colour=ifelse(plot_z, "z-score", "Effect size")) +
     guides(size = guide_legend(order = 1), colour = guide_colorbar(order = 2)) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
-        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
-        axis.text.y = element_text(size = 15, color = "black"),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())
+                            axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
+                            axis.text.y = element_text(size = 15, color = "black"),
+                            axis.title.x = element_blank(),
+                            axis.title.y = element_blank())
   
   if (!is.null(top_snp)) {
     if(top_snp %in% unlist(m$sets$cs)){
@@ -475,6 +472,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   cat(paste("Suggested PDF canvas width:", w, "height:", h, "\n"))
   return(list(plot=p, width=w, height=h))
 }
+
 
 #' @title Predict future observations or extract coefficients from susie fit
 #' @param object a susie fit
