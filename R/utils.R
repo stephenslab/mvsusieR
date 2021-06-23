@@ -422,6 +422,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs', 'color')
   table$y = rep(y_names, length(x_names))
   table$x = rep(x_names, each = length(y_names))
+  table$color = 'black'
   if(plot_z){
     table$mlog10lfsr = as.vector(t(logp))
     table$effect_size = as.vector(t(effects))
