@@ -375,6 +375,21 @@ mvsusie_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
 #' @export
 mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
                         plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05) {
+  colors = c(
+    "dodgerblue2",
+    "green4",
+    "#6A3D9A", # purple
+    "#FF7F00", # orange
+    "gold1",
+    "skyblue2", "#FB9A99", # lt pink
+    "palegreen2",
+    "#CAB2D6", # lt purple
+    "#FDBF6F", # lt orange
+    "gray70", "khaki2",
+    "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
+    "darkturquoise", "green1", "yellow4", "yellow3",
+    "darkorange4", "brown"
+  )
   if (plot_z) {
     if (!("z" %in% names(m)))
       stop("Cannot find the z score summary statistics.")
@@ -423,7 +438,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       condition_sig = y_names[condition_idx]
       variables = x_names[m$sets$cs[[j]]]
       table[which(table$x %in% variables),]$cs = i
-      table[which(table$x %in% variables),]$color = as.integer(i) + 2
+      table[which(table$x %in% variables),]$color = i %% length(colors)
       if(plot_z == FALSE){
         table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1E-20, m$single_effect_lfsr[i,])),
                                                                length(variables))
@@ -448,7 +463,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     scale_y_discrete(limits = unique(table$y)) + 
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size), na.rm=TRUE), 
                                                   max(abs(table$effect_size), na.rm=TRUE)),
-                          low="blue3", mid="grey88", high="red3", space="Lab", na.value="white") +
+                          low="#4575B4", mid="#FFFFBF", high="#D73027", space="Lab", na.value="white") +
     labs(size=paste0("-log10(", ifelse(plot_z, "p", "CS lfsr"), ")"), colour=ifelse(plot_z, "z-score", "Effect size")) +
     guides(size = guide_legend(order = 1), colour = guide_colorbar(order = 2)) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
