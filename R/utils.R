@@ -438,7 +438,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       condition_sig = y_names[condition_idx]
       variables = x_names[m$sets$cs[[j]]]
       table[which(table$x %in% variables),]$cs = i
-      table[which(table$x %in% variables),]$color = i %% length(colors)
+      table[which(table$x %in% variables),]$color = colors[i %% length(colors)]
       if(plot_z == FALSE){
         table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1E-20, m$single_effect_lfsr[i,])),
                                                                length(variables))
@@ -455,7 +455,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   rowidx = which(table$x %in% x_names[pos])
   table = table[rowidx,]
   
-  colors = unique(cbind(table$x, table$cs, table$color))[,3]
+  cs_colors = unique(cbind(table$x, table$cs, table$color))[,3]
   
   p = ggplot(table) +
     geom_point(aes(x = x, y = y, colour = effect_size, size = mlog10lfsr)) +
@@ -467,7 +467,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     labs(size=paste0("-log10(", ifelse(plot_z, "p", "CS lfsr"), ")"), colour=ifelse(plot_z, "z-score", "Effect size")) +
     guides(size = guide_legend(order = 1), colour = guide_colorbar(order = 2)) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
-                            axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = colors),
+                            axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 15, color = cs_colors),
                             axis.text.y = element_text(size = 15, color = "black"),
                             axis.title.x = element_blank(),
                             axis.title.y = element_blank())
