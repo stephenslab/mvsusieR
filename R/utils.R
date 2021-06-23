@@ -367,6 +367,11 @@ mvsusie_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
 #' @title Make bubble heatmap to display mvsusie result
 #' @param m a mvsusie fit, the output of `mvsusieR::susie()`
 #' @return a plot object
+#' @details If plot_z is TRUE, the bubble size is -log10(p value), 
+#'   the bubble color represents effect size, the color on the x axis represent
+#'   CSs. If plot_z is FALSE, the bubble size is -log10(CS condition specific lfsr), 
+#'   the bubble color represents posterior effect size, the color on the x axis represent
+#'   CSs, the non-significant CS are removed. 
 #' @export
 mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
                         plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05) {
@@ -403,7 +408,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   table = reshape2::melt(effects)
   colnames(table) = c('x', 'y', 'effect_size')
   table$cs = NA
-  table$mlog10lfsr = 0
+  table$mlog10lfsr = NA
   table$color = 'black'
   if(plot_z){
     table$mlog10lfsr = as.vector(logp)
@@ -411,6 +416,10 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   
   # add CS to this table.
   if (!is.null(m$sets$cs_index)) {
+    if(plot_z == FALSE){
+      effects = table$effect_size
+      table$effect_size = NA
+    }
     j = 1
     for (i in m$sets$cs_index) {
       condition_idx = which(m$single_effect_lfsr[i,] < cslfsr_threshold)
@@ -418,9 +427,12 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       variables = x_names[m$sets$cs[[j]]]
       table[which(table$x %in% variables),]$cs = i
       table[which(table$x %in% variables),]$color = as.integer(i) + 2
-      table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1E-20, m$single_effect_lfsr[i,])),
-                                                             each = length(variables))
-      table[-which((table$x %in% variables) & (table$y %in% condition_sig)),]$effect_size= NA
+      if(plot_z == FALSE){
+        table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1E-20, m$single_effect_lfsr[i,])),
+                                                               each = length(variables))
+        idx = which((table$x %in% variables) & (table$y %in% condition_sig))
+        table[idx,]$effect_size = effects[idx]
+      }
       j = j + 1
     }
     if (cs_only){
@@ -436,7 +448,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   p = ggplot(table) +
     geom_point(aes(x = x, y = y, colour = effect_size, size = mlog10lfsr)) +
     scale_x_discrete(limits = unique(table$x)) +
-    scale_y_discrete(limits = unique(table$y)) +
+    scale_y_discrete(limits = unique(table$y)) + 
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size), na.rm=TRUE), 
                                                   max(abs(table$effect_size), na.rm=TRUE)),
                           low="blue3", mid="grey88", high="red3", space="Lab", na.value="white") +
@@ -447,6 +459,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
         axis.text.y = element_text(size = 15, color = "black"),
         axis.title.x = element_blank(),
         axis.title.y = element_blank())
+  
   if (!is.null(top_snp)) {
     if(top_snp %in% unlist(m$sets$cs)){
       xnode = which(unique(table$x) == x_names[top_snp])
