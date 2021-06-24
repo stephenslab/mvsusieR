@@ -464,7 +464,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
     scale_y_discrete(limits = unique(table$y)) + 
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size), na.rm=TRUE), 
                                                   max(abs(table$effect_size), na.rm=TRUE)),
-                          low="#4575B4", mid="#FFFFBF", high="#D73027", space="Lab", na.value="white") +
+                          low="#4575B4", mid="#FFFF0E", high="#D73027", space="Lab", na.value="white") +
     labs(size=paste0("-log10(", ifelse(plot_z, "p", "CS lfsr"), ")"), colour=ifelse(plot_z, "z-score", "Effect size")) +
     guides(size = guide_legend(order = 1), colour = guide_colorbar(order = 2)) +
     theme_minimal() + theme(text = element_text(face = "bold", size = 14), panel.grid = element_blank(),
