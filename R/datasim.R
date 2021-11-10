@@ -13,12 +13,13 @@
 #'   1; otherwise, proportion of effect variables per condition if less
 #'   than 1.
 #' 
-#' @param center_scale Describe what input  argument "center" is for.
+#' @param center_scale Describe what input argument "center" is for.
 #'
 #' @param y_missing Describe what input argument "y_missing" is for.
 #'
 #' @return Describe the outputs here.
-#' 
+#'
+#' @importFrom stats cov
 #' @importFrom stats runif
 #' @importFrom stats rnorm
 #'

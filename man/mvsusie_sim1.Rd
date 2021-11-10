@@ -24,7 +24,7 @@ mvsusie_sim1(
 1; otherwise, proportion of effect variables per condition if less
 than 1.}
 
-\item{center_scale}{Describe what input  argument "center" is for.}
+\item{center_scale}{Describe what input argument "center" is for.}
 
 \item{y_missing}{Describe what input argument "y_missing" is for.}
 }
