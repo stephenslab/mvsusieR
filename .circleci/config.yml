@@ -17,7 +17,7 @@ jobs:
           name: Install dependencies
           command: |
             apt-get update
-            apt-get install libgsl0-dev
+            apt-get install libgsl-dev
       - run:
           name: Install package dependencies
           command: |
