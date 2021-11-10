@@ -10,15 +10,21 @@ branches:
 
 install:
   - ps: Bootstrap
+  - cmd: git submodule update --init --recursive
+  - cmd: git clone https://github.com/CxxTest/cxxtest
   - cmd: cd c:\tools\vcpkg
   - cmd: vcpkg integrate install
   - cmd: vcpkg install gsl:x64-windows
+  - cmd: cd "%APPVEYOR_BUILD_FOLDER%"
 
+cache:
+  - C:\RLibrary
+    
 environment:
   global:
     R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
     _R_CHECK_FORCE_SUGGESTS_: false
-    USE_RTOOLS: yes
+    USE_RTOOLS: true
     WARNINGS_ARE_ERRORS:
     R_VERSION: release
     R_ARCH: x64
