@@ -58,7 +58,7 @@ matlist2array = function (l) {
   return(l)
 }
 
-# compute value_j * weight_j / sum(value_j * weight_j)
+# Compute value_j * weight_j / sum(value_j * weight_j).
 compute_softmax = function (value, weight, log = TRUE) {
   if (length(value) != length(weight))
     stop("Values and their weights should have equal length")
@@ -72,20 +72,67 @@ compute_softmax = function (value, weight, log = TRUE) {
               log_sum = log(weighted_sum_w) + mvalue))
 }
 
-# Cannot use "unique" directly here -- for perfectly identical rows
-# (by computation) due to possible numerical issues, `unique` (and
-# `duplicated`) function reports that they are not identical.
-almost.unique <- function(x,  tolerance = sqrt(.Machine$double.eps), ...)
-{
+# Cannot use "unique" directly here --- for perfectly identical rows
+# (by computation) due to possible numerical issues, "unique" and
+# "duplicated" function report that they are not identical.
+almost.unique <- function (x,  tolerance = sqrt(.Machine$double.eps), ...) {
   if (is.matrix(x)) {
-    y <- round(x/tolerance, 0)
+    y <- round(x/tolerance,0)
   } else {
-    y <- lapply(1:length(x), function(i) round(x[[i]]/tolerance, 0))
+    y <- lapply(1:length(x),function(i) round(x[[i]]/tolerance,0))
   }
-  d <- duplicated(y, ...)
+  d <- duplicated(y,...)
   if (is.matrix(x))
-    x[!d,,drop=FALSE]
-  else x[!d]
+    return(x[!d,,drop = FALSE])
+  else
+    return(x[!d])
+}
+
+# Duplicated function with a tolerance.
+almost.duplicated <- function (x, tolerance = sqrt(.Machine$double.eps), ...) {
+  y <- round(x/tolerance, 0)
+  return(duplicated(y, ...))
+}
+
+# A null progressbar, because currently "progressbar_enabled" feature
+# does not work for "progress_bar".
+#
+#' @importFrom R6 R6Class
+null_progress_bar = R6Class("null_progress_bar",
+                            public = list(tick = function(...) {}))
+
+# Check if all elements are the same in matrix of J by R, J >> R.
+is_mat_common = function (mat)
+  nrow(almost.unique(mat)) == 1
+
+# Check if all elements are the same in list.
+is_list_common = function (lst)
+  length(almost.unique(lst)) == 1
+
+# Check if matrix has constant columns.
+is_zero_variance <- function(x) {
+  if (length(unique(x))==1)
+    return(TRUE)
+  else
+    return(FALSE)
+}
+
+# Scale prior matrix.
+scale_covariance <- function(mat, sigma) {
+  # faster way to implement diag(sigma) %*% mat %*% diag(sigma)
+  t(mat * sigma) * sigma
+}
+
+#' @title Check if input is numeric matrix
+#' @keywords internal
+is_numeric_matrix <- function(X, name) {
+  if (!((is.double(X) || is.integer(X)) & is.matrix(X)))
+    stop(paste("Input", name, "must be a numeric matrix."))
+  if (any(is.na(X))) {
+    stop(paste("Input", name, "must not contain any missing values."))
+  }
+  if (any(dim(X) == 0))
+    stop(paste("Input", name, "dimension is invalid."))
 }
 
 # SuSiE model extractor
@@ -179,31 +226,6 @@ mvsusie_get_alpha_per_condition = function(m, prior_obj) {
     condition_pip[,,r] = condition_pip[,,r] * m$alpha
   }
   return(condition_pip)
-}
-
-#' @title `duplicated` function with a tolerance
-#' @keywords internal
-almost.duplicated <- function(x, tolerance = sqrt(.Machine$double.eps), ...)
-{
-  y <- round(x/tolerance, 0)
-  duplicated(y, ...)
-}
-
-#' @title A null progressbar, because currently `progressbar_enabled` feature does not work for `progress_bar`
-#' @importFrom R6 R6Class
-#' @keywords internal
-null_progress_bar = R6Class('null_progress_bar', public = list(tick = function(...) {}))
-
-#' @title check if all elements are the same in matrix of J by R, J >> R
-#' @keywords internal
-is_mat_common = function(mat) {
-  nrow(almost.unique(mat)) == 1
-}
-
-#' @title check if all elements are the same in list
-#' @keywords internal
-is_list_common = function(lst) {
-  length(almost.unique(lst)) == 1
 }
 
 #' @title remove duplicated columns in matrix while keeping track of what columns are removed for duplicate with what other column
@@ -355,7 +377,7 @@ mvsusie_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
     else alpha = matrix(1, nrow(alpha), ncol(alpha))
     return(do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
       true_sign_mat = alpha * (1 - clfsr[,,r])
-      pmax(1E-20, 1 - apply(true_sign_mat, 2, max))
+      pmax(1e-20, 1 - apply(true_sign_mat, 2, max))
     })))
   }
 }
@@ -437,7 +459,7 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
       table[which(table$x %in% variables),]$cs = i
       table[which(table$x %in% variables),]$color = colors[i %% length(colors)]
       if(plot_z == FALSE){
-        table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1E-20, m$single_effect_lfsr[i,])),
+        table[which(table$x %in% variables),]$mlog10lfsr = rep(-log10(pmax(1e-20, m$single_effect_lfsr[i,])),
                                                                length(variables))
         idx = which((table$x %in% variables) & (table$y %in% condition_sig))
         table[idx,]$effect_size = effects[idx]
@@ -484,7 +506,6 @@ mvsusie_plot = function(m, weighted_effect = FALSE, cs_only = TRUE,
   cat(paste("Suggested PDF canvas width:", w, "height:", h, "\n"))
   return(list(plot=p, width=w, height=h))
 }
-
 
 #' @title Predict future observations or extract coefficients from susie fit
 #' @param object a susie fit
@@ -558,7 +579,7 @@ create_cov_canonical <- function(R, singletons=TRUE, hetgrid=c(0, 0.25, 0.5, 0.7
 #' @details ...
 #' @export
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL,
-                             null_weight = NULL, use_grid = FALSE, weights_tol = 1E-10, max_mixture_len = -1,
+                             null_weight = NULL, use_grid = FALSE, weights_tol = 1e-10, max_mixture_len = -1,
                              include_indices = NULL, ...) {
   if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 2)
     stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
@@ -624,38 +645,3 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
   }
 }
 
-#' @title Check if matrix is diag
-#' @keywords internal
-is_diag_mat = function(x, tol=1E-10) {
-    y <- x
-    diag(y) <- rep(0, nrow(y))
-    return(all(abs(y) < tol))
-}
-
-#' @title Check if matrix has constant columns
-#' @keywords internal
-is_zero_variance <- function(x) {
-  if (length(unique(x))==1)
-    return(TRUE)
-  else
-    return(FALSE)
-}
-
-#'@title Scale prior matrix
-#' @keywords internal
-scale_covariance <- function(mat, sigma) {
-  # faster way to implement diag(sigma) %*% mat %*% diag(sigma)
-  t(mat * sigma) * sigma
-}
-
-#' @title Check if input is numeric matrix
-#' @keywords internal
-is_numeric_matrix <- function(X, name) {
-  if (!((is.double(X) || is.integer(X)) & is.matrix(X)))
-    stop(paste("Input", name, "must be a numeric matrix."))
-  if (any(is.na(X))) {
-    stop(paste("Input", name, "must not contain any missing values."))
-  }
-  if (any(dim(X) == 0))
-    stop(paste("Input", name, "dimension is invalid."))
-}
