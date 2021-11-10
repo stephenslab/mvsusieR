@@ -1,6 +1,9 @@
 ^docs$
 ^_pkgdown\.yml$
 ^config\.yml$
+^appveyor\.yml$
+^\.circleci$
+^\.circleci/config\.yml$
 ^Makefile$
 ^release$
 ^config\.yml$

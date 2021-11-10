@@ -4,8 +4,8 @@ Package: mvsusieR
 Title: Multivariate Bayesian Variable Selection Regression
 Description: A more general implementation of the Sum of SIngle
     Effects (SuSiE) regression for Bayesian variable selection.
-Date: 2021-04-08
-Version: 0.0.3.0436
+Date: 2021-11-10
+Version: 0.0.3.0437
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="wang.gao@columbia.edu"),
              person("Yuxin","Zou",role="aut"),
@@ -42,5 +42,7 @@ Suggests:
     microbenchmark,
     knitr,
     rmarkdown
-Remotes: stephenslab/mashr, stephenslab/susieR
+Remotes:
+    stephenslab/mashr,
+    stephenslab/susieR
 VignetteBuilder: knitr
