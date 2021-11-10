@@ -1,8 +1,8 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: rocker/verse:latest
+    macos:
+      xcode: 12.1
     environment:
       R_LIBS: ~/R/Library
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
