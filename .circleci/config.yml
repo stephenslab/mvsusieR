@@ -14,10 +14,14 @@ jobs:
             - r-pkg-cache-{{ arch }}-
       - checkout
       - run:
+          name: Install dependencies
+          command: |
+            brew update
+            brew install gsl
           name: Install package dependencies
           command: |
             mkdir -p ~/R/Library
-            Rscript -e 'install.packages(c("devtools","testthat","R6","ggplot2","abind","mvtnorm","matrixStats","expm","progress","grove"))'
+            Rscript -e 'install.packages(c("devtools","testthat","RcppGSL","R6","ggplot2","abind","mvtnorm","matrixStats","expm","progress","grove"))'
             Rscript -e 'devtools::install_github("stephens999/ashr",upgrade="never",force=TRUE)'
             Rscript -e 'devtools::install_github("stephenslab/mashr",upgrade="never",force=TRUE)'
             Rscript -e 'devtools::install_github("stephenslab/susieR",upgrade="never",force=TRUE)'

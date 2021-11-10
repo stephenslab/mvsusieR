@@ -9,7 +9,10 @@ branches:
     - master
 
 install:
-  ps: Bootstrap
+  - ps: Bootstrap
+  - cmd: cd c:\tools\vcpkg
+  - cmd: vcpkg integrate install
+  - cmd: vcpkg install gsl:x64-windows
 
 environment:
   global:
@@ -24,7 +27,7 @@ environment:
 # This is the minimal set of R packages needed to run "R CMD check" on
 # the package.
 build_script:
-  - R -e install.packages(c('devtools','testthat','R6','ggplot2','abind','mvtnorm','matrixStats','expm','progress','grove'),head(.libPaths(),1),'http://cran.wustl.edu')
+  - R -e install.packages(c('devtools','testthat','R6','RcppGSL','ggplot2','abind','mvtnorm','matrixStats','expm','progress','grove'),head(.libPaths(),1),'http://cran.wustl.edu')
   - R -e devtools::install_github('stephens999/ashr',upgrade='never',force=TRUE)
   - R -e devtools::install_github('stephenslab/mashr',upgrade='never',force=TRUE)
   - R -e devtools::install_github('stephenslab/susieR',upgrade='never',force=TRUE)  
