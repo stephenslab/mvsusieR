@@ -1,8 +1,8 @@
 version: 2
 jobs:
   build:
-    macos:
-      xcode: 12.1
+    docker:
+      - image: rocker/verse:latest
     environment:
       R_LIBS: ~/R/Library
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -16,8 +16,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            brew update
-            brew install gsl
+            apt-get update
+            apt-get install libgsl0-dev
       - run:
           name: Install package dependencies
           command: |
