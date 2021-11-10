@@ -2,7 +2,7 @@ Encoding: UTF-8
 Type: Package
 Package: mvsusieR
 Date: 2021-11-10
-Version: 0.0.3.0439
+Version: 0.0.3.0440
 Title: Multivariate Sum of Single Effects Regression
 Description: Implements a multivariate generalization of the "Sum of
   Single Effects" (SuSiE) model for variable selection in multivariate
@@ -45,5 +45,5 @@ Remotes:
     stephenslab/susieR
 LazyData: true
 NeedsCompilation: no
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 VignetteBuilder: knitr

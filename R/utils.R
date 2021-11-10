@@ -1,85 +1,96 @@
-#' @title chol decomposition without warning message
-#' @keywords internal
-muffled_chol = function(x, ...)
+# chol decomposition without warning message.
+muffled_chol = function (x, ...)
   withCallingHandlers(chol(x, ...),
-                      warning = function(w) {
-                        if (grepl("the matrix is either rank-deficient or indefinite", w$message))
-                          invokeRestart("muffleWarning")
-                      })
+    warning = function (w) {
+      if (grepl("the matrix is either rank-deficient or indefinite",w$message))
+        invokeRestart("muffleWarning")
+  })
 
-#' @title Invert a symmetric, positive definite square matrix via its Choleski decomposition
-#' @keywords internal
-invert_via_chol = function(x) {
-  if (all(x==0)) return(list(inv=x, rank=0))
-  return(list(inv=chol2inv(muffled_chol(x)), rank=nrow(x)))
+# Invert a symmetric, positive definite square matrix via its Cholesky
+# decomposition.
+invert_via_chol = function (x) {
+  if (all(x == 0))
+    return(list(inv = x,rank = 0))
+  else
+    return(list(inv = chol2inv(muffled_chol(x)),rank = nrow(x)))
 }
 
-#' @title Invert SPD via triangular back-fitting
-#' @keywords internal
-invert_chol_tri = function(x) {
-  return(list(inv=t(backsolve(muffled_chol(x), diag(nrow(x)))), rank=nrow(x)))
-}
+# Invert SPD via triangular back-fitting.
+invert_chol_tri = function (x)
+  list(inv = t(backsolve(muffled_chol(x),diag(nrow(x)))),rank = nrow(x))
 
-#' @title Pseudo inverse of matrix
-#' @keywords internal
-pseudo_inverse = function(x, tol=sqrt(.Machine$double.eps)){
-  xsvd <- svd(x)
-  Positive <- xsvd$d > max(tol * xsvd$d[1L], 0)
-  if(all(Positive)){
+# Pseudoinverse of matrix.
+pseudo_inverse = function (x, tol = sqrt(.Machine$double.eps)) {
+  xsvd     <- svd(x)
+  Positive <- xsvd$d > max(tol * xsvd$d[1L],0)
+  if (all(Positive)) {
     xinv <- xsvd$v %*% (1/xsvd$d * t(xsvd$u))
-  }else{
-    xinv <- xsvd$v[, Positive, drop = FALSE] %*% ((1/xsvd$d[Positive]) *
-                                            t(xsvd$u[, Positive, drop = FALSE]))
+  } else {
+    xinv <- xsvd$v[,Positive,drop = FALSE] %*%
+              ((1/xsvd$d[Positive]) * t(xsvd$u[,Positive,drop = FALSE]))
   }
-  return(list(inv = xinv, rank = sum(Positive)))
+  return(list(inv = xinv,rank = sum(Positive)))
 }
 
-#' @title Check if x is diagonal matrix
-#' @keywords internal
-isDiagonal = function(x, tol=sqrt(.Machine$double.eps)){
-  if(is.matrix(x)){
-    diag(x) <- rep(0, nrow(x))
+# Check if x is diagonal matrix.
+isDiagonal = function (x, tol = sqrt(.Machine$double.eps)) {
+  if (is.matrix(x)) {
+    diag(x) <- rep(0,nrow(x))
     return(all(abs(x) < tol))
-  }else{
+  } else
     return(TRUE)
-  }
 }
 
-#' @title Find trace of diag matrix
-#' @keywords internal
+# Find trace of diag matrix.
 tr = function (m) {
-    if (!is.matrix(m) | (dim(m)[1] != dim(m)[2]))
-        stop("Input to tr() function must be a square matrix")
-    return(sum(diag(m), na.rm = TRUE))
+  if (!is.matrix(m) | (dim(m)[1] != dim(m)[2]))
+    stop("Input to tr() function must be a square matrix")
+  return(sum(diag(m),na.rm = TRUE))
 }
 
-#' @title Convert a list of matrices to array without losing dimension
-#' @keywords internal
-matlist2array = function(l) {
-  if (class(l) != "list") return(l)
+# Convert a list of matrices to array without losing dimension.
+matlist2array = function (l) {
+  if (class(l) != "list")
+    return(l)
   l = simplify2array(l)
-  if (is.null(dim(l))) {
-    l = array(l, c(1,1,length(l)))
-  }
+  if (is.null(dim(l)))
+    l = array(l,c(1,1,length(l)))
   return(l)
 }
 
-#' @title compute value_j * weight_j / sum(value_j * weight_j)
-#' @keywords internal
-compute_softmax = function(value, weight, log = TRUE) {
-    if (length(value)!=length(weight))
-      stop("Values and their weights should have equal length")
-    if (!log) value = log(value)
-    mvalue = max(value)
-    w = exp(value-mvalue)
-    w_weighted = w * weight
-    weighted_sum_w = sum(w_weighted)
-    return(list(weights = as.vector(w_weighted / weighted_sum_w), log_sum = log(weighted_sum_w) + mvalue))
+# compute value_j * weight_j / sum(value_j * weight_j)
+compute_softmax = function (value, weight, log = TRUE) {
+  if (length(value) != length(weight))
+    stop("Values and their weights should have equal length")
+  if (!log)
+    value = log(value)
+  mvalue = max(value)
+  w = exp(value - mvalue)
+  w_weighted = w * weight
+  weighted_sum_w = sum(w_weighted)
+  return(list(weights = as.vector(w_weighted / weighted_sum_w),
+              log_sum = log(weighted_sum_w) + mvalue))
 }
 
-#' @title SuSiE model extractor
+# Cannot use "unique" directly here -- for perfectly identical rows
+# (by computation) due to possible numerical issues, `unique` (and
+# `duplicated`) function reports that they are not identical.
+almost.unique <- function(x,  tolerance = sqrt(.Machine$double.eps), ...)
+{
+  if (is.matrix(x)) {
+    y <- round(x/tolerance, 0)
+  } else {
+    y <- lapply(1:length(x), function(i) round(x[[i]]/tolerance, 0))
+  }
+  d <- duplicated(y, ...)
+  if (is.matrix(x))
+    x[!d,,drop=FALSE]
+  else x[!d]
+}
+
+# SuSiE model extractor
+# 
 #' @importFrom abind abind
-#' @keywords internal
 report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
     if (length(dim(m$posterior_b1[[1]])) < 2) {
       # univariate case
@@ -168,21 +179,6 @@ mvsusie_get_alpha_per_condition = function(m, prior_obj) {
     condition_pip[,,r] = condition_pip[,,r] * m$alpha
   }
   return(condition_pip)
-}
-
-# Cannot use `unique` directly here -- for perfectly identical rows (by computation)
-# due to possible numerical issues, `unique` (and `duplicated`) function reports
-# that they are not identical.
-almost.unique <- function(x,  tolerance = sqrt(.Machine$double.eps), ...)
-{
-  if (is.matrix(x)) {
-    y <- round(x/tolerance, 0)
-  } else {
-    y <- lapply(1:length(x), function(i) round(x[[i]]/tolerance, 0))
-  }
-  d <- duplicated(y, ...)
-  if (is.matrix(x)) x[!d,,drop=F]
-  else x[!d]
 }
 
 #' @title `duplicated` function with a tolerance
@@ -517,10 +513,10 @@ predict.mvsusie <- function (object, newx) {
 #' @details This function computes canonical covariance matrices to be provided to mash
 #' @examples
 #'  mvsusieR:::create_cov_canonical(3)
-#'  mvsusieR:::create_cov_canonical(3, singletons=F)
+#'  mvsusieR:::create_cov_canonical(3, singletons=FALSE)
 #'  mvsusieR:::create_cov_canonical(3, hetgrid=NULL)
 #' @keywords internal
-create_cov_canonical <- function(R, singletons=T, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
+create_cov_canonical <- function(R, singletons=TRUE, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
   mats <- list()
   s_idx <- 0
   nms <- vector()
@@ -599,11 +595,11 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
     }
     if (is.null(sample_data$center)) {
       #message("Assuming intercept is fitted (otherwise please set 'sample_data$center=F')", stderr())
-      sample_data$center = T
+      sample_data$center = TRUE
     }
     if (is.null(sample_data$scale)) {
       #message("Assuming X is not yet scaled and will scale X (otherwise please set 'sample_data$scale=F')", stderr())
-      sample_data$scale = T
+      sample_data$scale = TRUE
     }
     # compute canonical covariances
     Ulist = create_cov_canonical(ncol(sample_data$Y), ...)
@@ -639,8 +635,10 @@ is_diag_mat = function(x, tol=1E-10) {
 #' @title Check if matrix has constant columns
 #' @keywords internal
 is_zero_variance <- function(x) {
-  if (length(unique(x))==1) return(T)
-  else return(F)
+  if (length(unique(x))==1)
+    return(TRUE)
+  else
+    return(FALSE)
 }
 
 #'@title Scale prior matrix

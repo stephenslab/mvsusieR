@@ -13,7 +13,8 @@ fsusie = function(X, Y, L=2, K=3, prior_weights=NULL,
   data$set_residual_variance(residual_variance=diag(ncol(Y)), quantities = "residual_variance")
   #
   s = mvsusie_core(data, NULL, L, NULL, prior_weights,
-                   F, F, NULL, 0, F, compute_objective, 1, max_iter, tol, track_fit, verbosity)
+                   FALSE, FALSE, NULL, 0, FALSE, compute_objective, 1,
+                   max_iter, tol, track_fit, verbosity)
   # CS and PIP
   if (!is.null(coverage) && !is.null(min_abs_corr)) {
     s$null_index = -9

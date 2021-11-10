@@ -48,7 +48,8 @@ MASH multiple regression object
   save_summary_stats = FALSE,
   save_var = FALSE,
   estimate_prior_variance_method = NULL,
-  check_null_threshold = 0
+  check_null_threshold = 0,
+  verbose = FALSE
 )}\if{html}{\out{</div>}}
 }
 
