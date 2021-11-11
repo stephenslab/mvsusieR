@@ -3,6 +3,10 @@
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/fhrp1e868f40skp1?svg=true)](https://ci.appveyor.com/project/pcarbo/mvsusieR)
 [![CircleCI](https://circleci.com/gh/stephenslab/mvsusieR/tree/master.svg?style=svg)](https://app.circleci.com/pipelines/github/stephenslab/mvsusieR?branch=master)
 
+Implements a multivariate generalization of the "Sum of Single
+Effects" (SuSiE) model for variable selection in multivariate linear
+regression.
+  
 ## Setup
 
 To install the latest version of the mvsusieR package from GitHub, run
