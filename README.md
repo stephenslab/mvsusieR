@@ -5,18 +5,26 @@
 
 ## Setup
 
-To automatically retrieve and install the latest version of the R
-package from this repository, run
+To install the latest version of the mvsusieR package from GitHub, run
+the following code in R:
 
-```r
-remotes::install_github("stephenslab/mvsusieR")
+```R
+install.packages("remotes")
+library(remotes)
+install_github("stephenslab/mvsusieR")
 ```
+
+This command should automatically install all required packages if
+they are not installed already.
+
+Note that mvsusieR uses [mashr][mashr], which in turn requires the GNU
+Scientific libraries (GSL). You may want to install mashr first before
+attempting to install mvsusieR.
 
 ## Quick Start
 
-[Here](https://stephenslab.github.io/mvsusieR/articles/prediction.html) is
-a quick document to show mvsusieR in action.  For more documentation and
-examples please visit: https://stephenslab.github.io/mvsusieR
+[Here][prediction-vignette] is a quick document to show mvsusieR in
+action. See [here][pkgdown-site] more documentation and examples.
 
 ## Developer notes
 
@@ -36,3 +44,7 @@ in the shell:
 
 + Run `pkgdown::build_site(lazy = TRUE,examples = FALSE)` to build the
   website.
+
+[pkgdown-site]: https://stephenslab.github.io/mvsusieR
+[prediction-vignette]: https://stephenslab.github.io/mvsusieR/articles/prediction.html
+[mashr]: https://github.com/stephenslab/mashr
