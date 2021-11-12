@@ -21,21 +21,20 @@ invert_chol_tri = function (x)
 
 # Pseudoinverse of matrix.
 pseudo_inverse = function (x, tol = sqrt(.Machine$double.eps)) {
-  xsvd     <- svd(x)
-  Positive <- xsvd$d > max(tol * xsvd$d[1L],0)
-  if (all(Positive)) {
-    xinv <- xsvd$v %*% (1/xsvd$d * t(xsvd$u))
-  } else {
-    xinv <- xsvd$v[,Positive,drop = FALSE] %*%
-              ((1/xsvd$d[Positive]) * t(xsvd$u[,Positive,drop = FALSE]))
-  }
+  xsvd     = svd(x)
+  Positive = xsvd$d > max(tol * xsvd$d[1L],0)
+  if (all(Positive))
+    xinv = xsvd$v %*% (1/xsvd$d * t(xsvd$u))
+  else 
+    xinv = xsvd$v[,Positive,drop = FALSE] %*%
+             ((1/xsvd$d[Positive]) * t(xsvd$u[,Positive,drop = FALSE]))
   return(list(inv = xinv,rank = sum(Positive)))
 }
 
 # Check if x is diagonal matrix.
 isDiagonal = function (x, tol = sqrt(.Machine$double.eps)) {
   if (is.matrix(x)) {
-    diag(x) <- rep(0,nrow(x))
+    diag(x) = rep(0,nrow(x))
     return(all(abs(x) < tol))
   } else
     return(TRUE)
@@ -75,13 +74,12 @@ compute_softmax = function (value, weight, log = TRUE) {
 # Cannot use "unique" directly here --- for perfectly identical rows
 # (by computation) due to possible numerical issues, "unique" and
 # "duplicated" function report that they are not identical.
-almost.unique <- function (x,  tolerance = sqrt(.Machine$double.eps), ...) {
-  if (is.matrix(x)) {
-    y <- round(x/tolerance,0)
-  } else {
-    y <- lapply(1:length(x),function(i) round(x[[i]]/tolerance,0))
-  }
-  d <- duplicated(y,...)
+almost.unique = function (x,  tolerance = sqrt(.Machine$double.eps), ...) {
+  if (is.matrix(x))
+    y = round(x/tolerance,0)
+  else
+    y = lapply(1:length(x),function(i) round(x[[i]]/tolerance,0))
+  d = duplicated(y,...)
   if (is.matrix(x))
     return(x[!d,,drop = FALSE])
   else
@@ -89,8 +87,8 @@ almost.unique <- function (x,  tolerance = sqrt(.Machine$double.eps), ...) {
 }
 
 # Duplicated function with a tolerance.
-almost.duplicated <- function (x, tolerance = sqrt(.Machine$double.eps), ...) {
-  y <- round(x/tolerance, 0)
+almost.duplicated = function (x, tolerance = sqrt(.Machine$double.eps), ...) {
+  y = round(x/tolerance, 0)
   return(duplicated(y, ...))
 }
 
@@ -110,7 +108,7 @@ is_list_common = function (lst)
   length(almost.unique(lst)) == 1
 
 # Check if matrix has constant columns.
-is_zero_variance <- function (x) {
+is_zero_variance = function (x) {
   if (length(unique(x)) == 1)
     return(TRUE)
   else
@@ -118,11 +116,11 @@ is_zero_variance <- function (x) {
 }
 
 # Faster way to implement diag(sigma) %*% mat %*% diag(sigma)
-scale_covariance <- function (mat, sigma)
+scale_covariance = function (mat, sigma)
   t(mat * sigma) * sigma
 
 # Check if input is numeric matrix.
-is_numeric_matrix <- function (X, name) {
+is_numeric_matrix = function (X, name) {
   if (!((is.double(X) || is.integer(X)) & is.matrix(X)))
     stop(paste("Input",name,"must be a numeric matrix."))
   if (any(is.na(X)))
