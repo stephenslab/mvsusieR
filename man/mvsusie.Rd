@@ -2,7 +2,7 @@
 % Please edit documentation in R/mvsusie.R
 \name{mvsusie}
 \alias{mvsusie}
-\title{SUm of Single Effect (SuSiE) Regression of multivariate Y on X}
+\title{Multivariate SUm of Single Effect (SuSiE) Regression}
 \usage{
 mvsusie(
   X,
@@ -33,69 +33,108 @@ mvsusie(
 )
 }
 \arguments{
-\item{X}{an n by p matrix of covariates}
+\item{X}{n by p matrix of covariates.}
 
-\item{Y}{an n vector, or n by r matrix of response variables}
+\item{Y}{Vector of length n, or n by r matrix of response
+variables.}
 
-\item{L}{maximum number of non-zero effects}
+\item{L}{Maximum number of non-zero effects.}
 
-\item{prior_variance}{Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`);
-2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights}
+\item{prior_variance}{Can be either (1) a vector of length L, or a
+scalar, for scaled prior variance when Y is univariate (which
+should then be equivalent to \code{\link[susieR]{susie}}); or (2) a
+matrix for a simple multivariate regression; or (3) a MASH fit that
+contains an array of prior covariance matrices and their weights.}
 
-\item{residual_variance}{the residual variance (defaults to sample variance of Y)}
+\item{residual_variance}{The residual variance (defaults to the
+sample variance of Y).}
 
-\item{prior_weights}{a p vector of prior probability that each element is non-zero}
+\item{prior_weights}{A vector of length p giving the prior
+probability that each element is non-zero. Note that the prior
+weights need to be non-negative but do not need to sum to 1; they
+will automatically be normalized to sum to 1 so that they represent
+probabilities. TO DO: Give default setting for
+\code{prior_weights}.}
 
-\item{standardize}{logical flag (default=TRUE) for whether to standardize columns of X to unit variance prior to fitting.
-If you do not standardize you may need
-to think more carefully about specifying the scale of prior variance.
-Whatever the value of standardize, the coefficients (returned from `coef`) are for X on the original input scale.
-Any column of X that has zero variance is not standardized, but left as is.}
+\item{standardize}{Logical flag specifying whether to standardize
+columns of X to unit variance prior to fitting. If you do not
+standardize you may need to think more carefully about specifying
+the scale of the prior variance.  Whatever the value of
+standardize, the coefficients (returned by \code{\link{coef}}) are
+for X on the original input scale. Note that any column of X with
+zero variance is not standardized, but left as is.}
 
-\item{intercept}{Should intercept be fitted (default=TRUE) or set to zero (FALSE). The latter is generally not recommended.}
+\item{intercept}{Should intercept be fitted or set to zero. Setting
+\code{intercept = FALSE} is generally not recommended.}
 
-\item{approximate}{indicates whether to use approximate computation for intercept when there are missing values in Y (default = FALSE). 
-The approximation saves some computational time. 
-When the \code{residual_variance} is a diagonal matrix, \code{approximate = TRUE} gives same result as \code{approximate = FALSE} with less running time.
-This parameter is only used when there are missing values in Y and \code{intercept} = TRUE.}
+\item{approximate}{Specifies whether to use approximate computation
+for the intercept when there are missing values in Y.  The
+approximation saves some computational effort. Note that when the
+residual_variance is a diagonal matrix, running \code{mvsusie} with
+\code{approximate = TRUE} will give same result as
+\code{approximate = FALSE}, but with less running time. This
+setting is only relevant when there are missing values in Y and
+\code{intercept} = TRUE.}
 
-\item{estimate_residual_variance}{indicates whether to estimate residual variance (currently only works for univariate Y input)}
+\item{estimate_residual_variance}{indicates whether to estimate
+residual variance (currently only works for univariate Y input)}
 
-\item{estimate_prior_variance}{indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)}
+\item{estimate_prior_variance}{indicates whether to estimate prior
+(currently only works for univariate Y and for multivariate Y when
+prior is a single matrix)}
 
-\item{estimate_prior_method}{the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.}
+\item{estimate_prior_method}{the method used for estimating prior
+variance: "optim", "uniroot" and "em" for univariate Y, "optim" and
+"simple" for multivariate Y.}
 
-\item{check_null_threshold}{when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
-using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. When used with "EM" method
-setting \code{check_null_threshold=NA} will skip the check and instead relying solely on EM to update this parameter.}
+\item{check_null_threshold}{when prior variance is estimated,
+compare the estimate with the null and set prior variance to null
+(zero) unless the log-likelihood using the estimate is larger than
+that of null by this threshold. For example, you can set it to 0.1
+to nudge the estimate towards zero. When used with "EM" method
+setting \code{check_null_threshold=NA} will skip the check and
+instead relying solely on EM to update this parameter.}
 
-\item{prior_tol}{when prior variance is estimated, compare the estimated value to this tol at the end of
-the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.}
+\item{prior_tol}{when prior variance is estimated, compare the
+estimated value to this tol at the end of the analysis and exclude
+a single effect from PIP computation if the estimated prior
+variance is smaller than it.}
 
 \item{s_init}{a previous model fit with which to initialize}
 
-\item{coverage}{coverage of confident sets. Default to 0.95 for 95\% credible interval.}
+\item{coverage}{coverage of confident sets. Default to 0.95 for
+95\% credible interval.}
 
-\item{min_abs_corr}{minimum of absolute value of correlation allowed in a credible set.
-Default set to 0.5 to correspond to squared correlation of 0.25,
-a commonly used threshold for genotype data in genetics studies.}
+\item{min_abs_corr}{minimum of absolute value of correlation
+allowed in a credible set.  Default set to 0.5 to correspond to
+squared correlation of 0.25, a commonly used threshold for genotype
+data in genetics studies.}
 
-\item{compute_univariate_zscore}{if TRUE outputs z-score from per variable univariate regression}
+\item{compute_univariate_zscore}{if TRUE outputs z-score from per
+variable univariate regression}
 
-\item{precompute_covariances}{if TRUE, precomputes various covariance quantities to speed up computations at the cost of increased memory usage}
+\item{precompute_covariances}{if TRUE, precomputes various
+covariance quantities to speed up computations at the cost of
+increased memory usage}
 
-\item{n_thread}{maximum number of threads to use for parallel computation (only applicable to mixture prior)}
+\item{n_thread}{maximum number of threads to use for parallel
+computation (only applicable to mixture prior)}
 
-\item{max_iter}{maximum number of iterations to perform}
+\item{max_iter}{Maximum number of iterations to perform.}
 
-\item{tol}{convergence tolerance}
+\item{tol}{Convergence tolerance.}
 
-\item{verbosity}{set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.}
+\item{verbosity}{Set \code{verbosity = 0} for no messages;
+\code{verbosity = 1} for a progress bar; and \code{verbosity = 2}
+for more detailed information about the algorithm's progress at the
+end of each iteration.}
 
 \item{track_fit}{add an attribute \code{trace} to output that saves some current quantities of all iterations}
 }
 \value{
-a susie fit, which is a list with some or all of the following elements\cr
+a susie fit, which is a list with some or all of the
+following elements
+
 \item{alpha}{an L by p matrix of posterior inclusion probabilites}
 \item{b1}{an L by p matrix of posterior means (conditional on inclusion)}
 \item{b2}{an L by p matrix of posterior second moments (conditional on inclusion)}
@@ -112,15 +151,13 @@ a susie fit, which is a list with some or all of the following elements\cr
 \item{z}{a vector of univariate z-scores}
 }
 \description{
-SUm of Single Effect (SuSiE) Regression of multivariate Y on X
-}
-\details{
-Performs Bayesian multiple linear regression of Y on X.
-That is, this function
-fits the regression model Y= sum_l Xb_l + e, where elements of e are iid N(0,residual_variance) and the
-sum_l b_l is a p vector of effects to be estimated.
-The assumption is that each b_l has exactly one non-zero element, with all elements
-equally likely to be non-zero.
+Performs a Bayesian multiple linear regression of Y on X.
+  That is, this function fits the regression model \deqn{Y = \sum_l X
+  b_l + e}, where the elements of \eqn{e} are \emph{i.i.d.} normal
+  with zero mean and variance \code{residual_variance}, and the sum
+  \eqn{\sum_l b_l} is a vector of p effects to be estimated. The
+  SuSiE assumption is that each \eqn{b_l} has exactly one non-zero
+  element.
 }
 \examples{
 set.seed(1)
