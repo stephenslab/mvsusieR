@@ -165,8 +165,8 @@ n = 1000
 p = 1000
 beta = rep(0,p)
 beta[1:4] = 1
-X = matrix(rnorm(n*p),nrow=n,ncol=p)
-y = X \%*\% beta + rnorm(n)
-res = mvsusie(X,y,L=10)
+X = matrix(rnorm(n*p),nrow = n,ncol = p)
+y = X \\%*\\% beta + rnorm(n)
+res = mvsusie(X,y,L = 10)
 
 }

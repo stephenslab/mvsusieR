@@ -130,14 +130,17 @@
 #' p = 1000
 #' beta = rep(0,p)
 #' beta[1:4] = 1
-#' X = matrix(rnorm(n*p),nrow=n,ncol=p)
-#' y = X %*% beta + rnorm(n)
-#' res = mvsusie(X,y,L=10)
+#' X = matrix(rnorm(n*p),nrow = n,ncol = p)
+#' y = X \%*\% beta + rnorm(n)
+#' res = mvsusie(X,y,L = 10)
 #'
+#' @importFrom Matrix isDiagonal
+#' @importFrom stats sd
 #' @importFrom stats var
 #' @importFrom susieR susie_get_cs
 #' 
 #' @export
+#' 
 mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
                     residual_variance = NULL, prior_weights=NULL,
                     standardize = TRUE,intercept = TRUE, approximate = FALSE,
@@ -157,60 +160,74 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
     prior_weights = rep(1/ncol(X),ncol(X))
   else
     prior_weights = prior_weights / sum(prior_weights)
-  if(inherits(prior_variance, 'MashInitializer')){
-    prior_variance = prior_variance$clone(deep=T)
-  }
-  # adjust prior effects
-  is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
-  if (!is.null(dim(Y)) && ncol(Y) > 1 && is_numeric_prior) stop("Please specify prior variance for the multivariate response Y")
+  
+  # Check and process prior variance.
+  if (inherits(prior_variance,"MashInitializer"))
+    prior_variance = prior_variance$clone(deep = TRUE)
+  is_numeric_prior = !(is.matrix(prior_variance) ||
+                       inherits(prior_variance,"MashInitializer"))
+  if (!is.null(dim(Y)) && ncol(Y) > 1 && is_numeric_prior)
+    stop("Please specify prior variance for the multivariate response Y")
   if (standardize && !is_numeric_prior) {
-    # Scale prior variance
-    # https://github.com/stephenslab/mvsusieR/blob/master/inst/prototypes/prior_matrices_scale.ipynb
-    sigma = sapply(1:ncol(Y), function(i) sd(Y[,i], na.rm=T))
-    n = sapply(1:ncol(Y), function(i) length(which(!is.na(Y[,1]))))
-    sigma = sigma / sqrt(n)
-    # Make sigma numerically more robust against extreme values
-    if (estimate_prior_variance) sigma = sigma / max(sigma)
-    if (is.matrix(prior_variance)) prior_variance = scale_covariance(prior_variance, sigma)
-    else prior_variance$scale_prior_variance(sigma)
+      
+    # Scale prior variance; see
+    # https://github.com/stephenslab/mvsusieR/blob/master/
+    # inst/prototypes/prior_matrices_scale.ipynb
+    sigma = sapply(1:ncol(Y),function(i) sd(Y[,i],na.rm = TRUE))
+    n     = sapply(1:ncol(Y),function(i) length(which(!is.na(Y[,1]))))
+    sigma = sigma/sqrt(n)
+    
+    # Make sigma numerically more robust against extreme values.
+    if (estimate_prior_variance)
+      sigma = sigma/max(sigma)
+    if (is.matrix(prior_variance))
+      prior_variance = scale_covariance(prior_variance,sigma)
+    else
+      prior_variance$scale_prior_variance(sigma)
   }
-  if (verbosity>1) {
-    message("Initializing data object ...")
-    message(paste("Dimension of X matrix:", nrow(X), ncol(X)))
-    message(paste("Dimension of Y matrix:", nrow(Y), ncol(Y)))
-  }
-  # set data object
-  if (any(is.na(Y))) {
-    # When the residual variance is a diagonal matrix,
-    # the approximate version has the same result as the exact version,
-    # and it is faster, so we aet approximate = T
-    if(isDiagonal(residual_variance)){
-      approximate = TRUE
-    }
-    data = DenseDataYMissing$new(X, Y, approximate)
-    estimate_residual_variance = FALSE
-  } else {
-    data = DenseData$new(X, Y)
-  }
-  # include residual variance in data
-  data$set_residual_variance(residual_variance, numeric = is_numeric_prior, quantities = 'residual_variance')
-  data$standardize(intercept, standardize)
-  data$set_residual_variance(quantities='effect_variance')
-  #
-  s = mvsusie_core(data, s_init, L, prior_variance, prior_weights,
-            estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
-            precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
-  # CS and PIP
-  if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    s$sets = susie_get_cs(s, coverage=coverage, X=X, min_abs_corr=min_abs_corr)
+  if (verbosity > 1) {
+    message("Initializing data object...")
+    message(paste("Dimension of X matrix:",nrow(X),ncol(X)))
+    message(paste("Dimension of Y matrix:",nrow(Y),ncol(Y)))
   }
   
-  # Report z-scores from univariate regression
+  # Set data object.
+  if (any(is.na(Y))) {
+      
+    # When the residual variance is a diagonal matrix, the approximate
+    # version has the same result as the exact version, and it is
+    # faster, so we set approximate = TRUE.
+    if (isDiagonal(residual_variance))
+      approximate = TRUE
+    data = DenseDataYMissing$new(X,Y,approximate)
+    estimate_residual_variance = FALSE
+  } else
+    data = DenseData$new(X,Y)
+
+  # Include residual variance in the data object.
+  data$set_residual_variance(residual_variance,numeric = is_numeric_prior,
+                             quantities = "residual_variance")
+  data$standardize(intercept,standardize)
+  data$set_residual_variance(quantities = "effect_variance")
+
+  # Fit the susie model.
+  s = mvsusie_core(data,s_init,L,prior_variance,prior_weights,
+                   estimate_residual_variance,estimate_prior_variance,
+                   estimate_prior_method,check_null_threshold,
+                   precompute_covariances,compute_objective,n_thread,
+                   max_iter,tol,prior_tol,track_fit,verbosity)
+  
+  # Compute CSs and PIPs.
+  if (!is.null(coverage) && !is.null(min_abs_corr))
+    s$sets = susie_get_cs(s,coverage = coverage,X = X,
+                          min_abs_corr = min_abs_corr)
+  
+  # Report z-scores from univariate regression.
   if (compute_univariate_zscore)
     s$z = susieR:::calc_z(X,Y,center = intercept,scale = standardize)
   
-  # FIXME: need a better approach
-  s$variable_names  = colnames(X)
+  # FIXME: need a better approach.
+  s$variable_names = colnames(X)
   s$condition_names = colnames(Y)
   return(s)
 }
