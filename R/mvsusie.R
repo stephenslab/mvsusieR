@@ -43,7 +43,7 @@
 #'   \code{intercept = FALSE} is generally not recommended.
 #' 
 #' @param approximate Specifies whether to use approximate computation
-#'   for the intercept when there are missing values in Y.  The
+#'   for the intercept when there are missing values in Y. The
 #'   approximation saves some computational effort. Note that when the
 #'   residual_variance is a diagonal matrix, running \code{mvsusie} with
 #'   \code{approximate = TRUE} will give same result as
@@ -51,49 +51,54 @@
 #'   setting is only relevant when there are missing values in Y and
 #'   \code{intercept} = TRUE.
 #' 
-#' @param estimate_residual_variance indicates whether to estimate
-#' residual variance (currently only works for univariate Y input)
+#' @param estimate_residual_variance When
+#'   \code{estimate_residual_variance = TRUE}, the residual variance is
+#'   estimated; otherwise it is fixed. Currently
+#'   \code{estimate_residual_variance = TRUE} only works for univariate Y.
 #' 
-#' @param estimate_prior_variance indicates whether to estimate prior
-#' (currently only works for univariate Y and for multivariate Y when
-#' prior is a single matrix)
+#' @param estimate_prior_variance When \code{estimate_prior_variance =
+#'   TRUE}, the prior variance is estimated; otherwise it is
+#'   fixed. Currently \code{estimate_prior_variance = TRUE} only works
+#'   for univariate Y, or for multivariate Y when the prior variance is
+#'   a matrix).
 #' 
-#' @param estimate_prior_method the method used for estimating prior
-#' variance: "optim", "uniroot" and "em" for univariate Y, "optim" and
-#' "simple" for multivariate Y.
+#' @param estimate_prior_method The method used for estimating the
+#'   prior variance; valid choices are \code{"optim"}, \code{"uniroot"}
+#'   or \code{"em"} for univariate Y; and \code{"optim"},
+#'   \code{"simple"} for multivariate Y.
 #' 
-#' @param check_null_threshold when prior variance is estimated,
-#' compare the estimate with the null and set prior variance to null
-#' (zero) unless the log-likelihood using the estimate is larger than
-#' that of null by this threshold. For example, you can set it to 0.1
-#' to nudge the estimate towards zero. When used with "EM" method
-#' setting \code{check_null_threshold=NA} will skip the check and
-#' instead relying solely on EM to update this parameter.
+#' @param check_null_threshold When the prior variance is estimated,
+#'   the estimate is compared against the null, and the prior variance
+#'   is set to zero unless the log-likelihood using the estimate is
+#'   larger than that of null by this threshold. For example, setting
+#'   \code{check_null_threshold = 0.1} will \dQuote{nudge} the estimate
+#'   towards zero. When used with \code{estimate_prior_method = "EM"},
+#'   setting \code{check_null_threshold = NA} will skip this check.
 #' 
-#' @param prior_tol when prior variance is estimated, compare the
-#' estimated value to this tol at the end of the analysis and exclude
-#' a single effect from PIP computation if the estimated prior
-#' variance is smaller than it.
+#' @param prior_tol When the prior variance is estimated, compare the
+#'   estimated value to this value at the end of the analysis and
+#'   exclude a single effect from PIP computation if the estimated prior
+#'   variance is smaller than it.
 #' 
-#' @param precompute_covariances if TRUE, precomputes various
-#' covariance quantities to speed up computations at the cost of
-#' increased memory usage
+#' @param precompute_covariances If \code{precompute_covariances =
+#'   TRUE}, precomputes various covariance quantities to speed up
+#'   computations at the cost of increased memory usage..
 #' 
-#' @param s_init a previous model fit with which to initialize
+#' @param s_init A previous model fit with which to initialize.
 #' 
-#' @param coverage coverage of confident sets. Default to 0.95 for
-#' 95\% credible interval.
+#' @param coverage Coverage of confident sets.
 #' 
-#' @param min_abs_corr minimum of absolute value of correlation
-#' allowed in a credible set.  Default set to 0.5 to correspond to
-#' squared correlation of 0.25, a commonly used threshold for genotype
-#' data in genetics studies.
+#' @param min_abs_corr Minimum of absolute value of correlation
+#'   allowed in a credible set. The setting \code{min_abs_corr = 0.5}
+#'   corresponds to squared correlation of 0.25, which is a commonly
+#'   used threshold for genotype data in genetics studies.
 #' 
-#' @param compute_univariate_zscore if TRUE outputs z-score from per
-#' variable univariate regression
+#' @param compute_univariate_zscore When
+#'   \code{compute_univariate_zscore = TRUE}, the z-scores from the
+#'   per-variable univariate regressions are outputted.
 #' 
-#' @param n_thread maximum number of threads to use for parallel
-#' computation (only applicable to mixture prior)
+#' @param n_thread Maximum number of threads to use for parallel
+#'   computation (only applicable when a mixture prior is used).
 #' 
 #' @param max_iter Maximum number of iterations to perform.
 #' 
@@ -104,25 +109,42 @@
 #' for more detailed information about the algorithm's progress at the
 #' end of each iteration.
 #' 
-#' @param track_fit add an attribute \code{trace} to output that saves some current quantities of all iterations
+#' @param track_fit Add attribute \code{trace} to the return value
+#'   which records the algorithm's progress at each iteration.
 #' 
-#' @return a susie fit, which is a list with some or all of the
-#' following elements
+#' @return A multivariate susie fit, which is a list with some or all
+#' of the following elements:
 #' 
-#' \item{alpha}{an L by p matrix of posterior inclusion probabilites}
-#' \item{b1}{an L by p matrix of posterior means (conditional on inclusion)}
-#' \item{b2}{an L by p matrix of posterior second moments (conditional on inclusion)}
-#' \item{KL}{an L vector of KL divergence}
-#' \item{lbf}{an L vector of logBF}
-#' \item{sigma2}{residual variance}
-#' \item{V}{prior variance}
-#' \item{elbo}{a vector of values of elbo achieved (objective function)}
-#' \item{niter}{number of iterations took for convergence}
-#' \item{convergence}{convergence status}
-#' \item{sets}{a list of `cs`, `purity` and selected `cs_index`}
-#' \item{pip}{a vector of posterior inclusion probability}
-#' \item{walltime}{records runtime of the fitting algorithm}
-#' \item{z}{a vector of univariate z-scores}
+#' \item{alpha}{L by p matrix of posterior inclusion probabilites.}
+#' 
+#' \item{b1}{L by p matrix of posterior means (conditional on inclusion).}
+#' 
+#' \item{b2}{L by p matrix of posterior second moments (conditional on
+#'   inclusion).}
+#' 
+#' \item{KL}{Vector of single-ffect KL divergences}
+#' 
+#' \item{lbf}{Vector of single-effect log-Bayes factors.}
+#' 
+#' \item{sigma2}{Residual variance.}
+#' 
+#' \item{V}{Prior variance.}
+#' 
+#' \item{elbo}{Vector storing the the evidence lower bound, or
+#'   \dQuote{ELBO}, achieved at each iteration of the model fitting
+#'   algorithm, which attempts to maximize the ELBO.}
+#' 
+#' \item{niter}{Number of iterations performed.}
+#' 
+#' \item{convergence}{Convergence status.}
+#' 
+#' \item{sets}{Estimated credible sets.}
+#' 
+#' \item{pip}{Vector of posterior inclusion probabilities.}
+#' 
+#' \item{walltime}{Records runtime of the model fitting algorithm.}
+#' 
+#' \item{z}{Vector of univariate z-scores.}
 #' 
 #' @examples
 #' set.seed(1)
@@ -142,7 +164,7 @@
 #' @export
 #' 
 mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
-                    residual_variance = NULL, prior_weights=NULL,
+                    residual_variance = NULL, prior_weights = NULL,
                     standardize = TRUE,intercept = TRUE, approximate = FALSE,
                     estimate_residual_variance = FALSE,
                     estimate_prior_variance = TRUE,
@@ -151,15 +173,15 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
                     compute_objective = TRUE, s_init = NULL,
                     coverage = 0.95, min_abs_corr = 0.5,
                     compute_univariate_zscore = FALSE,
-                    precompute_covariances = FALSE,
-                    n_thread = 1, max_iter = 100, tol = 1e-3,
-                    verbosity = 2, track_fit = FALSE) {
+                    precompute_covariances = FALSE, n_thread = 1,
+                    max_iter = 100, tol = 1e-3, verbosity = 2,
+                    track_fit = FALSE) {
     
   # Adjust prior weights.
   if (is.null(prior_weights))
     prior_weights = rep(1/ncol(X),ncol(X))
   else
-    prior_weights = prior_weights / sum(prior_weights)
+    prior_weights = prior_weights/sum(prior_weights)
   
   # Check and process prior variance.
   if (inherits(prior_variance,"MashInitializer"))
