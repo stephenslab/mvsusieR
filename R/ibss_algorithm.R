@@ -78,7 +78,8 @@ SuSiE <- R6Class("SuSiE",
                 private$add_back_zero_effects()
             }
             if (verbosity>1) {
-              message(paste("Iteration", i, "delta =", private$.convergence$delta))
+               message(paste("Iteration", i, "delta =",
+                            private$.convergence$delta))
             } else {
               pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
             }

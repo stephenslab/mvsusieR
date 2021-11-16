@@ -5,59 +5,5 @@
 \title{Summary statistics object}
 \description{
 Summary statistics object
-
-Summary statistics object
 }
 \keyword{internal}
-\section{Super class}{
-\code{\link[mvsusieR:DenseData]{mvsusieR::DenseData}} -> \code{RSSData}
-}
-\section{Methods}{
-\subsection{Public methods}{
-\itemize{
-\item \href{#method-new}{\code{RSSData$new()}}
-\item \href{#method-clone}{\code{RSSData$clone()}}
-}
-}
-\if{html}{
-\out{<details ><summary>Inherited methods</summary>}
-\itemize{
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="add_to_residual">}\href{../../mvsusieR/html/DenseData.html#method-add_to_residual}{\code{mvsusieR::DenseData$add_to_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_MXt">}\href{../../mvsusieR/html/DenseData.html#method-compute_MXt}{\code{mvsusieR::DenseData$compute_MXt()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_Xb">}\href{../../mvsusieR/html/DenseData.html#method-compute_Xb}{\code{mvsusieR::DenseData$compute_Xb()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="compute_residual">}\href{../../mvsusieR/html/DenseData.html#method-compute_residual}{\code{mvsusieR::DenseData$compute_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="get_coef">}\href{../../mvsusieR/html/DenseData.html#method-get_coef}{\code{mvsusieR::DenseData$get_coef()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="remove_from_residual">}\href{../../mvsusieR/html/DenseData.html#method-remove_from_residual}{\code{mvsusieR::DenseData$remove_from_residual()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="rescale_coef">}\href{../../mvsusieR/html/DenseData.html#method-rescale_coef}{\code{mvsusieR::DenseData$rescale_coef()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="set_residual_variance">}\href{../../mvsusieR/html/DenseData.html#method-set_residual_variance}{\code{mvsusieR::DenseData$set_residual_variance()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="mvsusieR" data-topic="DenseData" data-id="standardize">}\href{../../mvsusieR/html/DenseData.html#method-standardize}{\code{mvsusieR::DenseData$standardize()}}\out{</span>}
-}
-\out{</details>}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
-\subsection{Method \code{new()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSData$new(Z, R = NULL, eigenR = NULL, tol)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{RSSData$clone(deep = FALSE)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
-}

@@ -105,9 +105,9 @@
 #' @param tol Convergence tolerance.
 #' 
 #' @param verbosity Set \code{verbosity = 0} for no messages;
-#' \code{verbosity = 1} for a progress bar; and \code{verbosity = 2}
-#' for more detailed information about the algorithm's progress at the
-#' end of each iteration.
+#'   \code{verbosity = 1} for a progress bar; and \code{verbosity = 2}
+#'   for more detailed information about the algorithm's progress at the
+#'   end of each iteration.
 #' 
 #' @param track_fit Add attribute \code{trace} to the return value
 #'   which records the algorithm's progress at each iteration.
