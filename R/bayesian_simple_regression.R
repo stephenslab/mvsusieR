@@ -125,9 +125,9 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
       alpha = compute_softmax(lbf, prior_weights)$weights
       return(sum(alpha * private$lbf_grad(V,sbhat2,bhat^2/sbhat2)))
     },
-      
-    # Define gradient as function of lV := log(V) to improve numerical
-    # stability.
+
+    # Define gradient as function of lV : =log(V) to improve
+    # optimization.
     negloglik_grad_logscale = function (lV, betahat, shat2, prior_weights)
       -exp(lV) * private$loglik_grad(exp(lV),betahat,shat2,prior_weights),
 
