@@ -102,7 +102,8 @@
 #' 
 #' @param max_iter Maximum number of iterations to perform.
 #' 
-#' @param tol Convergence tolerance.
+#' @param tol The model fitting will terminate when the increase in
+#'   ELBOs between two successive iterations is less than \code{tol}.
 #' 
 #' @param verbosity Set \code{verbosity = 0} for no messages;
 #'   \code{verbosity = 1} for a progress bar; and \code{verbosity = 2}

@@ -43,7 +43,8 @@ SuSiE <- R6Class("SuSiE",
         if (verbosity==1) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
                                     clear = TRUE, total = private$.niter, show_after = .5)
         else pb = null_progress_bar$new()
-        if (verbosity > 1) message("Running IBSS algorithm ...")
+        if (verbosity > 1)
+          message("Running IBSS algorithm ...")
         for (i in 1:private$.niter) {
             private$save_history()
             fitted = d$compute_Xb(Reduce(`+`, lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1)))
@@ -60,6 +61,11 @@ SuSiE <- R6Class("SuSiE",
             if (private$to_compute_objective)
               private$compute_objective(d)
             private$.convergence = private$check_convergence(i)
+            if (verbosity > 1)
+               message(paste("Iteration", i, "delta =",
+                             private$.convergence$delta))
+            else
+              pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
             if (private$.convergence$converged) {
                 private$save_history()
                 pb$tick(private$.niter)
@@ -76,12 +82,6 @@ SuSiE <- R6Class("SuSiE",
             if (i == private$.niter) {
                 warning(paste("IBSS failed to converge after", i, "iterations. Perhaps you should increase max_iter and try again."))
                 private$add_back_zero_effects()
-            }
-            if (verbosity>1) {
-               message(paste("Iteration", i, "delta =",
-                            private$.convergence$delta))
-            } else {
-              pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
             }
         }
     },
