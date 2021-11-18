@@ -1,15 +1,18 @@
-#' @title The regular regression data object
+# The regular regression data object.
+#
 #' @importFrom R6 R6Class
 #' @importFrom matrixStats colSds
-#' @keywords internal
+#' 
 DenseData <- R6Class("DenseData",
   portable = FALSE,
   public = list(
     initialize = function(X,Y) {
-      is_numeric_matrix(X, 'X')
-      if (length(which(apply(X, 2, is_zero_variance)))) stop('Input X must not have constant columns (some columns have standard deviation zero)')
+      is_numeric_matrix(X,"X")
+      if (length(which(apply(X, 2, is_zero_variance))))
+        stop('Input X must not have constant columns (some columns have standard deviation zero)')
       .X <<- X
       .X_has_missing <<- any(is.na(.X))
+      
       # FIXME: might want to allow for missing in X later?
       # see stephenslab/mvsusieR/#5
       if (.X_has_missing)
@@ -22,11 +25,12 @@ DenseData <- R6Class("DenseData",
       .R <<- ncol(.Y)
       .N <<- nrow(.Y)
       .J <<- ncol(.X)
+      
       # quantities involved in center and scaling
       .cm <<- rep(0, length = .J)
       .csd <<- rep(1, length = .J)
       .d <<- colSums(.X ^ 2)
-      .d[.d == 0] <<- 1E-6
+      .d[.d == 0] <<- 1e-6
     },
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      precompute_covariances = TRUE,
@@ -67,14 +71,14 @@ DenseData <- R6Class("DenseData",
         if(precompute_covariances){
           .svs <<- lapply(1:.J, function(j){
             res = .residual_variance /.d[j]
-            res[which(is.nan(res) | is.infinite(res))] = 1E6
+            res[which(is.nan(res) | is.infinite(res))] = 1e6
             return(res)
           })
           .svs_inv <<- lapply(1:.J, function(j) .residual_variance_inv * .d[j])
           .is_common_sbhat <<- is_list_common(.svs)
         }else{
           .sbhat <<- sqrt(do.call(rbind, lapply(1:.J, function(j) diag(as.matrix(.residual_variance)) / .d[j])))
-          .sbhat[which(is.nan(.sbhat) | is.infinite(.sbhat))] <<- 1E3
+          .sbhat[which(is.nan(.sbhat) | is.infinite(.sbhat))] <<- 1e3
           .is_common_sbhat <<- is_mat_common(.sbhat)
         }
       }
@@ -106,7 +110,7 @@ DenseData <- R6Class("DenseData",
       }
       .X <<- t( (t(.X) - .cm) / .csd )
       .d <<- colSums(.X ^ 2)
-      .d[.d == 0] <<- 1E-6
+      .d[.d == 0] <<- 1e-6
     },
     compute_Xb = function(b) {
       # J by R
@@ -287,13 +291,13 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           # R by R matrix
           # when there is no missing, it is sum(x_j^2) * V^{-1}
           if(.approximate){
-            .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]] *
+            .svs_inv[[j]] <<- Reduce("+", lapply(1:.N, function(i) t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]] *
                                                                        .X_for_Y_missing[i,j,]) * .X_for_Y_missing[i,j,]))
             .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]])$inv, error = function(e){
               invert_via_chol(.svs_inv[[j]] + 1e-8 * diag(.R))$inv} )
           }else{
             if(.R == 1){
-              .svs_inv[[j]] <<- Reduce('+', lapply(1:.N, function(i) ((.X_for_Y_missing[i,j,] - .Xbar[j,,])^2) *
+              .svs_inv[[j]] <<- Reduce("+", lapply(1:.N, function(i) ((.X_for_Y_missing[i,j,] - .Xbar[j,,])^2) *
                                                      .residual_variance_inv[[.Y_missing_pattern_assign[i]]]))
             }else{
               A1_list = list()
@@ -303,9 +307,9 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
                                    .X_for_Y_missing[i,j,]) * .X_for_Y_missing[i,j,]
                 A2_list[[i]] = t(t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]]) * .X_for_Y_missing[i,j,])
               }
-              A1 = Reduce('+', A1_list)
-              A2 = Reduce('+', A2_list)
-              Vinvsum = Reduce('+', lapply(1:nrow(.missing_pattern), function(i) .residual_variance_inv[[i]] * sum(.Y_missing_pattern_assign == i)))
+              A1 = Reduce("+",A1_list)
+              A2 = Reduce("+",A2_list)
+              Vinvsum = Reduce("+", lapply(1:nrow(.missing_pattern), function(i) .residual_variance_inv[[i]] * sum(.Y_missing_pattern_assign == i)))
               .svs_inv[[j]] <<- A1 - crossprod(.Xbar[j,,], A2) - crossprod(A2, .Xbar[j,,]) + crossprod(.Xbar[j,,], Vinvsum %*% .Xbar[j,,])
             }
             .svs[[j]] <<- tryCatch(invert_via_chol(.svs_inv[[j]])$inv, error = function(e){
@@ -315,6 +319,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         .is_common_sbhat <<- is_list_common(.svs)
       }
     },
+      
     get_coef = function(use_residual = FALSE){
       if (use_residual) XtY = self$XtR
       else XtY = self$XtY
@@ -325,6 +330,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       }
       return(bhat)
     },
+      
     standardize = function(center, scale) {
       # precompute scale
       if(center){
@@ -354,12 +360,12 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       }else{ # exact computation
         if(center){
           # sum_i V_i^{-1} R by R matrix
-          Vinvsum = Reduce('+', lapply(1:nrow(.missing_pattern), function(i)
+          Vinvsum = Reduce("+", lapply(1:nrow(.missing_pattern), function(i)
                                    .residual_variance_inv[[i]] * sum(.Y_missing_pattern_assign == i)))
           .Vinvsuminv <<- invert_via_chol(Vinvsum)$inv
 
           # sum_i V_i^{-1} y_i R by 1 matrix
-          Ysum = Reduce('+', lapply(1:.N, function(i)
+          Ysum = Reduce("+", lapply(1:.N, function(i)
                                    .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*% .Y[i,] ))
 
           # center Y
@@ -371,7 +377,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           .Xbar <<- array(0, dim=c(.J, .R, .R))
           for(j in 1:.J){
             # For variant j, Vinvsuminv sum_i V_i^{-1} X_{i,j} R by R matrix
-            .Xbar[j,,] <<- .Vinvsuminv %*% Reduce('+', lapply(1:.N, function(i) t(t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]]) * .X_for_Y_missing[i,j,]) ))
+            .Xbar[j,,] <<- .Vinvsuminv %*% Reduce("+", lapply(1:.N, function(i) t(t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]]) * .X_for_Y_missing[i,j,]) ))
           }
         }
       }
@@ -383,7 +389,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       if(.approximate){
         Xb = sapply(1:.R, function(r) .X_for_Y_missing[,,r] %*% b[,r])
       }else{
-        Xbarb = Reduce('+', lapply(1:.J, function(j) .Xbar[j,,] %*% b[j,]))
+        Xbarb = Reduce("+", lapply(1:.J, function(j) .Xbar[j,,] %*% b[j,]))
         Xb = sapply(1:.R, function(r) .X_for_Y_missing[,,r] %*% b[,r]) - matrix(Xbarb, .N, .R,byrow = TRUE)
       }
       if(nrow(Xb) != .N) Xb = t(Xb)
@@ -592,7 +598,7 @@ SSData <- R6Class("SSData", inherit = DenseData,
       .cm <<- rep(0, length = .J)
       .csd <<- rep(1, length = .J)
       .d <<- diag(.XtX)
-      .d[.d == 0] <<- 1E-6
+      .d[.d == 0] <<- 1e-6
       
       if(all(!is.null(X_colmeans), !is.null(Y_colmeans))){
         if(length(X_colmeans) == 1 && X_colmeans == 0){
@@ -649,14 +655,14 @@ SSData <- R6Class("SSData", inherit = DenseData,
         if(precompute_covariances){
           .svs <<- lapply(1:.J, function(j){
             res = .residual_variance /.d[j]
-            res[which(is.nan(res) | is.infinite(res))] = 1E6
+            res[which(is.nan(res) | is.infinite(res))] = 1e6
             return(res)
           })
           .svs_inv <<- lapply(1:.J, function(j) .residual_variance_inv * .d[j])
           .is_common_sbhat <<- is_list_common(.svs)
         }else{
           .sbhat <<- sqrt(do.call(rbind, lapply(1:.J, function(j) diag(as.matrix(.residual_variance)) / .d[j])))
-          .sbhat[which(is.nan(.sbhat) | is.infinite(.sbhat))] <<- 1E3
+          .sbhat[which(is.nan(.sbhat) | is.infinite(.sbhat))] <<- 1e3
           .is_common_sbhat <<- is_mat_common(.sbhat)
         }
       }
@@ -669,7 +675,7 @@ SSData <- R6Class("SSData", inherit = DenseData,
         .XtX <<- (1/.csd) * t((1/.csd) * XtX)
         .XtY <<- (1/.csd) * XtY
         .d <<- diag(.XtX)
-        .d[.d == 0] <<- 1E-6
+        .d[.d == 0] <<- 1e-6
       }
     },
     compute_Xb = function(b) {
@@ -719,5 +725,3 @@ SSData <- R6Class("SSData", inherit = DenseData,
     residual = function() .Xtresidual
     )
 )
-
-

@@ -31,7 +31,7 @@ BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
         sbhat2[[j]][which(is.nan(sbhat2[[j]]) |
                           is.infinite(sbhat2[[j]]))] = 1e6
       if (save_summary_stats) {
-        private$.bhat = bhat
+        private$.bhat  = bhat
         private$.sbhat = sqrt(do.call(rbind,lapply(1:length(sbhat2),
                            function (j) diag(sbhat2[[j]]))))
       }
@@ -60,8 +60,9 @@ BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
   ),
     
   private = list(
-    .prior_variance = NULL,
+    .prior_variance     = NULL,
     .prior_variance_inv = NULL,
+      
     loglik = function (scalar, bhat, S, prior_weights) {
       U   = private$.prior_variance * scalar
       lbf = multivariate_lbf(bhat,S,U)

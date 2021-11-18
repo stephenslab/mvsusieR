@@ -1,11 +1,11 @@
-#' @title MASH multiple regression object
+# MASH multiple regression object.
+#
 #' @importFrom R6 R6Class
 #' @importFrom ashr compute_lfsr
-#' @keywords internal
 MashRegression <- R6Class("MashRegression",
   inherit = BayesianSimpleRegression,
   public = list(
-    initialize = function(J, mash_initializer) {
+    initialize = function (J, mash_initializer) {
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
       private$.prior_variance$xUlist = matlist2array(private$.prior_variance$xUlist)
@@ -15,6 +15,7 @@ MashRegression <- R6Class("MashRegression",
       private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
       private$prior_variance_scalar = 1
     },
+      
     fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold = 0, verbose = FALSE) {
       # When prior changes (private$prior_variance_scalar != 1),
       # we can no longer use precomputed quantities
@@ -94,18 +95,21 @@ MashRegression <- R6Class("MashRegression",
       rm(llik)
     }
   ),
+                          
   active = list(
     mixture_posterior_weights = function() private$.mixture_posterior_weights,
-    lfsr = function() private$.lfsr
+    lfsr                      = function() private$.lfsr
   ),
+                          
   private = list(
-    .prior_variance = NULL,
-    precomputed_cov_matrices = NULL,
-    is_common_cov = NULL,
-    svs = NULL,
+    .prior_variance            = NULL,
+    precomputed_cov_matrices   = NULL,
+    is_common_cov              = NULL,
+    svs                        = NULL,
     .mixture_posterior_weights = NULL,
     .lfsr = NULL,
     residual_correlation = NULL,
+      
     compute_loglik_mat = function(scalar, bhat, sbhat) {
       if (is.null(private$precomputed_cov_matrices$sigma_rooti) || (scalar != 1 && scalar != 0)) {
         llik = mashr:::calc_lik_rcpp(t(bhat),
@@ -144,6 +148,7 @@ MashRegression <- R6Class("MashRegression",
                           paste(rows,collapse=", "), "\n"))
       return(llik)
     },
+      
     compute_posterior = function(bhat, sbhat, svs_inv, mixture_posterior_weights, variable_posterior_weights) {
       if (is.null(private$precomputed_cov_matrices$U0) || (private$prior_variance_scalar != 1 && private$prior_variance_scalar != 0)) {
         post = mashr:::calc_sermix_rcpp(t(bhat),
@@ -179,15 +184,18 @@ MashRegression <- R6Class("MashRegression",
       }
       return(post)
     },
+      
     compute_mixture_posterior_weights = function(prior_mixture_weights, llik) {
       lfactors = apply(llik,1,max)
       d = t(prior_mixture_weights * t(exp(llik-lfactors)))
       return(d/rowSums(d))
     },
+      
     compute_variable_posterior_weights = function(prior_variable_weights, llik) {
       lbf = t(llik - llik[,1])
       return(t(private$compute_mixture_posterior_weights(prior_variable_weights, lbf)))
     },
+      
     compute_lbf = function(llik, s = NULL) {
       # get relative loglik
       lfactors = apply(llik,1,max)
@@ -203,16 +211,19 @@ MashRegression <- R6Class("MashRegression",
       lbf[which(is.na(lbf))] = 0
       return(list(lbf=lbf, loglik_null=loglik_null))
     },
+      
     loglik = function(V,B,S,prior_weights) {
       llik = private$compute_loglik_mat(V,B,S)
       return(compute_softmax(private$compute_lbf(llik)$lbf, prior_weights)$log_sum)
     },
+      
     get_SER_posterior_mixture_weights = function(llik, prior_weights, prior_mixture_weights) {
       # This function computes p(\gamma_p) in estimate_prior_variance_em() function
       lbf = llik - llik[,1]
       ser_lbf = apply(lbf, 2, function(x) compute_softmax(x, prior_weights)$log_sum)
       return(compute_softmax(ser_lbf, prior_mixture_weights)$weights)
     },
+      
     estimate_prior_variance_em = function(pip) {
       # The EM update is
       # \sigma_0^2 = \sum_{p=1}^P p(\gamma_p) \mathrm{tr}(U_p^{-1} E[bb^T \,|\, \gamma_p])/r
@@ -228,7 +239,9 @@ MashRegression <- R6Class("MashRegression",
         sum(private$cache$SER_posterior_mixture_weights * attr(private$.prior_variance$xUlist_inv, 'rank'))
       return(V)
     },
+      
     estimate_prior_variance_simple = function() 1,
+      
     get_scaled_prior = function(scalar) {
       # xUlist here is a 3D array
       if (scalar != 1) {
@@ -372,12 +385,14 @@ MashInitializer <- R6Class("MashInitializer",
       private$xU$xUlist = lapply(1:length(private$xU$xUlist), function(i) scale_covariance(private$xU$xUlist[[i]], sigma))
     }
   ),
+                           
   active = list(
       n_condition = function() nrow(private$xU$xUlist[[1]]),
       n_component = function() length(private$xU$xUlist),
       prior_variance = function() private$xU,
       precomputed = function() private$inv_mats
   ),
+                           
   private = list(
       U = NULL,
       xU = NULL,

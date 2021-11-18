@@ -1,13 +1,13 @@
-#' @title SUm of SIngle Effect (SuSiE) regression IBSS algorithm
+# IBSS algorithm for fitting a multivariate SuSiE model.
+#' 
 #' @importFrom R6 R6Class
 #' @importFrom progress progress_bar
-#' @keywords internal
 SuSiE <- R6Class("SuSiE",
   public = list(
-    initialize = function(SER,L,estimate_residual_variance=FALSE,
-                    compute_objective = TRUE,max_iter=100,tol=1e-3,
-                    track_pip=FALSE,track_lbf=FALSE, track_prior_est=FALSE)
-    {
+    initialize = function (SER, L, estimate_residual_variance = FALSE,
+                           compute_objective = TRUE, max_iter = 100,
+        tol=1e-3,
+                    track_pip=FALSE,track_lbf=FALSE, track_prior_est=FALSE) {
         if (!compute_objective) {
             track_pip = TRUE
             estimate_residual_variance = FALSE
@@ -65,7 +65,7 @@ SuSiE <- R6Class("SuSiE",
                message(paste("Iteration", i, "delta =",
                              private$.convergence$delta))
             else
-              pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = '%#.1e'), iteration=i))
+              pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = "%#.1e"), iteration=i))
             if (private$.convergence$converged) {
                 private$save_history()
                 pb$tick(private$.niter)
@@ -75,7 +75,7 @@ SuSiE <- R6Class("SuSiE",
             }
             if (private$to_estimate_residual_variance){
                 d$set_residual_variance(private$estimate_residual_variance(d),
-                                        quantities = c('residual_variance', 'effect_variance'))
+                                        quantities = c("residual_variance", "effect_variance"))
             }
             if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM")
                 private$trim_zero_effects()
@@ -85,10 +85,10 @@ SuSiE <- R6Class("SuSiE",
             }
         }
     },
-    get_objective = function(dump = FALSE, warning_tol = 1E-6) {
+    get_objective = function(dump = FALSE, warning_tol = 1e-6) {
         if (length(private$elbo) == 0) return(NA)
         if (!all(diff(private$elbo) >= (-1 * warning_tol))) {
-            warning('Objective is not non-decreasing')
+            warning("Objective is not non-decreasing")
             dump = TRUE
         }
         if (dump) return(private$elbo)
@@ -149,7 +149,7 @@ SuSiE <- R6Class("SuSiE",
             } else {
                 expected_loglik = private$compute_expected_loglik_univariate(d)
             }
-            elbo = expected_loglik - Reduce('+', self$kl)
+            elbo = expected_loglik - Reduce("+", self$kl)
         } else {
             elbo = NA
         }
@@ -186,17 +186,18 @@ SuSiE <- R6Class("SuSiE",
         if (is.matrix(d$residual_variance)) {
             # FIXME: to implement estimating a vector of length R, or even a scalar
             E1 = lapply(1:length(private$SER), function(l) crossprod(private$SER[[l]]$posterior_b1, d$XtX %*% private$SER[[l]]$posterior_b1))
-            E1 = crossprod(d$residual) - Reduce('+', E1)
-            return((E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample)
+            E1 = crossprod(d$residual) - Reduce("+", E1)
+            return((E1 + Reduce("+",lapply(1:length(private$SER), function(l) private$SER[[l]]$bxxb))) / d$n_sample)
         } else {
             return(private$compute_expected_sum_squared_residuals_univariate(d) / d$n_sample)
         }
     },
-    # expected squared residuals
-    compute_expected_sum_squared_residuals_univariate = function(d) {
-      Eb1 = t(do.call(cbind, self$posterior_b1))
-      Eb2 = t(do.call(cbind, self$posterior_b2))
-      if (inherits(d, "RSSData")) {
+    
+    # Expected squared residuals.
+    compute_expected_sum_squared_residuals_univariate = function (d) {
+      Eb1 = t(do.call(cbind,self$posterior_b1))
+      Eb2 = t(do.call(cbind,self$posterior_b2))
+      if (inherits(d,"RSSData")) {
         # RSSData is inherited from DenseData
         # actually code below will also work for DenseData
         # that is why there is no need to treat them separately in multivarite computation
@@ -225,8 +226,9 @@ SuSiE <- R6Class("SuSiE",
         }
       }
     },
-    compute_expected_sum_squared_residuals_multivariate = function(d) {
-      if(d$Y_has_missing){
+      
+    compute_expected_sum_squared_residuals_multivariate = function (d) {
+      if (d$Y_has_missing) {
         E1 = sapply(1:length(private$SER), function(l){
           Xb = d$compute_Xb(private$SER[[l]]$posterior_b1)
           sum(sapply(1:d$n_sample, function(i) crossprod(Xb[i,],
@@ -234,54 +236,60 @@ SuSiE <- R6Class("SuSiE",
         })
         E1 = sum(sapply(1:d$n_sample, function(i) crossprod(d$residual[i,],
                                                             d$residual_variance_inv[[d$Y_missing_pattern_assign[i]]] %*% d$residual[i,]) )) - sum(E1)
-      }else if(inherits(d, "SSData")){
+      } else if (inherits(d,"SSData")) {
         v_inv = d$residual_variance_inv
-        E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
-        Eb1 = aperm(abind::abind(lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),along=3), c(3,1,2))
-        if(dim(Eb1)[1] == 1){
+        E1    = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
+        Eb1   = aperm(abind::abind(lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),along=3), c(3,1,2))
+        if (dim(Eb1)[1] == 1)
           Eb1 = Eb1[1,,]
-        }else{
+        else
           Eb1 = do.call(cbind, lapply(1:dim(Eb1)[3], function(i) colSums(Eb1[,,i]))) # J by R
-        }
         E2 = crossprod(Eb1, d$XtY)
         E3 = crossprod(Eb1,d$XtX) %*% Eb1
-        E1 = tr(v_inv%*%(d$YtY - E2 - t(E2) + E3)) - sum(E1)
-      }else{
+        E1 = tr(v_inv %*% (d$YtY - E2 - t(E2) + E3)) - sum(E1)
+      } else {
         v_inv = d$residual_variance_inv
-        E1 = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
-        E1 = tr(v_inv%*%crossprod(d$residual)) - sum(E1)
+        E1    = sapply(1:length(private$SER), function(l) tr(v_inv %*% t(private$SER[[l]]$posterior_b1) %*% d$XtX %*% private$SER[[l]]$posterior_b1))
+        E1    = tr(v_inv%*%crossprod(d$residual)) - sum(E1)
       }
-      return(E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
+      return(E1 + Reduce("+",lapply(1:length(private$SER),
+                                    function (l) private$SER[[l]]$vbxxb)))
     },
+      
+    # Remove single effect models where estimated prior is zero.
     trim_zero_effects = function() {
-        # remove single effect models where estimated prior is zero
-        if (length(private$SER) > 1) {
-            zero_idx = which(sapply(1:length(private$SER), function(i) private$SER[[i]]$prior_variance) == 0)
-            if (length(zero_idx) == length(private$SER)) zero_idx = zero_idx[2:length(zero_idx)]
-            if (length(zero_idx)) {
-                private$SER_NULL = c(private$SER_NULL, private$SER[zero_idx])
-                private$SER = private$SER[-zero_idx]
-                private$L = length(private$SER)
-            }
+      if (length(private$SER) > 1) {
+        zero_idx = which(sapply(1:length(private$SER),
+                     function (i) private$SER[[i]]$prior_variance) == 0)
+        if (length(zero_idx) == length(private$SER))
+          zero_idx = zero_idx[-1]
+        if (length(zero_idx)) {
+          private$SER_NULL = c(private$SER_NULL,private$SER[zero_idx])
+          private$SER      = private$SER[-zero_idx]
+          private$L        = length(private$SER)
         }
+      }
     },
+      
+    # Keep output number of effects consistent with specified L.
     add_back_zero_effects = function() {
-        # keep output number of effects consistent with specified L
-        if (length(private$SER_NULL)) {
-            private$SER = c(private$SER, private$SER_NULL)
-            private$L = length(private$SER)
-        }
+      if (length(private$SER_NULL)) {
+        private$SER = c(private$SER,private$SER_NULL)
+        private$L   = length(private$SER)
+      }
     },
+      
     save_history = function() {
-        if (!is.null(private$.pip_history)) {
-            private$.pip_history[[length(private$.pip_history) + 1]] = self$pip
-        }
-        if (!is.null(private$.lbf_history)) {
-            private$.lbf_history[[length(private$.lbf_history) + 1]] = self$lbf
-        }
-        if (!is.null(private$.prior_history)) {
-            private$.prior_history[[length(private$.prior_history) + 1]] = sapply(1:private$L, function(l) ifelse(is.null(private$SER[[l]]$prior_variance_scalar), private$SER[[l]]$prior_variance, private$SER[[l]]$prior_variance_scalar))
-        }
+      if (!is.null(private$.pip_history))
+        private$.pip_history[[length(private$.pip_history) + 1]] = self$pip
+      if (!is.null(private$.lbf_history))
+          private$.lbf_history[[length(private$.lbf_history) + 1]] = self$lbf
+      if (!is.null(private$.prior_history))
+        private$.prior_history[[length(private$.prior_history) + 1]] =
+          sapply(1:private$L,
+            function(l) ifelse(is.null(private$SER[[l]]$prior_variance_scalar),
+                               private$SER[[l]]$prior_variance,
+                               private$SER[[l]]$prior_variance_scalar))
     }
   )
 )
