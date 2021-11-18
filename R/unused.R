@@ -203,8 +203,8 @@ NIGMGRegression <- R6Class("NIGMGRegression",
                          #    ~ 1 + factorA,
                          #    transition.mode = "Markov",
                          #    is.kappa.fixed=FALSE
-                             
-        )
+                         # )                     
+
         # FIXME: n_samples is a variable to change
         fitted_effect <- get_post(temp_res, n_samples = nrow(Y$D), m=ncol(Y$D)+1)
         out <- list(  marginal_likelihood = temp_res$marginal_likelihood , 
