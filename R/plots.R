@@ -5,16 +5,34 @@
 #' 
 #' @return a plot object
 #' 
-#' @details If plot_z is TRUE, the bubble size is -log10(p value), 
-#'   the bubble color represents effect size, the color on the x axis represent
-#'   CSs. If plot_z is FALSE, the bubble size is -log10(CS condition specific lfsr), 
-#'   the bubble color represents posterior effect size, the color on the x axis represent
-#'   CSs, the non-significant CS are removed.
+#' @details If plot_z is TRUE, the bubble size is -log10(p value), the
+#' bubble color represents effect size, the color on the x axis
+#' represent CSs. If plot_z is FALSE, the bubble size is -log10(CS
+#' condition specific lfsr), the bubble color represents posterior
+#' effect size, the color on the x axis represent CSs, the
+#' non-significant CS are removed.
+#'
+#' @importFrom stats pnorm
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 scale_x_discrete
+#' @importFrom ggplot2 scale_y_discrete
+#' @importFrom ggplot2 scale_color_gradient2
+#' @importFrom ggplot2 labs
+#' @importFrom ggplot2 guides
+#' @importFrom ggplot2 guide_legend
+#' @importFrom ggplot2 guide_colorbar
+#' @importFrom ggplot2 theme
+#' @importFrom ggplot2 theme_minimal
+#' @importFrom ggplot2 element_text
+#' @importFrom ggplot2 element_blank
+#' @importFrom ggplot2 geom_rect
 #' 
 #' @export
 #' 
 mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
-                         plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05) {
+                         plot_z = FALSE, pos = NULL,
+                         cslfsr_threshold = 0.05) {
   colors = c(
     "dodgerblue2",
     "green4",
@@ -98,7 +116,8 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   cs_colors = unique(cbind(table$x, table$cs, table$color))[,3]
   
   p = ggplot(table) +
-    geom_point(aes(x = x, y = y, colour = effect_size, size = mlog10lfsr)) +
+    geom_point(aes_string(x = "x",y = "y",color = "effect_size",
+                          size = "mlog10lfsr")) +
     scale_x_discrete(limits = unique(table$x)) +
     scale_y_discrete(limits = unique(table$y)) + 
     scale_color_gradient2(midpoint = 0, limit = c(-max(abs(table$effect_size), na.rm=TRUE), 

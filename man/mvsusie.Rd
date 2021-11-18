@@ -105,6 +105,9 @@ estimated value to this value at the end of the analysis and
 exclude a single effect from PIP computation if the estimated prior
 variance is smaller than it.}
 
+\item{compute_objective}{Add description of "compute_objective"
+input argument here.}
+
 \item{s_init}{A previous model fit with which to initialize.}
 
 \item{coverage}{Coverage of confident sets.}

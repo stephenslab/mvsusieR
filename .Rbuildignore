@@ -8,4 +8,6 @@
 ^release$
 ^config\.yml$
 ^R/README\.md$
+^inst/misc$
+^inst/prototypes$
 

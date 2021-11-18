@@ -1,6 +1,11 @@
-#' @title Multiviate regression object with NIG-MG prior
+# Multiviate regression object with NIG-MG prior
+#
 #' @importFrom R6 R6Class
-#' @keywords internal
+#' @importFrom stats model.matrix
+#' @importFrom stats lm
+#' @importFrom stats rgamma
+#' @importFrom grove FAnova
+#'
 NIGMGRegression <- R6Class("NIGMGRegression",
   inherit = BayesianMultivariateRegression,
   public = list(
@@ -57,7 +62,7 @@ NIGMGRegression <- R6Class("NIGMGRegression",
     X <- model.matrix(grove.obj$data$formula, grove.obj$data$X)
     s20 <- summary(lm(y ~ X))$sigma
     nu0 <- 10
-    tempC <- matrix(NA, ncol = 1, nrow = N) 
+    tempC <- matrix(as.numeric(NA),ncol = 1,nrow = N) 
     for (i in 1:N) {
       #average C coefficient for reg 2
       x <- c(1, 0)

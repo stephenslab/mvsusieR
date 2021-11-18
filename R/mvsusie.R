@@ -79,6 +79,9 @@
 #'   estimated value to this value at the end of the analysis and
 #'   exclude a single effect from PIP computation if the estimated prior
 #'   variance is smaller than it.
+#'
+#' @param compute_objective Add description of "compute_objective"
+#'   input argument here.
 #' 
 #' @param precompute_covariances If \code{precompute_covariances =
 #'   TRUE}, precomputes various covariance quantities to speed up

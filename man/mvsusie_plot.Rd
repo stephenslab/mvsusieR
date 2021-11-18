@@ -24,9 +24,10 @@ a plot object
 Make bubble heatmap to display mvsusie result
 }
 \details{
-If plot_z is TRUE, the bubble size is -log10(p value), 
-  the bubble color represents effect size, the color on the x axis represent
-  CSs. If plot_z is FALSE, the bubble size is -log10(CS condition specific lfsr), 
-  the bubble color represents posterior effect size, the color on the x axis represent
-  CSs, the non-significant CS are removed.
+If plot_z is TRUE, the bubble size is -log10(p value), the
+bubble color represents effect size, the color on the x axis
+represent CSs. If plot_z is FALSE, the bubble size is -log10(CS
+condition specific lfsr), the bubble color represents posterior
+effect size, the color on the x axis represent CSs, the
+non-significant CS are removed.
 }

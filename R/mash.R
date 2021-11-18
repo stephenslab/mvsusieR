@@ -53,7 +53,11 @@ create_cov_canonical <- function(R, singletons=TRUE, hetgrid=c(0, 0.25, 0.5, 0.7
 #' @param ... other parameters, for mvsusieR:::create_cov_canonical
 #' @return mash prior object for use with mvsusie() function
 #' @details ...
+#'
+#' @importFrom stats cov2cor
+#' 
 #' @export
+#' 
 create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data = NULL,
                              null_weight = NULL, use_grid = FALSE, weights_tol = 1e-10, max_mixture_len = -1,
                              include_indices = NULL, ...) {

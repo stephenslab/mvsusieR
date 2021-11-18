@@ -65,8 +65,11 @@
 #' res = mvsusie_ss(XtX,XtY,YtY,n,L=10,X_colmeans,Y_colmeans)
 #'
 #' @importFrom stats var
-#' @importFrom susieR susie_get_cs 
+#' @importFrom stats cov2cor
+#' @importFrom susieR susie_get_cs
+#' 
 #' @export
+#' 
 mvsusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
                              X_colmeans = NULL, Y_colmeans = NULL,
                             prior_variance=0.2,
@@ -84,9 +87,8 @@ mvsusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
                             verbosity=2,track_fit=FALSE) {
   if (is.null(prior_weights)) prior_weights = c(rep(1/ncol(XtX), ncol(XtX)))
   else prior_weights = prior_weights / sum(prior_weights)
-  if(inherits(prior_variance, 'MashInitializer')){
-    prior_variance = prior_variance$clone(deep=T)
-  }
+  if(inherits(prior_variance,"MashInitializer"))
+    prior_variance = prior_variance$clone(deep = TRUE)
   is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
   if (!is.null(dim(YtY)) && nrow(YtY) > 1 && is_numeric_prior) stop("Please specify prior variance for the multivariate response Y")
   if (standardize && !is_numeric_prior) {
@@ -106,16 +108,15 @@ mvsusie_suff_stat = function(XtX, XtY, YtY, N, L=10,
                              quantities = 'residual_variance')
   data$standardize(standardize)
   data$set_residual_variance(quantities='effect_variance')
-  #
+  
   s = mvsusie_core(data, s_init, L, prior_variance, prior_weights,
                 estimate_residual_variance, estimate_prior_variance, estimate_prior_method, check_null_threshold,
                 precompute_covariances, compute_objective, n_thread, max_iter, tol, prior_tol, track_fit, verbosity)
-  # CS and PIP
-  if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    s$sets = susie_get_cs(s, coverage=coverage, Xcorr=cov2cor(XtX), min_abs_corr=min_abs_corr)
-  }
-  s$variable_names = colnames(XtX)
-  s$condition_names = colnames(XtY)
   
+  # CS and PIP
+  if (!is.null(coverage) && !is.null(min_abs_corr))
+    s$sets = susie_get_cs(s, coverage=coverage, Xcorr=cov2cor(XtX), min_abs_corr=min_abs_corr)
+  s$variable_names  = colnames(XtX)
+  s$condition_names = colnames(XtY)
   return(s)
 }
