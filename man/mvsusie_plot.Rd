@@ -15,7 +15,11 @@ mvsusie_plot(
 }
 \arguments{
 \item{m}{A mvsusie fit, typically the result of calling
-\code{\link{mvsusie}}.}
+\code{\link{mvsusie}}. This function only works for a mvsusie model
+fitted to multivariate response data (i.e., Y with more than one
+column). This function only works for an mvsusie fit for
+multivariate response and mash prior; mvsusie fits not satisfying
+these conditions will result in an error.}
 
 \item{weighted_effect}{Describe input argument "weighted_effect"
 here.}
@@ -40,4 +44,27 @@ A ggplot object.
 }
 \description{
 Make Bubble Heatmap to Display mvsusie Result
+}
+\examples{
+n = 500
+p = 1000
+true_eff = 2
+X = matrix(sample(0:2,size = n*p,replace = TRUE),nrow = n,ncol = p)
+beta1 = rep(0,p)
+beta2 = rep(0,p)
+beta3 = rep(0,p)
+beta1[1:true_eff] = runif(true_eff)
+beta2[1:true_eff] = runif(true_eff)
+beta3[1:true_eff] = runif(true_eff)
+y1 = X \%*\% beta1 + rnorm(n)
+y2 = X \%*\% beta2 + rnorm(n)
+y3 = X \%*\% beta3 + rnorm(n)
+Y = cbind(y1,y2,y3)
+prior =
+  create_mash_prior(sample_data = list(X=X,Y=Y,residual_variance=cov(Y)),
+                    max_mixture_len = -1)
+fit = mvsusie(X,Y,prior_variance = prior,compute_univariate_zscore = TRUE)
+mvsusie_plot(fit,plot_z = FALSE)$plot
+mvsusie_plot(fit,plot_z = TRUE)$plot
+
 }
