@@ -211,6 +211,9 @@ y1 = X \%*\% beta1 + rnorm(n)
 y2 = X \%*\% beta2 + rnorm(n)
 y3 = X \%*\% beta3 + rnorm(n)
 Y = cbind(y1,y2,y3)
-fit = mvsusie(X,Y,prior_variance = diag(3))
+prior = create_mash_prior(max_mixture_len = -1,
+                          sample_data = list(X = X,Y = Y,
+                                             residual_variance = cov(Y)))
+fit = mvsusie(X,Y,prior_variance = prior)
 
 }
