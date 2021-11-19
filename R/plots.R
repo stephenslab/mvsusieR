@@ -1,17 +1,28 @@
-#' @title Make bubble heatmap to display mvsusie result
+#' @title Make Bubble Heatmap to Display mvsusie Result
 #' 
 #' @param m A mvsusie fit, typically the result of calling
-#'   \code{\link{susie}}.
-#' 
-#' @return a plot object
-#' 
-#' @details If plot_z is TRUE, the bubble size is -log10(p value), the
-#' bubble color represents effect size, the color on the x axis
-#' represent CSs. If plot_z is FALSE, the bubble size is -log10(CS
-#' condition specific lfsr), the bubble color represents posterior
-#' effect size, the color on the x axis represent CSs, the
-#' non-significant CS are removed.
+#'   \code{\link{mvsusie}}.
 #'
+#' @param weighted_effect Describe input argument "weighted_effect"
+#'   here.
+#'
+#' @param cs_only Describe input argument "cs_only" here.
+#'
+#' @param plot_z If \code{plot_z = TRUE}, the bubble size is
+#'   \eqn{-log_{10}(p)}, where \eqn{p} is the p-valule. The bubble color
+#'   represents effect size, the color on the x-axis represent CSs. If
+#'   \code{plot_z = FALSE}, the bubble size is \eqn{-log_{10}(y)}, where
+#'   \eqn{y} is the CS condition-specific lfsr, the bubble color
+#'   represents posterior effect size, and the color on the x-axis
+#'   represent CSs, with the non-significant CS removed.
+#'
+#' @param pos Describe input argument "pos" here.
+#'
+#' @param cslfsr_threshold Describe input argument "cslfsr_threshold"
+#'   here.
+#' 
+#' @return A ggplot object.
+#' 
 #' @importFrom stats pnorm
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes_string
@@ -39,57 +50,66 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     "#6A3D9A", # purple
     "#FF7F00", # orange
     "gold1",
-    "skyblue2", "#FB9A99", # lt pink
+    "skyblue2",
+    "#FB9A99", # light pink
     "palegreen2",
-    "#CAB2D6", # lt purple
-    "#FDBF6F", # lt orange
-    "gray70", "khaki2",
-    "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
-    "darkturquoise", "green1", "yellow4", "yellow3",
-    "darkorange4", "brown"
-  )
-  
+    "#CAB2D6", # light purple
+    "#FDBF6F", # light orange
+    "gray70",
+    "khaki2",
+    "maroon",
+    "orchid1",
+    "deeppink1",
+    "blue1",
+    "steelblue4",
+    "darkturquoise",
+    "green1",
+    "yellow4",
+    "yellow3",
+    "darkorange4",
+    "brown")
   if (plot_z) {
     if (!("z" %in% names(m)))
-      stop("Cannot find the z score summary statistics.")
+      stop("Cannot find the z-score summary statistics")
     if (nrow(m$z) != nrow(m$coef[-1,]))
-      stop(paste("z score matrix should have", nrow(m$coef[-1,]), "rows (no intercept term)."))
+      stop(paste("z-score matrix should have",nrow(m$coef[-1,]),
+                 "rows (no intercept term)"))
     effects = m$z
-    p = pnorm(-abs(m$z))*2
-    logp = -log10(p)
-    top_snp = which(logp == max(logp, na.rm=TRUE), arr.ind = TRUE)[1]
+    p       = 2*pnorm(-abs(m$z))
+    logp    = -log10(p)
+    top_snp = which(logp == max(logp,na.rm = TRUE),arr.ind = TRUE)[1]
   } else {
-    if (weighted_effect) effects = m$coef[-1,]
-    else effects = colSums(m$b1, dims=1)
+    if (weighted_effect)
+      effects = m$coef[-1,]
+    else
+      effects = colSums(m$b1)
     top_snp = NULL
   }
-  if(is.null(pos)){
+  if (is.null(pos))
     pos = 1:nrow(effects)
-  }else{
-    if (!all(pos %in% 1:nrow(effects))) 
-      stop("Provided position is outside the range of variables")
-  }
-  
+  else if (!all(pos %in% seq(1,nrow(effects))))
+    stop("Provided position is outside the range of variables")
   x_names = m$variable_names
   y_names = m$condition_names
-  if (is.null(x_names)) x_names = paste('variable', 1:nrow(effects))
-  if (is.null(y_names)) y_names = paste('condition', 1:ncol(effects))
+  if (is.null(x_names))
+    x_names = paste("variable",1:nrow(effects))
+  if (is.null(y_names))
+    y_names = paste("condition",1:ncol(effects))
   
-  table = data.frame(matrix(NA, prod(dim(effects)), 6))
-  colnames(table) = c('y', 'x', 'effect_size', 'mlog10lfsr', 'cs', 'color')
-  table$y = rep(y_names, length(x_names))
-  table$x = rep(x_names, each = length(y_names))
-  table$color = 'black'
-  if(plot_z){
-    table$mlog10lfsr = as.vector(t(logp))
+  table           = data.frame(matrix(as.numeric(NA),prod(dim(effects)),6))
+  colnames(table) = c("y","x","effect_size","mlog10lfsr","cs","color")
+  table$y         = rep(y_names,length(x_names))
+  table$x         = rep(x_names,each = length(y_names))
+  table$color     = "black"
+  if (plot_z) {
+    table$mlog10lfsr  = as.vector(t(logp))
     table$effect_size = as.vector(t(effects))
   }
   
-  # add CS to this table.
+  # Add CS to this table.
   if (!is.null(m$sets$cs_index)) {
-    if(plot_z == FALSE){
+    if(plot_z == FALSE)
       effects = as.vector(t(effects))
-    }
     j = 1
     for (i in m$sets$cs_index) {
       condition_idx = which(m$single_effect_lfsr[i,] < cslfsr_threshold)
@@ -138,7 +158,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
       p = p + geom_rect(aes(ymin=1-0.5,
                             ymax=length(unique(table$y)) + 0.5,
                             xmin=xnode-0.5,
-                            xmax=xnode+0.5), color="black", alpha=0, fill = 'white')
+                            xmax=xnode+0.5), color="black", alpha=0, fill = "white")
     }
   }
   w = length(unique(table$x)) * 0.6 + 3

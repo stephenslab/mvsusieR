@@ -2,7 +2,8 @@
 % Please edit documentation in R/mvsusie_suff_stat.R
 \name{mvsusie_suff_stat}
 \alias{mvsusie_suff_stat}
-\title{SUm of Single Effect (SuSiE) Regression using Sufficient Statistics XtX, XtY, YtY, N}
+\title{SUm of Single Effect (SuSiE) Regression using Sufficient
+Statistics XtX, XtY, YtY, N}
 \usage{
 mvsusie_suff_stat(
   XtX,
@@ -109,7 +110,8 @@ a susie fit, which is a list with some or all of the following elements\cr
 \item{z}{a vector of univariate z-scores}
 }
 \description{
-SUm of Single Effect (SuSiE) Regression using Sufficient Statistics XtX, XtY, YtY, N
+SUm of Single Effect (SuSiE) Regression using Sufficient
+Statistics XtX, XtY, YtY, N
 }
 \examples{
 set.seed(1)

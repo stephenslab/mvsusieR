@@ -1,25 +1,42 @@
-#' @title SUm of Single Effect (SuSiE) Regression using Sufficient Statistics XtX, XtY, YtY, N
+#' @title SUm of Single Effect (SuSiE) Regression using Sufficient
+#' Statistics XtX, XtY, YtY, N
+#' 
 #' @param XtX a J by J matrix
+#' 
 #' @param XtY a J by R matrix
+#' 
 #' @param YtY an R by R matrix
+#' 
 #' @param N sample size
+#' 
 #' @param L maximum number of non-zero effects
+#' 
 #' @param X_colmeans A J-vector of column means of \eqn{X}. If it is
 #'   provided with \code{Y_colmeans}, we compute the correct intercept.
 #'   Otherwise, the intercept is NA.
+#' 
 #' @param Y_colmeans An R-vector of column means of \eqn{Y}. If it is
 #'   provided with \code{X_colmeans}, we compute the correct intercept.
 #'   Otherwise, the intercept is NA.
+#' 
 #' @param prior_variance Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights
+#' 
 #' @param residual_variance the residual variance (defaults to 1)
+#' 
 #' @param prior_weights a p vector of prior probability that each element is non-zero
+#' 
 #' @param standardize logical flag (default=TRUE) for whether to standardize columns of X to unit variance prior to fitting
+#' 
 #' @param estimate_residual_variance indicates whether to estimate residual variance (currently only works for univariate Y input)
+#' 
 #' @param estimate_prior_variance indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)
+#' 
 #' @param estimate_prior_method the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.
+#' 
 #' @param check_null_threshold when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
 #' using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. When used with "EM" method
 #' setting \code{check_null_threshold=NA} will skip the check and instead relying solely on EM to update this parameter.
+#' 
 #' @param prior_tol when prior variance is estimated, compare the estimated value to this tol at the end of
 #' the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.
 #' @param s_init a previous model fit with which to initialize

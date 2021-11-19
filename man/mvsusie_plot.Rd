@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{mvsusie_plot}
 \alias{mvsusie_plot}
-\title{Make bubble heatmap to display mvsusie result}
+\title{Make Bubble Heatmap to Display mvsusie Result}
 \usage{
 mvsusie_plot(
   m,
@@ -15,19 +15,29 @@ mvsusie_plot(
 }
 \arguments{
 \item{m}{A mvsusie fit, typically the result of calling
-\code{\link{susie}}.}
+\code{\link{mvsusie}}.}
+
+\item{weighted_effect}{Describe input argument "weighted_effect"
+here.}
+
+\item{cs_only}{Describe input argument "cs_only" here.}
+
+\item{plot_z}{If \code{plot_z = TRUE}, the bubble size is
+\eqn{-log_{10}(p)}, where \eqn{p} is the p-valule. The bubble color
+represents effect size, the color on the x-axis represent CSs. If
+\code{plot_z = FALSE}, the bubble size is \eqn{-log_{10}(y)}, where
+\eqn{y} is the CS condition-specific lfsr, the bubble color
+represents posterior effect size, and the color on the x-axis
+represent CSs, with the non-significant CS removed.}
+
+\item{pos}{Describe input argument "pos" here.}
+
+\item{cslfsr_threshold}{Describe input argument "cslfsr_threshold"
+here.}
 }
 \value{
-a plot object
+A ggplot object.
 }
 \description{
-Make bubble heatmap to display mvsusie result
-}
-\details{
-If plot_z is TRUE, the bubble size is -log10(p value), the
-bubble color represents effect size, the color on the x axis
-represent CSs. If plot_z is FALSE, the bubble size is -log10(CS
-condition specific lfsr), the bubble color represents posterior
-effect size, the color on the x axis represent CSs, the
-non-significant CS are removed.
+Make Bubble Heatmap to Display mvsusie Result
 }
