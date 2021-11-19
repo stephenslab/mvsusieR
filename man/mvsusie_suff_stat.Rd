@@ -2,8 +2,7 @@
 % Please edit documentation in R/mvsusie_suff_stat.R
 \name{mvsusie_suff_stat}
 \alias{mvsusie_suff_stat}
-\title{SUm of Single Effect (SuSiE) Regression using Sufficient
-Statistics XtX, XtY, YtY, N}
+\title{SUm of Single Effect (SuSiE) Regression using Sufficient Statistics XtX, XtY, YtY, N}
 \usage{
 mvsusie_suff_stat(
   XtX,
@@ -53,81 +52,118 @@ Otherwise, the intercept is NA.}
 provided with \code{X_colmeans}, we compute the correct intercept.
 Otherwise, the intercept is NA.}
 
-\item{prior_variance}{Can be 1) a vector of length L, or a scalar, for scaled prior variance when Y is univariate (equivalent to `susieR::susie`); 2) a matrix for simple Multivariate regression or 3) a MASH fit that contains an array of prior covariance matrices and their weights}
+\item{prior_variance}{Can be 1) a vector of length L, or a scalar,
+for scaled prior variance when Y is univariate (equivalent to
+`susieR::susie`); 2) a matrix for simple Multivariate regression or
+3) a MASH fit that contains an array of prior covariance matrices
+and their weights}
 
 \item{residual_variance}{the residual variance (defaults to 1)}
 
-\item{prior_weights}{a p vector of prior probability that each element is non-zero}
+\item{prior_weights}{a p vector of prior probability that each
+element is non-zero}
 
-\item{standardize}{logical flag (default=TRUE) for whether to standardize columns of X to unit variance prior to fitting}
+\item{standardize}{logical flag (default=TRUE) for whether to
+standardize columns of X to unit variance prior to fitting}
 
-\item{estimate_residual_variance}{indicates whether to estimate residual variance (currently only works for univariate Y input)}
+\item{estimate_residual_variance}{indicates whether to estimate
+residual variance (currently only works for univariate Y input)}
 
-\item{estimate_prior_variance}{indicates whether to estimate prior (currently only works for univariate Y and for multivariate Y when prior is a single matrix)}
+\item{estimate_prior_variance}{indicates whether to estimate prior
+(currently only works for univariate Y and for multivariate Y when
+prior is a single matrix)}
 
-\item{estimate_prior_method}{the method used for estimating prior variance: "optim", "uniroot" and "em" for univariate Y, "optim" and "simple" for multivariate Y.}
+\item{estimate_prior_method}{the method used for estimating prior
+variance: "optim", "uniroot" and "em" for univariate Y, "optim" and
+"simple" for multivariate Y.}
 
-\item{check_null_threshold}{when prior variance is estimated, compare the estimate with the null and set prior variance to null (zero) unless the log-likelihood
-using the estimate is larger than that of null by this threshold. For example, you can set it to 0.1 to nudge the estimate towards zero. When used with "EM" method
-setting \code{check_null_threshold=NA} will skip the check and instead relying solely on EM to update this parameter.}
+\item{check_null_threshold}{when prior variance is estimated,
+compare the estimate with the null and set prior variance to null
+(zero) unless the log-likelihood using the estimate is larger than
+that of null by this threshold. For example, you can set it to 0.1
+to nudge the estimate towards zero. When used with "EM" method
+setting \code{check_null_threshold=NA} will skip the check and
+instead relying solely on EM to update this parameter.}
 
-\item{prior_tol}{when prior variance is estimated, compare the estimated value to this tol at the end of
-the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.}
+\item{prior_tol}{when prior variance is estimated, compare the
+estimated value to this tol at the end of the analysis and exclude
+a single effect from PIP computation if the estimated prior
+variance is smaller than it.}
 
 \item{s_init}{a previous model fit with which to initialize}
 
 \item{coverage}{coverage of confident sets. Default to 0.95 for 95\% credible interval.}
 
-\item{min_abs_corr}{minimum of absolute value of correlation allowed in a credible set.
-Default set to 0.5 to correspond to squared correlation of 0.25,
-a commonly used threshold for genotype data in genetics studies.}
+\item{min_abs_corr}{minimum of absolute value of correlation
+allowed in a credible set. Default set to 0.5 to correspond to
+squared correlation of 0.25, a commonly used threshold for genotype
+data in genetics studies.}
 
-\item{n_thread}{maximum number of threads to use for parallel computation (only applicable to mixture prior)}
+\item{n_thread}{maximum number of threads to use for parallel
+computation (only applicable to mixture prior)}
 
 \item{max_iter}{maximum number of iterations to perform}
 
 \item{tol}{convergence tolerance}
 
-\item{verbosity}{set to 0 for no message output, 1 for a concise progress bar massage output and 2 for one line of message at the end of each iteration.}
+\item{verbosity}{set to 0 for no message output, 1 for a concise
+progress bar massage output and 2 for one line of message at the
+end of each iteration.}
 
-\item{track_fit}{add an attribute \code{trace} to output that saves some current quantities of all iterations}
+\item{track_fit}{add an attribute \code{trace} to output that saves
+some current quantities of all iterations}
 }
 \value{
-a susie fit, which is a list with some or all of the following elements\cr
+a susie fit, which is a list with some or all of the
+following elements:
+
 \item{alpha}{an L by p matrix of posterior inclusion probabilites}
+
 \item{b1}{an L by p matrix of posterior means (conditional on inclusion)}
-\item{b2}{an L by p matrix of posterior second moments (conditional on inclusion)}
+
+\item{b2}{an L by p matrix of posterior second moments (conditional
+on inclusion)}
+
 \item{KL}{an L vector of KL divergence}
+
 \item{lbf}{an L vector of logBF}
+
 \item{sigma2}{residual variance}
+
 \item{V}{prior variance}
+
 \item{elbo}{a vector of values of elbo achieved (objective function)}
+
 \item{niter}{number of iterations took for convergence}
+
 \item{convergence}{convergence status}
+
 \item{sets}{a list of `cs`, `purity` and selected `cs_index`}
+
 \item{pip}{a vector of posterior inclusion probability}
+
 \item{walltime}{records runtime of the fitting algorithm}
+
 \item{z}{a vector of univariate z-scores}
 }
 \description{
-SUm of Single Effect (SuSiE) Regression using Sufficient
-Statistics XtX, XtY, YtY, N
+SUm of Single Effect (SuSiE) Regression using Sufficient Statistics XtX, XtY, YtY, N
 }
 \examples{
 set.seed(1)
-n = 1000
+n = 2000
 p = 1000
 beta = rep(0,p)
 beta[1:4] = 1
-X = matrix(rnorm(n*p),nrow=n,ncol=p)
-y = X \%*\% beta + rnorm(n)
+X = matrix(rnorm(n*p),n,p)
+Y = X \%*\% beta + rnorm(n)
 X_colmeans = colMeans(X)
-Y_colmeans = colMeans(y)
-X = t(t(X) - X_colmeans)
-y = t(t(y) - Y_colmeans)
+Y_colmeans = colMeans(Y)
+X = scale(X,center = TRUE,scale = FALSE)
+Y = scale(Y,center = TRUE,scale = FALSE)
 XtX = crossprod(X)
-XtY = crossprod(X, y)
-YtY = crossprod(y)
-res = mvsusie_ss(XtX,XtY,YtY,n,L=10,X_colmeans,Y_colmeans)
+XtY = crossprod(X,Y)
+YtY = crossprod(Y)
+res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans)
 
 }

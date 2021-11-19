@@ -151,14 +151,18 @@
 #' \item{z}{Vector of univariate z-scores.}
 #' 
 #' @examples
+#' # Example with one response.
 #' set.seed(1)
 #' n = 1000
 #' p = 1000
 #' beta = rep(0,p)
 #' beta[1:4] = 1
 #' X = matrix(rnorm(n*p),nrow = n,ncol = p)
-#' y = X \%*\% beta + rnorm(n)
-#' res = mvsusie(X,y,L = 10)
+#' Y = X %*% beta + rnorm(n)
+#' res = mvsusie(X,Y,L = 10)
+#'
+#' # Example with two responses.
+#' # TO DO.
 #'
 #' @importFrom Matrix isDiagonal
 #' @importFrom stats sd
