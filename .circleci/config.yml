@@ -37,6 +37,7 @@ jobs:
           command: R CMD build --no-manual --no-build-vignettes .
       - run:
           name: Check package
+          no_output_timeout: 20m
           command: R CMD check --as-cran --no-manual --ignore-vignettes *tar.gz
       - store_artifacts:
           path: mvsusieR.Rcheck/
