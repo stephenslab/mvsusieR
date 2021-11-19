@@ -55,6 +55,7 @@ create_cov_canonical <- function(R, singletons=TRUE, hetgrid=c(0, 0.25, 0.5, 0.7
 #' @details ...
 #'
 #' @importFrom stats cov2cor
+#' @importFrom mashr mash
 #' 
 #' @export
 #' 
