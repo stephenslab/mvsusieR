@@ -159,10 +159,24 @@
 #' beta[1:4] = 1
 #' X = matrix(rnorm(n*p),nrow = n,ncol = p)
 #' Y = X %*% beta + rnorm(n)
-#' res = mvsusie(X,Y,L = 10)
+#' fit = mvsusie(X,Y,L = 10)
 #'
-#' # Example with two responses.
-#' # TO DO.
+#' # Example with three responses.
+#' n = 500
+#' p = 1000
+#' true_eff = 2
+#' X = matrix(sample(c(0,1,2),size = n*p,replace = TRUE),nrow = n,ncol = p)
+#' beta1 = rep(0,p)
+#' beta2 = rep(0,p)
+#' beta3 = rep(0,p)
+#' beta1[1:true_eff] = runif(true_eff)
+#' beta2[1:true_eff] = runif(true_eff)
+#' beta3[1:true_eff] = runif(true_eff)
+#' y1 = X %*% beta1 + rnorm(n)
+#' y2 = X %*% beta2 + rnorm(n)
+#' y3 = X %*% beta3 + rnorm(n)
+#' Y = cbind(y1,y2,y3)
+#' fit = mvsusie(X,Y,prior_variance = diag(3))
 #'
 #' @importFrom Matrix isDiagonal
 #' @importFrom stats sd

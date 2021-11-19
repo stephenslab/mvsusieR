@@ -11,7 +11,7 @@ test_that("mvsusieR gets same result checking ELBO or not", with(simulate_univar
     d.copy = d$clone(T)
     B$fit(d.copy)
     B = report_susie_model(d.copy, B) 
-    expect_susie_equal(A,B,F,F,tol=1E-3)
+    expect_susie_equal(A,B,FALSE,FALSE,tol = 1e-3)
     # Estimate prior variance
     SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
     A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
