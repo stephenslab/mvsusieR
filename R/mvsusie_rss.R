@@ -12,6 +12,14 @@
 #' setting \code{check_null_threshold=NA} will skip the check and instead relying solely on EM to update this parameter.
 #' @param prior_tol when prior variance is estimated, compare the estimated value to this tol at the end of
 #' the analysis and exclude a single effect from PIP computation if the estimated prior variance is smaller than it.
+#'
+#' @param compute_objective Add description of "compute_objective"
+#'   input argument here.
+#' 
+#' @param precompute_covariances If \code{precompute_covariances =
+#'   TRUE}, precomputes various covariance quantities to speed up
+#'   computations at the cost of increased memory usage..
+#' 
 #' @param s_init a previous model fit with which to initialize
 #' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.

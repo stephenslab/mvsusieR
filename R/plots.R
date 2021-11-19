@@ -25,7 +25,9 @@
 #' 
 #' @importFrom stats pnorm
 #' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 aes
 #' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 scale_x_discrete
 #' @importFrom ggplot2 scale_y_discrete
 #' @importFrom ggplot2 scale_color_gradient2

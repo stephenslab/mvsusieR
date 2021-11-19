@@ -10,7 +10,7 @@
 #'  mvsusieR:::create_cov_canonical(3)
 #'  mvsusieR:::create_cov_canonical(3, singletons=FALSE)
 #'  mvsusieR:::create_cov_canonical(3, hetgrid=NULL)
-#' 
+#'
 #' @keywords internal
 #' 
 create_cov_canonical <- function(R, singletons=TRUE, hetgrid=c(0, 0.25, 0.5, 0.75, 1)){
@@ -72,7 +72,7 @@ create_mash_prior = function(fitted_g = NULL, mixture_prior = NULL, sample_data 
       prior_weights = fitted_g$pi[-1]
       if (is.null(null_weight)) null_weight = fitted_g$pi[1]
     } else {
-      prior_weights = mash$fitted_g$pi
+      prior_weights = fitted_g$pi
     }
     return(MashInitializer$new(fitted_g$Ulist, fitted_g$grid,
                                prior_weights=prior_weights, null_weight=null_weight,
