@@ -4,7 +4,7 @@
 #' 
 #' @description Performs a Bayesian multiple linear regression of Y on X.
 #'   That is, this function fits the regression model \deqn{Y = \sum_l X
-#'   b_l + e}, where the elements of \eqn{e} are \emph{i.i.d.} normal
+#'   b_l + e,} where the elements of \eqn{e} are \emph{i.i.d.} normal
 #'   with zero mean and variance \code{residual_variance}, and the sum
 #'   \eqn{\sum_l b_l} is a vector of p effects to be estimated. The
 #'   SuSiE assumption is that each \eqn{b_l} has exactly one non-zero
@@ -164,6 +164,7 @@
 #' fit = mvsusie(X,Y,L = 10)
 #'
 #' # Example with three responses.
+#' set.seed(1)
 #' n = 500
 #' p = 1000
 #' true_eff = 2
@@ -183,6 +184,52 @@
 #'                                              residual_variance = cov(Y)))
 #' fit = mvsusie(X,Y,prior_variance = prior)
 #'
+#' # Sufficient statistics example with one response.
+#' set.seed(1)
+#' n = 2000
+#' p = 1000
+#' beta = rep(0,p)
+#' beta[1:4] = 1
+#' X = matrix(rnorm(n*p),n,p)
+#' Y = X %*% beta + rnorm(n)
+#' X_colmeans = colMeans(X)
+#' Y_colmeans = colMeans(Y)
+#' X = scale(X,center = TRUE,scale = FALSE)
+#' Y = scale(Y,center = TRUE,scale = FALSE)
+#' XtX = crossprod(X)
+#' XtY = crossprod(X,Y)
+#' YtY = crossprod(Y)
+#' res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans)
+#'
+#' # Sufficient statistics example with three responses.
+#' set.seed(1)
+#' n = 500
+#' p = 1000
+#' true_eff = 2
+#' X = matrix(sample(c(0,1,2),size = n*p,replace = TRUE),nrow = n,ncol = p)
+#' beta1 = rep(0,p)
+#' beta2 = rep(0,p)
+#' beta3 = rep(0,p)
+#' beta1[1:true_eff] = runif(true_eff)
+#' beta2[1:true_eff] = runif(true_eff)
+#' beta3[1:true_eff] = runif(true_eff)
+#' y1 = X %*% beta1 + rnorm(n)
+#' y2 = X %*% beta2 + rnorm(n)
+#' y3 = X %*% beta3 + rnorm(n)
+#' Y = cbind(y1,y2,y3)
+#' X_colmeans = colMeans(X)
+#' Y_colmeans = colMeans(Y)
+#' X = scale(X,center = TRUE,scale = FALSE)
+#' Y = scale(Y,center = TRUE,scale = FALSE)
+#' XtX = crossprod(X)
+#' XtY = crossprod(X,Y)
+#' YtY = crossprod(Y)
+#' prior =
+#'   create_mash_prior(sample_data = list(X=X,Y=Y,residual_variance=cov(Y)),
+#'                     max_mixture_len = -1)
+#' res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans,
+#'                         prior_variance = prior)
+#' 
 #' @importFrom Matrix isDiagonal
 #' @importFrom stats sd
 #' @importFrom stats var
