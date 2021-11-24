@@ -155,20 +155,36 @@
 #' @examples
 #' # Example with one response.
 #' set.seed(1)
-#' n = 1000
+#' n = 2000
 #' p = 1000
 #' beta = rep(0,p)
 #' beta[1:4] = 1
-#' X = matrix(rnorm(n*p),nrow = n,ncol = p)
+#' X = matrix(rnorm(n*p),n,p)
 #' Y = X %*% beta + rnorm(n)
 #' fit = mvsusie(X,Y,L = 10)
 #'
+#' # Sufficient statistics example with one response.
+#' X_colmeans = colMeans(X)
+#' Y_colmeans = colMeans(Y)
+#' X = scale(X,center = TRUE,scale = FALSE)
+#' Y = scale(Y,center = TRUE,scale = FALSE)
+#' XtX = crossprod(X)
+#' XtY = crossprod(X,Y)
+#' YtY = crossprod(Y)
+#' res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans)
+#'
+#' # RSS example with one response.
+#' R = crossprod(X)
+#' z = susieR:::calc_z(X,Y)
+#' res = mvsusie_rss(z,R,L = 10)
+#' 
 #' # Example with three responses.
 #' set.seed(1)
 #' n = 500
 #' p = 1000
 #' true_eff = 2
-#' X = matrix(sample(c(0,1,2),size = n*p,replace = TRUE),nrow = n,ncol = p)
+#' X = sample(c(0,1,2),size = n*p,replace = TRUE)
+#' X = matrix(X,n,p)
 #' beta1 = rep(0,p)
 #' beta2 = rep(0,p)
 #' beta3 = rep(0,p)
@@ -184,39 +200,7 @@
 #'                                              residual_variance = cov(Y)))
 #' fit = mvsusie(X,Y,prior_variance = prior)
 #'
-#' # Sufficient statistics example with one response.
-#' set.seed(1)
-#' n = 2000
-#' p = 1000
-#' beta = rep(0,p)
-#' beta[1:4] = 1
-#' X = matrix(rnorm(n*p),n,p)
-#' Y = X %*% beta + rnorm(n)
-#' X_colmeans = colMeans(X)
-#' Y_colmeans = colMeans(Y)
-#' X = scale(X,center = TRUE,scale = FALSE)
-#' Y = scale(Y,center = TRUE,scale = FALSE)
-#' XtX = crossprod(X)
-#' XtY = crossprod(X,Y)
-#' YtY = crossprod(Y)
-#' res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans)
-#'
 #' # Sufficient statistics example with three responses.
-#' set.seed(1)
-#' n = 500
-#' p = 1000
-#' true_eff = 2
-#' X = matrix(sample(c(0,1,2),size = n*p,replace = TRUE),nrow = n,ncol = p)
-#' beta1 = rep(0,p)
-#' beta2 = rep(0,p)
-#' beta3 = rep(0,p)
-#' beta1[1:true_eff] = runif(true_eff)
-#' beta2[1:true_eff] = runif(true_eff)
-#' beta3[1:true_eff] = runif(true_eff)
-#' y1 = X %*% beta1 + rnorm(n)
-#' y2 = X %*% beta2 + rnorm(n)
-#' y3 = X %*% beta3 + rnorm(n)
-#' Y = cbind(y1,y2,y3)
 #' X_colmeans = colMeans(X)
 #' Y_colmeans = colMeans(Y)
 #' X = scale(X,center = TRUE,scale = FALSE)
@@ -224,11 +208,13 @@
 #' XtX = crossprod(X)
 #' XtY = crossprod(X,Y)
 #' YtY = crossprod(Y)
-#' prior =
-#'   create_mash_prior(sample_data = list(X=X,Y=Y,residual_variance=cov(Y)),
-#'                     max_mixture_len = -1)
 #' res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans,
 #'                         prior_variance = prior)
+#' 
+#' # RSS example with three responses.
+#' R = crossprod(X)
+#' Z = susieR:::calc_z(X,Y)
+#' res = mvsusie_rss(Z,R,L = 10,prior_variance = prior)
 #' 
 #' @importFrom Matrix isDiagonal
 #' @importFrom stats sd
