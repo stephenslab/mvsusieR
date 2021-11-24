@@ -2,7 +2,7 @@
 % Please edit documentation in R/mash.R
 \name{create_mash_prior}
 \alias{create_mash_prior}
-\title{Create mash prior object}
+\title{Create mash prior object.}
 \usage{
 create_mash_prior(
   fitted_g = NULL,
@@ -19,29 +19,40 @@ create_mash_prior(
 \arguments{
 \item{fitted_g}{from mashr::mash}
 
-\item{mixture_prior}{a list of (weights = vector(), matrices = list()) where  matrices is a list of prior matrices and have same length as weights.}
+\item{mixture_prior}{a list of (weights = vector(), matrices =
+list()) where matrices is a list of prior matrices and have same
+length as weights.}
 
-\item{sample_data}{a list of (X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to allow for automatically determine canonical priors with equal weights}
+\item{sample_data}{a list of
+(X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to
+allow for automatically determine canonical priors with equal
+weights}
 
-\item{null_weight}{whether or not to add a weight for null in single effect models. By default it takes the null weight from fitted_g
-if available. Use `null_weight = 0` to override the behavior.}
+\item{null_weight}{whether or not to add a weight for null in
+single effect models. By default it takes the null weight from
+fitted_g if available. Use `null_weight = 0` to override the
+behavior.}
 
-\item{use_grid}{expand mixture by grid values as in MASH (not necessary when prior scalar is estimated)}
+\item{use_grid}{expand mixture by grid values as in MASH (not
+necessary when prior scalar is estimated)}
 
-\item{weights_tol}{filter out priors with weights smaller than weights_tol}
+\item{weights_tol}{filter out priors with weights smaller than
+weights_tol}
 
-\item{max_mixture_len}{only keep the top priors by weight so that the list of mixture prior is of max_mixture_len.
-Use `max_mixture_len=-1` to include all input weights after weights_tol filtering. Default is set to use all input prior matrices.}
+\item{max_mixture_len}{only keep the top priors by weight so that
+the list of mixture prior is of max_mixture_len.  Use
+`max_mixture_len=-1` to include all input weights after weights_tol
+filtering. Default is set to use all input prior matrices.}
 
 \item{include_indices}{postprocess input prior to only include conditions from this indices}
 
-\item{...}{other parameters, for mvsusieR:::create_cov_canonical}
+\item{\dots}{other parameters, for mvsusieR:::create_cov_canonical}
 }
 \value{
 mash prior object for use with mvsusie() function
 }
 \description{
-Create mash prior object
+Create mash prior object.
 }
 \details{
 ...

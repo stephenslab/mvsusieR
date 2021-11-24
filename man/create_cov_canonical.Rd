@@ -2,32 +2,34 @@
 % Please edit documentation in R/mash.R
 \name{create_cov_canonical}
 \alias{create_cov_canonical}
-\title{Compute a list of canonical covariance matrices}
+\title{Compute List of Canonical Covariance Matrices}
 \usage{
-create_cov_canonical(R, singletons = TRUE, hetgrid = c(0, 0.25, 0.5, 0.75, 1))
+create_cov_canonical(R, singletons = TRUE, hetgrid = seq(0, 1, 0.25))
 }
 \arguments{
-\item{R}{an integer indicating the number of conditions}
+\item{R}{Integer specifying the number of conditions.}
 
-\item{singletons}{a logical value indicating whether the singleton matrices are computed}
+\item{singletons}{A logical value indicating whether the singleton
+matrices are computed.}
 
-\item{hetgrid}{a vector of numbers between -1 and 1, each representing the off-diagonal elements of matrices with 1s on the diagonal.
-If 0 is included, the identity matrix will be returned which corresponds to assuming effects are independent across conditions.
-IF NULL, these matrices are not computed.}
+\item{hetgrid}{A vector of numbers between -1 and 1, each
+representing the off-diagonal elements of matrices with 1s on the
+diagonal. If 0 is included, the identity matrix will be returned
+which corresponds to assuming effects are independent across
+conditions. IF \code{hetgrid = NULL}, these matrices are not
+computed.}
 }
 \value{
-a list of canonical covariance matrices
+A list of canonical covariance matrices.
 }
 \description{
-Compute a list of canonical covariance matrices
-}
-\details{
-This function computes canonical covariance matrices to be provided to mash
+This function computes canonical covariance matrices
+  to be provided to mash.
 }
 \examples{
- mvsusieR:::create_cov_canonical(3)
- mvsusieR:::create_cov_canonical(3, singletons=FALSE)
- mvsusieR:::create_cov_canonical(3, hetgrid=NULL)
+mvsusieR:::create_cov_canonical(3)
+mvsusieR:::create_cov_canonical(3,singletons = FALSE)
+mvsusieR:::create_cov_canonical(3,hetgrid = NULL)
 
 }
 \keyword{internal}
