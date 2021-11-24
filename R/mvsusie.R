@@ -1,3 +1,5 @@
+#' @rdname mvsusie
+#' 
 #' @title Multivariate SUm of Single Effect (SuSiE) Regression
 #' 
 #' @description Performs a Bayesian multiple linear regression of Y on X.
@@ -28,13 +30,13 @@
 #'   probability that each element is non-zero. Note that the prior
 #'   weights need to be non-negative but do not need to sum to 1; they
 #'   will automatically be normalized to sum to 1 so that they represent
-#'   probabilities. TO DO: Give default setting for
-#'   \code{prior_weights}.
+#'   probabilities. The default setting is that the prior weights are
+#'   the same for all variables.
 #' 
 #' @param standardize Logical flag specifying whether to standardize
 #'   columns of X to unit variance prior to fitting. If you do not
 #'   standardize you may need to think more carefully about specifying
-#'   the scale of the prior variance.  Whatever the value of
+#'   the scale of the prior variance. Whatever the value of
 #'   standardize, the coefficients (returned by \code{\link{coef}}) are
 #'   for X on the original input scale. Note that any column of X with
 #'   zero variance is not standardized, but left as is.
