@@ -99,7 +99,7 @@ computations at the cost of increased memory usage..}
 
 \item{s_init}{a previous model fit with which to initialize}
 
-\item{coverage}{coverage of confident sets. Default to 0.95 for 95\% credible interval.}
+\item{coverage}{Coverage of confident sets.}
 
 \item{min_abs_corr}{minimum of absolute value of correlation
 allowed in a credible set. Default set to 0.5 to correspond to
@@ -157,6 +157,7 @@ on inclusion)}
 SUm of Single Effect (SuSiE) Regression using Sufficient Statistics XtX, XtY, YtY, N
 }
 \examples{
+# Example with one response.
 set.seed(1)
 n = 2000
 p = 1000
@@ -172,5 +173,33 @@ XtX = crossprod(X)
 XtY = crossprod(X,Y)
 YtY = crossprod(Y)
 res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans)
+
+# Example with three responses.
+n = 500
+p = 1000
+true_eff = 2
+X = matrix(sample(c(0,1,2),size = n*p,replace = TRUE),nrow = n,ncol = p)
+beta1 = rep(0,p)
+beta2 = rep(0,p)
+beta3 = rep(0,p)
+beta1[1:true_eff] = runif(true_eff)
+beta2[1:true_eff] = runif(true_eff)
+beta3[1:true_eff] = runif(true_eff)
+y1 = X \%*\% beta1 + rnorm(n)
+y2 = X \%*\% beta2 + rnorm(n)
+y3 = X \%*\% beta3 + rnorm(n)
+Y = cbind(y1,y2,y3)
+X_colmeans = colMeans(X)
+Y_colmeans = colMeans(Y)
+X = scale(X,center = TRUE,scale = FALSE)
+Y = scale(Y,center = TRUE,scale = FALSE)
+XtX = crossprod(X)
+XtY = crossprod(X,Y)
+YtY = crossprod(Y)
+prior =
+  create_mash_prior(sample_data = list(X=X,Y=Y,residual_variance=cov(Y)),
+                    max_mixture_len = -1)
+res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans,
+                        prior_variance = prior)
 
 }
