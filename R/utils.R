@@ -123,7 +123,7 @@ scale_covariance = function (mat, sigma)
 is_numeric_matrix = function (X, name) {
   if (!((is.double(X) || is.integer(X)) & is.matrix(X)))
     stop(paste("Input",name,"must be a numeric matrix."))
-  if (any(is.na(X)))
+  if (anyNA(X))
     stop(paste("Input",name,"must not contain any missing values."))
   if (any(dim(X) == 0))
     stop(paste("Input",name,"dimension is invalid."))

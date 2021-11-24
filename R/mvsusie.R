@@ -87,11 +87,11 @@
 #' 
 #' @param precompute_covariances If \code{precompute_covariances =
 #'   TRUE}, precomputes various covariance quantities to speed up
-#'   computations at the cost of increased memory usage..
+#'   computations at the cost of increased memory usage.
 #' 
 #' @param s_init A previous model fit with which to initialize.
 #' 
-#' @param coverage Coverage of confident sets.
+#' @param coverage Coverage of credible sets.
 #' 
 #' @param min_abs_corr Minimum of absolute value of correlation
 #'   allowed in a credible set. The setting \code{min_abs_corr = 0.5}
@@ -128,7 +128,7 @@
 #' \item{b2}{L by p matrix of posterior second moments (conditional on
 #'   inclusion).}
 #' 
-#' \item{KL}{Vector of single-ffect KL divergences}
+#' \item{KL}{Vector of single-effect KL divergences}
 #' 
 #' \item{lbf}{Vector of single-effect log-Bayes factors.}
 #' 
@@ -241,7 +241,7 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
   }
   
   # Set data object.
-  if (any(is.na(Y))) {
+  if (anyNA(Y)) {
       
     # When the residual variance is a diagonal matrix, the approximate
     # version has the same result as the exact version, and it is

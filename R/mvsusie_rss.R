@@ -21,7 +21,7 @@
 #'   computations at the cost of increased memory usage..
 #' 
 #' @param s_init a previous model fit with which to initialize
-#' @param coverage coverage of confident sets. Default to 0.95 for 95\% credible interval.
+#' @param coverage coverage of credible sets.
 #' @param min_abs_corr minimum of absolute value of correlation allowed in a credible set.
 #' Default set to 0.5 to correspond to squared correlation of 0.25,
 #' a commonly used threshold for genotype data in genetics studies.
@@ -75,7 +75,7 @@ mvsusie_rss = function(Z,R,L=10,
   is_numeric_prior = !(is.matrix(prior_variance) || inherits(prior_variance, 'MashInitializer'))
   if (!is.null(dim(Z)) && ncol(Z) > 1 && is_numeric_prior) stop("Please specify prior variance for the multivariate z-scores")
   
-  if (any(is.na(Z))) {
+  if (anyNA(Z)) {
     warning('NA values in Z-scores are replaced with 0.')
     Z[is.na(Z)] = 0
   }

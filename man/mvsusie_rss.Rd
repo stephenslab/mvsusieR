@@ -60,7 +60,7 @@ computations at the cost of increased memory usage..}
 
 \item{s_init}{a previous model fit with which to initialize}
 
-\item{coverage}{coverage of confident sets. Default to 0.95 for 95\% credible interval.}
+\item{coverage}{coverage of credible sets.}
 
 \item{min_abs_corr}{minimum of absolute value of correlation allowed in a credible set.
 Default set to 0.5 to correspond to squared correlation of 0.25,

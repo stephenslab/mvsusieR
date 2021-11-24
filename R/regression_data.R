@@ -11,7 +11,7 @@ DenseData <- R6Class("DenseData",
       if (length(which(apply(X, 2, is_zero_variance))))
         stop('Input X must not have constant columns (some columns have standard deviation zero)')
       .X <<- X
-      .X_has_missing <<- any(is.na(.X))
+      .X_has_missing <<- anyNA(.X)
       
       # FIXME: might want to allow for missing in X later?
       # see stephenslab/mvsusieR/#5
@@ -50,7 +50,7 @@ DenseData <- R6Class("DenseData",
           if(nrow(residual_variance) != .R){
             stop(paste0("The residual variance is not a ", .R, ' by ', .R, ' matrix.'))
           }
-          if (any(is.na(diag(residual_variance))))
+          if (anyNA(diag(residual_variance)))
             stop("Diagonal of residual_variance cannot be NA")
           residual_variance[which(is.na(residual_variance))] = 0
           mashr:::check_positive_definite(residual_variance)
@@ -242,7 +242,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
           else residual_variance = var(.Y[.Y_non_missing], na.rm=T)
         }
         if (is.matrix(residual_variance)) {
-          if (any(is.na(diag(residual_variance))))
+          if (anyNA(diag(residual_variance)))
             stop("Diagonal of residual_variance cannot be NA")
           residual_variance[which(is.na(residual_variance))] = 0
           mashr:::check_positive_definite(residual_variance)
@@ -522,7 +522,7 @@ RSSData <- R6Class("RSSData",
       }
 
       # replace NA in z with 0
-      if (any(is.na(Z))) {
+      if (anyNA(Z)) {
         warning('NA values in Z-scores are replaced with 0.')
         Z[is.na(Z)] = 0
       }
@@ -634,7 +634,7 @@ SSData <- R6Class("SSData", inherit = DenseData,
           if(nrow(residual_variance) != .R){
             stop(paste0("The residual variance is not a ", .R, ' by ', .R, ' matrix.'))
           }
-          if (any(is.na(diag(residual_variance))))
+          if (anyNA(diag(residual_variance)))
             stop("Diagonal of residual_variance cannot be NA")
           residual_variance[which(is.na(residual_variance))] = 0
           mashr:::check_positive_definite(residual_variance)

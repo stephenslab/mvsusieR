@@ -76,7 +76,7 @@ should then be equivalent to \code{\link[susieR]{susie}}); or (2) a
 matrix for a simple multivariate regression; or (3) a MASH fit that
 contains an array of prior covariance matrices and their weights.}
 
-\item{residual_variance}{the residual variance (defaults to 1)}
+\item{residual_variance}{The residual variance (defaults to 1).}
 
 \item{prior_weights}{A vector of length p giving the prior
 probability that each element is non-zero. Note that the prior
@@ -121,30 +121,30 @@ prior variance; valid choices are \code{"optim"}, \code{"uniroot"}
 or \code{"em"} for univariate Y; and \code{"optim"},
 \code{"simple"} for multivariate Y.}
 
-\item{check_null_threshold}{when prior variance is estimated,
-compare the estimate with the null and set prior variance to null
-(zero) unless the log-likelihood using the estimate is larger than
-that of null by this threshold. For example, you can set it to 0.1
-to nudge the estimate towards zero. When used with "EM" method
-setting \code{check_null_threshold=NA} will skip the check and
-instead relying solely on EM to update this parameter.}
+\item{check_null_threshold}{When the prior variance is estimated,
+the estimate is compared against the null, and the prior variance
+is set to zero unless the log-likelihood using the estimate is
+larger than that of null by this threshold. For example, setting
+\code{check_null_threshold = 0.1} will \dQuote{nudge} the estimate
+towards zero. When used with \code{estimate_prior_method = "EM"},
+setting \code{check_null_threshold = NA} will skip this check.}
 
-\item{prior_tol}{when prior variance is estimated, compare the
-estimated value to this tol at the end of the analysis and exclude
-a single effect from PIP computation if the estimated prior
+\item{prior_tol}{When the prior variance is estimated, compare the
+estimated value to this value at the end of the analysis and
+exclude a single effect from PIP computation if the estimated prior
 variance is smaller than it.}
 
 \item{compute_objective}{Add description of "compute_objective"
 input argument here.}
 
-\item{s_init}{a previous model fit with which to initialize}
+\item{s_init}{A previous model fit with which to initialize.}
 
-\item{coverage}{Coverage of confident sets.}
+\item{coverage}{Coverage of credible sets.}
 
-\item{min_abs_corr}{minimum of absolute value of correlation
-allowed in a credible set. Default set to 0.5 to correspond to
-squared correlation of 0.25, a commonly used threshold for genotype
-data in genetics studies.}
+\item{min_abs_corr}{Minimum of absolute value of correlation
+allowed in a credible set. The setting \code{min_abs_corr = 0.5}
+corresponds to squared correlation of 0.25, which is a commonly
+used threshold for genotype data in genetics studies.}
 
 \item{compute_univariate_zscore}{When
 \code{compute_univariate_zscore = TRUE}, the z-scores from the
@@ -152,21 +152,23 @@ per-variable univariate regressions are outputted.}
 
 \item{precompute_covariances}{If \code{precompute_covariances =
 TRUE}, precomputes various covariance quantities to speed up
-computations at the cost of increased memory usage..}
+computations at the cost of increased memory usage.}
 
-\item{n_thread}{maximum number of threads to use for parallel
-computation (only applicable to mixture prior)}
+\item{n_thread}{Maximum number of threads to use for parallel
+computation (only applicable when a mixture prior is used).}
 
-\item{max_iter}{maximum number of iterations to perform}
+\item{max_iter}{Maximum number of iterations to perform.}
 
-\item{tol}{convergence tolerance}
+\item{tol}{The model fitting will terminate when the increase in
+ELBOs between two successive iterations is less than \code{tol}.}
 
-\item{verbosity}{set to 0 for no message output, 1 for a concise
-progress bar massage output and 2 for one line of message at the
+\item{verbosity}{Set \code{verbosity = 0} for no messages;
+\code{verbosity = 1} for a progress bar; and \code{verbosity = 2}
+for more detailed information about the algorithm's progress at the
 end of each iteration.}
 
-\item{track_fit}{add an attribute \code{trace} to output that saves
-some current quantities of all iterations}
+\item{track_fit}{Add attribute \code{trace} to the return value
+which records the algorithm's progress at each iteration.}
 
 \item{XtX}{A J x J matrix \eqn{X^TX} in which the columns of \eqn{X}
 are centered to have mean zero.}
@@ -198,7 +200,7 @@ of the following elements:
 \item{b2}{L by p matrix of posterior second moments (conditional on
   inclusion).}
 
-\item{KL}{Vector of single-ffect KL divergences}
+\item{KL}{Vector of single-effect KL divergences}
 
 \item{lbf}{Vector of single-effect log-Bayes factors.}
 
@@ -221,38 +223,6 @@ of the following elements:
 \item{walltime}{Records runtime of the model fitting algorithm.}
 
 \item{z}{Vector of univariate z-scores.}
-
-a susie fit, which is a list with some or all of the
-following elements:
-
-\item{alpha}{an L by p matrix of posterior inclusion probabilites}
-
-\item{b1}{an L by p matrix of posterior means (conditional on inclusion)}
-
-\item{b2}{an L by p matrix of posterior second moments (conditional
-on inclusion)}
-
-\item{KL}{an L vector of KL divergence}
-
-\item{lbf}{an L vector of logBF}
-
-\item{sigma2}{residual variance}
-
-\item{V}{prior variance}
-
-\item{elbo}{a vector of values of elbo achieved (objective function)}
-
-\item{niter}{number of iterations took for convergence}
-
-\item{convergence}{convergence status}
-
-\item{sets}{a list of `cs`, `purity` and selected `cs_index`}
-
-\item{pip}{a vector of posterior inclusion probability}
-
-\item{walltime}{records runtime of the fitting algorithm}
-
-\item{z}{a vector of univariate z-scores}
 }
 \description{
 Performs a Bayesian multiple linear regression of Y on X.
