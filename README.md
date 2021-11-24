@@ -1,5 +1,6 @@
 # mvsusieR
 
+ [![R-CMD-check](https://github.com/stephenslab/mvsusieR/workflows/R-CMD-check/badge.svg)](https://github.com/stephenslab/mvsusieR/actions)
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/fhrp1e868f40skp1?svg=true)](https://ci.appveyor.com/project/pcarbo/mvsusieR)
 [![CircleCI](https://circleci.com/gh/stephenslab/mvsusieR/tree/master.svg?style=svg)](https://app.circleci.com/pipelines/github/stephenslab/mvsusieR?branch=master)
 
