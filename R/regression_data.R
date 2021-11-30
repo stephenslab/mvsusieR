@@ -1,5 +1,10 @@
 # The regular regression data object.
 #
+# See discussion in
+# https://github.com/r-lib/R6/issues/213
+# https://github.com/r-lib/R6/issues/201
+# for why we use <<- instead of <- for assignnment.
+#
 #' @importFrom R6 R6Class
 #' @importFrom matrixStats colSds
 #' 

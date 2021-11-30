@@ -100,7 +100,8 @@ should then be equivalent to \code{\link[susieR]{susie}}); or (2) a
 matrix for a simple multivariate regression; or (3) a MASH fit that
 contains an array of prior covariance matrices and their weights.}
 
-\item{residual_variance}{The residual variance (defaults to 1).}
+\item{residual_variance}{The residual variance (defaults to the
+sample variance of Y).}
 
 \item{prior_weights}{A vector of length p giving the prior
 probability that each element is non-zero. Note that the prior

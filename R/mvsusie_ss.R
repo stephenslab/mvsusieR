@@ -19,8 +19,6 @@
 #' \eqn{Y}. If it is provided with \code{X_colmeans}, the intercept is
 #'   estimated; otherwise, the intercept is \code{NA}.
 #' 
-#' @param residual_variance The residual variance (defaults to 1).
-#' 
 #' @importFrom stats var
 #' @importFrom stats cov2cor
 #' @importFrom susieR susie_get_cs
