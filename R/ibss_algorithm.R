@@ -6,74 +6,92 @@ SuSiE <- R6Class("SuSiE",
   public = list(
     initialize = function (SER, L, estimate_residual_variance = FALSE,
                            compute_objective = TRUE, max_iter = 100,
-        tol=1e-3,
-                    track_pip=FALSE,track_lbf=FALSE, track_prior_est=FALSE) {
-        if (!compute_objective) {
-            track_pip = TRUE
-            estimate_residual_variance = FALSE
-        }
-        # initialize single effect regression models
-        private$L = L
-        private$to_estimate_residual_variance = estimate_residual_variance
-        private$to_compute_objective = compute_objective
-        private$SER = lapply(1:private$L, function(l) SER$clone(deep=T))
-        private$elbo = vector()
-        private$.niter = max_iter
-        private$tol = tol
-        if (track_pip) private$.pip_history = list()
-        if (track_lbf) private$.lbf_history = list()
-        if (track_prior_est) private$.prior_history = list()
+                           tol = 1e-3, track_pip = FALSE, track_lbf = FALSE,
+                           track_prior_est = FALSE) {
+   
+      if (!compute_objective) {
+        track_pip                  = TRUE
+        estimate_residual_variance = FALSE
+      }
+      
+      # Initialize single effect regression models.
+      private$L = L
+      private$to_estimate_residual_variance = estimate_residual_variance
+      private$to_compute_objective = compute_objective
+      private$SER    = lapply(1:private$L,function (l) SER$clone(deep = TRUE))
+      private$elbo   = vector("numeric")
+      private$.niter = max_iter
+      private$tol    = tol
+      if (track_pip)
+        private$.pip_history = list()
+        if (track_lbf)
+          private$.lbf_history = list()
+        if (track_prior_est)
+          private$.prior_history = list()
     },
-    init_from = function(model) {
-        mu = model$b1
-        if (is.null(dim(mu)) || length(dim(mu)) != 3)
-            stop("Input coefficient should be a 3-D array for first moment estimate of each single effect.")
-        L = dim(mu)[1]
-        if (L != private$L)
-            stop("Cannot initialize different number of effects than the current model allows")
-        for (i in 1:L) {
-            mu_l = mu[i,,]/model$alpha[i,]
-            mu_l[which(is.nan(mu_l) | !is.finite(mu_l))] = 0
-            private$SER[[i]]$mu = mu_l
-            private$SER[[i]]$pip = model$alpha[i,]
-            if (!is.null(model$V)) private$SER[[i]]$prior_variance = model$V[i]
-        }
+      
+    init_from = function (model) {
+      mu = model$b1
+      if (is.null(dim(mu)) || length(dim(mu)) != 3)
+        stop("Input coefficient should be a 3-D array for first moment ",
+             "estimate of each single effect.")
+      L = dim(mu)[1]
+      if (L != private$L)
+        stop("Cannot initialize different number of effects than the ",
+             "current model allows")
+      for (i in 1:L) {
+        mu_l = mu[i,,]/model$alpha[i,]
+        mu_l[which(is.nan(mu_l) | !is.finite(mu_l))] = 0
+        private$SER[[i]]$mu  = mu_l
+        private$SER[[i]]$pip = model$alpha[i,]
+        if (!is.null(model$V))
+          private$SER[[i]]$prior_variance = model$V[i]
+      }
     },
-    fit = function(d, prior_weights=NULL, estimate_prior_variance_method=NULL, check_null_threshold=0, verbosity=1) {
-        if (verbosity==1) pb = progress_bar$new(format = "[:spin] Iteration :iteration (diff = :delta) :elapsed",
-                                    clear = TRUE, total = private$.niter, show_after = .5)
-        else pb = null_progress_bar$new()
+      
+    fit = function (d, prior_weights = NULL,
+                    estimate_prior_variance_method = NULL,
+                    check_null_threshold=0, verbosity=1) {
+      if (verbosity == 1)
+        pb = progress_bar$new(format = paste("[:spin] Iteration :iteration",
+                                             "(diff = :delta) :elapsed"),
+                              clear = TRUE,total = private$.niter,
+                              show_after = 0.5)
+      else
+        pb = null_progress_bar$new()
+      if (verbosity > 1)
+        message("Running IBSS algorithm ...")
+      for (i in 1:private$.niter) {
+        private$save_history()
+        fitted = d$compute_Xb(Reduce(`+`, lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1)))
+        d$compute_residual(fitted)
+        for (l in 1:private$L) {
+          d$add_to_residual(private$SER[[l]]$predict(d))
+          
+          # For the first 10 iterations, don't do the check with zero
+          # when EM updates are used to estimate prior variance see
+          # github.com/stephenslab/mvsusieR/issues/26#issuecomment-612947198
+          private$SER[[l]]$fit(d,prior_weights = prior_weights,
+            estimate_prior_variance_method = estimate_prior_variance_method,
+            check_null_threshold=ifelse(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM" && i <= 10, as.numeric(NA), check_null_threshold))
+          if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
+            d$remove_from_residual(private$SER[[l]]$predict(d))
+        }
+        if (private$to_compute_objective)
+          private$compute_objective(d)
+        private$.convergence = private$check_convergence(i)
         if (verbosity > 1)
-          message("Running IBSS algorithm ...")
-        for (i in 1:private$.niter) {
-            private$save_history()
-            fitted = d$compute_Xb(Reduce(`+`, lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1)))
-            d$compute_residual(fitted)
-            for (l in 1:private$L) {
-                d$add_to_residual(private$SER[[l]]$predict(d))
-                # For the first 10 iterations, don't do the check with zero when EM updates are used to estimate prior variance
-                # see https://github.com/stephenslab/mvsusieR/issues/26#issuecomment-612947198
-                private$SER[[l]]$fit(d, prior_weights=prior_weights, estimate_prior_variance_method=estimate_prior_variance_method,
-                                    check_null_threshold=ifelse(!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM" && i <= 10, NA, check_null_threshold))
-                if (private$to_compute_objective) private$SER[[l]]$compute_kl(d)
-                d$remove_from_residual(private$SER[[l]]$predict(d))
-            }
-            if (private$to_compute_objective)
-              private$compute_objective(d)
-            private$.convergence = private$check_convergence(i)
-            if (verbosity > 1)
-               message(paste("Iteration", i, "delta =",
-                             private$.convergence$delta))
-            else
-              pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = "%#.1e"), iteration=i))
-            if (private$.convergence$converged) {
-                private$save_history()
-                pb$tick(private$.niter)
-                private$.niter = i
-                private$add_back_zero_effects()
-                break
-            }
-            if (private$to_estimate_residual_variance){
+          message(paste("Iteration", i, "delta =",private$.convergence$delta))
+        else
+          pb$tick(tokens = list(delta=sprintf(private$.convergence$delta, fmt = "%#.1e"), iteration=i))
+        if (private$.convergence$converged) {
+          private$save_history()
+          pb$tick(private$.niter)
+          private$.niter = i
+          private$add_back_zero_effects()
+          break
+        }
+        if (private$to_estimate_residual_variance) {
                 d$set_residual_variance(private$estimate_residual_variance(d),
                                         quantities = c("residual_variance", "effect_variance"))
             }
@@ -86,7 +104,7 @@ SuSiE <- R6Class("SuSiE",
         }
     },
     get_objective = function(dump = FALSE, warning_tol = 1e-6) {
-        if (length(private$elbo) == 0) return(NA)
+        if (length(private$elbo) == 0) return(as.numeric(NA))
         if (!all(diff(private$elbo) >= (-1 * warning_tol))) {
             warning("Objective is not non-decreasing")
             dump = TRUE
@@ -101,39 +119,56 @@ SuSiE <- R6Class("SuSiE",
     # get prior effect size, because it might be updated during iterations
     prior_variance = function() sapply(1:private$L, function(l) private$SER[[l]]$prior_variance),
     kl = function() {
-        if (!private$to_compute_objective) NA
-        else sapply(1:private$L, function(l) private$SER[[l]]$kl)
+        if (!private$to_compute_objective)
+          return(as.numeric(NA))
+        else
+          return(sapply(1:private$L,function(l) private$SER[[l]]$kl))
     },
-    # posterior inclusion probability, J by L matrix
-    pip = function() do.call(cbind, lapply(1:private$L, function(l) private$SER[[l]]$pip)),
-    lbf = function() sapply(1:private$L, function(l) private$SER[[l]]$lbf),
-    pip_history = function() lapply(ifelse(private$.niter>1, 2, 1):length(private$.pip_history), function(i) private$.pip_history[[i]]),
-    lbf_history = function() lapply(ifelse(private$.niter>1, 2, 1):length(private$.lbf_history), function(i) private$.lbf_history[[i]]),
+      
+    # Posterior inclusion probabilities, J x L matrix.
+    pip = function()
+      do.call(cbind,lapply(1:private$L,function(l) private$SER[[l]]$pip)),
+      
+    lbf = function()
+      sapply(1:private$L,function(l) private$SER[[l]]$lbf),
+
+    pip_history = function()
+      lapply(ifelse(private$.niter > 1,2,1):length(private$.pip_history),
+             function (i) private$.pip_history[[i]]),
+      
+    lbf_history = function()
+      lapply(ifelse(private$.niter>1, 2, 1):length(private$.lbf_history), function(i) private$.lbf_history[[i]]),
+      
     prior_history = function() lapply(ifelse(private$.niter>1, 2, 1):length(private$.prior_history), function(i) private$.prior_history[[i]]),
+      
     posterior_b1 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b1),
+      
     posterior_b2 = function() lapply(1:private$L, function(l) private$SER[[l]]$posterior_b2),
+      
     clfsr = function() lapply(1:private$L, function(l) private$SER[[l]]$lfsr),
+      
     mixture_posterior_weights = function() lapply(1:private$L, function(l) private$SER[[l]]$mixture_posterior_weights)
   ),
+                 
   private = list(
     to_estimate_residual_variance = NULL,
     to_compute_objective = NULL,
-    L = NULL,
-    SER = NULL, # Single effect regression models
-    SER_NULL = list(), # Single effect regression models removed
-    elbo = NULL, # Evidence lower bound
+    L          = NULL,
+    SER        = NULL, # Single effect regression models
+    SER_NULL   = list(), # Single effect regression models removed
+    elbo       = NULL, # Evidence lower bound
     null_index = NULL, # index of null effect intentially added
-    .niter = NULL,
-    .convergence = NULL,
-    .pip_history = NULL, # keep track of pip
-    .lbf_history = NULL, # keep track of lbf
+    .niter         = NULL,
+    .convergence   = NULL,
+    .pip_history   = NULL, # keep track of pip
+    .lbf_history   = NULL, # keep track of lbf
     .prior_history = NULL, # keep track of prior estimates
-    tol = NULL, # tolerance level for convergence
-    essr = NULL,
-    check_convergence = function(n) {
-        if (n<=1) {
-            return (list(delta=Inf, converged=FALSE))
-        } else {
+    tol            = NULL, # tolerance level for convergence
+    essr           = NULL,
+    check_convergence = function (n) {
+      if (n <= 1)
+        return (list(delta=Inf, converged=FALSE))
+      else {
             if (private$to_compute_objective)
                 delta = private$elbo[n] - private$elbo[n-1]
             else
@@ -157,7 +192,7 @@ SuSiE <- R6Class("SuSiE",
     },
     # expected loglikelihood for SuSiE model
     compute_expected_loglik_univariate = function(d) {
-        if(d$Y_has_missing){
+        if (d$Y_has_missing) {
           Y_missing_assign =  table(d$Y_missing_pattern_assign)
           expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) -
             0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * Y_missing_assign)
@@ -171,7 +206,7 @@ SuSiE <- R6Class("SuSiE",
         }
     },
     compute_expected_loglik_multivariate = function(d) {
-      if(d$Y_has_missing){
+      if (d$Y_has_missing) {
         Y_missing_assign =  table(d$Y_missing_pattern_assign)
         expected_loglik = -0.5 * log(2*pi) * sum(sapply(d$residual_variance_eigenvalues, length) * Y_missing_assign) -
           0.5 * sum(sapply(d$residual_variance_eigenvalues, function(x) ifelse(length(x)>0,sum(log(x)),0)) * Y_missing_assign)
@@ -204,18 +239,18 @@ SuSiE <- R6Class("SuSiE",
         # However, computational complexity may be different (depending on the dimension of XtX)
         XB2 = sum((Eb1 %*% d$XtX) * Eb1)
         return(as.numeric(crossprod(d$residual) - XB2 + sum(d$X2_sum*t(Eb2))))
-      } else if (inherits(d, "SSData")){
+      } else if (inherits(d,"SSData")) {
         XB2 = sum((Eb1 %*% d$XtX) * Eb1)
         EB = colSums(Eb1)
         return(as.numeric(d$YtY - 2*sum(EB * d$XtY) + sum(EB * d$compute_MXt(EB)) -
           XB2 + sum(d$X2_sum * t(Eb2))))
       }else {
         # full data, DenseData object
-        if(d$Y_has_missing){
+        if (d$Y_has_missing) {
           resid_var_inv = unlist(d$residual_variance_inv)[d$Y_missing_pattern_assign]
-          E1 = sapply(1:length(private$SER), function(l){
+          E1 = sapply(1:length(private$SER), function(l) {
             Xb = d$compute_Xb(private$SER[[l]]$posterior_b1)
-            sum(Xb^2 * resid_var_inv)
+            return(sum(Xb^2 * resid_var_inv))
           })
           E1 = sum(d$residual^2 * resid_var_inv) - sum(E1)
           return(E1 + Reduce('+', lapply(1:length(private$SER), function(l) private$SER[[l]]$vbxxb)))
