@@ -2,8 +2,14 @@
 # from any regression model.
 #
 #' @importFrom R6 R6Class
-SingleEffectModel <- function(base)
-  R6Class("SingleEffectModel",
+SingleEffectModel <- function (base) {
+
+  # See https://github.com/r-lib/R6/issues/230 for why we define
+  # "self" in this way.
+  self    = NULL
+  super   = NULL
+  private = NULL
+  return(R6Class("SingleEffectModel",
   inherit = base,
   public = list(
     initialize = function (J, prior_variance) {
@@ -128,4 +134,5 @@ SingleEffectModel <- function(base)
     vbxxb = function() private$.vbxxb,
     bxxb  = function() private$.bxxb
   )
-)
+))
+}
