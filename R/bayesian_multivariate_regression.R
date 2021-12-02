@@ -2,6 +2,7 @@
 #
 #' @importFrom R6 R6Class
 #' @importFrom stats optim
+#' 
 BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
   inherit = BayesianSimpleRegression,
   public = list(
@@ -10,6 +11,7 @@ BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
       private$.prior_variance       = prior_variance
       private$.posterior_b1         = matrix(0,J,nrow(prior_variance))
       private$prior_variance_scalar = 1
+      return(invisible(self))
     },
       
     fit = function (d, prior_weights = NULL, use_residual = FALSE,
@@ -56,6 +58,8 @@ BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
       if (save_var)
         private$.posterior_variance = post$cov
       private$.lbf = post$lbf
+      
+      return(invisible(self))
     }
   ),
     
@@ -69,13 +73,13 @@ BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
       return(compute_softmax(lbf,prior_weights)$log_sum)
     },
       
-    estimate_prior_variance_optim = function (betahat, shat2, prior_weights,
-                                              ...)
+    estimate_prior_variance_optim = function (betahat,shat2,prior_weights,...)
       exp(optim(par = 0,fn = private$neg_loglik_logscale,betahat = betahat,
                 shat2 = shat2,prior_weights = prior_weights,...)$par),
 
     estimate_prior_variance_em_direct_inv =
       function (pip, inv_function = pseudo_inverse) {
+          
       # Update directly using inverse of prior matrix
       # This is very similar to updating the univariate case via EM,
       # \sigma_0^2 = \mathrm{tr}(S_0^{-1} E[bb^T])/r
