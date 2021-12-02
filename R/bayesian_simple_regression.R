@@ -14,7 +14,7 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
       return(invisible(self))
     },
 
-    # This returns the R6 object invisibly.
+    # This method returns the R6 object invisibly.
     fit = function (d, prior_weights = NULL, use_residual = FALSE,
                     save_summary_stats = FALSE, save_var = FALSE,
                     estimate_prior_variance_method = NULL,
