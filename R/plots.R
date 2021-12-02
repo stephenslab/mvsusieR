@@ -99,7 +99,6 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   if (!inherits(m,"susie"))
     stop("Input argument \"m\" should be a susie fit object, such as the ",
          "output of calling function \"mvsusie\"")
-  # if (!is.matrix(coef))
   
   if (plot_z) {
     if (!("z" %in% names(m)))

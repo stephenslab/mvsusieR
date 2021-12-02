@@ -7,16 +7,17 @@
 mvsusie_single_effect_lfsr(clfsr, alpha)
 }
 \arguments{
-\item{clfsr}{L by P by R conditonal lfsr}
+\item{clfsr}{L x P x R conditonal lfsr.}
 
-\item{alpha}{L by P matrix}
+\item{alpha}{L x P matrix.}
 }
 \value{
-a L by R matrix of lfsr
+L x R matrix of lfsr
 }
 \description{
 Local false sign rate (lfsr) for single effects
 }
 \details{
-This computes the lfsr of single effects for each condition.
+This function returns the lfsr for identifying nonzero
+  single effects, separately for each condition.
 }

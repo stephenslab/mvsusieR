@@ -2,23 +2,25 @@
 % Please edit documentation in R/mvsusie_utils.R
 \name{mvsusie_get_lfsr}
 \alias{mvsusie_get_lfsr}
-\title{Local false sign rate (lfsr) for variables}
+\title{Local false sign rate (lfsr) for variables.}
 \usage{
 mvsusie_get_lfsr(clfsr, alpha, weighted = TRUE)
 }
 \arguments{
-\item{clfsr}{L by P by R conditonal lfsr}
+\item{clfsr}{L x P x R conditonal lfsr.}
 
-\item{alpha}{L by P matrix}
+\item{alpha}{L x P matrix.}
 
-\item{weighted}{TRUE to weight lfsr by PIP; FALSE otherwise.}
+\item{weighted}{Set \code{weighted = TRUE} to weight lfsr by PIP;
+otherwise set \code{weighted = FALSE}.}
 }
 \value{
-a P by R matrix of lfsr
+P x R lfsr matrix.
 }
 \description{
-Local false sign rate (lfsr) for variables
+Local false sign rate (lfsr) for variables.
 }
 \details{
-This computes the lfsr of variables for each condition.
+This function returns the lfsr for identifying nonzero
+  effects for each condition.
 }

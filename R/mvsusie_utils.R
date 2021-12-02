@@ -1,38 +1,60 @@
 #' @title Local false sign rate (lfsr) for single effects
-#' @details This computes the lfsr of single effects for each condition.
-#' @param alpha L by P matrix
-#' @param clfsr L by P by R conditonal lfsr
-#' @return a L by R matrix of lfsr
+#' 
+#' @details This function returns the lfsr for identifying nonzero
+#'   single effects, separately for each condition.
+#' 
+#' @param alpha L x P matrix.
+#' 
+#' @param clfsr L x P x R conditonal lfsr.
+#' 
+#' @return L x R matrix of lfsr
+#' 
 #' @export
-mvsusie_single_effect_lfsr = function(clfsr, alpha) {
-  if(!is.array(clfsr) && is.na(clfsr)){
-    return(NA)
-  }else{
-    return(do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
-      clfsrr = clfsr[,,r]
-      if (is.null(nrow(clfsrr))) clfsrr = matrix(clfsrr, 1, length(clfsrr))
-      pmax(0, rowSums(alpha * clfsrr))
-    })))
-  }
+#' 
+mvsusie_single_effect_lfsr = function (clfsr, alpha) {
+  if (!is.array(clfsr) && is.na(clfsr))
+    return(as.numeric(NA))
+  else
+    return(do.call(cbind,
+                   lapply(1:dim(clfsr)[3],
+                          function(r) {
+                            clfsrr = clfsr[,,r]
+                            if (is.null(nrow(clfsrr)))
+                              clfsrr = matrix(clfsrr,1,length(clfsrr))
+                            return(pmax(0,rowSums(alpha * clfsrr)))
+                          })))
 }
 
-#' @title Local false sign rate (lfsr) for variables
-#' @details This computes the lfsr of variables for each condition.
-#' @param alpha L by P matrix
-#' @param clfsr L by P by R conditonal lfsr
-#' @param weighted TRUE to weight lfsr by PIP; FALSE otherwise.
-#' @return a P by R matrix of lfsr
+#' @title Local false sign rate (lfsr) for variables.
+#' 
+#' @details This function returns the lfsr for identifying nonzero
+#'   effects for each condition.
+#' 
+#' @param alpha L x P matrix.
+#' 
+#' @param clfsr L x P x R conditonal lfsr.
+#' 
+#' @param weighted Set \code{weighted = TRUE} to weight lfsr by PIP;
+#'   otherwise set \code{weighted = FALSE}.
+#' 
+#' @return P x R lfsr matrix.
+#' 
 #' @export
-mvsusie_get_lfsr = function(clfsr, alpha, weighted = TRUE) {
-  if(!is.array(clfsr) && is.na(clfsr)){
-    return(NA)
-  }else{
-    if (weighted) alpha = alpha
-    else alpha = matrix(1, nrow(alpha), ncol(alpha))
-    return(do.call(cbind, lapply(1:dim(clfsr)[3], function(r){
-      true_sign_mat = alpha * (1 - clfsr[,,r])
-      pmax(1e-20, 1 - apply(true_sign_mat, 2, max))
-    })))
+#' 
+mvsusie_get_lfsr = function (clfsr, alpha, weighted = TRUE) {
+  if (!is.array(clfsr) && is.na(clfsr))
+    return(as.numeric(NA))
+  else{
+    if (weighted)
+      alpha = alpha
+    else
+      alpha = matrix(1,nrow(alpha),ncol(alpha))
+    return(do.call(cbind,
+                   lapply(1:dim(clfsr)[3],
+                          function(r) {
+                            true_sign_mat = alpha * (1 - clfsr[,,r])
+                            pmax(1e-20,1 - apply(true_sign_mat, 2, max))
+                          })))
   }
 }
 
@@ -91,6 +113,7 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
     if (!is.null(m$pip_history)) s$alpha_history = m$pip_history
     if (!is.null(m$lbf_history)) s$lbf_history = m$lbf_history
     if (!is.null(m$prior_history)) s$prior_history = m$prior_history
+  
     # FIXME: unit test for scaling issue for the fitted
     if(inherits(d, "RSSData")){
       s$fitted = d$XtX %*% b
@@ -100,6 +123,6 @@ report_susie_model = function(d, m, estimate_prior_variance = TRUE) {
     if (is.null(dim(s$coef))) s$intercept = s$coef[1]
     else s$intercept = s$coef[1,]
     if (estimate_prior_variance) s$V = m$prior_variance
-    class(s) = 'susie'
+    class(s) = "susie"
     return(s)
 }
