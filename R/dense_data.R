@@ -138,7 +138,7 @@ DenseData <- R6Class("DenseData",
     # J by R
     # tcrossprod(A,B) performs A%*%t(B) but faster
     compute_Xb = function (b)
-      tcrossprod(.X,t(b))
+      tcrossprod(.X,t(b)),
       
     compute_MXt = function (M) {
         
@@ -200,7 +200,7 @@ DenseData <- R6Class("DenseData",
       return(.XtX)
     },
     XtR = function()
-      crossprod(.X,.residual)
+      crossprod(.X,.residual),
     
     residual = function() .residual,
     n_sample = function() .N,
