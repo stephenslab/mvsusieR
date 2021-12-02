@@ -10,6 +10,7 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
       private$J                     = J
       private$prior_variance_scalar = prior_variance
       private$.posterior_b1         = matrix(0,J,1)
+      return(invisible(self))
     },
       
     fit = function (d, prior_weights = NULL, use_residual = FALSE,
@@ -36,7 +37,7 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
       # Deal with prior variance: can be "estimated" across effects.
       if (!is.null(estimate_prior_variance_method)) {
         if (estimate_prior_variance_method == "EM")
-          private$cache = list(b=bhat, s=sbhat2)
+          private$cache = list(b = bhat,s = sbhat2)
         else
           private$prior_variance_scalar =
             private$estimate_prior_variance(bhat,sbhat2,prior_weights,
@@ -57,8 +58,13 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
       if (!is.null(ncol(private$.lbf)) && ncol(private$.lbf) == 1)
         private$.lbf = as.vector(private$.lbf)
       private$.lbf[is.infinite(sbhat2)] = 0
+      return(invisible(self))
     },
-    set_thread = function  (value) private$n_thread = value
+      
+    set_thread = function (value) {
+      private$n_thread = value
+      return(invisible(self))
+     }
   ),
     
   active = list(
@@ -68,13 +74,17 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
     lbf          = function() private$.lbf,
     bhat         = function() private$.bhat,
     sbhat        = function() private$.sbhat,
+      
     prior_variance = function (v) {
       if (missing(v))
         private$prior_variance_scalar
       else
         private$prior_variance_scalar = v
+      return(private$prior_variance_scalar)
     },
-    posterior_variance = function() private$.posterior_variance
+      
+    posterior_variance = function()
+      private$.posterior_variance
   ),
     
   private = list(
