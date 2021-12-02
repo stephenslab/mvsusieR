@@ -5,6 +5,7 @@
 #' @importFrom stats uniroot
 #' @importFrom stats optim
 BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
+    
   public = list(
     initialize = function (J, prior_variance) {
       private$J                     = J
@@ -12,7 +13,8 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
       private$.posterior_b1         = matrix(0,J,1)
       return(invisible(self))
     },
-      
+
+    # This returns the R6 object invisibly.
     fit = function (d, prior_weights = NULL, use_residual = FALSE,
                     save_summary_stats = FALSE, save_var = FALSE,
                     estimate_prior_variance_method = NULL,
@@ -60,11 +62,12 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
       private$.lbf[is.infinite(sbhat2)] = 0
       return(invisible(self))
     },
-      
+
+    # The return value is the nunber of threads set.
     set_thread = function (value) {
       private$n_thread = value
-      return(invisible(self))
-     }
+      return(value)
+    }
   ),
     
   active = list(
@@ -74,7 +77,8 @@ BayesianSimpleRegression = R6Class("BayesianSimpleRegression",
     lbf          = function() private$.lbf,
     bhat         = function() private$.bhat,
     sbhat        = function() private$.sbhat,
-      
+
+    # The return value is the current setting of the prior variance.
     prior_variance = function (v) {
       if (missing(v))
         private$prior_variance_scalar
