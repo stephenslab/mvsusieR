@@ -51,7 +51,7 @@ SSData <- R6Class("SSData",inherit = DenseData,
       return(invisible(self))
     },
       
-    # TO DO: Figure out what return value to use for this method.
+    # This returns the R6 object invisibly.
     set_residual_variance = function (residual_variance =  NULL,
                                       numeric = FALSE,
                                       precompute_covariances = TRUE,
@@ -109,6 +109,8 @@ SSData <- R6Class("SSData",inherit = DenseData,
           .is_common_sbhat <<- is_mat_common(.sbhat)
         }
       }
+
+      return(invisible(self))
     },
       
     standardize = function (scale) {

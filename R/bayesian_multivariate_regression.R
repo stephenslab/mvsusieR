@@ -20,6 +20,7 @@ BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
                     save_summary_stats = FALSE, save_var = FALSE,
                     estimate_prior_variance_method = NULL,
                     check_null_threshold = 0) {
+        
       # d: data object
       # use_residual: fit with residual instead of with Y.
       # A special feature for when used with SuSiE algorithm.

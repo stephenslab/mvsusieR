@@ -40,7 +40,7 @@ DenseData <- R6Class("DenseData",
       return(invisible(self))
     },
 
-    # TO DO: Figure out what return value to use for this method.
+    # This returns the R6 object invisibly.
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      precompute_covariances = TRUE,
                                      quantities = c("residual_variance","effect_variance")){

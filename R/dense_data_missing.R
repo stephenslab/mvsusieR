@@ -32,7 +32,7 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
       return(invisible(self))
     },
       
-    # TO DO: Figure out what return value to use for this method.
+    # This returns the R6 object invisibly.
     set_residual_variance = function(residual_variance=NULL, numeric = FALSE,
                                      quantities = c("residual_variance","effect_variance")){
       if('residual_variance' %in% quantities){
@@ -119,6 +119,8 @@ DenseDataYMissing <- R6Class("DenseDataYMissing",
         }
         .is_common_sbhat <<- is_list_common(.svs)
       }
+
+      return(invisible(self))
     },
       
     get_coef = function(use_residual = FALSE){
