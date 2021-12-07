@@ -74,7 +74,7 @@ RSSData <- R6Class("RSSData",
       }
 
       .XtX <<- private$.eigenR$vectors %*% (t(private$.eigenR$vectors) * private$.eigenR$values)
-      .csd <<- rep(1, length = .J)
+      .csd <<- rep(1, length.out = .J)
       .d <<- diag(.XtX)
       private$.eigenvectors <<- private$.eigenR$vectors
       private$.eigenvalues <<- private$.eigenR$values

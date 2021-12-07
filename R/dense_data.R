@@ -32,8 +32,8 @@ DenseData <- R6Class("DenseData",
       .J <<- ncol(.X)
       
       # quantities involved in center and scaling
-      .cm <<- rep(0, length = .J)
-      .csd <<- rep(1, length = .J)
+      .cm <<- rep(0, length.out = .J)
+      .csd <<- rep(1, length.out = .J)
       .d <<- colSums(.X ^ 2)
       .d[.d == 0] <<- 1e-6
 
