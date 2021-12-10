@@ -23,8 +23,8 @@ DenseData <- R6Class("DenseData",
       # see stephenslab/mvsusieR/#5
       if (.X_has_missing)
         stop("Missing data in input matrix X is not allowed at this point")
-      if (is.null(dim(Y))) .Y
-        <<- matrix(Y,length(Y),1)
+      if (is.null(dim(Y)))
+        .Y <<- matrix(Y,length(Y),1)
       else
         .Y <<- Y
       .Y_missing     <<- is.na(.Y)
@@ -155,7 +155,7 @@ DenseData <- R6Class("DenseData",
         
     # Performs A %*% t(B) but faster.
     compute_MXt = function (M)
-      tcrossprod(M,.X)
+      tcrossprod(M,.X),
       
     remove_from_residual = function (value) {
       .residual <<- .residual - value
