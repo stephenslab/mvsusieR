@@ -11,10 +11,10 @@
 DenseData <- R6Class("DenseData",
   portable = FALSE,
   public = list(
-    initialize = function(X,Y) {
+    initialize = function (X, Y) {
       is_numeric_matrix(X,"X")
       if (length(which(apply(X, 2, is_zero_variance))))
-        stop('Input X must not have constant columns (some columns have standard deviation zero)')
+        stop("Input X must not have constant columns (some columns have standard deviation zero)")
       .X <<- X
       .X_has_missing <<- anyNA(.X)
       
@@ -56,7 +56,7 @@ DenseData <- R6Class("DenseData",
           residual_variance = as.numeric(residual_variance)
         if (is.matrix(residual_variance)) {
           if(nrow(residual_variance) != .R){
-            stop(paste0("The residual variance is not a ", .R, ' by ', .R, ' matrix.'))
+            stop(paste0("The residual variance is not a ", .R, " by ", .R, " matrix"))
           }
           if (anyNA(diag(residual_variance)))
             stop("Diagonal of residual_variance cannot be NA")
@@ -72,11 +72,11 @@ DenseData <- R6Class("DenseData",
         tryCatch({
           .residual_variance_inv <<- invert_via_chol(residual_variance)$inv
         }, error = function(e) {
-          stop(paste0('Cannot compute inverse for residual_variance:\n', e))
+          stop(paste0("Cannot compute inverse for residual_variance:\n", e))
         })
       }
       
-      if('effect_variance' %in% quantities){
+      if("effect_variance" %in% quantities){
         if(precompute_covariances){
           .svs <<- lapply(1:.J, function(j){
             res = .residual_variance /.d[j]
