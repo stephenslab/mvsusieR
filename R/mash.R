@@ -3,8 +3,8 @@
 #' @param fitted_g from mashr::mash
 #' 
 #' @param mixture_prior a list of (weights = vector(), matrices =
-#' list()) where matrices is a list of prior matrices and have same
-#' length as weights.
+#'   list()) where matrices is a list of prior matrices and have same
+#'   length as weights.
 #' 
 #' @param sample_data a list of
 #' (X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to
@@ -43,12 +43,17 @@
 create_mash_prior = function (fitted_g = NULL, mixture_prior = NULL,
                               sample_data = NULL, null_weight = NULL,
                               use_grid = FALSE, weights_tol = 1e-10,
-                              max_mixture_len = -1,
-                             include_indices = NULL, ...) {
-  if (sum(is.null(fitted_g), is.null(mixture_prior), is.null(sample_data)) != 2)
+                              max_mixture_len = -1, include_indices = NULL,
+                              ...) {
+  if (sum(is.null(fitted_g),is.null(mixture_prior),is.null(sample_data)) != 2)
     stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
   if (!is.null(fitted_g)) {
-    # fitted_g: list(pi=pi_s, Ulist=Ulist, grid=grid, usepointmass=usepointmass)
+      
+    # fitted_g:
+    # list(pi    = pi_s,
+    #      Ulist = Ulist,
+    #      grid  = grid,
+    #      usepointmass = usepointmass)
     for (item in c("pi","Ulist","grid","usepointmass"))
       if (!(item %in% names(fitted_g)))
         stop(paste("Cannot find", item, "in fitted_g input"))
