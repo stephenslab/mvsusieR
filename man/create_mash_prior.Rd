@@ -30,21 +30,21 @@ weights}
 
 \item{null_weight}{whether or not to add a weight for null in
 single effect models. By default it takes the null weight from
-fitted_g if available. Use `null_weight = 0` to override the
-behavior.}
+fitted_g if available. Use \code{null_weight = 0} to override this.}
 
-\item{use_grid}{expand mixture by grid values as in MASH (not
-necessary when prior scalar is estimated)}
+\item{use_grid}{Expand mixture by grid values as in MASH (not
+necessary when prior scalar is estimated).}
 
-\item{weights_tol}{filter out priors with weights smaller than
-weights_tol}
+\item{weights_tol}{Filter out mixture components with weights
+smaller than \code{weights_tol}.}
 
-\item{max_mixture_len}{only keep the top priors by weight so that
-the list of mixture prior is of max_mixture_len.  Use
-`max_mixture_len=-1` to include all input weights after weights_tol
-filtering. Default is set to use all input prior matrices.}
+\item{max_mixture_len}{Only keep the top priors by weight so that
+the list of mixture prior is of length \code{max_mixture_len}. Use
+\code{max_mixture_len = -1} to include all input weights after
+filtering by \code{weights_tol}.}
 
-\item{include_indices}{postprocess input prior to only include conditions from this indices}
+\item{include_indices}{Post-process input prior to only include
+conditions from this indices.}
 
 \item{\dots}{other parameters, for mvsusieR:::create_cov_canonical}
 }
@@ -58,6 +58,6 @@ Create mash prior object.
 Add details here.
 }
 \examples{
-# See help(mvsusie) for an example.
+# Add examples here.
 
 }

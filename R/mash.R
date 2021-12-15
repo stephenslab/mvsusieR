@@ -12,22 +12,22 @@
 #' weights
 #' 
 #' @param null_weight whether or not to add a weight for null in
-#' single effect models. By default it takes the null weight from
-#' fitted_g if available. Use `null_weight = 0` to override the
-#' behavior.
+#'   single effect models. By default it takes the null weight from
+#'   fitted_g if available. Use \code{null_weight = 0} to override this.
 #' 
-#' @param use_grid expand mixture by grid values as in MASH (not
-#' necessary when prior scalar is estimated)
+#' @param use_grid Expand mixture by grid values as in MASH (not
+#'   necessary when prior scalar is estimated).
 #' 
-#' @param weights_tol filter out priors with weights smaller than
-#' weights_tol
+#' @param weights_tol Filter out mixture components with weights
+#' smaller than \code{weights_tol}.
 #' 
-#' @param max_mixture_len only keep the top priors by weight so that
-#' the list of mixture prior is of max_mixture_len.  Use
-#' `max_mixture_len=-1` to include all input weights after weights_tol
-#' filtering. Default is set to use all input prior matrices.
+#' @param max_mixture_len Only keep the top priors by weight so that
+#'   the list of mixture prior is of length \code{max_mixture_len}. Use
+#'   \code{max_mixture_len = -1} to include all input weights after
+#'   filtering by \code{weights_tol}.
 #' 
-#' @param include_indices postprocess input prior to only include conditions from this indices
+#' @param include_indices Post-process input prior to only include
+#'   conditions from this indices.
 #' 
 #' @param \dots other parameters, for mvsusieR:::create_cov_canonical
 #' 
@@ -36,7 +36,7 @@
 #' @details Add details here.
 #'
 #' @examples
-#' # See help(mvsusie) for an example.
+#' # Add examples here.
 #' 
 #' @importFrom stats cov2cor
 #' @importFrom mashr mash
@@ -125,10 +125,11 @@ create_mash_prior = function (fitted_g = NULL, mixture_prior = NULL,
                      "of them (although computational speed will suffer)."))
     if (is.null(null_weight))
       null_weight = 0
-    return(MashInitializer$new(Ulist, grid,
-                               prior_weights=NULL, null_weight=null_weight,
-                               weights_tol=weights_tol, top_mixtures=max_mixture_len,
-                               include_conditions=include_indices))
+    return(MashInitializer$new(Ulist,grid,prior_weights = NULL,
+                               null_weight = null_weight,
+                               weights_tol = weights_tol,
+                               top_mixtures = max_mixture_len,
+                               include_conditions = include_indices))
   }
 }
 
