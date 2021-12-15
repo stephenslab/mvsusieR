@@ -33,8 +33,11 @@
 #' 
 #' @return mash prior object for use with mvsusie() function
 #' 
-#' @details ...
+#' @details Add details here.
 #'
+#' @examples
+#' # See help(mvsusie) for an example.
+#' 
 #' @importFrom stats cov2cor
 #' @importFrom mashr mash
 #' 
@@ -46,7 +49,8 @@ create_mash_prior = function (fitted_g = NULL, mixture_prior = NULL,
                               max_mixture_len = -1, include_indices = NULL,
                               ...) {
   if (sum(is.null(fitted_g),is.null(mixture_prior),is.null(sample_data)) != 2)
-    stop("Require one and only one of fitted_g, mixture_prior and sample_data to be not NULL.")
+    stop("Require exactly one of fitted_g, mixture_prior and sample_data ",
+         "to be not NULL")
   if (!is.null(fitted_g)) {
       
     # fitted_g:
@@ -56,61 +60,71 @@ create_mash_prior = function (fitted_g = NULL, mixture_prior = NULL,
     #      usepointmass = usepointmass)
     for (item in c("pi","Ulist","grid","usepointmass"))
       if (!(item %in% names(fitted_g)))
-        stop(paste("Cannot find", item, "in fitted_g input"))
+        stop(paste("Cannot find",item,"in fitted_g input"))
     if (fitted_g$usepointmass) {
       prior_weights = fitted_g$pi[-1]
       if (is.null(null_weight))
         null_weight = fitted_g$pi[1]
     } else
       prior_weights = fitted_g$pi
-    return(MashInitializer$new(fitted_g$Ulist, fitted_g$grid,
-                               prior_weights=prior_weights,
-                               null_weight=null_weight,
-                               weights_tol=weights_tol,
-                               top_mixtures=max_mixture_len,
-                               include_conditions=include_indices))
+    return(MashInitializer$new(fitted_g$Ulist,fitted_g$grid,
+                               prior_weights = prior_weights,
+                               null_weight = null_weight,
+                               weights_tol = weights_tol,
+                               top_mixtures = max_mixture_len,
+                               include_conditions = include_indices))
   }
   if (!is.null(mixture_prior)) {
-    for (item in "matrices") {
-      if (!(item %in% names(mixture_prior))) stop(paste("Cannot find", item, "in mixture_prior input"))
-    }
-    if (is.null(mixture_prior$weights)) mixture_prior$weights = rep(1/length(mixture_prior$matrices), length(mixture_prior$matrices))
-    if (is.null(null_weight)) null_weight = 0
-    return(MashInitializer$new(NULL, NULL, xUlist=mixture_prior$matrices, prior_weights=mixture_prior$weights,
-                               null_weight=null_weight,
-                               weights_tol=weights_tol, top_mixtures=max_mixture_len,
-                               include_conditions=include_indices))
+    for (item in "matrices")
+      if (!(item %in% names(mixture_prior)))
+        stop(paste("Cannot find",item,"in mixture_prior input"))
+    if (is.null(mixture_prior$weights))
+      mixture_prior$weights = rep(1/length(mixture_prior$matrices),
+                                  length(mixture_prior$matrices))
+    if (is.null(null_weight))
+      null_weight = 0
+    return(MashInitializer$new(NULL,NULL,xUlist = mixture_prior$matrices,
+                               prior_weights = mixture_prior$weights,
+                               null_weight = null_weight,
+                               weights_tol = weights_tol,
+                               top_mixtures = max_mixture_len,
+                               include_conditions = include_indices))
   }
   if (!is.null(sample_data)) {
     for (item in c("X","Y","residual_variance")) {
       if (!(item %in% names(sample_data)))
-        stop(paste("Cannot find", item, "in sample_data input"))
+        stop(paste("Cannot find",item,"in sample_data input"))
     }
-    if (is.null(sample_data$center)) {
+    if (is.null(sample_data$center))
       sample_data$center = TRUE
-    }
-    if (is.null(sample_data$scale)) {
+    if (is.null(sample_data$scale))
       sample_data$scale = TRUE
-    }
     
-    # compute canonical covariances
-    Ulist = create_cov_canonical(ncol(sample_data$Y), ...)
+    # Compute canonical covariances.
+    Ulist = create_cov_canonical(ncol(sample_data$Y),...)
     
-    # compute grid
+    # Compute grid.
     if (use_grid) {
-      d = DenseData$new(sample_data$X, sample_data$Y)
-      d$standardize(sample_data$center, sample_data$scale)
-      res = d$get_sumstats(diag(sample_data$residual_variance), cov2cor(sample_data$residual_variance))
+      d = DenseData$new(sample_data$X,sample_data$Y)
+      d$standardize(sample_data$center,sample_data$scale)
+      res = d$get_sumstats(diag(sample_data$residual_variance),
+                           cov2cor(sample_data$residual_variance))
       
-      ## Use sqrt(3) giving a coarser grid than mash default in exchange for less walltime
-      grid = mashr:::autoselect_grid(list(Bhat=res$bhat, Shat=res$sbhat), sqrt(3))
-    } else {
+      # Use sqrt(3) giving a coarser grid than mash default in
+      # exchange for less walltime.
+      grid = mashr:::autoselect_grid(list(Bhat = res$bhat,Shat = res$sbhat),
+                                     sqrt(3))
+    } else
       grid = 1
-    }
     comp_len = length(grid) * length(Ulist)
-    if (max_mixture_len<comp_len && max_mixture_len>0)
-      warning(paste0("Automatically generated uniform mixture prior is of length ", comp_len, " and is greater than currently specified max_mixture_len ", max_mixture_len, ". Please set max_mixture_len=-1 to allow using all of them (although computational speed will suffer)."))
-    if (is.null(null_weight)) null_weight = 0
+    if (max_mixture_len < comp_len && max_mixture_len > 0)
+      warning(paste0("Automatically generated uniform mixture prior is of ",
+                     "length ",comp_len," and is greater than currently ",
+                     "specified max_mixture_len ",max_mixture_len,
+                     ". Please set max_mixture_len = -1 to allow using all ",
+                     "of them (although computational speed will suffer)."))
+    if (is.null(null_weight))
+      null_weight = 0
     return(MashInitializer$new(Ulist, grid,
                                prior_weights=NULL, null_weight=null_weight,
                                weights_tol=weights_tol, top_mixtures=max_mixture_len,
@@ -125,15 +139,15 @@ create_mash_prior = function (fitted_g = NULL, mixture_prior = NULL,
 #' 
 #' @param R Integer specifying the number of conditions.
 #' 
-#' @param singletons A logical value indicating whether the singleton
-#'   matrices are computed.
+#' @param singletons \code{TRUE} or \code{FALSE} indicating whether
+#'   the singleton matrices are computed.
 #' 
 #' @param hetgrid A vector of numbers between -1 and 1, each
 #'   representing the off-diagonal elements of matrices with 1s on the
 #'   diagonal. If 0 is included, the identity matrix will be returned
 #'   which corresponds to assuming effects are independent across
 #'   conditions. IF \code{hetgrid = NULL}, these matrices are not
-#'   computed.
+#'   returned.
 #' 
 #' @return A list of canonical covariance matrices.
 #' 

@@ -55,5 +55,9 @@ mash prior object for use with mvsusie() function
 Create mash prior object.
 }
 \details{
-...
+Add details here.
+}
+\examples{
+# See help(mvsusie) for an example.
+
 }

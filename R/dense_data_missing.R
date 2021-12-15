@@ -36,6 +36,7 @@ DenseDataYMissing = R6Class("DenseDataYMissing",
       .X_for_Y_missing <<- array(.X,dim = c(.N,.J,.R))
       for (r in 1:.R)
         .X_for_Y_missing[.Y_missing[,r],,r] <<- as.numeric(NA)
+      
       return(invisible(self))
     },
       
@@ -206,14 +207,15 @@ DenseDataYMissing = R6Class("DenseDataYMissing",
           # sum_i V_i^{-1} y_i (R x 1 matrix)
           Ysum = Reduce("+",lapply(1:.N,function (i) .residual_variance_inv[[.Y_missing_pattern_assign[i]]] %*% .Y[i,]))
 
-          # center Y
+          # Center Y
           .Y_mean             <<- as.numeric(.Vinvsuminv %*% Ysum)
           .Y                  <<- t(t(.Y) - .Y_mean)
           .Y[!.Y_non_missing] <<- 0
 
-          # center X
+          # Center X
           .Xbar <<- array(0,dim = c(.J,.R,.R))
           for (j in 1:.J)
+              
             # For variant j, Vinvsuminv sum_i V_i^{-1} X_{i,j} (R x R matrix)
             .Xbar[j,,] <<- .Vinvsuminv %*% Reduce("+",lapply(1:.N,function (i) t(t(.residual_variance_inv[[.Y_missing_pattern_assign[i]]]) * .X_for_Y_missing[i,j,]) ))
         }

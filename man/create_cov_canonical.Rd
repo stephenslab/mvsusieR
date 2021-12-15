@@ -9,15 +9,15 @@ create_cov_canonical(R, singletons = TRUE, hetgrid = seq(0, 1, 0.25))
 \arguments{
 \item{R}{Integer specifying the number of conditions.}
 
-\item{singletons}{A logical value indicating whether the singleton
-matrices are computed.}
+\item{singletons}{\code{TRUE} or \code{FALSE} indicating whether
+the singleton matrices are computed.}
 
 \item{hetgrid}{A vector of numbers between -1 and 1, each
 representing the off-diagonal elements of matrices with 1s on the
 diagonal. If 0 is included, the identity matrix will be returned
 which corresponds to assuming effects are independent across
 conditions. IF \code{hetgrid = NULL}, these matrices are not
-computed.}
+returned.}
 }
 \value{
 A list of canonical covariance matrices.
