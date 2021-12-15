@@ -8,15 +8,23 @@ MashRegression <- R6Class("MashRegression",
     initialize = function (J, mash_initializer) {
       private$J = J
       private$.prior_variance = mash_initializer$prior_variance
-      private$.prior_variance$xUlist = matlist2array(private$.prior_variance$xUlist)
+      private$.prior_variance$xUlist =
+        matlist2array(private$.prior_variance$xUlist)
       private$precomputed_cov_matrices = mash_initializer$precomputed
       if (is.null(private$.prior_variance$xUlist_inv))
         private$.prior_variance$xUlist_inv = 0
-      private$.posterior_b1 = matrix(0, J, mash_initializer$n_condition)
+      private$.posterior_b1 = matrix(0,J,mash_initializer$n_condition)
       private$prior_variance_scalar = 1
     },
       
-    fit = function(d, prior_weights = NULL, use_residual = FALSE, save_summary_stats = FALSE, save_var = FALSE, estimate_prior_variance_method = NULL, check_null_threshold = 0, verbose = FALSE) {
+    fit = function (d,
+                    prior_weights = NULL,
+                    use_residual = FALSE,
+                    save_summary_stats = FALSE,
+                    save_var = FALSE,
+                    estimate_prior_variance_method = NULL,
+                    check_null_threshold = 0, verbose = FALSE) {
+        
       # When prior changes (private$prior_variance_scalar != 1),
       # we can no longer use precomputed quantities
       # because the precomputed quantities will be wrong in scale.
@@ -34,11 +42,11 @@ MashRegression <- R6Class("MashRegression",
       private$is_common_cov = d$is_common_cov
       private$svs = matlist2array(d$svs)
       if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "EM") {
-        if (estimate_prior_variance_method != 'simple')
+        if (estimate_prior_variance_method != "simple")
           stop(paste("Estimate prior method", estimate_prior_variance_method, "is not available for MashRegression."))
         private$prior_variance_scalar = private$estimate_prior_variance(bhat,sbhat,prior_weights,method=estimate_prior_variance_method,check_null_threshold=check_null_threshold)
       }
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != 'simple' && !is.null(private$precomputed_cov_matrices)) {
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method != "simple" && !is.null(private$precomputed_cov_matrices)) {
         # Cannot use precomputed quantities if prior variance scalar is being estimated
         # this should have been already ensured of in the main mvsusie() interface
         stop("Precomputed quantities should not be used when prior variance scalar is estimated.")
@@ -57,7 +65,7 @@ MashRegression <- R6Class("MashRegression",
       private$.loglik_null = lbf_obj$loglik_null
       # 3. compute posterior weights
       private$.mixture_posterior_weights = private$compute_mixture_posterior_weights(private$.prior_variance$pi, llik)
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == 'EM') {
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
         variable_posterior_weights = private$compute_variable_posterior_weights(prior_weights, llik)
         private$cache = list(b=bhat, s=sbhat)
       } else {
@@ -86,7 +94,7 @@ MashRegression <- R6Class("MashRegression",
       # 5. lfsr
       private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
       # 6. estimate prior via EM
-      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == 'EM') {
+      if (!is.null(estimate_prior_variance_method) && estimate_prior_variance_method == "EM") {
         private$cache$SER_posterior_mixture_weights = private$get_SER_posterior_mixture_weights(llik, prior_weights, private$.prior_variance$pi)
         private$cache$mixture_prior_variance_scalar = post$prior_scale_em_update
       }
@@ -236,7 +244,7 @@ MashRegression <- R6Class("MashRegression",
       # variable_posterior_weights an input to calc_sermix_rcpp()
       # this PIP is for per mixture component.
       V = sum(private$cache$SER_posterior_mixture_weights * private$cache$mixture_prior_variance_scalar)/
-        sum(private$cache$SER_posterior_mixture_weights * attr(private$.prior_variance$xUlist_inv, 'rank'))
+        sum(private$cache$SER_posterior_mixture_weights * attr(private$.prior_variance$xUlist_inv,"rank"))
       return(V)
     },
       
@@ -253,82 +261,118 @@ MashRegression <- R6Class("MashRegression",
   ),
 )
 
-#' @title MASH initializer object
+# MASH initializer object
+#
 #' @importFrom R6 R6Class
-#' @keywords internal
 MashInitializer <- R6Class("MashInitializer",
   public = list(
-      initialize = function(Ulist, grid, prior_weights = NULL, null_weight = 0, weights_tol = 1E-10, null_tol = 5E-7, top_mixtures = 20, xUlist = NULL, include_conditions = NULL) {
-        all_zeros = vector()
-        if (is.null(xUlist)) {
-          if (is.null(Ulist)) stop("Either xUlist or Ulist have to be non-null")
-          for (l in 1:length(Ulist)) {
-              if (all(abs(Ulist[[l]])< null_tol)) stop(paste("Prior covariance", l , "is zero matrix. This is not allowed."))
-          }
-          if (any(grid<=0)) stop("grid values should be greater than zero") 
-          xUlist = mashr:::expand_cov(Ulist, grid, usepointmass=TRUE)
-        } else {
-          if (!all(xUlist[[1]] == 0)) xUlist = c(list(matrix(0, nrow(xUlist[[1]]), ncol(xUlist[[1]]))), xUlist)
+    initialize = function (Ulist,
+                           grid,
+                           prior_weights = NULL,
+                           null_weight = 0,
+                           weights_tol = 1e-10,
+                           null_tol = 5e-7,
+                           top_mixtures = 20,
+                           xUlist = NULL,
+                           include_conditions = NULL) {
+      all_zeros = vector()
+      if (is.null(xUlist)) {
+        if (is.null(Ulist))
+          stop("Either xUlist or Ulist have to be non-null")
+        for (l in 1:length(Ulist)) {
+          if (all(abs(Ulist[[l]]) < null_tol))
+            stop(paste("Prior covariance",l,"is zero matrix. This is not",
+                       "allowed."))
         }
-        if (!is.null(include_conditions)) {
-            for (l in 1:length(xUlist)) {
-              xUlist[[l]] = xUlist[[l]][include_conditions, include_conditions]
-              if (l > 1) all_zeros[l-1] = all(abs(xUlist[[l]])< null_tol)
-            }
+        if (any(grid <= 0))
+          stop("grid values should be greater than zero") 
+        xUlist = mashr:::expand_cov(Ulist,grid,usepointmass = TRUE)
+      } else {
+        if (!all(xUlist[[1]] == 0))
+          xUlist = c(list(matrix(0,nrow(xUlist[[1]]),ncol(xUlist[[1]]))),
+                     xUlist)
+      }
+      if (!is.null(include_conditions)) {
+        for (l in 1:length(xUlist)) {
+          xUlist[[l]] = xUlist[[l]][include_conditions,include_conditions]
+          if (l > 1)
+            all_zeros[l-1] = all(abs(xUlist[[l]]) < null_tol)
         }
-        plen = length(xUlist) - 1
-        if (is.null(prior_weights)) prior_weights = rep(1/plen, plen)
-        if (length(prior_weights) != plen)
-          stop(paste("Invalid prior_weights setting: expect length", plen, "but input is of length", length(prior_weights)))
-        # Filter by weights lower bound
-        # Have to keep the first null component
-        if (weights_tol > 0) {
-          which.comp = which(prior_weights > weights_tol)
-          prior_weights = prior_weights[which.comp]
-          xUlist = xUlist[c(1, which.comp + 1)]
-        }
-        # There are all zero priors, after some conditions are removed
-        # we will have to adjust the prior weights based on it
-        # This is a not very efficient yet safe and clear way to do it
-        if (length(which(all_zeros))>0) {
-          # must exclude first xUlist which is always null here
-          which.comp = which(sapply(2:length(xUlist), function(l) !all(xUlist[[l]] == 0)))
-          prior_weights = prior_weights[which.comp]
-          xUlist = xUlist[c(1, which.comp + 1)]
-        }
-        # Filter for top weights: we only keep top weights
-        if (top_mixtures > 0 && top_mixtures < length(prior_weights)) {
-          which.comp = head(sort(prior_weights, index.return=T, decreasing=T)$ix, top_mixtures)
-          prior_weights = prior_weights[which.comp]
-          xUlist = xUlist[c(1, which.comp + 1)]
-        }
-        # Check on xUlist
-        u_rows = vector(length=length(xUlist))
-        for (i in 1:length(xUlist)) {
-          mashr:::check_covmat_basics(xUlist[[i]])
-          u_rows[i] = nrow(xUlist[[i]])
-          if (!mashr:::issemidef(xUlist[[i]]))
-            stop(paste0("The prior matrices ", i, " should be positive semi-definite."))
-        }
-        if (length(unique(u_rows)) > 1) stop("Ulist contains matrices of different dimensions.")
-        prior_weights = prior_weights / sum(prior_weights)
-        private$xU = list(pi = c(null_weight, prior_weights * (1 - null_weight)), xUlist = xUlist)
-      },
+      }
+      plen = length(xUlist) - 1
+      if (is.null(prior_weights))
+        prior_weights = rep(1/plen,plen)
+      if (length(prior_weights) != plen)
+        stop(paste("Invalid prior_weights setting: expect length",plen,
+                   "but input is of length",length(prior_weights)))
+        
+      # Filter by weights lower bound. Have to keep the first null
+      # component.
+      if (weights_tol > 0) {
+        which.comp    = which(prior_weights > weights_tol)
+        prior_weights = prior_weights[which.comp]
+        xUlist        = xUlist[c(1,which.comp + 1)]
+      }
+        
+      # There are all zero priors, after some conditions are removed
+      # we will have to adjust the prior weights based on it. This
+      # is a not very efficient yet safe and clear way to do it.
+      if (length(which(all_zeros)) > 0) {
+            
+        # Must exclude first xUlist which is always null here.
+        which.comp    = which(sapply(2:length(xUlist),
+                                     function (l) !all(xUlist[[l]] == 0)))
+        prior_weights = prior_weights[which.comp]
+        xUlist        = xUlist[c(1,which.comp + 1)]
+      }
+        
+      # Filter for top weights: we only keep top weights
+      if (top_mixtures > 0 && top_mixtures < length(prior_weights)) {
+        which.comp = head(sort(prior_weights,
+                               index.return = TRUE,
+                               decreasing = TRUE)$ix,
+                          top_mixtures)
+        prior_weights = prior_weights[which.comp]
+        xUlist = xUlist[c(1,which.comp + 1)]
+      }
+        
+      # Check on xUlist.
+      u_rows = vector(length = length(xUlist))
+      for (i in 1:length(xUlist)) {
+        mashr:::check_covmat_basics(xUlist[[i]])
+        u_rows[i] = nrow(xUlist[[i]])
+        if (!mashr:::issemidef(xUlist[[i]]))
+          stop(paste("The prior matrices",i,"should be positive",
+                     "semi-definite"))
+      }
+      if (length(unique(u_rows)) > 1)
+        stop("Ulist contains matrices of different dimensions")
+      prior_weights = prior_weights/sum(prior_weights)
+      private$xU = list(pi = c(null_weight,prior_weights * (1 - null_weight)),
+                        xUlist = xUlist)
+      
+      return(invisible(self))
+    },
+      
+    # This method returns the R6 object invisibly.
     compute_prior_inv = function() {
       # compute pseudo inverse for prior matrices and divided by its rank
       # this is relevant to the EM update of prior variance scalar
-      K = length(private$xU$xUlist)
-      Uinv = vector("list", length = K)
+      K     = length(private$xU$xUlist)
+      Uinv  = vector("list",length = K)
       Urank = numeric(K)
-      for(i in 1:K){
-        uinv = pseudo_inverse(private$xU$xUlist[[i]])
+      for (i in 1:K) {
+        uinv      = pseudo_inverse(private$xU$xUlist[[i]])
         Uinv[[i]] = uinv$inv
-        Urank[i] = uinv$rank
+        Urank[i]  = uinv$rank
       }
       private$xU$xUlist_inv = matlist2array(Uinv)
-      attr(private$xU$xUlist_inv, 'rank') = Urank
+      attr(private$xU$xUlist_inv,"rank") = Urank
+      return(invisible(self))
     },
-    precompute_cov_matrices = function(d, algorithm = c('R', 'cpp')) {
+      
+    # This method returns the R6 object invisibly.
+    precompute_cov_matrices = function (d, algorithm = c("R","cpp")) {
       # computes constants (SVS + U)^{-1} and (SVS)^{-1} for posterior
       # and sigma_rooti for likelihooods
       # output of this function will provide input to `mashr`'s
@@ -336,66 +380,84 @@ MashInitializer <- R6Class("MashInitializer",
       # calc_post_precision_rcpp()
       # The input should be sbhat data matrix
       # d[j,] can be different for different conditions due to missing Y data
-      # the `if` condition is used due to computational reasons: we can save RxRxP matrices but not RxRxPxJ
+      # the "if" condition is used due to computational reasons: we
+      # can save RxRxP matrices but not RxRxPxJ
       # FIXME: rewrite it in C++ using this non-copy trick:
-      # http://lists.r-forge.r-project.org/pipermail/rcpp-devel/2016-September/009363.html
+      # lists.r-forge.r-project.org/pipermail/rcpp-devel/2016-September/009363.html
       algorithm = match.arg(algorithm)
 
       if (d$is_common_cov) {
         K = length(private$xU$xUlist)
+        
         # sigma_rooti is R * R * P
-        # this is in preparation for some constants used in dmvnrom() for likelihood calculations
-        sigma_rooti = vector("list", length = K)
-        # this is in prepartion for some constants used in posterior calculation
-        U0 = vector("list", length = K)
+        # This is in preparation for some constants used in dmvnrom()
+        # for likelihood calculations.
+        sigma_rooti = vector("list",length = K)
+        
+        # This is in prepartion for some constants used in posterior
+        # calculation.
+        U0 = vector("list",length = K)
         for (i in 1:K) {
-          #if (algorithm == 'R') {
-            sigma_rooti[[i]] = invert_chol_tri(d$svs[[1]] + private$xU$xUlist[[i]])$inv
-          #} else {
-          #  sigma_rooti[[i]] = mashr:::inv_chol_tri_rcpp(d$svs[[1]] + private$xU$xUlist[[i]])$data
-          #}
-          U0[[i]] = private$xU$xUlist[[i]] %*% solve(d$svs_inv[[1]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+          sigma_rooti[[i]] =
+            invert_chol_tri(d$svs[[1]] + private$xU$xUlist[[i]])$inv
+          U0[[i]] = private$xU$xUlist[[i]] %*%
+                    solve(d$svs_inv[[1]] %*% private$xU$xUlist[[i]] +
+                          diag(nrow(private$xU$xUlist[[i]])))
         }
       } else {
+          
         # have to do this for every effect
         # sigma_rooti and U0 will be R * R * (J * P)
         # and Vinv will be a J list, not a matrix
-        # this is in preparation for some constants used in dmvnrom() for likelihood calculations
-        K = length(private$xU$xUlist) * d$n_effect
-        sigma_rooti = vector("list", length = K)
-        U0 = vector("list", length = K)
+        # this is in preparation for some constants used in dmvnrom
+        # for likelihood calculations
+        K           = length(private$xU$xUlist) * d$n_effect
+        sigma_rooti = vector("list",length = K)
+        U0          = vector("list",length = K)
         k = 1
         for (j in 1:d$n_effect) {
           for (i in 1:length(private$xU$xUlist)) {
-            #if (algorithm == 'R') {
-              sigma_rooti[[k]] = invert_chol_tri(d$svs[[j]] + private$xU$xUlist[[i]])$inv
-            #} else {
-            #  sigma_rooti[[k]] = mashr:::inv_chol_tri_rcpp(d$svs[[j]] + private$xU$xUlist[[i]])$data
-            #}
-            U0[[k]] = private$xU$xUlist[[i]] %*% solve(d$svs_inv[[j]] %*% private$xU$xUlist[[i]] + diag(nrow(private$xU$xUlist[[i]])))
+            sigma_rooti[[k]] =
+              invert_chol_tri(d$svs[[j]] + private$xU$xUlist[[i]])$inv
+            U0[[k]] = private$xU$xUlist[[i]] %*%
+                      solve(d$svs_inv[[j]] %*% private$xU$xUlist[[i]] +
+                            diag(nrow(private$xU$xUlist[[i]])))
             k = k + 1
           }
         }
       }
-      private$inv_mats = list(U0 = matlist2array(U0),
-                              sigma_rooti = matlist2array(sigma_rooti))
+      
+      private$inv_mats =
+        list(U0 = matlist2array(U0),sigma_rooti = matlist2array(sigma_rooti))
+      
+      return(invisible(self))
     },
-    remove_precomputed = function() private$inv_mats = NULL,
+      
+    # This method returns the R6 object invisibly.
+    remove_precomputed = function() {
+      private$inv_mats = NULL
+      return(invisible(self))
+    },
+      
+    # This method returns the R6 object invisibly.
     scale_prior_variance = function(sigma) {
-      private$xU$xUlist = lapply(1:length(private$xU$xUlist), function(i) scale_covariance(private$xU$xUlist[[i]], sigma))
+      private$xU$xUlist =
+        lapply(1:length(private$xU$xUlist),
+               function (i) scale_covariance(private$xU$xUlist[[i]],sigma))
+      return(invisible(self))
     }
   ),
                            
   active = list(
-      n_condition = function() nrow(private$xU$xUlist[[1]]),
-      n_component = function() length(private$xU$xUlist),
-      prior_variance = function() private$xU,
-      precomputed = function() private$inv_mats
+    n_condition    = function() nrow(private$xU$xUlist[[1]]),
+    n_component    = function() length(private$xU$xUlist),
+    prior_variance = function() private$xU,
+    precomputed    = function() private$inv_mats
   ),
                            
   private = list(
-      U = NULL,
-      xU = NULL,
-      inv_mats = NULL
+    U        = NULL,
+    xU       = NULL,
+    inv_mats = NULL
   )
 )
