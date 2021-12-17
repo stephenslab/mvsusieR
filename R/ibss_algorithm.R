@@ -1,8 +1,9 @@
 # IBSS algorithm for fitting a multivariate SuSiE model.
-#' 
+# 
 #' @importFrom R6 R6Class
 #' @importFrom progress progress_bar
 #' @importFrom abind abind
+#' 
 SuSiE <- R6Class("SuSiE",
   public = list(
     initialize = function (SER, L, estimate_residual_variance = FALSE,
@@ -16,11 +17,10 @@ SuSiE <- R6Class("SuSiE",
       }
       
       # Initialize single effect regression models.
-      private$L      = L
+      private$L = L
       private$to_estimate_residual_variance = estimate_residual_variance
       private$to_compute_objective = compute_objective
-      private$SER    = lapply(seq(1,private$L),
-                              function (l) SER$clone(deep = TRUE))
+      private$SER = lapply(seq(1,private$L),function(l) SER$clone(deep = TRUE))
       private$elbo   = vector("numeric")
       private$.niter = max_iter
       private$tol    = tol
@@ -30,13 +30,16 @@ SuSiE <- R6Class("SuSiE",
         private$.lbf_history = list()
       if (track_prior_est)
         private$.prior_history = list()
+      
+      return(invisible(self))
     },
       
+    # This method returns the R6 object invisibly.
     init_from = function (model) {
       mu = model$b1
       if (is.null(dim(mu)) || length(dim(mu)) != 3)
         stop("Input coefficient should be a 3-D array for first moment ",
-             "estimate of each single effect.")
+             "estimate of each single effect")
       L = dim(mu)[1]
       if (L != private$L)
         stop("Cannot initialize different number of effects than the ",
@@ -49,16 +52,19 @@ SuSiE <- R6Class("SuSiE",
         if (!is.null(model$V))
           private$SER[[i]]$prior_variance = model$V[i]
       }
+      return(invisible(self))
     },
       
-    fit = function (d, prior_weights = NULL,
+    # This method returns the R6 object invisibly.
+    fit = function (d,
+                    prior_weights = NULL,
                     estimate_prior_variance_method = NULL,
-                    check_null_threshold = 0, verbosity = 1) {
+                    check_null_threshold = 0,
+                    verbosity = 1) {
       if (verbosity == 1)
         pb = progress_bar$new(format = paste("[:spin] Iteration :iteration",
                                              "(diff = :delta) :elapsed"),
-                              clear = TRUE,
-                              total = private$.niter,
+                              clear = TRUE,total = private$.niter,
                               show_after = 0.5)
       else
         pb = null_progress_bar$new()
@@ -116,12 +122,13 @@ SuSiE <- R6Class("SuSiE",
           private$add_back_zero_effects()
         }
       }
+      return(invisible(self))
     },
       
     get_objective = function (dump = FALSE, warning_tol = 1e-6) {
       if (length(private$elbo) == 0)
         return(as.numeric(NA))
-      if (!all(diff(private$elbo) >= (-warning_tol))) {
+      if (!all(diff(private$elbo) >= -warning_tol)) {
         warning("Objective is not non-decreasing")
         dump = TRUE
       }
@@ -139,7 +146,7 @@ SuSiE <- R6Class("SuSiE",
     convergence = function()
       private$.convergence,
       
-    # Fet prior effect size because it might be updated during
+    # Fit prior effect size because it might be updated during
     # iterations.
     prior_variance = function()
       sapply(seq(1,private$L),function (l) private$SER[[l]]$prior_variance),
@@ -153,31 +160,40 @@ SuSiE <- R6Class("SuSiE",
      
     # Posterior inclusion probabilities, stored as a J x L matrix.
     pip = function()
-      do.call(cbind,lapply(seq(1,private$L),function(l) private$SER[[l]]$pip)),
+      do.call(cbind,
+              lapply(seq(1,private$L),
+                     function(l) private$SER[[l]]$pip)),
       
     lbf = function()
-      sapply(seq(1,private$L),function (l) private$SER[[l]]$lbf),
+      sapply(seq(1,private$L),
+             function (l) private$SER[[l]]$lbf),
 
     pip_history = function()
-      lapply(ifelse(seq(private$.niter > 1,2,1),length(private$.pip_history)),
+      lapply(ifelse(seq(private$.niter > 1,2,1),
+                    length(private$.pip_history)),
              function (i) private$.pip_history[[i]]),
       
     lbf_history = function()
-      lapply(seq(ifelse(private$.niter > 1,2,1),length(private$.lbf_history)),
+      lapply(seq(ifelse(private$.niter > 1,2,1),
+                 length(private$.lbf_history)),
              function (i) private$.lbf_history[[i]]),
       
     prior_history = function()
-      lapply(seq(ifelse(private$.niter>1,2,1),length(private$.prior_history)),
-                 function (i) private$.prior_history[[i]]),
+      lapply(seq(ifelse(private$.niter > 1,2,1),
+                 length(private$.prior_history)),
+             function (i) private$.prior_history[[i]]),
       
     posterior_b1 = function()
-      lapply(seq(1,private$L),function (l) private$SER[[l]]$posterior_b1),
+      lapply(seq(1,private$L),
+             function (l) private$SER[[l]]$posterior_b1),
       
     posterior_b2 = function()
-      lapply(seq(1,private$L),function (l) private$SER[[l]]$posterior_b2),
+      lapply(seq(1,private$L),
+             function (l) private$SER[[l]]$posterior_b2),
       
     clfsr = function()
-      lapply(1:private$L,function (l) private$SER[[l]]$lfsr),
+      lapply(1:private$L,
+             function (l) private$SER[[l]]$lfsr),
       
     mixture_posterior_weights = function()
       lapply(1:private$L,
@@ -202,7 +218,7 @@ SuSiE <- R6Class("SuSiE",
       
     check_convergence = function (n) {
       if (n <= 1)
-        return (list(delta = Inf,converged = FALSE))
+        return(list(delta = Inf,converged = FALSE))
       else {
         if (private$to_compute_objective)
           delta = private$elbo[n] - private$elbo[n-1]
@@ -210,7 +226,7 @@ SuSiE <- R6Class("SuSiE",
             
           # Convergence check with marginal PIP.
           delta = max(abs(apply(1 - private$.pip_history[[n]],1,prod) -
-                  apply(1 - private$.pip_history[[n-1]],1,prod)))
+                          apply(1 - private$.pip_history[[n-1]],1,prod)))
         
         return(list(delta = delta,converged = (delta < private$tol)))
       }
@@ -226,6 +242,7 @@ SuSiE <- R6Class("SuSiE",
       } else 
         elbo = as.numeric(NA)
       private$elbo = c(private$elbo,elbo)
+      return(elbo)
     },
       
     # Expected log-likelihood for SuSiE model.
@@ -246,7 +263,7 @@ SuSiE <- R6Class("SuSiE",
         essr = private$compute_expected_sum_squared_residuals_univariate(d)
         return(-(n/2)*log(2*pi*residual_variance) -
                (1/(2*residual_variance))*essr)
-        }
+      }
     },
       
     compute_expected_loglik_multivariate = function (d) {
@@ -304,7 +321,7 @@ SuSiE <- R6Class("SuSiE",
         return(as.numeric(d$YtY - 2*sum(EB * d$XtY) +
                           sum(EB * d$compute_MXt(EB)) -
           XB2 + sum(d$X2_sum * t(Eb2))))
-      }else {
+      } else {
           
         # Full data, DenseData object.
         if (d$Y_has_missing) {
@@ -362,7 +379,8 @@ SuSiE <- R6Class("SuSiE",
                                     function (l) private$SER[[l]]$vbxxb)))
     },
       
-    # Remove single effect models where estimated prior is zero.
+    # Remove single-effect models where estimated prior is zero.
+    # This method returns the R6 object invisibly.
     trim_zero_effects = function() {
       if (length(private$SER) > 1) {
         zero_idx = which(sapply(1:length(private$SER),
@@ -375,16 +393,20 @@ SuSiE <- R6Class("SuSiE",
           private$L        = length(private$SER)
         }
       }
+      return(invisible(self))
     },
       
     # Keep output number of effects consistent with specified L.
+    # This method returns the R6 object invisibly.
     add_back_zero_effects = function() {
       if (length(private$SER_NULL)) {
         private$SER = c(private$SER,private$SER_NULL)
         private$L   = length(private$SER)
       }
+      return(invisible(self))
     },
       
+    # This method returns the R6 object invisibly.
     save_history = function() {
       if (!is.null(private$.pip_history))
         private$.pip_history[[length(private$.pip_history) + 1]] = self$pip
@@ -396,6 +418,7 @@ SuSiE <- R6Class("SuSiE",
             function(l) ifelse(is.null(private$SER[[l]]$prior_variance_scalar),
                                private$SER[[l]]$prior_variance,
                                private$SER[[l]]$prior_variance_scalar))
+      return(invisible(self))
     }
   )
 )
