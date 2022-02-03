@@ -92,7 +92,41 @@ mvsusie_suff_stat = function (XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
   if (!is.null(coverage) && !is.null(min_abs_corr))
     s$sets = susie_get_cs(s,coverage = coverage,Xcorr = cov2cor(XtX),
                           min_abs_corr = min_abs_corr)
-  s$variable_names  = colnames(XtX)
-  s$condition_names = colnames(XtY)
+
+  # Set row and column names of the outputs, and fix dimensions of
+  # outputs if needed.
+  s$coef   = drop(s$coef)
+  s$fitted = drop(s$fitted)
+  if (is.null(colnames(XtY)))
+    s$condition_names = paste0("cond",1:ncol(XtY))
+  else
+    s$condition_names = colnames(XtY)
+  if (is.null(colnames(XtX)))
+    s$variable_names = paste0("var",1:ncol(XtX))
+  else
+    s$variable_names = colnames(XtX)
+  if (length(s$condition_names) == 1) {
+    names(s$coef)   = c("(Intercept)",s$variable_names)
+    names(s$fitted) = s$variable_names
+    rownames(s$b1)  = paste0("l",1:L)
+    colnames(s$b2)  = s$variable_names
+    rownames(s$b2)  = paste0("l",1:L)
+    colnames(s$b2)  = s$variable_names
+  } else {
+    rownames(s$coef)   = c("(Intercept)",s$variable_names)
+    colnames(s$coef)   = s$condition_names
+    colnames(s$fitted) = s$condition_names
+    rownames(s$fitted) = s$variable_names
+    dimnames(s$b1) = list(single_effect = paste0("l",1:L),
+                          variable      = s$variable_names,
+                          condition     = s$condition_names)
+    dimnames(s$b2) = list(single_effect = paste0("l",1:L),
+                          variable      = s$variable_names,
+                          condition     = s$condition_names)
+  }
+  names(s$pip)       = s$variable_names
+  colnames(s$alpha)  = s$variable_names
+  names(s$intercept) = s$condition_names
+  rownames(s$alpha)  = paste0("l",1:L)
   return(s)
 }

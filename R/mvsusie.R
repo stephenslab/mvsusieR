@@ -308,8 +308,44 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
   if (compute_univariate_zscore)
     s$z = susieR:::calc_z(X,Y,center = intercept,scale = standardize)
   
-  # FIXME: need a better approach.
-  s$variable_names = colnames(X)
-  s$condition_names = colnames(Y)
+  # Set row and column names of the outputs, and fix dimensions of
+  # outputs if needed.
+  s$coef   = drop(s$coef)
+  s$fitted = drop(s$fitted)
+  if (is.null(colnames(Y)))
+    s$condition_names = paste0("cond",1:ncol(Y))
+  else
+    s$condition_names = colnames(Y)
+  if (is.null(colnames(X)))
+    s$variable_names = paste0("var",1:ncol(X))
+  else
+    s$variable_names = colnames(X)
+  if (length(s$condition_names) == 1) {
+    names(s$coef)   = c("(Intercept)",s$variable_names)
+    names(s$fitted) = rownames(X)
+    rownames(s$b1)  = paste0("l",1:L)
+    colnames(s$b2)  = s$variable_names
+    rownames(s$b2)  = paste0("l",1:L)
+    colnames(s$b2)  = s$variable_names
+  } else {
+    rownames(s$coef)   = c("(Intercept)",s$variable_names)
+    colnames(s$coef)   = s$condition_names
+    colnames(s$fitted) = s$condition_names
+    rownames(s$fitted) = rownames(X)
+    dimnames(s$b1) = list(single_effect = paste0("l",1:L),
+                          variable      = s$variable_names,
+                          condition     = s$condition_names)
+    dimnames(s$b2) = list(single_effect = paste0("l",1:L),
+                          variable      = s$variable_names,
+                          condition     = s$condition_names)
+  }
+  names(s$pip)       = s$variable_names
+  colnames(s$alpha)  = s$variable_names
+  names(s$intercept) = s$condition_names
+  rownames(s$alpha)  = paste0("l",1:L)
   return(s)
 }
+
+
+
+

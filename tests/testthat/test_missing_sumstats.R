@@ -191,30 +191,36 @@ test_that("With full observation, the estimated prior variance are same for Dens
   data2$set_residual_variance(residual_var, quantities = 'residual_variance')
   data2$standardize(TRUE,TRUE)
   data2$set_residual_variance(quantities = 'effect_variance')
-  fit2 = mvsusie_core(data2, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
-                   estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
-                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
+  fit2 = mvsusie_core(data2, s_init=NULL, L=L, prior_variance=prior_var,
+                      prior_weights=c(rep(1/ncol(X), ncol(X))),
+                      estimate_residual_variance=F, estimate_prior_variance=T,
+                      estimate_prior_method='EM', check_null_threshold=0,
+                      precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3,
+                      prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
   
   data3 = expect_warning(DenseDataYMissing$new(X,y,approximate=TRUE))
   data3$set_residual_variance(residual_var, quantities = 'residual_variance')
   data3$standardize(TRUE,TRUE)
   data3$set_residual_variance(quantities = 'effect_variance')
-  fit3 = mvsusie_core(data3, s_init=NULL, L=L, prior_variance=prior_var, prior_weights=c(rep(1/ncol(X), ncol(X))),
-                   estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
-                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
+  fit3 = mvsusie_core(data3, s_init=NULL, L=L, prior_variance=prior_var,
+                      prior_weights=c(rep(1/ncol(X), ncol(X))),
+                      estimate_residual_variance=F, estimate_prior_variance=T,
+                      estimate_prior_method='EM', check_null_threshold=0,
+                      precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3,
+                      prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
   
-  expect_equal(fit1$alpha, fit2$alpha, tolerance = 1E-8)
+  expect_equal(fit1$alpha,fit2$alpha,tolerance = 1e-8,check.attributes = FALSE)
   expect_equal(fit2$alpha, fit3$alpha)
   expect_equal(fit1$lbf, fit2$lbf, tolerance = 1E-8)
   expect_equal(fit2$lbf, fit3$lbf)
-  expect_equal(fit1$b1, fit2$b1, tolerance = 1E-8)
+  expect_equal(fit1$b1,fit2$b1, tolerance = 1e-8,check.attributes = FALSE)
   expect_equal(fit2$b1, fit3$b1)
-  expect_equal(fit1$b2, fit2$b2, tolerance = 1E-8)
+  expect_equal(fit1$b2,fit2$b2, tolerance = 1e-8,check.attributes = FALSE)
   expect_equal(fit2$b2, fit3$b2)
-  expect_equal(fit1$coef, fit2$coef, tolerance = 1E-8, check.attributes = FALSE)
-  expect_equal(fit2$coef, fit3$coef, check.attributes = FALSE)
-  expect_equal(fit1$V, fit2$V, tolerance = 1E-8)
-  expect_equal(fit2$V, fit3$V)
+  expect_equal(fit1$coef,fit2$coef, tolerance = 1E-8, check.attributes = FALSE)
+  expect_equal(fit2$coef,fit3$coef, check.attributes = FALSE)
+  expect_equal(fit1$V,fit2$V,tolerance = 1e-8)
+  expect_equal(fit2$V,fit3$V)
   
   # Mash regression
   null_weight = 0
@@ -228,19 +234,19 @@ test_that("With full observation, the estimated prior variance are same for Dens
                                   estimate_residual_variance=F, estimate_prior_variance=T, estimate_prior_method='EM', check_null_threshold=0,
                                   precompute_covariances=F, compute_objective=F, max_iter=100, tol=1e-3, prior_tol=1e-9,track_fit=F, verbosity=0, n_thread=1)
   
-  expect_equal(fit1$alpha, fit4$alpha, tolerance = 1E-8)
-  expect_equal(fit1$lbf, fit4$lbf, tolerance = 1E-8)
-  expect_equal(fit1$b1, fit4$b1, tolerance = 1E-8)
-  expect_equal(fit1$b2, fit4$b2, tolerance = 1E-8)
-  expect_equal(fit1$coef, fit4$coef, tolerance = 1E-8, check.attributes = FALSE)
-  expect_equal(fit1$V, fit4$V, tolerance = 1E-8)
+  expect_equal(fit1$alpha,fit4$alpha,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$lbf,fit4$lbf,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$b1,fit4$b1,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$b2,fit4$b2,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$coef,fit4$coef,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$V,fit4$V,tolerance = 1e-8,check.attributes = FALSE)
   
-  expect_equal(fit1$alpha, fit5$alpha, tolerance = 1E-8)
-  expect_equal(fit1$lbf, fit5$lbf, tolerance = 1E-8)
-  expect_equal(fit1$b1, fit5$b1, tolerance = 1E-8)
-  expect_equal(fit1$b2, fit5$b2, tolerance = 1E-8)
-  expect_equal(fit1$coef, fit5$coef, tolerance = 1E-8, check.attributes = FALSE)
-  expect_equal(fit1$V, fit5$V, tolerance = 1E-8)
+  expect_equal(fit1$alpha,fit5$alpha,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$lbf,fit5$lbf,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$b1,fit5$b1,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$b2,fit5$b2,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$coef,fit5$coef,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit1$V,fit5$V,tolerance = 1e-8)
 }))
 
 test_that("With diagonal residual variance, the results are same for DenseDataYMissing with and without approximation.", with(simulate_multivariate(r=3, center_scale = F, y_missing = 0.5),{
