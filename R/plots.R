@@ -105,11 +105,12 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     x_names = paste("variable",1:nrow(effects))
   if (is.null(y_names))
     y_names = paste("condition",1:ncol(effects))
-  
-  table           = data.frame(matrix(as.numeric(NA),prod(dim(effects)),5))
-  colnames(table) = c("y","x","effect_size","mlog10lfsr","cs")
-  table$y         = rep(y_names,length(x_names))
-  table$x         = rep(x_names,each = length(y_names))
+  table             = data.frame(matrix(as.numeric(NA),prod(dim(effects)),5))
+  colnames(table)   = c("y","x","effect_size","mlog10lfsr","cs")
+  table$y           = rep(y_names,length(x_names))
+  table$x           = rep(x_names,each = length(y_names))
+  table$mlog10lfsr  = 0
+  table$effect_size = 0
   if (plot_z) {
     table$mlog10lfsr  = as.vector(t(logp))
     table$effect_size = as.vector(t(effects))
@@ -117,7 +118,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   
   # Add CS to this table.
   if (!is.null(m$sets$cs_index)) {
-    if(!plot_z)
+    if (!plot_z)
       effects = as.vector(t(effects))
     j = 1
     for (i in m$sets$cs_index) {
@@ -127,7 +128,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
       table[which(table$x %in% variables),]$cs = i
       if (!plot_z) {
         table[which(table$x %in% variables),]$mlog10lfsr =
-          rep(-log10(pmax(1e-20, m$single_effect_lfsr[i,])),length(variables))
+          rep(-log10(pmax(1e-20,m$single_effect_lfsr[i,])),length(variables))
         idx = which((table$x %in% variables) & (table$y %in% condition_sig))
         table[idx,]$effect_size = effects[idx]
       }
@@ -139,9 +140,14 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   
   rowidx            = which(table$x %in% x_names[pos])
   table             = table[rowidx,]
-  table$effect_size = cut(table$effect_size,breaks = 7)
+  a                 = min(table$effect_size)
+  b                 = max(table$effect_size)
+  table$effect_size = cut(table$effect_size,
+                          breaks = c(seq(a,-1e-8,length.out = 4),
+                                   c(seq(1e-8,b,length.out = 4))))
   table$x           = factor(table$x)
   xlabels           = levels(table$x)
+  
   # cs_colors = unique(cbind(table$x,table$cs,table$color))[,3]
   p = ggplot(table) +
     geom_point(mapping = aes_string(x = "x",y = "y",fill = "effect_size",
@@ -151,9 +157,9 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     scale_y_discrete(limits = unique(table$y)) + 
     scale_radius(range = c(2,10)) +
     # Colors obtained from colorbrewer2.org.
-    scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","powderblue",
+    scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","gainsboro",
                                  "#f4a582","#ca0020","firebrick"),
-                      na.value = "gainsboro") +
+                      na.value = "gainsboro",drop = FALSE) +
     labs(size = paste0("-log10(",ifelse(plot_z,"p","CS lfsr"),")")) +
     guides(size = guide_legend(override.aes = list(color = "black",
                                                    fill = "black"))) +
