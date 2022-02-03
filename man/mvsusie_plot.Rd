@@ -10,16 +10,16 @@ mvsusie_plot(
   cs_only = TRUE,
   plot_z = FALSE,
   pos = NULL,
-  cslfsr_threshold = 0.05
+  cslfsr_threshold = 0.05,
+  font_size = 12
 )
 }
 \arguments{
 \item{m}{A mvsusie fit, typically the result of calling
 \code{\link{mvsusie}}. This function only works for a mvsusie model
 fitted to multivariate response data (i.e., Y with more than one
-column). This function only works for an mvsusie fit for
-multivariate response and mash prior; mvsusie fits not satisfying
-these conditions will result in an error.}
+column) and a mash prior. mvsusie fits not satisfying these
+conditions will result in an error.}
 
 \item{weighted_effect}{Describe input argument "weighted_effect"
 here.}
@@ -38,9 +38,11 @@ represent CSs, with the non-significant CS removed.}
 
 \item{cslfsr_threshold}{Describe input argument "cslfsr_threshold"
 here.}
+
+\item{font_size}{Font size used in plot.}
 }
 \value{
-A ggplot object.
+Describe output here.
 }
 \description{
 Make Bubble Heatmap to Display mvsusie Result

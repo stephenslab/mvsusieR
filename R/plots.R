@@ -3,9 +3,8 @@
 #' @param m A mvsusie fit, typically the result of calling
 #'   \code{\link{mvsusie}}. This function only works for a mvsusie model
 #'   fitted to multivariate response data (i.e., Y with more than one
-#'   column). This function only works for an mvsusie fit for
-#'   multivariate response and mash prior; mvsusie fits not satisfying
-#'   these conditions will result in an error.
+#'   column) and a mash prior. mvsusie fits not satisfying these
+#'   conditions will result in an error.
 #'
 #' @param weighted_effect Describe input argument "weighted_effect"
 #'   here.
@@ -24,8 +23,10 @@
 #'
 #' @param cslfsr_threshold Describe input argument "cslfsr_threshold"
 #'   here.
+#'
+#' @param font_size Font size used in plot.
 #' 
-#' @return A ggplot object.
+#' @return Describe output here.
 #'
 #' @examples
 #' n = 500
@@ -55,45 +56,23 @@
 #' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 scale_x_discrete
 #' @importFrom ggplot2 scale_y_discrete
-#' @importFrom ggplot2 scale_color_gradient2
+#' @importFrom ggplot2 scale_fill_manual
+#' @importFrom ggplot2 scale_radius
 #' @importFrom ggplot2 labs
 #' @importFrom ggplot2 guides
 #' @importFrom ggplot2 guide_legend
 #' @importFrom ggplot2 guide_colorbar
 #' @importFrom ggplot2 theme
-#' @importFrom ggplot2 theme_minimal
 #' @importFrom ggplot2 element_text
 #' @importFrom ggplot2 element_blank
 #' @importFrom ggplot2 geom_rect
+#' @importFrom cowplot theme_cowplot
 #'
 #' @export
 #' 
 mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
-                         plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05) {
-  colors = c(
-    "dodgerblue2",
-    "green4",
-    "#6A3D9A", # purple
-    "#FF7F00", # orange
-    "gold1",
-    "skyblue2",
-    "#FB9A99", # light pink
-    "palegreen2",
-    "#CAB2D6", # light purple
-    "#FDBF6F", # light orange
-    "gray70",
-    "khaki2",
-    "maroon",
-    "orchid1",
-    "deeppink1",
-    "blue1",
-    "steelblue4",
-    "darkturquoise",
-    "green1",
-    "yellow4",
-    "yellow3",
-    "darkorange4",
-    "brown")
+                         plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05,
+                         font_size = 12) {
 
   # The susie fit should be for multivariate Y with mash prior.
   if (!inherits(m,"susie"))
@@ -101,11 +80,10 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
          "output of calling function \"mvsusie\"")
   
   if (plot_z) {
-    if (!("z" %in% names(m)))
+    if (!is.element("z",names(m)))
       stop("Cannot find the z-score summary statistics")
-    if (nrow(m$z) != nrow(m$coef[-1,]))
-      stop(paste("z-score matrix should have",nrow(m$coef[-1,]),
-                 "rows (no intercept term)"))
+    if (nrow(m$z) + 1 != nrow(m$coef))
+      stop(paste("z-score matrix should have",nrow(m$z) + 1,"rows"))
     effects = m$z
     p       = 2*pnorm(-abs(m$z))
     logp    = -log10(p)
@@ -128,11 +106,10 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   if (is.null(y_names))
     y_names = paste("condition",1:ncol(effects))
   
-  table           = data.frame(matrix(as.numeric(NA),prod(dim(effects)),6))
-  colnames(table) = c("y","x","effect_size","mlog10lfsr","cs","color")
+  table           = data.frame(matrix(as.numeric(NA),prod(dim(effects)),5))
+  colnames(table) = c("y","x","effect_size","mlog10lfsr","cs")
   table$y         = rep(y_names,length(x_names))
   table$x         = rep(x_names,each = length(y_names))
-  table$color     = "black"
   if (plot_z) {
     table$mlog10lfsr  = as.vector(t(logp))
     table$effect_size = as.vector(t(effects))
@@ -147,8 +124,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
       condition_idx = which(m$single_effect_lfsr[i,] < cslfsr_threshold)
       condition_sig = y_names[condition_idx]
       variables = x_names[m$sets$cs[[j]]]
-      table[which(table$x %in% variables),]$cs    = i
-      table[which(table$x %in% variables),]$color = colors[i %% length(colors)]
+      table[which(table$x %in% variables),]$cs = i
       if (!plot_z) {
         table[which(table$x %in% variables),]$mlog10lfsr =
           rep(-log10(pmax(1e-20, m$single_effect_lfsr[i,])),length(variables))
@@ -161,33 +137,31 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
       table = table[which(!is.na(table$cs)),]
   }
   
-  rowidx    = which(table$x %in% x_names[pos])
-  table     = table[rowidx,]
-  cs_colors = unique(cbind(table$x,table$cs,table$color))[,3]
-  
+  rowidx            = which(table$x %in% x_names[pos])
+  table             = table[rowidx,]
+  table$effect_size = cut(table$effect_size,breaks = 7)
+  table$x           = factor(table$x)
+  xlabels           = levels(table$x)
+  # cs_colors = unique(cbind(table$x,table$cs,table$color))[,3]
   p = ggplot(table) +
-    geom_point(aes_string(x = "x",y = "y",color = "effect_size",
-                          size = "mlog10lfsr")) +
-    scale_x_discrete(limits = unique(table$x)) +
+    geom_point(mapping = aes_string(x = "x",y = "y",fill = "effect_size",
+                                    size = "mlog10lfsr"),
+               shape = 21,color = "white") +
+    scale_x_discrete(limits = unique(table$x),labels = xlabels) +
     scale_y_discrete(limits = unique(table$y)) + 
-    scale_color_gradient2(midpoint = 0,
-                          limit = c(-max(abs(table$effect_size),na.rm = TRUE), 
-                                    +max(abs(table$effect_size),na.rm = TRUE)),
-                          low = "#4575B4",mid =  "#FFFF0E",high = "#D73027",
-                          space = "Lab",na.value = "white") +
-    labs(size = paste0("-log10(",ifelse(plot_z,"p","CS lfsr"),")"),
-         colour = ifelse(plot_z,"z-score","effect size")) +
-    guides(size  = guide_legend(order = 1),
-           color = guide_colorbar(order = 2)) +
-    theme_minimal() +
-    theme(text = element_text(face = "bold",size = 14),
-          panel.grid   = element_blank(),
-          axis.text.x  = element_text(angle = 45,vjust = 1,hjust = 1,size = 15,
-                                      color = cs_colors),
-          axis.text.y  = element_text(size = 15,color = "black"),
+    scale_radius(range = c(2,10)) +
+    # Colors obtained from colorbrewer2.org.
+    scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","powderblue",
+                                 "#f4a582","#ca0020","firebrick"),
+                      na.value = "gainsboro") +
+    labs(size = paste0("-log10(",ifelse(plot_z,"p","CS lfsr"),")")) +
+    guides(size = guide_legend(override.aes = list(color = "black",
+                                                   fill = "black"))) +
+    theme_cowplot(font_size = font_size) +
+    theme(panel.grid   = element_blank(),
+          axis.text.x  = element_text(angle = 45,vjust = 1,hjust = 1),
           axis.title.x = element_blank(),
           axis.title.y = element_blank())
-  
   if (!is.null(top_snp))
     if (top_snp %in% unlist(m$sets$cs)) {
       xnode = which(unique(table$x) == x_names[top_snp])
@@ -201,8 +175,8 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                                              xmax = "xmax"),
                         color = "black",fill = "white",alpha = 0)
     }
-  w = 3 + 0.6*length(unique(table$x))
-  h = 0.7*length(unique(table$y))
+  w = 3 + 0.6 * length(unique(table$x))
+  h = 0.7 * length(unique(table$y))
   cat("Suggested PDF canvas width:",w,"height:",h,"\n")
   return(list(plot = p,width = w,height = h))
 }
