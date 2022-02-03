@@ -24,6 +24,10 @@
 #' @param cslfsr_threshold Describe input argument "cslfsr_threshold"
 #'   here.
 #'
+#' @param min_effect_size_to_label Only variables with effect sizes
+#'   greater than \code{min_effect_size_to_label} are labeled along the
+#'   x-axis.
+#' 
 #' @param font_size Font size used in plot.
 #' 
 #' @return Describe output here.
@@ -72,7 +76,7 @@
 #' 
 mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                          plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05,
-                         font_size = 12) {
+                         min_effect_size_to_label = 0, font_size = 12) {
 
   # The susie fit should be for multivariate Y with mash prior.
   if (!inherits(m,"susie"))
@@ -142,11 +146,13 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   table             = table[rowidx,]
   a                 = min(table$effect_size) - 1e-8
   b                 = max(table$effect_size)
+  table$x           = factor(table$x)
+  xlabels           = levels(table$x)
+  xlabels[tapply(table$effect_size,table$x,
+                 function (x) all(abs(x) < min_effect_size_to_label))] <- ""
   table$effect_size = cut(table$effect_size,
                           breaks = c(seq(a,-1e-8,length.out = 4),
                                    c(seq(1e-8,b,length.out = 4))))
-  table$x           = factor(table$x)
-  xlabels           = levels(table$x)
   
   # cs_colors = unique(cbind(table$x,table$cs,table$color))[,3]
   p = ggplot(table) +

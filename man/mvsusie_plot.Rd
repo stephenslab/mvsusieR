@@ -11,6 +11,7 @@ mvsusie_plot(
   plot_z = FALSE,
   pos = NULL,
   cslfsr_threshold = 0.05,
+  min_effect_size_to_label = 0,
   font_size = 12
 )
 }
@@ -38,6 +39,10 @@ represent CSs, with the non-significant CS removed.}
 
 \item{cslfsr_threshold}{Describe input argument "cslfsr_threshold"
 here.}
+
+\item{min_effect_size_to_label}{Only variables with effect sizes
+greater than \code{min_effect_size_to_label} are labeled along the
+x-axis.}
 
 \item{font_size}{Font size used in plot.}
 }
