@@ -155,7 +155,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                shape = 21,color = "white") +
     scale_x_discrete(limits = unique(table$x),labels = xlabels) +
     scale_y_discrete(limits = unique(table$y)) + 
-    scale_radius(range = c(2,10)) +
+    scale_radius(range = c(1,10)) +
     # Colors obtained from colorbrewer2.org.
     scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","gainsboro",
                                  "#f4a582","#ca0020","firebrick"),
