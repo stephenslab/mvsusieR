@@ -25,7 +25,7 @@ jobs:
         run: |
           install.packages(c("remotes","rcmdcheck","mvtnorm","matrixStats"))
           install.packages(c("devtools","remotes","RcppGSL","R6","abind"))
-          install.packages(c("progress","ggplot2"))
+          install.packages(c("progress","ggplot2","cowplot"))
           remotes::install_github("stephenslab/susieR",upgrade="never",force=TRUE)
           remotes::install_github("stephens999/ashr",upgrade="never",force=TRUE)
           remotes::install_github("stephenslab/mashr",upgrade="never",force=TRUE)

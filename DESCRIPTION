@@ -31,7 +31,6 @@ Imports:
     cowplot
 Suggests:
     reshape,
-    cowplot,
     pryr,
     testthat,
     microbenchmark,
