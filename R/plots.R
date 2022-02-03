@@ -161,8 +161,9 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                                  "#f4a582","#ca0020","firebrick"),
                       na.value = "gainsboro",drop = FALSE) +
     labs(size = paste0("-log10(",ifelse(plot_z,"p","CS lfsr"),")")) +
-    guides(size = guide_legend(override.aes = list(color = "black",
-                                                   fill = "black"))) +
+    guides(
+      size = guide_legend(override.aes = list(color = "black",fill = "black")),
+      fill = guide_legend(override.aes = list(size = 3))) +
     theme_cowplot(font_size = font_size) +
     theme(panel.grid   = element_blank(),
           axis.text.x  = element_text(angle = 45,vjust = 1,hjust = 1),
