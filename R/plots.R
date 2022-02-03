@@ -140,7 +140,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   
   rowidx            = which(table$x %in% x_names[pos])
   table             = table[rowidx,]
-  a                 = min(table$effect_size)
+  a                 = min(table$effect_size) - 1e-8
   b                 = max(table$effect_size)
   table$effect_size = cut(table$effect_size,
                           breaks = c(seq(a,-1e-8,length.out = 4),
