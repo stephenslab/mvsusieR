@@ -24,6 +24,9 @@
 #' @param cslfsr_threshold Describe input argument "cslfsr_threshold"
 #'   here.
 #'
+#' @param add_cs If \code{add_cs = TRUE}, information about the CSs is
+#'   added to the top of the plot.
+#' 
 #' @param min_effect_size_to_label Only variables with effect sizes
 #'   greater than \code{min_effect_size_to_label} are labeled along the
 #'   x-axis.
@@ -60,6 +63,7 @@
 #' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 scale_x_discrete
 #' @importFrom ggplot2 scale_y_discrete
+#' @importFrom ggplot2 scale_color_manual
 #' @importFrom ggplot2 scale_fill_manual
 #' @importFrom ggplot2 scale_radius
 #' @importFrom ggplot2 labs
@@ -71,13 +75,40 @@
 #' @importFrom ggplot2 element_blank
 #' @importFrom ggplot2 geom_rect
 #' @importFrom cowplot theme_cowplot
+#' @importFrom cowplot plot_grid
 #'
 #' @export
 #' 
 mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                          plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05,
-                         min_effect_size_to_label = 0, font_size = 12) {
+                         add_cs = TRUE, min_effect_size_to_label = 0,
+                         font_size = 12) {
 
+  cs_colors = c(
+    "dodgerblue2",
+    "green4",
+    "#6A3D9A", # purple
+    "#FF7F00", # orange
+    "gold1",
+    "skyblue2",
+    "#FB9A99", # light pink
+    "palegreen2",
+    "#CAB2D6", # light purple
+    "#FDBF6F", # light orange
+    "gray70",
+    "khaki2",
+    "maroon",
+    "orchid1",
+    "deeppink1",
+    "blue1",
+    "steelblue4",
+    "darkturquoise",
+    "green1",
+    "yellow4",
+    "yellow3",
+    "darkorange4",
+    "brown")
+    
   # The susie fit should be for multivariate Y with mash prior.
   if (!inherits(m,"susie"))
     stop("Input argument \"m\" should be a susie fit object, such as the ",
@@ -113,6 +144,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   colnames(table)   = c("y","x","effect_size","mlog10lfsr","cs")
   table$y           = rep(y_names,length(x_names))
   table$x           = rep(x_names,each = length(y_names))
+  table$one         = 1
   table$mlog10lfsr  = 0
   table$effect_size = 0
   if (plot_z) {
@@ -153,14 +185,15 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   table$effect_size = cut(table$effect_size,
                           breaks = c(seq(a,-1e-8,length.out = 4),
                                    c(seq(1e-8,b,length.out = 4))))
+  table$cs          = factor(table$cs)
   
   # cs_colors = unique(cbind(table$x,table$cs,table$color))[,3]
   p = ggplot(table) +
     geom_point(mapping = aes_string(x = "x",y = "y",fill = "effect_size",
                                     size = "mlog10lfsr"),
                shape = 21,color = "white") +
-    scale_x_discrete(limits = unique(table$x),labels = xlabels) +
-    scale_y_discrete(limits = unique(table$y)) + 
+    scale_x_discrete(limits = unique(table$x),labels = xlabels,drop = FALSE) +
+    scale_y_discrete(limits = unique(table$y),drop = FALSE) + 
     scale_radius(range = c(1,10)) +
     # Colors obtained from colorbrewer2.org.
     scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","gainsboro",
@@ -188,6 +221,24 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                                              xmax = "xmax"),
                         color = "black",fill = "white",alpha = 0)
     }
+
+  # If requested, add colored dots to the top of the plot showing CS
+  # membership.
+  if (add_cs) {
+    rows <- which(!is.na(table$cs))
+    p_cs = ggplot(table[rows,],aes_string(x = "x",y = "one",color = "cs")) +
+      geom_point(shape = 20,size = 2.5) +
+      scale_x_discrete(drop = FALSE) +
+      scale_color_manual(values = cs_colors) +
+      labs(x = "",y = "") +
+      theme_cowplot(font_size = font_size) +
+      theme(axis.text   = element_blank(),
+            axis.ticks  = element_blank(),
+            axis.line   = element_blank())
+    p = plot_grid(p_cs,p,nrow = 2,ncol = 1,rel_heights = c(1,3),
+                  axis = "lr",align = "v")
+  }
+    
   w = 3 + 0.6 * length(unique(table$x))
   h = 0.7 * length(unique(table$y))
   cat("Suggested PDF canvas width:",w,"height:",h,"\n")
