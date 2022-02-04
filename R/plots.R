@@ -85,29 +85,46 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                          font_size = 12) {
 
   cs_colors = c(
+    "#FF7F00", # orange
+    "skyblue2",
+    "green1",
+    "#6A3D9A", # purple
+    "#FB9A99", # lt pink
     "dodgerblue2",
     "green4",
-    "#6A3D9A", # purple
-    "#FF7F00", # orange
     "gold1",
-    "skyblue2",
-    "#FB9A99", # light pink
     "palegreen2",
-    "#CAB2D6", # light purple
-    "#FDBF6F", # light orange
-    "gray70",
-    "khaki2",
-    "maroon",
-    "orchid1",
-    "deeppink1",
-    "blue1",
-    "steelblue4",
-    "darkturquoise",
-    "green1",
-    "yellow4",
-    "yellow3",
-    "darkorange4",
-    "brown")
+    "#CAB2D6", # lt purple
+    "#FDBF6F", # lt orange
+    "gray70", "khaki2",
+    "maroon", "orchid1", "deeppink1", "blue1", "steelblue4",
+    "darkturquoise", "yellow4", "yellow3",
+    "darkorange4", "brown"
+  )
+  # cs_colors = c(
+  #   "dodgerblue2",
+  #   "green4",
+  #   "#6A3D9A", # purple
+  #   "#FF7F00", # orange
+  #   "gold1",
+  #   "skyblue2",
+  #   "#FB9A99", # light pink
+  #   "palegreen2",
+  #   "#CAB2D6", # light purple
+  #   "#FDBF6F", # light orange
+  #   "gray70",
+  #   "khaki2",
+  #   "maroon",
+  #   "orchid1",
+  #   "deeppink1",
+  #   "blue1",
+  #   "steelblue4",
+  #   "darkturquoise",
+  #   "green1",
+  #   "yellow4",
+  #   "yellow3",
+  #   "darkorange4",
+  #   "brown")
     
   # The susie fit should be for multivariate Y with mash prior.
   if (!inherits(m,"susie"))
@@ -122,13 +139,11 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     effects = m$z
     p       = 2*pnorm(-abs(m$z))
     logp    = -log10(p)
-    top_snp = which(logp == max(logp,na.rm = TRUE),arr.ind = TRUE)[1]
   } else {
     if (weighted_effect)
       effects = m$coef[-1,]
     else
       effects = colSums(m$b1)
-    top_snp = NULL
   }
   if (is.null(pos))
     pos = 1:nrow(effects)
@@ -145,13 +160,13 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   table$y           = rep(y_names,length(x_names))
   table$x           = rep(x_names,each = length(y_names))
   table$one         = 1
-  table$mlog10lfsr  = 0
-  table$effect_size = 0
+  table$mlog10lfsr  = NA
+  table$effect_size = NA
   if (plot_z) {
     table$mlog10lfsr  = as.vector(t(logp))
     table$effect_size = as.vector(t(effects))
   }
-  
+
   # Add CS to this table.
   if (!is.null(m$sets$cs_index)) {
     if (!plot_z)
@@ -173,11 +188,11 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     if (cs_only)
       table = table[which(!is.na(table$cs)),]
   }
-  
+
   rowidx            = which(table$x %in% x_names[pos])
   table             = table[rowidx,]
-  a                 = min(table$effect_size) - 1e-8
-  b                 = max(table$effect_size)
+  a                 = min(table$effect_size, na.rm=TRUE) - 1e-8
+  b                 = max(table$effect_size, na.rm=TRUE)
   table$x           = factor(table$x)
   xlabels           = levels(table$x)
   xlabels[tapply(table$effect_size,table$x,
@@ -198,7 +213,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     # Colors obtained from colorbrewer2.org.
     scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","gainsboro",
                                  "#f4a582","#ca0020","firebrick"),
-                      na.value = "gainsboro",drop = FALSE) +
+                      na.value = "white",drop = FALSE) +
     labs(size = paste0("-log10(",ifelse(plot_z,"p","CS lfsr"),")")) +
     guides(
       size = guide_legend(override.aes = list(color = "black",fill = "black")),
@@ -208,19 +223,6 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
           axis.text.x  = element_text(angle = 45,vjust = 1,hjust = 1),
           axis.title.x = element_blank(),
           axis.title.y = element_blank())
-  if (!is.null(top_snp))
-    if (top_snp %in% unlist(m$sets$cs)) {
-      xnode = which(unique(table$x) == x_names[top_snp])
-      p = p + geom_rect(data = data.frame(ymin = 0.5,
-                                          ymax = length(unique(table$y)) + 0.5,
-                                          xmin = xnode - 0.5,
-                                          xmax = xnode + 0.5),
-                        mapping = aes_string(ymin = "ymin",
-                                             ymax = "ymax",
-                                             xmin = "xmin",
-                                             xmax = "xmax"),
-                        color = "black",fill = "white",alpha = 0)
-    }
 
   # If requested, add colored dots to the top of the plot showing CS
   # membership.
