@@ -11,13 +11,12 @@
 #'
 #' @param cs_only Describe input argument "cs_only" here.
 #'
-#' @param plot_z If \code{plot_z = TRUE}, the bubble size is
-#'   \eqn{-log_{10}(p)}, where \eqn{p} is the p-valule. The bubble color
-#'   represents effect size, the color on the x-axis represent CSs. If
-#'   \code{plot_z = FALSE}, the bubble size is \eqn{-log_{10}(y)}, where
-#'   \eqn{y} is the CS condition-specific lfsr, the bubble color
-#'   represents posterior effect size, and the color on the x-axis
-#'   represent CSs, with the non-significant CS removed.
+#' @param plot_z When \code{plot_z = FALSE}, the bubble size is
+#'   \eqn{-log_{10}(y)}, where \eqn{y} is the CS condition-specific
+#'   lfsr, the bubble color represents posterior effect size. When
+#'   \code{plot_z = TRUE}, the dots are coloured by the z-scores
+#'   provided as input, and the bubble size is \eqn{-log_{10}(p)}, where
+#'   \eqn{p} is the p-value.
 #'
 #' @param pos Describe input argument "pos" here.
 #'
@@ -33,7 +32,9 @@
 #' 
 #' @param font_size Font size used in plot.
 #' 
-#' @return Describe output here.
+#' @return The return value is a list with three list elements: a
+#'   ggplot object encoding the generated plot, and \dQuote{height} and
+#'   \dQuote{width} giving the suggested plot dimensions.
 #'
 #' @examples
 #' n = 500
@@ -101,31 +102,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     "darkturquoise", "yellow4", "yellow3",
     "darkorange4", "brown"
   )
-  # cs_colors = c(
-  #   "dodgerblue2",
-  #   "green4",
-  #   "#6A3D9A", # purple
-  #   "#FF7F00", # orange
-  #   "gold1",
-  #   "skyblue2",
-  #   "#FB9A99", # light pink
-  #   "palegreen2",
-  #   "#CAB2D6", # light purple
-  #   "#FDBF6F", # light orange
-  #   "gray70",
-  #   "khaki2",
-  #   "maroon",
-  #   "orchid1",
-  #   "deeppink1",
-  #   "blue1",
-  #   "steelblue4",
-  #   "darkturquoise",
-  #   "green1",
-  #   "yellow4",
-  #   "yellow3",
-  #   "darkorange4",
-  #   "brown")
-    
+  
   # The susie fit should be for multivariate Y with mash prior.
   if (!inherits(m,"susie"))
     stop("Input argument \"m\" should be a susie fit object, such as the ",
@@ -202,7 +179,6 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                                    c(seq(1e-8,b,length.out = 4))))
   table$cs          = factor(table$cs)
   
-  # cs_colors = unique(cbind(table$x,table$cs,table$color))[,3]
   p = ggplot(table) +
     geom_point(mapping = aes_string(x = "x",y = "y",fill = "effect_size",
                                     size = "mlog10lfsr"),
@@ -210,6 +186,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     scale_x_discrete(limits = unique(table$x),labels = xlabels,drop = FALSE) +
     scale_y_discrete(limits = unique(table$y),drop = FALSE) + 
     scale_radius(range = c(1,10)) +
+        
     # Colors obtained from colorbrewer2.org.
     scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","gainsboro",
                                  "#f4a582","#ca0020","firebrick"),

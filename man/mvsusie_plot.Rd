@@ -28,13 +28,12 @@ here.}
 
 \item{cs_only}{Describe input argument "cs_only" here.}
 
-\item{plot_z}{If \code{plot_z = TRUE}, the bubble size is
-\eqn{-log_{10}(p)}, where \eqn{p} is the p-valule. The bubble color
-represents effect size, the color on the x-axis represent CSs. If
-\code{plot_z = FALSE}, the bubble size is \eqn{-log_{10}(y)}, where
-\eqn{y} is the CS condition-specific lfsr, the bubble color
-represents posterior effect size, and the color on the x-axis
-represent CSs, with the non-significant CS removed.}
+\item{plot_z}{When \code{plot_z = FALSE}, the bubble size is
+\eqn{-log_{10}(y)}, where \eqn{y} is the CS condition-specific
+lfsr, the bubble color represents posterior effect size. When
+\code{plot_z = TRUE}, the dots are coloured by the z-scores
+provided as input, and the bubble size is \eqn{-log_{10}(p)}, where
+\eqn{p} is the p-value.}
 
 \item{pos}{Describe input argument "pos" here.}
 
@@ -51,7 +50,9 @@ x-axis.}
 \item{font_size}{Font size used in plot.}
 }
 \value{
-Describe output here.
+The return value is a list with three list elements: a
+  ggplot object encoding the generated plot, and \dQuote{height} and
+  \dQuote{width} giving the suggested plot dimensions.
 }
 \description{
 Make Bubble Heatmap to Display mvsusie Result
