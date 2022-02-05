@@ -33,7 +33,10 @@ here.}
 lfsr, the bubble color represents posterior effect size. When
 \code{plot_z = TRUE}, the dots are coloured by the z-scores
 provided as input, and the bubble size is \eqn{-log_{10}(p)}, where
-\eqn{p} is the p-value.}
+\eqn{p} is the p-value. Note that \code{plot_z = TRUE} can only be
+used when \code{m} is an output from \code{\link{mvsusie_rss}}, or
+when \code{\link{mvsusie}} is called with
+\code{compute_univariate_zscore = TRUE}.}
 
 \item{pos}{Describe input argument "pos" here.}
 

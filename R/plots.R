@@ -16,7 +16,10 @@
 #'   lfsr, the bubble color represents posterior effect size. When
 #'   \code{plot_z = TRUE}, the dots are coloured by the z-scores
 #'   provided as input, and the bubble size is \eqn{-log_{10}(p)}, where
-#'   \eqn{p} is the p-value.
+#'   \eqn{p} is the p-value. Note that \code{plot_z = TRUE} can only be
+#'   used when \code{m} is an output from \code{\link{mvsusie_rss}}, or
+#'   when \code{\link{mvsusie}} is called with
+#'   \code{compute_univariate_zscore = TRUE}.
 #'
 #' @param pos Describe input argument "pos" here.
 #'
@@ -137,7 +140,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   table$y           = rep(y_names,length(x_names))
   table$x           = rep(x_names,each = length(y_names))
   table$one         = 1
-  table$mlog10lfsr  = NA
+  table$mlog10lfsr  = 1
   table$effect_size = NA
   if (plot_z) {
     table$mlog10lfsr  = as.vector(t(logp))
@@ -155,10 +158,12 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
       variables = x_names[m$sets$cs[[j]]]
       table[which(table$x %in% variables),]$cs = i
       if (!plot_z) {
-        table[which(table$x %in% variables),]$mlog10lfsr =
-          rep(-log10(pmax(1e-20,m$single_effect_lfsr[i,])),length(variables))
+        y = pmax(1e-20,m$single_effect_lfsr[i,])
+        y[y > cslfsr_threshold] = NA
+        table[which(table$x %in% variables),"mlog10lfsr"] =
+          rep(-log10(y),length(variables))
         idx = which((table$x %in% variables) & (table$y %in% condition_sig))
-        table[idx,]$effect_size = effects[idx]
+        table[idx,"effect_size"] = effects[idx]
       }
       j = j + 1
     }
@@ -168,8 +173,8 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
 
   rowidx            = which(table$x %in% x_names[pos])
   table             = table[rowidx,]
-  a                 = min(table$effect_size, na.rm=TRUE) - 1e-8
-  b                 = max(table$effect_size, na.rm=TRUE)
+  a                 = min(table$effect_size,na.rm = TRUE) - 1e-8
+  b                 = max(table$effect_size,na.rm = TRUE)
   table$x           = factor(table$x)
   xlabels           = levels(table$x)
   xlabels[tapply(table$effect_size,table$x,
@@ -182,7 +187,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   p = ggplot(table) +
     geom_point(mapping = aes_string(x = "x",y = "y",fill = "effect_size",
                                     size = "mlog10lfsr"),
-               shape = 21,color = "white") +
+               shape = 21,color = "white",na.rm = TRUE) +
     scale_x_discrete(limits = unique(table$x),labels = xlabels,drop = FALSE) +
     scale_y_discrete(limits = unique(table$y),drop = FALSE) + 
     scale_radius(range = c(1,10)) +
