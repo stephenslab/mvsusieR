@@ -29,10 +29,6 @@
 #' @param add_cs If \code{add_cs = TRUE}, information about the CSs is
 #'   added to the top of the plot.
 #' 
-#' @param min_effect_size_to_label Only variables with effect sizes
-#'   greater than \code{min_effect_size_to_label} are labeled along the
-#'   x-axis.
-#' 
 #' @param font_size Font size used in plot.
 #' 
 #' @return The return value is a list with three list elements: a
@@ -85,8 +81,7 @@
 #' 
 mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                          plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05,
-                         add_cs = TRUE, min_effect_size_to_label = 0,
-                         font_size = 12) {
+                         add_cs = TRUE, font_size = 12) {
 
   cs_colors = c(
     "#FF7F00", # orange
@@ -140,7 +135,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   table$y           = rep(y_names,length(x_names))
   table$x           = rep(x_names,each = length(y_names))
   table$one         = 1
-  table$mlog10lfsr  = 1
+  table$mlog10lfsr  = NA
   table$effect_size = NA
   if (plot_z) {
     table$mlog10lfsr  = as.vector(t(logp))
@@ -170,15 +165,14 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     if (cs_only)
       table = table[which(!is.na(table$cs)),]
   }
-
   rowidx            = which(table$x %in% x_names[pos])
   table             = table[rowidx,]
   a                 = min(table$effect_size,na.rm = TRUE) - 1e-8
   b                 = max(table$effect_size,na.rm = TRUE)
   table$x           = factor(table$x)
   xlabels           = levels(table$x)
-  xlabels[tapply(table$effect_size,table$x,
-                 function (x) all(abs(x) < min_effect_size_to_label))] <- ""
+  xlabels[tapply(table$mlog10lfsr,table$x,
+                 function (x) all(is.na(x)))] <- ""
   table$effect_size = cut(table$effect_size,
                           breaks = c(seq(a,-1e-8,length.out = 4),
                                    c(seq(1e-8,b,length.out = 4))))
