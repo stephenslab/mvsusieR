@@ -173,7 +173,9 @@ used threshold for genotype data in genetics studies.}
 
 \item{compute_univariate_zscore}{When
 \code{compute_univariate_zscore = TRUE}, the z-scores from the
-per-variable univariate regressions are outputted.}
+per-variable univariate regressions are outputted. (Note that these
+z-scores are not actually used to fit the multivariate susie
+model.)}
 
 \item{precompute_covariances}{If \code{precompute_covariances =
 TRUE}, precomputes various covariance quantities to speed up

@@ -100,7 +100,9 @@
 #' 
 #' @param compute_univariate_zscore When
 #'   \code{compute_univariate_zscore = TRUE}, the z-scores from the
-#'   per-variable univariate regressions are outputted.
+#'   per-variable univariate regressions are outputted. (Note that these
+#'   z-scores are not actually used to fit the multivariate susie
+#'   model.)
 #' 
 #' @param n_thread Maximum number of threads to use for parallel
 #'   computation (only applicable when a mixture prior is used).
