@@ -6,10 +6,9 @@
 #'   column) and a mash prior. mvsusie fits not satisfying these
 #'   conditions will result in an error.
 #'
-#' @param weighted_effect Describe input argument "weighted_effect"
-#'   here.
+#' @param weighted_effect Show effect size in the original scale of X if \code{weighted_effect = TRUE}.
 #'
-#' @param cs_only Describe input argument "cs_only" here.
+#' @param cs_only Only show variants in CSs if \code{cs_only = TRUE}.
 #'
 #' @param plot_z When \code{plot_z = FALSE}, the bubble size is
 #'   \eqn{-log_{10}(y)}, where \eqn{y} is the CS condition-specific
@@ -21,10 +20,9 @@
 #'   when \code{\link{mvsusie}} is called with
 #'   \code{compute_univariate_zscore = TRUE}.
 #'
-#' @param pos Describe input argument "pos" here.
+#' @param pos A vector of indices specifies the positions of variants to show.
 #'
-#' @param cslfsr_threshold Describe input argument "cslfsr_threshold"
-#'   here.
+#' @param cslfsr_threshold A value specifies the threshold call CS significant based on lfsr
 #'
 #' @param add_cs If \code{add_cs = TRUE}, information about the CSs is
 #'   added to the top of the plot.
