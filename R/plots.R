@@ -179,14 +179,16 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                           breaks = c(seq(a,-1e-8,length.out = 4),
                                    c(seq(1e-8,b,length.out = 4))))
   table$cs          = factor(table$cs)
-  
   p = ggplot(table) +
     geom_point(mapping = aes_string(x = "x",y = "y",fill = "effect_size",
                                     size = "mlog10lfsr"),
                shape = 21,color = "white",na.rm = TRUE) +
     scale_x_discrete(limits = unique(table$x),labels = xlabels,drop = FALSE) +
     scale_y_discrete(limits = unique(table$y),drop = FALSE) + 
-    scale_radius(range = c(1,10)) +
+    scale_radius(range = c(1,10),
+                 breaks = seq(min(table$mlog10lfsr,na.rm = TRUE),
+                              max(table$mlog10lfsr,na.rm = TRUE),
+                              length.out = 5)) +
         
     # Colors obtained from colorbrewer2.org.
     scale_fill_manual(values = c("darkblue","#0571b0","#92c5de","gainsboro",
@@ -195,8 +197,9 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     labs(size = paste0("-log10(",ifelse(plot_z,"p","CS lfsr"),")"),
          fill = ifelse(plot_z, 'z scores', 'NCP')) +
     guides(
-      size = guide_legend(order = 1, override.aes = list(color = "black",fill = "black")),
-      fill = guide_legend(order = 2, override.aes = list(size = 3))) +
+      size = guide_legend(order = 1,
+                          override.aes = list(color = "black",fill = "black")),
+      fill = guide_legend(order = 2,override.aes = list(size = 3))) +
     theme_cowplot(font_size = font_size) +
     theme(panel.grid   = element_blank(),
           axis.text.x  = element_text(angle = 45,vjust = 1,hjust = 1),
