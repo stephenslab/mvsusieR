@@ -171,7 +171,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   b                 = max(table$effect_size,na.rm = TRUE)
   table$x           = factor(table$x)
   xlabels           = levels(table$x)
-  xlabels[tapply(table$mlog10lfsr,table$x,
+  xlabels[tapply(table$cs,table$x,
                  function (x) all(is.na(x)))] <- ""
   table$effect_size = cut(table$effect_size,
                           breaks = c(seq(a,-1e-8,length.out = 4),
