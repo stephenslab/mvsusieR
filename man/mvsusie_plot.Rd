@@ -22,10 +22,11 @@ fitted to multivariate response data (i.e., Y with more than one
 column) and a mash prior. mvsusie fits not satisfying these
 conditions will result in an error.}
 
-\item{weighted_effect}{Describe input argument "weighted_effect"
-here.}
+\item{weighted_effect}{If \code{weighted_effect = TRUE}, show
+estimated effect sizes in the original scale of X.}
 
-\item{cs_only}{Describe input argument "cs_only" here.}
+\item{cs_only}{When \code{cs_only = TRUE}, show only variants in
+CSs.}
 
 \item{plot_z}{When \code{plot_z = FALSE}, the bubble size is
 \eqn{-log_{10}(y)}, where \eqn{y} is the CS condition-specific
@@ -37,10 +38,11 @@ used when \code{m} is an output from \code{\link{mvsusie_rss}}, or
 when \code{\link{mvsusie}} is called with
 \code{compute_univariate_zscore = TRUE}.}
 
-\item{pos}{Describe input argument "pos" here.}
+\item{pos}{A vector of indices specifying the positions of variants
+to show in the plot.}
 
-\item{cslfsr_threshold}{Describe input argument "cslfsr_threshold"
-here.}
+\item{cslfsr_threshold}{Effect estimates with local false sign rate
+(lfsr) greater than \code{cslfsr_threshold} are hidden.}
 
 \item{add_cs}{If \code{add_cs = TRUE}, information about the CSs is
 added to the top of the plot.}
