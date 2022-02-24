@@ -119,14 +119,16 @@ test_that("When R = 1, estimated prior variance with ss data agrees with full da
   YtY = crossprod(y.c)
   fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F, 
-                standardize = T, 
-                estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
+                standardize = TRUE, 
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
   
   expect_equal(fit1$alpha, fit2$alpha)
   expect_equal(fit1$lbf, fit2$lbf)
   expect_equal(fit1$b1, fit2$b1)
   expect_equal(fit1$b2, fit2$b2)
   expect_equal(fit1$coef, fit2$coef)
+  expect_equal(fit1$b1_rescaled,fit2$b1_rescaled)
   expect_equal(fit1$V, fit2$V)
 }))
 
@@ -156,6 +158,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   expect_equal(fit1$b1, fit2$b1)
   expect_equal(fit1$b2, fit2$b2)
   expect_equal(fit1$coef, fit2$coef)
+  expect_equal(fit1$b1_rescaled, fit2$b1_rescaled)
   expect_equal(fit1$V, fit2$V)
   
   # Mash regression
@@ -171,6 +174,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   expect_equal(fit1$b1, fit3$b1)
   expect_equal(fit1$b2, fit3$b2)
   expect_equal(fit1$coef, fit3$coef)
+  expect_equal(fit1$b1_rescaled, fit3$b1_rescaled)
   expect_equal(fit1$V, fit3$V)
 }))
 

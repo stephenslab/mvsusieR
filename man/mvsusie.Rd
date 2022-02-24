@@ -113,10 +113,10 @@ the same for all variables.}
 \item{standardize}{Logical flag specifying whether to standardize
 columns of X to unit variance prior to fitting. If you do not
 standardize you may need to think more carefully about specifying
-the scale of the prior variance. Whatever the value of
-standardize, the coefficients (returned by \code{\link{coef}}) are
-for X on the original input scale. Note that any column of X with
-zero variance is not standardized, but left as is.}
+the scale of the prior variance. Whatever the value of standardize,
+the coefficients (returned by \code{\link[susieR]{coef}}) are for X
+on the original input scale. Note that any column of X with zero
+variance is not standardized, but left as is.}
 
 \item{intercept}{Should intercept be fitted or set to zero. Setting
 \code{intercept = FALSE} is generally not recommended.}
@@ -226,12 +226,14 @@ of the following elements:
 
 \item{alpha}{L by p matrix of posterior inclusion probabilites.}
 
-\item{b1}{L by p matrix of posterior means (conditional on inclusion).}
+\item{b1}{L by p matrix of posterior mean single-effect estimates.}
 
-\item{b2}{L by p matrix of posterior second moments (conditional on
-  inclusion).}
+\item{b1_rescaled}{L by p matrix} of posterior mean single-effect
+  estimates on the original input scale (same as \code{coef}).
 
-\item{KL}{Vector of single-effect KL divergences}
+\item{b2}{L by p matrix of posterior second moments.}
+
+\item{KL}{Vector of single-effect KL divergences.}
 
 \item{lbf}{Vector of single-effect log-Bayes factors.}
 

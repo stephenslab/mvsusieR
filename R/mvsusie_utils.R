@@ -115,6 +115,7 @@ report_susie_model = function (d, m, estimate_prior_variance = TRUE) {
         niter  = m$niter,
         convergence        = m$convergence,
         coef               = d$rescale_coef(b),
+        b1_rescaled        = rescale_single_effects(b1,d$rescale_coef),
         mixture_weights    = mixture_weights,
         conditional_lfsr   = clfsr,
         lfsr               = mvsusie_get_lfsr(clfsr, t(m$pip)),
@@ -139,4 +140,22 @@ report_susie_model = function (d, m, estimate_prior_variance = TRUE) {
       s$V = m$prior_variance
     class(s) = "susie"
     return(s)
+}
+
+# This is used by report_susie_model to rescale the L x J x R matrix
+# of single effect estimates.
+rescale_single_effects <- function (b1, rescale_coef) {
+  L <- dim(b1)[1]
+  J <- dim(b1)[2]
+  if (is.matrix(b1))
+    R <- 1
+  else
+    R <- dim(b1)[3]
+  out <- array(0,c(L,J + 1,R))
+  for (l in 1:L)
+    if (is.matrix(b1))
+      out[l,,] = rescale_coef(b1[l,])
+    else
+      out[l,,] = rescale_coef(b1[l,,])
+  return(drop(out))
 }
