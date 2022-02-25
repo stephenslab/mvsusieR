@@ -154,10 +154,13 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   # Add CS to this table.
   if (!is.null(m$sets$cs_index)) {
     j = 1
-    for (i in m$sets$cs_index) {
+    # if (!plot_z) {
+    #   effects = as.vector(t(effects))
+    # }
+    for (j in 1:length(m$sets$cs_index)) {
+      i = m$sets$cs_index[j]
       if (!plot_z) {
-        # effects = as.vector(t(effects))
-        effects = cs_effects[i,,]/mod$alpha[i,]
+        effects = cs_effects[i,,]/m$alpha[i,]
         effects = as.vector(t(effects))
       }
       condition_idx = which(m$single_effect_lfsr[i,] < cslfsr_threshold)
@@ -172,19 +175,21 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
         idx = which((table$x %in% variables) & (table$y %in% condition_sig))
         table[idx,"effect_size"] = effects[idx]
       }
-      j = j + 1
     }
     if (cs_only)
       table = table[which(!is.na(table$cs)),]
   }
+
   rowidx            = which(table$x %in% x_names[pos])
   table             = table[rowidx,]
   a                 = min(table$effect_size,na.rm = TRUE) - 1e-8
   b                 = max(table$effect_size,na.rm = TRUE)
-  table$x           = factor(table$x)
+  table$x           = as.character(table$x)
+  table$y           = as.character(table$y)
+  table$x           = factor(table$x,unique(table$x))
+  table$y           = factor(table$y,unique(table$y))
   xlabels           = levels(table$x)
-  xlabels[tapply(table$cs,table$x,
-                 function (x) all(is.na(x)))] <- ""
+  xlabels[tapply(table$cs,table$x,function (x) all(is.na(x)))] = ""
   table$effect_size = cut(table$effect_size,
                           breaks = c(seq(a,-1e-8,length.out = 4),
                                    c(seq(1e-8,b,length.out = 4))))
@@ -193,8 +198,8 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     geom_point(mapping = aes_string(x = "x",y = "y",fill = "effect_size",
                                     size = "mlog10lfsr"),
                shape = 21,color = "white",na.rm = TRUE) +
-    scale_x_discrete(limits = unique(table$x),labels = xlabels,drop = FALSE) +
-    scale_y_discrete(limits = unique(table$y),drop = FALSE) + 
+    scale_x_discrete(drop = FALSE) +
+    scale_y_discrete(drop = FALSE) + 
     scale_radius(range = c(1,10),
                  breaks = seq(min(table$mlog10lfsr,na.rm = TRUE),
                               max(table$mlog10lfsr,na.rm = TRUE),
@@ -219,7 +224,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   # If requested, add colored dots to the top of the plot showing CS
   # membership.
   if (add_cs) {
-    rows <- which(!is.na(table$cs))
+    rows = which(!is.na(table$cs))
     p_cs = ggplot(table[rows,],aes_string(x = "x",y = "one",color = "cs")) +
       geom_point(shape = 20,size = 2.5) +
       scale_x_discrete(drop = FALSE) +
@@ -229,7 +234,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
       theme(axis.text   = element_blank(),
             axis.ticks  = element_blank(),
             axis.line   = element_blank())
-    p = plot_grid(p_cs,p,nrow = 2,ncol = 1,rel_heights = c(1,3),
+    p = plot_grid(p_cs,p,nrow = 2,ncol = 1,rel_heights = c(1,2),
                   axis = "lr",align = "v")
   }
     
