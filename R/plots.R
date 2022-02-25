@@ -160,6 +160,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     for (j in 1:length(m$sets$cs_index)) {
       i = m$sets$cs_index[j]
       if (!plot_z) {
+        # effects = as.vector(t(effects))
         effects = cs_effects[i,,]/m$alpha[i,]
         effects = as.vector(t(effects))
       }
