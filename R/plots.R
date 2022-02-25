@@ -117,10 +117,17 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     p       = 2*pnorm(-abs(m$z))
     logp    = -log10(p)
   } else {
-    if (weighted_effect)
-      effects = m$coef[-1,]
-    else
-      effects = colSums(m$b1)
+    # if (weighted_effect)
+    #   effects = m$coef[-1,]
+    # else
+    #   effects = colSums(m$b1)
+    if (weighted_effect) {
+      effects    = m$coef[-1,]
+      cs_effects = m$b1_rescaled[-1,]
+    } else {
+      effects    = colSums(m$b1)
+      cs_effects = m$b1
+    }
   }
   if (is.null(pos))
     pos = 1:nrow(effects)
@@ -146,10 +153,13 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
 
   # Add CS to this table.
   if (!is.null(m$sets$cs_index)) {
-    if (!plot_z)
-      effects = as.vector(t(effects))
     j = 1
     for (i in m$sets$cs_index) {
+      if (!plot_z) {
+        # effects = as.vector(t(effects))
+        effects = cs_effects[i,,]/mod$alpha[i,]
+        effects = as.vector(t(effects))
+      }
       condition_idx = which(m$single_effect_lfsr[i,] < cslfsr_threshold)
       condition_sig = y_names[condition_idx]
       variables = x_names[m$sets$cs[[j]]]
