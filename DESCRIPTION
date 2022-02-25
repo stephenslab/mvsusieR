@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: mvsusieR
-Date: 2022-02-25
+Date: 2022-02-26
 Version: 0.0.3.0518
 Title: Multivariate Sum of Single Effects Regression
 Description: Implements a multivariate generalization of the "Sum of
