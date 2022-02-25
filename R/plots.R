@@ -157,7 +157,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     for (i in m$sets$cs_index) {
       if (!plot_z) {
         # effects = as.vector(t(effects))
-        effects = cs_effects[i,,]/mod$alpha[i,]
+        effects = cs_effects[i,,]/m$alpha[i,]
         effects = as.vector(t(effects))
       }
       condition_idx = which(m$single_effect_lfsr[i,] < cslfsr_threshold)
@@ -177,11 +177,12 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     if (cs_only)
       table = table[which(!is.na(table$cs)),]
   }
+  
   rowidx            = which(table$x %in% x_names[pos])
   table             = table[rowidx,]
   a                 = min(table$effect_size,na.rm = TRUE) - 1e-8
   b                 = max(table$effect_size,na.rm = TRUE)
-  table$x           = factor(table$x)
+  table$x           = factor(table$x, levels = unique(table$x))
   xlabels           = levels(table$x)
   xlabels[tapply(table$cs,table$x,
                  function (x) all(is.na(x)))] <- ""
