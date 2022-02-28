@@ -11,4 +11,4 @@
 ^R/README\.md$
 ^inst/misc$
 ^inst/prototypes$
-
+^LICENSE\.md$
