@@ -199,7 +199,7 @@
 #' y2 = X %*% beta2 + rnorm(n)
 #' y3 = X %*% beta3 + rnorm(n)
 #' Y = cbind(y1,y2,y3)
-#' prior = create_mixture_prior(R=p)
+#' prior = create_mixture_prior(R=3)
 #' fit = mvsusie(X,Y,prior_variance = prior)
 #'
 #' # Sufficient statistics example with three responses.
