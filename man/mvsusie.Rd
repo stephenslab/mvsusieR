@@ -41,7 +41,7 @@ mvsusie_rss(
   Bhat,
   Shat,
   varY,
-  prior_variance,
+  prior_variance = 0.2,
   residual_variance = NULL,
   ...
 )
@@ -76,9 +76,9 @@ mvsusie_suff_stat(
 )
 }
 \arguments{
-\item{X}{n by p matrix of covariates.}
+\item{X}{N by J matrix of covariates.}
 
-\item{Y}{Vector of length n, or n by r matrix of response
+\item{Y}{Vector of length N, or N by R matrix of response
 variables.}
 
 \item{L}{Maximum number of non-zero effects.}
@@ -86,11 +86,10 @@ variables.}
 \item{prior_variance}{Can be either (1) a vector of length L, or a
 scalar, for scaled prior variance when Y is univariate (which
 should then be equivalent to \code{\link[susieR]{susie}}); or (2) a
-matrix for a simple multivariate regression; or (3) a MASH fit that
-contains an array of prior covariance matrices and their weights.}
+matrix for a simple multivariate regression; or (3) a mixture prior 
+from \code{\link{create_mixture_prior}}.}
 
-\item{residual_variance}{The residual variance (defaults to the
-sample variance of Y).}
+\item{residual_variance}{The residual variance}
 
 \item{prior_weights}{A vector of length p giving the prior
 probability that each element is non-zero. Note that the prior
@@ -192,6 +191,19 @@ which records the algorithm's progress at each iteration.}
 
 \item{N}{The sample size.}
 
+\item{Bhat}{Alternative summary data giving the estimated effects
+(J X R matrix). This, together with \code{Shat}, may be
+provided instead of \code{Z}.}
+
+\item{Shat}{Alternative summary data giving the standard errors of
+the estimated effects (J X R matrix). This, together with
+\code{Bhat}, may be provided instead of \code{Z}.}
+
+\item{varY}{The sample covariance of Y, defined as \eqn{Y'Y/(N-1)}.
+When the sample covariance is not provided, the coefficients
+(returned from \code{coef}) are computed on the
+\dQuote{standardized} X, y scale.}
+
 \item{XtX}{A J x J matrix \eqn{X^TX} in which the columns of \eqn{X}
 are centered to have mean zero.}
 
@@ -279,7 +291,7 @@ res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans)
 # RSS example with one response.
 R = crossprod(X)
 z = susieR:::calc_z(X,Y)
-res = mvsusie_rss(z,R,L = 10)
+res = mvsusie_rss(z,R,N=n,L = 10)
 
 # Example with three responses.
 set.seed(1)
@@ -298,9 +310,7 @@ y1 = X \%*\% beta1 + rnorm(n)
 y2 = X \%*\% beta2 + rnorm(n)
 y3 = X \%*\% beta3 + rnorm(n)
 Y = cbind(y1,y2,y3)
-prior = create_mash_prior(max_mixture_len = -1,
-                          sample_data = list(X = X,Y = Y,
-                                             residual_variance = cov(Y)))
+prior = create_mixture_prior(R=p)
 fit = mvsusie(X,Y,prior_variance = prior)
 
 # Sufficient statistics example with three responses.
@@ -317,6 +327,6 @@ res = mvsusie_suff_stat(XtX,XtY,YtY,n,L = 10,X_colmeans,Y_colmeans,
 # RSS example with three responses.
 R = crossprod(X)
 Z = susieR:::calc_z(X,Y)
-res = mvsusie_rss(Z,R,L = 10,prior_variance = prior)
+res = mvsusie_rss(Z,R,N=n,L = 10,prior_variance = prior)
 
 }

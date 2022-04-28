@@ -3,9 +3,9 @@
 #' @details This function returns the lfsr for identifying nonzero
 #'   single effects, separately for each condition.
 #' 
-#' @param alpha L x P matrix.
+#' @param alpha L x J matrix.
 #' 
-#' @param clfsr L x P x R conditonal lfsr.
+#' @param clfsr L x J x R conditonal lfsr.
 #' 
 #' @return L x R matrix of lfsr
 #' 
@@ -30,14 +30,14 @@ mvsusie_single_effect_lfsr = function (clfsr, alpha) {
 #' @details This function returns the lfsr for identifying nonzero
 #'   effects for each condition.
 #' 
-#' @param alpha L x P matrix.
+#' @param alpha L x J matrix.
 #' 
-#' @param clfsr L x P x R conditonal lfsr.
+#' @param clfsr L x J x R conditonal lfsr.
 #' 
 #' @param weighted Set \code{weighted = TRUE} to weight lfsr by PIP;
 #'   otherwise set \code{weighted = FALSE}.
 #' 
-#' @return P x R lfsr matrix.
+#' @return J x R lfsr matrix.
 #' 
 #' @export
 #' 

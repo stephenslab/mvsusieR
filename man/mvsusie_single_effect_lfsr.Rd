@@ -7,9 +7,9 @@
 mvsusie_single_effect_lfsr(clfsr, alpha)
 }
 \arguments{
-\item{clfsr}{L x P x R conditonal lfsr.}
+\item{clfsr}{L x J x R conditonal lfsr.}
 
-\item{alpha}{L x P matrix.}
+\item{alpha}{L x J matrix.}
 }
 \value{
 L x R matrix of lfsr

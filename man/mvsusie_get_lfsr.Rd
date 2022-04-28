@@ -7,15 +7,15 @@
 mvsusie_get_lfsr(clfsr, alpha, weighted = TRUE)
 }
 \arguments{
-\item{clfsr}{L x P x R conditonal lfsr.}
+\item{clfsr}{L x J x R conditonal lfsr.}
 
-\item{alpha}{L x P matrix.}
+\item{alpha}{L x J matrix.}
 
 \item{weighted}{Set \code{weighted = TRUE} to weight lfsr by PIP;
 otherwise set \code{weighted = FALSE}.}
 }
 \value{
-P x R lfsr matrix.
+J x R lfsr matrix.
 }
 \description{
 Local false sign rate (lfsr) for variables.

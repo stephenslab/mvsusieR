@@ -3,11 +3,34 @@
 #' @param Z J x R matrix of z-scores.
 #' 
 #' @param R J x J LD matrix.
+#' 
+#' @param N sample size
+#' 
+#' @param Bhat Alternative summary data giving the estimated effects
+#'   (J X R matrix). This, together with \code{Shat}, may be
+#'   provided instead of \code{Z}.
+#'
+#' @param Shat Alternative summary data giving the standard errors of
+#'   the estimated effects (J X R matrix). This, together with
+#'   \code{Bhat}, may be provided instead of \code{Z}.
+#'
+#' @param varY The sample covariance of Y, defined as \eqn{Y'Y/(N-1)}.
+#'   When the sample covariance is not provided, the coefficients
+#'   (returned from \code{coef}) are computed on the
+#'   \dQuote{standardized} X, y scale.
+#'
+#' @param prior_variance Can be either (1) a vector of length L, or a
+#'   scalar, for scaled prior variance when Y is univariate (which
+#'   should then be equivalent to \code{\link[susieR]{susie}}); or (2) a
+#'   matrix for a simple multivariate regression; or (3) a mixture prior 
+#'   from \code{\link{create_mixture_prior}}.
+#'   
+#' @param residual_variance The residual variance
 #'
 #' @export
 #' 
 mvsusie_rss = function (Z, R, N, Bhat, Shat, varY, 
-                        prior_variance, 
+                        prior_variance=0.2, 
                         residual_variance=NULL,
                         ...) {
   is_numeric_prior =

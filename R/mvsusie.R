@@ -10,9 +10,9 @@
 #'   SuSiE assumption is that each \eqn{b_l} has exactly one non-zero
 #'   element.
 #' 
-#' @param X n by p matrix of covariates.
+#' @param X N by J matrix of covariates.
 #' 
-#' @param Y Vector of length n, or n by r matrix of response
+#' @param Y Vector of length N, or N by R matrix of response
 #'   variables.
 #' 
 #' @param L Maximum number of non-zero effects.
@@ -20,8 +20,8 @@
 #' @param prior_variance Can be either (1) a vector of length L, or a
 #'   scalar, for scaled prior variance when Y is univariate (which
 #'   should then be equivalent to \code{\link[susieR]{susie}}); or (2) a
-#'   matrix for a simple multivariate regression; or (3) a MASH fit that
-#'   contains an array of prior covariance matrices and their weights.
+#'   matrix for a simple multivariate regression; or (3) a mixture prior 
+#'   from \code{\link{create_mixture_prior}}.
 #' 
 #' @param residual_variance The residual variance (defaults to the
 #'   sample variance of Y).
@@ -180,7 +180,7 @@
 #' # RSS example with one response.
 #' R = crossprod(X)
 #' z = susieR:::calc_z(X,Y)
-#' res = mvsusie_rss(z,R,L = 10)
+#' res = mvsusie_rss(z,R,N=n,L = 10)
 #' 
 #' # Example with three responses.
 #' set.seed(1)
@@ -199,9 +199,7 @@
 #' y2 = X %*% beta2 + rnorm(n)
 #' y3 = X %*% beta3 + rnorm(n)
 #' Y = cbind(y1,y2,y3)
-#' prior = create_mash_prior(max_mixture_len = -1,
-#'                           sample_data = list(X = X,Y = Y,
-#'                                              residual_variance = cov(Y)))
+#' prior = create_mixture_prior(R=p)
 #' fit = mvsusie(X,Y,prior_variance = prior)
 #'
 #' # Sufficient statistics example with three responses.
@@ -218,7 +216,7 @@
 #' # RSS example with three responses.
 #' R = crossprod(X)
 #' Z = susieR:::calc_z(X,Y)
-#' res = mvsusie_rss(Z,R,L = 10,prior_variance = prior)
+#' res = mvsusie_rss(Z,R,N=n,L = 10,prior_variance = prior)
 #' 
 #' @importFrom Matrix isDiagonal
 #' @importFrom stats sd
