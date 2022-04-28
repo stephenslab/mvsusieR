@@ -37,24 +37,13 @@ mvsusie(
 mvsusie_rss(
   Z,
   R,
-  L = 10,
-  prior_variance = 50,
+  N,
+  Bhat,
+  Shat,
+  varY,
+  prior_variance,
   residual_variance = NULL,
-  prior_weights = NULL,
-  estimate_prior_variance = TRUE,
-  estimate_prior_method = "EM",
-  check_null_threshold = 0,
-  prior_tol = 1e-09,
-  compute_objective = TRUE,
-  precompute_covariances = FALSE,
-  s_init = NULL,
-  coverage = 0.95,
-  min_abs_corr = 0.5,
-  n_thread = 1,
-  max_iter = 100,
-  tol = 0.001,
-  verbosity = 2,
-  track_fit = FALSE
+  ...
 )
 
 mvsusie_suff_stat(
@@ -201,6 +190,8 @@ which records the algorithm's progress at each iteration.}
 
 \item{R}{J x J LD matrix.}
 
+\item{N}{The sample size.}
+
 \item{XtX}{A J x J matrix \eqn{X^TX} in which the columns of \eqn{X}
 are centered to have mean zero.}
 
@@ -209,8 +200,6 @@ are centered to have mean zero.}
 
 \item{YtY}{An R x R matrix \eqn{Y^TY} in which the columns of
 \eqn{Y} are centered to have mean zero.}
-
-\item{N}{The sample size.}
 
 \item{X_colmeans}{A vector of length J giving the column means of
 \eqn{X}. If it is provided with \code{Y_colmeans}, the intercept is

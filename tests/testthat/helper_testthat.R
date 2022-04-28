@@ -95,7 +95,9 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
     # FIXME: sparse data not supported
     data = NA
   } else if(summary){
-    data = SSData$new(R, z, 1, 2, NULL, NULL)
+    adj = (n-1)/(z^2 + n - 2)
+    ztilde = sqrt(adj) * z
+    data = SSData$new((n-1)*R, sqrt(n-1)*ztilde, n-1, n, NULL, NULL)
     data$set_residual_variance(residual_variance)
   }else {
     data = DenseData$new(X,y)
@@ -133,7 +135,6 @@ expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_
   if (!any(is.na(A$elbo)) && !any(is.na(BA$elbo)))
     expect_equal(A$elbo, BA$elbo, tolerance = tol)
   if (rss) {
-    expect_equal(as.vector(A$Rr), as.vector(BA$fitted), tolerance = tol)
     expect_equal(coef(A)[-1], BA$coef[-1], tolerance = tol)
   } else {
     expect_equal(as.vector(A$fitted), as.vector(BA$fitted), tolerance = tol)

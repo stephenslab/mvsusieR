@@ -1,22 +1,14 @@
 #' @title Create mash prior object.
 #' 
-#' @param fitted_g from mashr::mash
-#' 
 #' @param mixture_prior a list of (weights = vector(), matrices =
 #'   list()) where matrices is a list of prior matrices and have same
 #'   length as weights.
 #' 
-#' @param sample_data a list of
-#' (X=X,Y=Y,residual_variance=residual_variance,center=T,scale=T) to
-#' allow for automatically determine canonical priors with equal
-#' weights
+#' @param R number of traits
 #' 
 #' @param null_weight whether or not to add a weight for null in
 #'   single effect models. By default it takes the null weight from
 #'   fitted_g if available. Use \code{null_weight = 0} to override this.
-#' 
-#' @param use_grid Expand mixture by grid values as in MASH (not
-#'   necessary when prior scalar is estimated).
 #' 
 #' @param weights_tol Filter out mixture components with weights
 #' smaller than \code{weights_tol}.
@@ -43,46 +35,21 @@
 #' 
 #' @export
 #' 
-create_mash_prior = function (fitted_g = NULL, mixture_prior = NULL,
-                              sample_data = NULL, null_weight = NULL,
-                              use_grid = FALSE, weights_tol = 1e-10,
-                              max_mixture_len = -1, include_indices = NULL,
-                              ...) {
-  if (sum(is.null(fitted_g),is.null(mixture_prior),is.null(sample_data)) != 2)
-    stop("Require exactly one of fitted_g, mixture_prior and sample_data ",
-         "to be not NULL")
-  if (!is.null(fitted_g)) {
-      
-    # fitted_g:
-    # list(pi    = pi_s,
-    #      Ulist = Ulist,
-    #      grid  = grid,
-    #      usepointmass = usepointmass)
-    for (item in c("pi","Ulist","grid","usepointmass"))
-      if (!(item %in% names(fitted_g)))
-        stop(paste("Cannot find",item,"in fitted_g input"))
-    if (fitted_g$usepointmass) {
-      prior_weights = fitted_g$pi[-1]
-      if (is.null(null_weight))
-        null_weight = fitted_g$pi[1]
-    } else
-      prior_weights = fitted_g$pi
-    return(MashInitializer$new(fitted_g$Ulist,fitted_g$grid,
-                               prior_weights = prior_weights,
-                               null_weight = null_weight,
-                               weights_tol = weights_tol,
-                               top_mixtures = max_mixture_len,
-                               include_conditions = include_indices))
-  }
-  if (!is.null(mixture_prior)) {
-    for (item in "matrices")
-      if (!(item %in% names(mixture_prior)))
-        stop(paste("Cannot find",item,"in mixture_prior input"))
+create_mixture_prior = function (mixture_prior, R, null_weight = NULL,
+                                 weights_tol = 1e-10,
+                                 max_mixture_len = -1, include_indices = NULL, ...) {
+  
+  if (sum(c(missing(mixture_prior), missing(R))) != 1)
+    stop("Require exactly one of mixture_prior and R")
+  if (is.null(null_weight))
+    null_weight = 0
+  if(!missing(mixture_prior)){
+    if(!("matrices" %in% names(mixture_prior))){
+      stop("mixture_prior must contain 'matrices'.")
+    }
     if (is.null(mixture_prior$weights))
       mixture_prior$weights = rep(1/length(mixture_prior$matrices),
                                   length(mixture_prior$matrices))
-    if (is.null(null_weight))
-      null_weight = 0
     return(MashInitializer$new(NULL,NULL,xUlist = mixture_prior$matrices,
                                prior_weights = mixture_prior$weights,
                                null_weight = null_weight,
@@ -90,42 +57,17 @@ create_mash_prior = function (fitted_g = NULL, mixture_prior = NULL,
                                top_mixtures = max_mixture_len,
                                include_conditions = include_indices))
   }
-  if (!is.null(sample_data)) {
-    for (item in c("X","Y","residual_variance")) {
-      if (!(item %in% names(sample_data)))
-        stop(paste("Cannot find",item,"in sample_data input"))
-    }
-    if (is.null(sample_data$center))
-      sample_data$center = TRUE
-    if (is.null(sample_data$scale))
-      sample_data$scale = TRUE
-    
-    # Compute canonical covariances.
-    Ulist = create_cov_canonical(ncol(sample_data$Y),...)
-    
-    # Compute grid.
-    if (use_grid) {
-      d = DenseData$new(sample_data$X,sample_data$Y)
-      d$standardize(sample_data$center,sample_data$scale)
-      res = d$get_sumstats(diag(sample_data$residual_variance),
-                           cov2cor(sample_data$residual_variance))
-      
-      # Use sqrt(3) giving a coarser grid than mash default in
-      # exchange for less walltime.
-      grid = mashr:::autoselect_grid(list(Bhat = res$bhat,Shat = res$sbhat),
-                                     sqrt(3))
-    } else
-      grid = 1
-    comp_len = length(grid) * length(Ulist)
-    if (max_mixture_len < comp_len && max_mixture_len > 0)
-      warning(paste0("Automatically generated uniform mixture prior is of ",
-                     "length ",comp_len," and is greater than currently ",
-                     "specified max_mixture_len ",max_mixture_len,
-                     ". Please set max_mixture_len = -1 to allow using all ",
-                     "of them (although computational speed will suffer)."))
-    if (is.null(null_weight))
-      null_weight = 0
-    return(MashInitializer$new(Ulist,grid,prior_weights = NULL,
+  if(!missing(R)){
+    Ulist = create_cov_canonical(R, ...)
+    weights = rep(1/length(Ulist),length(Ulist))
+    if (max_mixture_len < length(Ulist) && max_mixture_len > 0)
+      stop(paste0("Automatically generated uniform mixture prior is of ",
+                  "length ",length(Ulist)," and is greater than currently ",
+                  "specified max_mixture_len ",max_mixture_len,
+                  ". Please set max_mixture_len = -1 to allow using all ",
+                  "of them (although computational speed will suffer)."))
+    return(MashInitializer$new(NULL,NULL,xUlist=Ulist,
+                               prior_weights = weights,
                                null_weight = null_weight,
                                weights_tol = weights_tol,
                                top_mixtures = max_mixture_len,
