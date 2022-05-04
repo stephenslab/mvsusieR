@@ -107,7 +107,11 @@ mvsusie_rss = function (Z, R, N, Bhat, Shat, varY,
         varY = diag(ncol(Z))
       }
     }else{
-      varY = cov2cor(residual_variance)
+      if(is.null(dim(residual_variance))){
+        varY = residual_variance
+      }else{
+        varY = cov2cor(residual_variance)
+      }
     }
     s = mvsusie_suff_stat(XtX = R,XtY = Z,YtY = varY,N = 2,
                           prior_variance = prior_variance, 
@@ -140,7 +144,11 @@ mvsusie_rss = function (Z, R, N, Bhat, Shat, varY,
           varY = diag(ncol(Z))
         }
       }else{
-        varY = cov2cor(residual_variance)
+        if(is.null(dim(residual_variance))){
+          varY = residual_variance
+        }else{
+          varY = cov2cor(residual_variance)
+        }
       }
     }
     s = mvsusie_suff_stat(XtX = XtX, XtY = XtY, YtY = (N-1)*varY, N = N, 
