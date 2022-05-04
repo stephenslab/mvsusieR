@@ -98,7 +98,11 @@ mvsusie_suff_stat = function (XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
   s$coef   = drop(s$coef)
   s$fitted = drop(s$fitted)
   if (is.null(colnames(XtY)))
-    s$condition_names = paste0("cond",1:ncol(XtY))
+    if(is.null(dim(XtY))){
+      s$condition_names = 'cond1'
+    }else{
+      s$condition_names = paste0("cond",1:ncol(XtY))
+    }
   else
     s$condition_names = colnames(XtY)
   if (is.null(colnames(XtX)))
