@@ -257,6 +257,14 @@ of the following elements:
 \item{walltime}{Records runtime of the model fitting algorithm.}
 
 \item{z}{Vector of univariate z-scores.}
+
+\item{single_effect_lfsr}{Average lfsr (local false sign rate) for
+  each CS.}
+
+\item{lfsr}{TO DO: Explain what this output is.}
+
+\item{conditional_lfsr}{The lfsr (local false sign rate) given that
+  the variable is the single effect.}
 }
 \description{
 Performs a Bayesian multiple linear regression of Y on X.
