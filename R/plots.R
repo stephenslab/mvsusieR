@@ -106,7 +106,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
   if (!inherits(m,"susie"))
     stop("Input argument \"m\" should be a susie fit object, such as the ",
          "output of calling function \"mvsusie\"")
-  
+
   if (plot_z) {
     if (!is.element("z",names(m)))
       stop("Cannot find the z-score summary statistics")
@@ -122,10 +122,10 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
     #   effects = colSums(m$b1)
     if (weighted_effect) {
       effects    = m$coef[-1,]
-      cs_effects = m$b1_rescaled[-1,]
+      cs_effects = m$b1_rescaled[,-1,]
     } else {
-      effects    = colSums(m$b1)
-      cs_effects = m$b1
+      effects    = colSums(m$b1)[-1,]
+      cs_effects = m$b1[,-1,]
     }
   }
   if (is.null(pos))
