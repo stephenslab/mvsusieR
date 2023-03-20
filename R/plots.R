@@ -200,7 +200,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                shape = 21,color = "white",na.rm = TRUE) +
     scale_x_discrete(drop = FALSE) +
     scale_y_discrete(drop = FALSE) + 
-    scale_radius(range = c(1,10),
+    scale_radius(range = c(1,6),
                  breaks = seq(min(table$mlog10lfsr,na.rm = TRUE),
                               max(table$mlog10lfsr,na.rm = TRUE),
                               length.out = 5)) +

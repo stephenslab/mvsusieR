@@ -1,0 +1,18 @@
+---
+title: "Introduction to mvsusie for multi-trait fine-mapping"
+author: Peter Carbonetto
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to mvsusie for multi-trait fine-mapping}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+TO DO: Add introductory remarks here.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
