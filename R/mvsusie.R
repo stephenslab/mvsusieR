@@ -37,7 +37,7 @@
 #'   columns of X to unit variance prior to fitting. If you do not
 #'   standardize you may need to think more carefully about specifying
 #'   the scale of the prior variance. Whatever the value of standardize,
-#'   the coefficients (returned by \code{\link[susieR]{coef}}) are for X
+#'   the coefficients (returned by \code{\link{coef}}) are for X
 #'   on the original input scale. Note that any column of X with zero
 #'   variance is not standardized, but left as is.
 #' 

@@ -75,7 +75,7 @@ Y = cbind(y1,y2,y3)
 prior =
   create_mixture_prior(R=3,max_mixture_len = -1)
 fit = mvsusie(X,Y,prior_variance = prior,compute_univariate_zscore = TRUE)
-mvsusie_plot(fit,plot_z = FALSE)$plot
-mvsusie_plot(fit,plot_z = TRUE)$plot
+# mvsusie_plot(fit,plot_z = FALSE)$plot
+# mvsusie_plot(fit,plot_z = TRUE)$plot
 
 }

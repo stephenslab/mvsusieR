@@ -26,6 +26,7 @@
 #' 
 #' @return Describe the return value here.
 #'
+#' @importFrom stats quantile
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes_string
 #' @importFrom ggplot2 geom_point
@@ -61,9 +62,9 @@ mvsusie_plot_simple <-
                           "gray","cyan")) {
 
   # Create a data frame containing the data used for plotting.
-  pdat <- data.frame(pip = fit$pip,
-                     pos = pos,
-                     cs  = as.character(NA),
+  pdat <- data.frame("pip" = fit$pip,
+                     "pos" = pos,
+                     "cs"  = as.character(NA),
                      stringsAsFactors = FALSE)
 
   # Add the CS assignments to the data frame.
@@ -112,16 +113,16 @@ mvsusie_plot_simple <-
   traits <- fit$condition_names
   n      <- length(traits)
   lmax   <- nrow(fit$alpha)
-  pdat_sentinel <- data.frame(pos    = rep(0,L),
-                              pip    = rep(0,L),
-                              lfsr   = rep(0,L),
-                              marker = rep("",L),
+  pdat_sentinel <- data.frame("pos"    = rep(0,L),
+                              "pip"    = rep(0,L),
+                              "lfsr"   = rep(0,L),
+                              "marker" = rep("",L),
                               stringsAsFactors = FALSE)
-  pdat_effects <- data.frame(trait     = rep(traits,times = L),
-                             cs        = rep(1:L,each = n),
-                             coef_sign = 0,
-                             coef_size = 0,
-                             lfsr      = 0,
+  pdat_effects <- data.frame("trait"     = rep(traits,times = L),
+                             "cs"        = rep(1:L,each = n),
+                             "coef_sign" = 0,
+                             "coef_size" = 0,
+                             "lfsr"      = 0,
                              stringsAsFactors = FALSE)
   fit$b1_rescaled <- fit$b1_rescaled[,-1,]
   effects <- matrix(0,n,L)
