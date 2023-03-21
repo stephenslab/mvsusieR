@@ -22,7 +22,7 @@ jobs:
           name: Install package dependencies
           command: |
             mkdir -p ~/R/Library
-            Rscript -e 'install.packages(c("devtools","testthat","RcppGSL","R6","ggplot2","cowplot","abind","mvtnorm","matrixStats","progress"))'
+            Rscript -e 'install.packages(c("devtools","testthat","RcppGSL","R6","ggplot2","cowplot","abind","mvtnorm","matrixStats","progress","ggrepel"))'
             Rscript -e 'devtools::install_github("stephens999/ashr",upgrade="never",force=TRUE)'
             Rscript -e 'devtools::install_github("stephenslab/mashr",upgrade="never",force=TRUE)'
             Rscript -e 'devtools::install_github("stephenslab/susieR",upgrade="never",force=TRUE)'
