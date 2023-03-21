@@ -27,10 +27,14 @@
   \item{sumstats$LD}{The LD computed from \code{raw$X}.}
 
   \item{sumstats$bhat}{The least-squares effect estimates from the
-    single-marker association tests.}
+    single-marker association tests computed using
+    \code{\link[susieR]{univariate_regression}}. (Note that \code{X}
+    was standardized before computing \code{bhat}.)}
 
-  \item{sumstats$sehat}{The standard errors of the least-squares effect
-    estimates.}}
+  \item{sumstats$sehat}{The standard errors of the least-squares
+    effect estimates computed using
+    \code{\link[susieR]{univariate_regression}}. (Note that \code{X}
+    was standardized before computing \code{sehat}.)}}
 }
 \description{
 Simulated fine-mapping data set used to illustrate

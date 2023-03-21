@@ -23,6 +23,8 @@ the seed.
 
 ```{r load-pkgs, message=FALSE}
 library(mvsusieR)
+library(ggplot2)
+library(cowplot)
 set.seed(1)
 ```
 
@@ -71,10 +73,11 @@ Fit the mvSuSiE model
 Now that we have set up the prior, we are ready to run mvsusie:
 
 ```{r run-mvsusie}
-fit <- mvsusie(X,Y,
+fit <- mvsusie(X,Y,standardize = TRUE,
                prior_variance = prior,
                residual_variance = simdata$par$V,
-			   estimate_prior_variance = TRUE)
+			   estimate_prior_variance = TRUE,
+			   tol = 0.01)
 ```
 
 In this call, we have provided mvSuSiE with the four key pieces of
@@ -101,6 +104,72 @@ with each other:
 
 ```{r cs-purity}
 fit$sets$purity
+```
+
+Examining the posterior inclusion probabilties (PIPs) for these
+variants, there is a subset of three variants that account for >58% of
+probability for being causal:
+
+```{r cs-3}
+markers <- fit$sets$cs$L3
+fit$pip[markers]
+```
+
+Additionally, the "sentinel" variant---the variant with the highest
+PIP---as a PIP of nearly 40%.
+
+In a multi-trait analysis, we are not just interested in identifying
+the causal SNPs, but also _which traits_ are affected by these causal
+SNPs.
+
+```{r, fig.height=2.5, fig.width=3.5}
+l <- 1
+i <- 335
+pdat <- data.frame(bhat = simdata$Btrue[i,],
+                   coef = fit$b1_rescaled[l,i+1,],
+                   lfsr = fit$single_effect_lfsr[l,])
+ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
+  geom_point(shape = 20,size = 2.5) +
+  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
+  scale_color_gradient2(low = "lightskyblue",mid = "gold",high = "orangered",
+                        midpoint = -40) +
+  labs(x = "true coef",y = "mvsusie estimate") +
+  theme_cowplot(font_size = 12)
+```
+
+```{r, fig.height=2.5, fig.width=3.5}
+l <- 3
+i <- 493
+pdat <- data.frame(bhat = simdata$Btrue[i,],
+                   coef = fit$b1_rescaled[l,i+1,],
+                   lfsr = fit$single_effect_lfsr[l,])
+ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
+  geom_point(shape = 20,size = 2.5) +
+  scale_color_gradient2(low = "lightskyblue",mid = "gold",high = "orangered",
+                        midpoint = -3) +
+  labs(x = "true coef",y = "mvsusie estimate") +
+  theme_cowplot(font_size = 12)
+```
+
+mvSuSiE with summary data: mvSuSiE-RSS
+--------------------------------------
+
+```{r mvsusie-rss}
+n <- simdata$sumstats$n
+Z <- simdata$sumstats$z
+R <- simdata$sumstats$LD
+fit_rss <- mvsusie_rss(Z,R,n,
+                       prior_variance = prior,
+					   residual_variance = simdata$par$V,
+					   estimate_prior_variance = TRUE,
+					   tol = 0.01)
+```
+
+```{r}
+l <- 1
+i <- 335
+fit$b1[l,i,]
+fit_rss$b1[l,i,]
 ```
 
 [mashr]: https://github.com/stephenslab/mashr
