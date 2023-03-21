@@ -1,10 +1,58 @@
-# Create the PIP plot and accompanying effect plot showing the effect
-# estimates and significance of the effects for all the traits.
-#
-# The colors from colorbrewer2.org.
-#
-mvsusie_plot <-
-  function (fit, pos, markers, chr, poslim, conditions,
+#' @title mvSuSiE PIP and Effect Plots
+#' 
+#' @description Create the PIP plot and accompanying effect plot
+#'  showing the effect estimates and significance of the effects for
+#'  all the traits.
+#'
+#' @details The colors from colorbrewer2.org.
+#'
+#' @param fit Describe the fit input here.
+#'
+#' @param pos Describe the pos input here.
+#'
+#' @param markers Describe the markers input here.
+#'
+#' @param chr Describe the chr input here.
+#'
+#' @param poslim Describe the poslim input here.
+#'
+#' @param conditions Describe the conditions input here.
+#'
+#' @param lfsr_cutoff Describe the lfsr_cutoff input here.
+#'
+#' @param lfsr_breaks Describe the lfsr_breaks input here.
+#'
+#' @param cs_colors Describe the cs_colors input here.
+#' 
+#' @return Describe the return value here.
+#'
+#' @importFrom ggplot2 ggplot
+#' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 geom_point
+#' @importFrom ggplot2 xlim
+#' @importFrom ggplot2 scale_y_discrete
+#' @importFrom ggplot2 scale_color_manual
+#' @importFrom ggplot2 scale_fill_manual
+#' @importFrom ggplot2 scale_alpha_manual
+#' @importFrom ggplot2 scale_size
+#' @importFrom ggplot2 guides
+#' @importFrom ggplot2 guide_legend
+#' @importFrom ggplot2 labs
+#' @importFrom ggplot2 theme
+#' @importFrom ggplot2 element_text
+#' @importFrom ggplot2 element_line
+#' @importFrom ggrepel geom_text_repel
+#' @importFrom cowplot theme_cowplot
+#' 
+#' @export
+#'
+mvsusie_plot_simple <-
+  function (fit,
+            pos = seq(1,length(fit$variable_names)),
+            markers = fit$variable_names,
+            chr = 1,
+            poslim = range(pos),
+            conditions,
             lfsr_cutoff = 0.05,
             lfsr_breaks = c(-Inf,1e-15,1e-8,1e-4,0.05,Inf),
             cs_colors = c("#1f78b4","#33a02c","#e31a1c","#ff7f00",

@@ -36,8 +36,7 @@ data(simdata)
 
 The data consist of an $N \times J$ genotype matrix `X` and an $N
 \times R$ phenotype matrix `Y` where $N$ is the number of samples, $J$
-is the number of genetic markers, and $R$ is the number of
-traits/phenotypes.
+is the number of SNPs, and $R$ is the number of traits/phenotypes.
 
 ```{r inspect-data}
 X <- simdata$raw$X
@@ -49,9 +48,8 @@ dim(Y)
 Specify the prior
 -----------------
 
-Some care needs to be taken to choose the prior for your mvSuSiE
-analysis, particularly when you are analyzing many traits. In this
-example, we have defined the prior for you:
+Some care should be taken to choose the prior for your mvSuSiE
+analysis. To simplify the example we have defined the prior for you:
 
 ```{r create-prior}
 prior <- create_mixture_prior(list(matrices = simdata$par$U,
@@ -62,10 +60,10 @@ prior <- create_mixture_prior(list(matrices = simdata$par$U,
 More generally, we recommend taking a "data-driven" approach to
 estimating the weights and the covariance matrices in the prior. For
 example, when there are many candidate fine-mapping regions in your
-study you could fit the prior to all the top associations from each of
-the candidate fine-mapping regions. This approach is quite similar to
-the approach used in [mashr][mashr], and we recommend looking through
-the vignettes in the mashr package for more detailed guidance.
+study, you could fit the prior to all the top associations from each
+of the candidate fine-mapping regions. This data-driven approach is
+quite similar to the approach used in [mashr][mashr], and we recommend
+looking through the vignettes in the mashr package for further guidance.
 
 Fit the mvSuSiE model
 ---------------------
@@ -81,46 +79,64 @@ fit <- mvsusie(X,Y,standardize = TRUE,
 ```
 
 In this call, we have provided mvSuSiE with the four key pieces of
-information need to run the fine-mapping analysis: (1) the genotype
-matrix; (2) the phenotype matrix, (3) the prior on the effects; and
-(4) the residual variance-covariance matrix (an $R \times R$ matrix). 
+information need to run the analysis: (1) the genotype matrix; (2) the
+phenotype matrix, (3) the prior on the effects; and (4) the residual
+variance-covariance matrix (an $R \times R$ matrix).
 
-By default, `mvsusie` fits a model with L = 10 single effects. mvSuSiE
-is generally robust to misspecification of L so long as L is chosen to
-be larger than the true number of effects. mvSuSiE prunes unneeded
-single effects by estimating a scaling coefficient in the prior; we
-set `estimate_prior_variance = TRUE` to activate this step. Indeed,
-`mvsusie` prunes 7 out of 10 of the single effects, resulting in 3
-(95%) credible sets (CSs), each of which contain exactly one of the
-true causal variants:
+The "tol" parameter tells the IBSS model fitting algorithm when to stop
+iterating; for a final analysis, you may want to set a more stringent
+tolerance (a number closer to zero).
+
+Identifying the causal SNPs: Credible Sets 
+------------------------------------------
+
+By default, the "mvsusie" function fits a model with L = 10 single
+effects. mvSuSiE is generally robust to misspecification of L so long
+as L is chosen to be larger than the true number of effects. mvSuSiE
+prunes unneeded single effects by estimating a scaling coefficient in
+the prior; we set `estimate_prior_variance = TRUE` to turn on this
+pruning step. Indeed, mvsusie pruned 7 out of 10 of the single effects,
+resulting in three 95% credible sets (CSs), each of which contain
+exactly one of the true causal SNPs:
 
 ```{r credible-sets}
 fit$sets$cs
 ```
 
-In the third CS, mvSuSiE cannot decide which genetic variant is the
-causal variant because the candidate variants are strongly correlated
-with each other:
+In the third CS, mvSuSiE cannot decide which SNP is the causal SNP
+because the candidate SNPs are strongly correlated with each other:
 
 ```{r cs-purity}
 fit$sets$purity
 ```
 
-Examining the posterior inclusion probabilties (PIPs) for these
-variants, there is a subset of three variants that account for >58% of
-probability for being causal:
+Examining the posterior inclusion probabilties (PIPs) for these SNPs,
+there is a subset of 3 SNPs that account for >58% of probability for
+being causal:
 
 ```{r cs-3}
 markers <- fit$sets$cs$L3
 fit$pip[markers]
 ```
 
-Additionally, the "sentinel" variant---the variant with the highest
-PIP---as a PIP of nearly 40%.
+Additionally, the "sentinel" SNP---the SNP with the highest PIP---as a
+PIP of nearly 40%.
+
+This is all summarized visually in a PIP plot:
+
+```{r pip-plot, fig.height=2, fig.width=6}
+mvsusie_plot_simple(fit)$pip_plot
+```
+
+Identifying which traits are affected
+-------------------------------------
 
 In a multi-trait analysis, we are not just interested in identifying
 the causal SNPs, but also _which traits_ are affected by these causal
 SNPs.
+
+Let's take the first CS as an example. This is an example of a causal
+SNP that affects most traits:
 
 ```{r, fig.height=2.5, fig.width=3.5}
 l <- 1
@@ -136,6 +152,11 @@ ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
   labs(x = "true coef",y = "mvsusie estimate") +
   theme_cowplot(font_size = 12)
 ```
+
+Indeed, the effects of this causal SNP are significant (very low local
+false sign rates) for most of the 20 traits. (A local false sign rate
+can be thought of as an alternative to a *p*-value, but is typically
+slightly more conservative than a *p*-value.)
 
 ```{r, fig.height=2.5, fig.width=3.5}
 l <- 3
