@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The aim of this vignette is to walk through the steps of a basic
+The aim of this vignette is to work through the steps of a basic
 mvSuSiE multi-trait fine-mapping analysis. We analyze a simulated
 fine-mapping data set with realistic genotypes.
 
@@ -18,10 +18,89 @@ knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
                       fig.align = "center",dpi = 120)
 ```
 
-First, we load the necessary packages, and to ensure reproducibility
-we set the seed.
+First, load the necessary packages, and to ensure reproducibility set
+the seed.
 
-```{r load-pkgs}
+```{r load-pkgs, message=FALSE}
 library(mvsusieR)
 set.seed(1)
 ```
+
+Next, load the data set we will analyze.
+
+```{r load-data}
+data(simdata)
+```
+
+The data consist of an $N \times J$ genotype matrix `X` and an $N
+\times R$ phenotype matrix `Y` where $N$ is the number of samples, $J$
+is the number of genetic markers, and $R$ is the number of
+traits/phenotypes.
+
+```{r inspect-data}
+X <- simdata$raw$X
+Y <- simdata$raw$Y
+dim(X)
+dim(Y)
+```
+
+Specify the prior
+-----------------
+
+Some care needs to be taken to choose the prior for your mvSuSiE
+analysis, particularly when you are analyzing many traits. In this
+example, we have defined the prior for you:
+
+```{r create-prior}
+prior <- create_mixture_prior(list(matrices = simdata$par$U,
+                                   weights = simdata$par$w),
+                              null_weight = 0)
+```
+							  
+More generally, we recommend taking a "data-driven" approach to
+estimating the weights and the covariance matrices in the prior. For
+example, when there are many candidate fine-mapping regions in your
+study you could fit the prior to all the top associations from each of
+the candidate fine-mapping regions. This approach is quite similar to
+the approach used in [mashr][mashr], and we recommend looking through
+the vignettes in the mashr package for more detailed guidance.
+
+Fit the mvSuSiE model
+---------------------
+
+Now that we have set up the prior, we are ready to run mvsusie:
+
+```{r run-mvsusie}
+fit <- mvsusie(X,Y,
+               prior_variance = prior,
+               residual_variance = simdata$par$V,
+			   estimate_prior_variance = TRUE)
+```
+
+In this call, we have provided mvSuSiE with the four key pieces of
+information need to run the fine-mapping analysis: (1) the genotype
+matrix; (2) the phenotype matrix, (3) the prior on the effects; and
+(4) the residual variance-covariance matrix (an $R \times R$ matrix). 
+
+By default, `mvsusie` fits a model with L = 10 single effects. mvSuSiE
+is generally robust to misspecification of L so long as L is chosen to
+be larger than the true number of effects. mvSuSiE prunes unneeded
+single effects by estimating a scaling coefficient in the prior; we
+set `estimate_prior_variance = TRUE` to activate this step. Indeed,
+`mvsusie` prunes 7 out of 10 of the single effects, resulting in 3
+(95%) credible sets (CSs), each of which contain exactly one of the
+true causal variants:
+
+```{r credible-sets}
+fit$sets$cs
+```
+
+In the third CS, mvSuSiE cannot decide which genetic variant is the
+causal variant because the candidate variants are strongly correlated
+with each other:
+
+```{r cs-purity}
+fit$sets$purity
+```
+
+[mashr]: https://github.com/stephenslab/mashr

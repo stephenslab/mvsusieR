@@ -46,8 +46,7 @@ in the shell:
     R CMD check --as-cran --ignore-vignettes mvsusieR_$VERSION.tar.gz
     ```
 
-+ Run `pkgdown::build_site(lazy = TRUE,examples = FALSE)` to build the
-  website.
++ Run `pkgdown::build_site()` to build the pkgdown site.
 
 [pkgdown-site]: https://stephenslab.github.io/mvsusieR
 [prediction-vignette]: https://stephenslab.github.io/mvsusieR/articles/prediction.html
