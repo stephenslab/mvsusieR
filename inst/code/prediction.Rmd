@@ -22,6 +22,7 @@ predict phenotypes from genotypes for $N_{test} = 100$ individuals,
 training our model on the remaining $N_{training} = 400$ individuals.
 
 ```{r}
+library(mashr)
 library(mvsusieR)
 set.seed(1234)
 options(stringsAsFactors = FALSE)

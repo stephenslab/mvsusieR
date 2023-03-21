@@ -3,9 +3,11 @@
 \docType{data}
 \name{simdata}
 \alias{simdata}
-\title{Simulated Multi-trait Fine-Mapping Data Used for Tutorial}
+\title{Simulated Multi-trait Fine-Mapping Data Used in Tutorial}
 \format{
 \code{simdata} is a list with the following elements:
+
+\describe{
 
   \item{raw$X}{The matrix of simulated genotypes.}
 
@@ -28,7 +30,7 @@
     single-marker association tests.}
 
   \item{sumstats$sehat}{The standard errors of the least-squares effect
-    estimates.}
+    estimates.}}
 }
 \description{
 Simulated fine-mapping data set used to illustrate

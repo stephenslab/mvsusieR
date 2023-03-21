@@ -1,6 +1,6 @@
 #' @name simdata
 #'
-#' @title Simulated Multi-trait Fine-Mapping Data Used for Tutorial
+#' @title Simulated Multi-trait Fine-Mapping Data Used in Tutorial
 #'
 #' @description Simulated fine-mapping data set used to illustrate
 #'   mvSuSiE in the tutorial. The data set includes genotype and
@@ -14,6 +14,8 @@
 #' @docType data
 #' 
 #' @format \code{simdata} is a list with the following elements:
+#' 
+#' \describe{
 #' 
 #'   \item{raw$X}{The matrix of simulated genotypes.}
 #' 
@@ -36,7 +38,7 @@
 #'     single-marker association tests.}
 #'
 #'   \item{sumstats$sehat}{The standard errors of the least-squares effect
-#'     estimates.}
+#'     estimates.}}
 #' 
 #' @keywords data
 #'

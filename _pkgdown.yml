@@ -9,12 +9,3 @@ navbar:
   right:
     - text: "Source"
       href: https://github.com/stephenslab/mvsusieR
-
-articles:
-  - title: "Vignettes"
-    desc: >
-      The following vignettes provide detailed illustrations of the
-      mvsusieR package, as well as guidance on correct application of the
-      statistical methods.
-    contents:
-    - prediction
