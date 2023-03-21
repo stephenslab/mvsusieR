@@ -1,10 +1,10 @@
 ---
-title: Introduction to mvsusie for multi-trait fine-mapping
+title: Introduction to mvSuSiE for multi-trait fine-mapping
 author: Yuxin Zou, Gao Wang, Peter Carbonetto and Matthew Stephens
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Introduction to mvsusie for multi-trait fine-mapping}
+  %\VignetteIndexEntry{Introduction to mvSuSiE for multi-trait fine-mapping}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -128,7 +128,7 @@ This is all summarized visually in a "PIP plot":
 mvsusie_plot_simple(fit)$pip_plot
 ```
 
-Identifying which traits are affected
+Determining which traits are affected
 -------------------------------------
 
 In a multi-trait analysis, we are not just interested in identifying
@@ -192,10 +192,32 @@ out$effect_plot
 mvSuSiE with summary data: mvSuSiE-RSS
 --------------------------------------
 
-```{r mvsusie-rss}
-n <- simdata$sumstats$n
+mvsusieR also provides a "summary data" interface, building on the
+ideas developed in the [susie-rss paper][susie-rss]. Different
+combinations of summary statistics are accepted, but here we will
+focus on the most common case in which the *z*-scores from the
+association tests are used. These *z*-scores should be stored in a $J
+\times R$ matrix:
+
+```{r summary-data-1}
 Z <- simdata$sumstats$z
+dim(Z)
+```
+
+In addition to the *z*-scores, the sample size and $R \times R$ LD
+(correlation) matrix are needed. (Strictly speaking, the sample size
+is not required, but the estimates may be less accurate if the sample
+size is not provided.)
+
+```{r summary-data-2}
+n <- simdata$sumstats$n
 R <- simdata$sumstats$LD
+```
+
+Now we can fit an mvSuSiE model to these summary data via the
+`mvsusie_rss` interface:
+
+```{r mvsusie-rss}
 fit_rss <- mvsusie_rss(Z,R,n,
                        prior_variance = prior,
 					   residual_variance = simdata$par$V,
@@ -203,11 +225,27 @@ fit_rss <- mvsusie_rss(Z,R,n,
 					   tol = 0.01)
 ```
 
-```{r}
-l <- 1
-i <- 335
-fit$b1[l,i,]
-fit_rss$b1[l,i,]
+The call to `mvsusie_rss` is very similar to the call to `mvsusie`
+above, except that the individual-level data are replaced with summary
+data.
+
+When the genotypes are standardized in `mvsusie` (`standardize =
+TRUE`) and the LD estimates are obtained from the same data that were
+used to compute the *z*-scores, both `mvsusie` and `mvsusie_rss`
+should give the same result:
+
+```{r raw-vs-summary, fig.height=2.5, fig.width=2.5}
+pdat <- data.frame(b1     = as.vector(fit$b1),
+                   b1_rss = as.vector(fit_rss$b1))
+ggplot(pdat,aes(x = b1,y = b1_rss)) +
+  geom_point(shape = 20,size = 2,color = "royalblue") +
+  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
+  labs(x = "mvsusie",y = "mvsusie_rss") +
+  theme_cowplot(font_size = 12)
 ```
 
+Of course, the result is not always expected to be the same---for
+example, when the LD is estimated from an external reference panel.
+
 [mashr]: https://github.com/stephenslab/mashr
+[susie-rss]: https://doi.org/10.1371/journal.pgen.1010299
