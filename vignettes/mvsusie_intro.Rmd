@@ -122,7 +122,7 @@ fit$pip[markers]
 Additionally, the "sentinel" SNP---the SNP with the highest PIP---as a
 PIP of nearly 40%.
 
-This is all summarized visually in a PIP plot:
+This is all summarized visually in a "PIP plot":
 
 ```{r pip-plot, fig.height=2, fig.width=6}
 mvsusie_plot_simple(fit)$pip_plot
@@ -153,10 +153,16 @@ ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
   theme_cowplot(font_size = 12)
 ```
 
-Indeed, the effects of this causal SNP are significant (very low local
-false sign rates) for most of the 20 traits. (A local false sign rate
-can be thought of as an alternative to a *p*-value, but is typically
-slightly more conservative than a *p*-value.)
+Indeed, the effects of this causal SNP are significant---*i.e.,* small
+local false sign rates---for most of the 20 traits. (A local false
+sign rate can be thought of as an alternative to a *p*-value, but is
+typically slightly more conservative than a *p*-value.)
+
+Also, it is reassuring that the mvsusie estimates of the coefficients
+align well with the coefficients used to simulate the data.
+
+By contrast, the causal SNP identified by the third CS only affects
+one trait, and the affected trait was correctly identified by mvsusie:
 
 ```{r, fig.height=2.5, fig.width=3.5}
 l <- 3
@@ -170,6 +176,17 @@ ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
                         midpoint = -3) +
   labs(x = "true coef",y = "mvsusie estimate") +
   theme_cowplot(font_size = 12)
+```
+
+Notice that the lfsr is very small for the first trait (<1e-6) whereas
+the lfsrs for the rest of the traits are all close to 1.
+
+The information about which traits are affected by the causal SNP is
+summarized in the "effect plot":
+
+```{r effect-plot, fig.height=2.75, fig.width=2.5}
+out <- mvsusie_plot_simple(fit)
+out$effect_plot
 ```
 
 mvSuSiE with summary data: mvSuSiE-RSS
