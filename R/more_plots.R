@@ -77,8 +77,8 @@ mvsusie_plot_simple <-
 
   # Create a second data frame used to plot only the points included
   # in at least one CS.
-  rows <- which(!is.na(pdat_cs$cs))
-  pdat_cs <- pdat_cs[rows,]
+  rows <- which(!is.na(pdat$cs))
+  pdat_cs <- pdat[rows,]
 
   # Keep only the genetic markers with base-pair positions inside the
   # specified limits.
