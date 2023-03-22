@@ -27,6 +27,7 @@
 #' @return Describe the return value here.
 #'
 #' @importFrom stats quantile
+#' @importFrom stats median
 #' @importFrom ggplot2 ggplot
 #' @importFrom ggplot2 aes_string
 #' @importFrom ggplot2 geom_point
@@ -76,22 +77,25 @@ mvsusie_plot_simple <-
 
   # Create a second data frame used to plot only the points included
   # in at least one CS.
-  pdat_cs <- subset(pdat,!is.na(cs))
+  rows <- which(!is.na(pdat_cs$cs))
+  pdat_cs <- pdat_cs[rows,]
 
   # Keep only the genetic markers with base-pair positions inside the
   # specified limits.
   if (!missing(poslim)) {
-    pdat    <- subset(pdat,pos >= poslim[1] & pos <= poslim[2])
-    pdat_cs <- subset(pdat_cs,pos >= poslim[1] & pos <= poslim[2])
+    rows1   <- which(pdat$pos >= poslim[1] & pdat$pos <= poslim[2])
+    rows2   <- which(pdat_cs$pos >= poslim[1] & pdat_cs$pos <= poslim[2])
+    pdat    <- pdat[rows1,]  
+    pdat_cs <- pdat_cs[rows2,]
   }
-  pdat_cs <- transform(pdat_cs,cs = factor(cs))
-  css     <- levels(pdat_cs$cs)
+  pdat_cs$cs <- factor(pdat_cs$cs)
+  css        <- levels(pdat_cs$cs)
   
   # Reorder the CSs by position, then relabel them 1 through L.
-  L       <- length(css)
-  cs_pos  <- sapply(fit$sets$cs[css],function (x) median(pos[x]))
-  css     <- css[order(cs_pos)]
-  pdat_cs <- transform(pdat_cs,cs = factor(cs,levels = css))
+  L          <- length(css)
+  cs_pos     <- sapply(fit$sets$cs[css],function (x) median(pos[x]))
+  css        <- css[order(cs_pos)]
+  pdat_cs$cs <- factor(pdat_cs$cs,levels = css)
   levels(pdat_cs$cs) <- 1:L
   
   # Add key CS statistics to the legend (size, purity).
@@ -146,18 +150,18 @@ mvsusie_plot_simple <-
     effects[,i]                    <- b
   }
   if (!missing(conditions))
-    traits <- conditions
-  pdat_effects <- transform(pdat_effects,
-                            cs    = factor(cs),
-                            trait = factor(trait,rev(traits)),
-                            coef_sign = factor(coef_sign))
+      traits <- conditions
+  pdat_effects$cs         <- factor(pdat_effects$cs)
+  pdat_effects$trait      <- factor(pdat_effects$trait,traits)
+  pdat_effects$coef_sign  <- factor(pdat_effects$coef_sign)
   levels(pdat_effects$cs) <- pdat_sentinel$marker
   levels(pdat_effects$coef_sign) <- c("-1","+1")
 
   # Remove from the effects plot any effects that don't meet the lfsr
   # cutoff.
-  pdat_effects <- subset(pdat_effects,lfsr < lfsr_cutoff)
-  pdat_effects <- transform(pdat_effects,lfsr = cut(lfsr,lfsr_breaks))
+  rows <- which(pdat_effects$lfsr < lfsr_cutoff)
+  pdat_effects <- pdat_effects[rows,]
+  pdat_effects$lfsr <- cut(pdat_effects$lfsr,lfsr_breaks)
   
   # Create the PIP plot.
   pip_plot <- ggplot(pdat,aes_string(x = "pos",y = "pip")) +
