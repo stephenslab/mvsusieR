@@ -27,6 +27,9 @@
 #'   
 #' @param residual_variance The residual variance
 #'
+#' @param \dots Additional arguments passed to
+#'   \code{\link{mvsusie_suff_stat}}.
+#' 
 #' @export
 #' 
 mvsusie_rss = function (Z, R, N, Bhat, Shat, varY, 
