@@ -317,11 +317,12 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
   # Report z-scores from univariate regression.
   if (compute_univariate_zscore)
     s$z = susieR:::calc_z(X,Y,center = intercept,scale = standardize)
-  
+
   # Set row and column names of the outputs, and fix dimensions of
   # outputs if needed.
   s$coef   = drop(s$coef)
   s$fitted = drop(s$fitted)
+  s$residual_variance = data$residual_variance
   if (is.null(colnames(Y)))
     s$condition_names = paste0("cond",1:ncol(Y))
   else
@@ -353,6 +354,8 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
   colnames(s$alpha)  = s$variable_names
   names(s$intercept) = s$condition_names
   rownames(s$alpha)  = paste0("l",1:L)
+  rownames(s$residual_variance) = s$condition_names
+  colnames(s$residual_variance) = s$condition_names
   return(s)
 }
 
