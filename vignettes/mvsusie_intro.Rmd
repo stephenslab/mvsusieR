@@ -247,5 +247,42 @@ ggplot(pdat,aes(x = b1,y = b1_rss)) +
 Of course, the result is not always expected to be the same---for
 example, when the LD is estimated from an external reference panel.
 
+Estimating the residual variance
+--------------------------------
+
+In the above examples, we set the residual variance to the value that
+was used to simulated the data. In practice of course we will not have
+access to this so we will have to estimate the residual variance somehow.
+
+When one has access to the summary data (specifically, the z-scores)
+for a large pool of SNPs that are expected to have little to no effect
+on the traits, one can use these z-scores to estimate the residual
+variance. Here, in this example data set, we do not have access to a
+large pool of "null SNPs", but we can still use the data we have
+available to obtain a rough estimate of the residual variance.
+Specifically, we take as the "null SNPs" the SNPs in which the 
+z-scores are all less than 2 in magnitude:
+
+```{r get-null-markers}
+Z <- simdata$sumstats$z
+null_markers <- which(apply(abs(Z),1,max) < 2)
+length(null_markers)
+Z <- Z[null_markers,]
+Vest <- cov(Z)
+```
+
+The estimate of the residual covariance matrix using these SNPs is
+reasonable, although presumably one could do better if we had the
+z-scores for more SNPs that were not in LD with the causal SNPs:
+
+```{r compare-residual-estimate, fig.height=2.75, fig.width=3}
+pdat <- data.frame(true = as.vector(simdata$par$V) + rnorm(400)/30,
+                   estimated = as.vector(Vest))
+ggplot(pdat,aes(x = true,y = estimated)) +
+  geom_point(shape = 20,size = 2.5,color = "royalblue") +
+  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
+  theme_cowplot(font_size = 12)
+```
+
 [mashr]: https://github.com/stephenslab/mashr
 [susie-rss]: https://doi.org/10.1371/journal.pgen.1010299
