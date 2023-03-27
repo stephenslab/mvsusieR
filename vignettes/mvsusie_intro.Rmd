@@ -255,13 +255,13 @@ was used to simulated the data. In practice of course we will not have
 access to this so we will have to estimate the residual variance somehow.
 
 When one has access to the summary data (specifically, the z-scores)
-for a large pool of SNPs that are expected to have little to no effect
-on the traits, one can use these z-scores to estimate the residual
-variance. Here, in this example data set, we do not have access to a
-large pool of "null SNPs", but we can still use the data we have
-available to obtain a rough estimate of the residual variance.
-Specifically, we take as the "null SNPs" the SNPs in which the 
-z-scores are all less than 2 in magnitude:
+for a large pool of independent SNPs that are expected to have little
+to no effect on the traits, one can use these z-scores to estimate the
+residual variance. Here, in this example data set, we do not have
+access to a large pool of independent "null SNPs", but we can still
+use the data we have available to obtain a rough estimate of the
+residual variance.  Specifically, we take as the "null SNPs" the SNPs
+in which the z-scores are all less than 2 in magnitude:
 
 ```{r get-null-markers}
 Z <- simdata$sumstats$z

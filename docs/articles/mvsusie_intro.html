@@ -348,13 +348,13 @@ was used to simulated the data. In practice of course we will not have
 access to this so we will have to estimate the residual variance
 somehow.</p>
 <p>When one has access to the summary data (specifically, the z-scores)
-for a large pool of SNPs that are expected to have little to no effect
-on the traits, one can use these z-scores to estimate the residual
-variance. Here, in this example data set, we do not have access to a
-large pool of “null SNPs”, but we can still use the data we have
-available to obtain a rough estimate of the residual variance.
-Specifically, we take as the “null SNPs” the SNPs in which the z-scores
-are all less than 2 in magnitude:</p>
+for a large pool of independent SNPs that are expected to have little to
+no effect on the traits, one can use these z-scores to estimate the
+residual variance. Here, in this example data set, we do not have access
+to a large pool of independent “null SNPs”, but we can still use the
+data we have available to obtain a rough estimate of the residual
+variance. Specifically, we take as the “null SNPs” the SNPs in which the
+z-scores are all less than 2 in magnitude:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">Z</span> <span class="op">&lt;-</span> <span class="va">simdata</span><span class="op">$</span><span class="va">sumstats</span><span class="op">$</span><span class="va">z</span>
 <span class="va">null_markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span>,<span class="fl">1</span>,<span class="va">max</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">2</span><span class="op">)</span>
