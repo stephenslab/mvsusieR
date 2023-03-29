@@ -97,6 +97,7 @@ mvsusie_suff_stat = function (XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
   # outputs if needed.
   s$coef   = drop(s$coef)
   s$fitted = drop(s$fitted)
+  s$residual_variance = data$residual_variance
   if (is.null(colnames(XtY)))
     if(is.null(dim(XtY))){
       s$condition_names = 'cond1'
@@ -127,6 +128,8 @@ mvsusie_suff_stat = function (XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
     dimnames(s$b2) = list(single_effect = paste0("l",1:L),
                           variable      = s$variable_names,
                           condition     = s$condition_names)
+    rownames(s$residual_variance) = s$condition_names
+    colnames(s$residual_variance) = s$condition_names
   }
   names(s$pip)       = s$variable_names
   colnames(s$alpha)  = s$variable_names

@@ -349,13 +349,13 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
     dimnames(s$b2) = list(single_effect = paste0("l",1:L),
                           variable      = s$variable_names,
                           condition     = s$condition_names)
+    rownames(s$residual_variance) = s$condition_names
+    colnames(s$residual_variance) = s$condition_names
   }
   names(s$pip)       = s$variable_names
   colnames(s$alpha)  = s$variable_names
   names(s$intercept) = s$condition_names
   rownames(s$alpha)  = paste0("l",1:L)
-  rownames(s$residual_variance) = s$condition_names
-  colnames(s$residual_variance) = s$condition_names
   return(s)
 }
 

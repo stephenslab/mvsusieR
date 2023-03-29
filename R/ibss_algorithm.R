@@ -169,7 +169,7 @@ SuSiE <- R6Class("SuSiE",
              function (l) private$SER[[l]]$lbf),
 
     pip_history = function()
-      lapply(ifelse(seq(private$.niter > 1,2,1),
+      lapply(seq(ifelse(private$.niter > 1,2,1),
                     length(private$.pip_history)),
              function (i) private$.pip_history[[i]]),
       
@@ -286,14 +286,31 @@ SuSiE <- R6Class("SuSiE",
       
     estimate_residual_variance = function (d) {
       if (is.matrix(d$residual_variance)) {
-          
-        # FIXME: to implement estimating a vector of length R, or even
-        # a scalar.
-        E1 = lapply(seq(1,length(private$SER)),
+        if (inherits(d,"SSData")) {
+          E1 = lapply(seq(1,length(private$SER)),
+            function (l)
+              crossprod(private$SER[[l]]$posterior_b1,
+                d$XtX %*% private$SER[[l]]$posterior_b1))
+          Eb1 = aperm(abind(lapply(1:private$L,
+                  function (l) private$SER[[l]]$posterior_b1),along = 3),
+                  c(3,1,2))
+          if (dim(Eb1)[1] == 1)
+            Eb1 = Eb1[1,,]
+          else
+            Eb1 = do.call(cbind,lapply(1:dim(Eb1)[3],
+              function (i) colSums(Eb1[,,i]))) # J by R
+          E2 = crossprod(Eb1,d$XtY)
+          E3 = crossprod(Eb1,d$XtX) %*% Eb1
+          E1 = (d$YtY - E2 - t(E2) + E3) - Reduce("+", E1)
+        }else{
+          # FIXME: to implement estimating a vector of length R, or even
+          # a scalar.
+          E1 = lapply(seq(1,length(private$SER)),
                     function (l)
                       crossprod(private$SER[[l]]$posterior_b1,
                                 d$XtX %*% private$SER[[l]]$posterior_b1))
-        E1 = crossprod(d$residual) - Reduce("+", E1)
+          E1 = crossprod(d$residual) - Reduce("+", E1)
+        }
         return((E1 + Reduce("+",lapply(1:length(private$SER),
                                        function (l) private$SER[[l]]$bxxb)))/
                d$n_sample)
