@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mvsusieR</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.3.0524</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.3.0529</span>
       </span>
     </div>
 
@@ -71,7 +71,7 @@ fine-mapping</h1>
                         <h4 data-toc-skip class="author">Yuxin Zou, Gao
 Wang, Peter Carbonetto and Matthew Stephens</h4>
             
-            <h4 data-toc-skip class="date">2023-03-21</h4>
+            <h4 data-toc-skip class="date">2023-03-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stephenslab/mvsusieR/blob/HEAD/vignettes/mvsusie_intro.Rmd" class="external-link"><code>vignettes/mvsusie_intro.Rmd</code></a></small>
       <div class="hidden name"><code>mvsusie_intro.Rmd</code></div>
@@ -339,6 +339,40 @@ result:</p>
 <p><img src="mvsusie_intro_files/figure-html/raw-vs-summary-1.png" width="300" style="display: block; margin: auto;"></p>
 <p>Of course, the result is not always expected to be the same—for
 example, when the LD is estimated from an external reference panel.</p>
+</div>
+<div class="section level2">
+<h2 id="estimating-the-residual-variance">Estimating the residual variance<a class="anchor" aria-label="anchor" href="#estimating-the-residual-variance"></a>
+</h2>
+<p>In the above examples, we set the residual variance to the value that
+was used to simulated the data. In practice of course we will not have
+access to this so we will have to estimate the residual variance
+somehow.</p>
+<p>When one has access to the summary data (specifically, the z-scores)
+for a large pool of independent SNPs that are expected to have little to
+no effect on the traits, one can use these z-scores to estimate the
+residual variance. Here, in this example data set, we do not have access
+to a large pool of independent “null SNPs”, but we can still use the
+data we have available to obtain a rough estimate of the residual
+variance. Specifically, we take as the “null SNPs” the SNPs in which the
+z-scores are all less than 2 in magnitude:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">Z</span> <span class="op">&lt;-</span> <span class="va">simdata</span><span class="op">$</span><span class="va">sumstats</span><span class="op">$</span><span class="va">z</span>
+<span class="va">null_markers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span>,<span class="fl">1</span>,<span class="va">max</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">2</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">null_markers</span><span class="op">)</span>
+<span class="va">Z</span> <span class="op">&lt;-</span> <span class="va">Z</span><span class="op">[</span><span class="va">null_markers</span>,<span class="op">]</span>
+<span class="va">Vest</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cov</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span>
+<span class="co"># [1] 291</span></code></pre></div>
+<p>The estimate of the residual covariance matrix using these SNPs is
+reasonable, although presumably one could do better if we had the
+z-scores for more SNPs that were not in LD with the causal SNPs:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>true <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">simdata</span><span class="op">$</span><span class="va">par</span><span class="op">$</span><span class="va">V</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">400</span><span class="op">)</span><span class="op">/</span><span class="fl">30</span>,
+                   estimated <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">Vest</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">true</span>,y <span class="op">=</span> <span class="va">estimated</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">20</span>,size <span class="op">=</span> <span class="fl">2.5</span>,color <span class="op">=</span> <span class="st">"royalblue"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fl">0</span>,slope <span class="op">=</span> <span class="fl">1</span>,color <span class="op">=</span> <span class="st">"black"</span>,linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span> <span class="op">+</span>
+  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></code></pre></div>
+<p><img src="mvsusie_intro_files/figure-html/compare-residual-estimate-1.png" width="360" style="display: block; margin: auto;"></p>
 </div>
   </div>
 
