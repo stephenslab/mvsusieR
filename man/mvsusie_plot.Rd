@@ -10,7 +10,7 @@ mvsusie_plot(
   cs_only = TRUE,
   plot_z = FALSE,
   pos = NULL,
-  cslfsr_threshold = 0.05,
+  cslfsr_threshold = 0.01,
   add_cs = TRUE,
   font_size = 12
 )
@@ -26,7 +26,8 @@ conditions will result in an error.}
 estimated effect sizes in the original scale of X.}
 
 \item{cs_only}{When \code{cs_only = TRUE}, show only variants in
-CSs.}
+CSs. When \code{cs_only} is a vector cs index, show only variants
+in the specified CSs.}
 
 \item{plot_z}{When \code{plot_z = FALSE}, the bubble size is
 \eqn{-log_{10}(y)}, where \eqn{y} is the CS condition-specific

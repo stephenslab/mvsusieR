@@ -11,8 +11,7 @@ mvsusie_plot_simple(
   chr = 1,
   poslim = range(pos),
   conditions,
-  lfsr_cutoff = 0.05,
-  lfsr_breaks = c(-Inf, 1e-15, 1e-08, 0.0001, 0.05, Inf),
+  lfsr_cutoff = 0.01,
   cs_colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00", "#6a3d9a", "#b15928",
     "#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99", "gray", "cyan")
 )
@@ -31,8 +30,6 @@ mvsusie_plot_simple(
 \item{conditions}{Describe the conditions input here.}
 
 \item{lfsr_cutoff}{Describe the lfsr_cutoff input here.}
-
-\item{lfsr_breaks}{Describe the lfsr_breaks input here.}
 
 \item{cs_colors}{Describe the cs_colors input here.}
 }
