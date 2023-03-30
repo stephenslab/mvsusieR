@@ -157,7 +157,7 @@ mvsusie_plot_simple <-
   # cutoff.
   rows <- which(pdat_effects$lfsr < lfsr_cutoff)
   pdat_effects <- pdat_effects[rows,]
-  s
+  
   # Create the PIP plot.
   pip_plot <- ggplot(pdat,aes_string(x = "pos",y = "pip")) +
     geom_point(color = "darkblue",shape = 20,size = 1.25) +
