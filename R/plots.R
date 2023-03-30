@@ -10,7 +10,8 @@
 #'   estimated effect sizes in the original scale of X.
 #'
 #' @param cs_only When \code{cs_only = TRUE}, show only variants in
-#'   CSs.
+#'   CSs. When \code{cs_only} is a vector cs index, show only variants
+#'   in the specified CSs.
 #'
 #' @param plot_z When \code{plot_z = FALSE}, the bubble size is
 #'   \eqn{-log_{10}(y)}, where \eqn{y} is the CS condition-specific
@@ -81,7 +82,7 @@
 #' @export
 #' 
 mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
-                         plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.05,
+                         plot_z = FALSE, pos = NULL, cslfsr_threshold = 0.01,
                          add_cs = TRUE, font_size = 12) {
 
   cs_colors = c(
@@ -124,8 +125,8 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
       effects    = m$coef[-1,]
       cs_effects = m$b1_rescaled[,-1,]
     } else {
-      effects    = colSums(m$b1)[-1,]
-      cs_effects = m$b1[,-1,]
+      effects    = colSums(m$b1)
+      cs_effects = m$b1
     }
   }
   if (is.null(pos))
@@ -176,8 +177,11 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
         table[idx,"effect_size"] = effects[idx]
       }
     }
-    if (cs_only)
+    if ((length(cs_only) == 1) && (is.logical(cs_only)) && (cs_only == TRUE))
       table = table[which(!is.na(table$cs)),]
+    else if (any(cs_only != FALSE)){
+      table = table[which(table$cs %in% cs_only),]
+    }
   }
 
   rowidx            = which(table$x %in% x_names[pos])
@@ -210,7 +214,7 @@ mvsusie_plot = function (m, weighted_effect = FALSE, cs_only = TRUE,
                                  "#f4a582","#ca0020","firebrick"),
                       na.value = "white",drop = FALSE) +
     labs(size = paste0("-log10(",ifelse(plot_z,"p","CS lfsr"),")"),
-         fill = ifelse(plot_z, 'z scores', 'NCP')) +
+         fill = ifelse(plot_z, 'z scores', 'effect size')) +
     guides(
       size = guide_legend(order = 1,
                           override.aes = list(color = "black",fill = "black")),

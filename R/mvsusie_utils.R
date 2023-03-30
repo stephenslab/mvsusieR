@@ -69,16 +69,16 @@ report_susie_model = function (d, m, estimate_prior_variance = TRUE) {
     b2 = t(do.call(cbind,m$posterior_b2))
     b = colSums(b1)
   } else {
-    b1 = aperm(abind(m$posterior_b1,along = 3),c(3,1,2))
-    b2 = aperm(abind(m$posterior_b2,along = 3),c(3,1,2))
+    b1 = aperm(abind(m$posterior_b1,along = 3),c(3,1,2)) # L x J x R
+    b2 = aperm(abind(m$posterior_b2,along = 3),c(3,1,2)) # L x J x R
     if (dim(b1)[1] == 1)
         
       # only one effect specified or left
-      b = do.call(cbind, lapply(1:dim(b1)[3],function(i) b1[,,i]))
+      b = do.call(cbind, lapply(1:dim(b1)[3],function(i) b1[,,i])) 
     else 
         
       # Multiple effects.
-      b = do.call(cbind,lapply(1:dim(b1)[3],function(i) colSums(b1[,,i])))
+      b = do.call(cbind,lapply(1:dim(b1)[3],function(i) colSums(b1[,,i]))) # J x R
 
     if (dim(b)[2] == 1) {
       b1 = b1[,,1]
@@ -93,7 +93,7 @@ report_susie_model = function (d, m, estimate_prior_variance = TRUE) {
       mixture_weights = t(do.call(cbind, m$mixture_posterior_weights))
     else
       mixture_weights = aperm(abind(m$mixture_posterior_weights,along = 3),
-                                    c(3,1,2))
+                                    c(3,1,2)) # L x J x R
   }
   if (is.null(m$clfsr[[1]]))
     clfsr = as.numeric(NA)
@@ -101,7 +101,7 @@ report_susie_model = function (d, m, estimate_prior_variance = TRUE) {
     if (length(dim(m$clfsr[[1]])) < 2)
       clfsr = t(do.call(cbind, m$clfsr))
     else
-      clfsr = aperm(abind(m$clfsr,along = 3),c(3,1,2))
+      clfsr = aperm(abind(m$clfsr,along = 3),c(3,1,2)) # L x J x R
   }
   s = list(
         alpha  = t(m$pip),
