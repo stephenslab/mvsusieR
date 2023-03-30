@@ -55,7 +55,7 @@ mvsusie_plot_simple <-
             chr = 1,
             poslim = range(pos),
             conditions,
-            lfsr_cutoff = 0.05,
+            lfsr_cutoff = 0.01,
             lfsr_breaks = c(-Inf,1e-15,1e-8,1e-4,0.05,Inf),
             cs_colors = c("#1f78b4","#33a02c","#e31a1c","#ff7f00",
                           "#6a3d9a","#b15928","#a6cee3","#b2df8a",
