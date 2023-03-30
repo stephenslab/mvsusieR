@@ -311,9 +311,9 @@ SuSiE <- R6Class("SuSiE",
                                 d$XtX %*% private$SER[[l]]$posterior_b1))
           E1 = crossprod(d$residual) - Reduce("+", E1)
         }
-        return((E1 + Reduce("+",lapply(1:length(private$SER),
-                                       function (l) private$SER[[l]]$bxxb)))/
-               d$n_sample)
+        V = (E1 + Reduce("+",lapply(1:length(private$SER),
+          function (l) private$SER[[l]]$bxxb)))/d$n_sample
+        return((V+t(V))/2)
       } else
         return(private$compute_expected_sum_squared_residuals_univariate(d)/
                d$n_sample)

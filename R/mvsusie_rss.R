@@ -103,17 +103,23 @@ mvsusie_rss = function (Z, R, N, Bhat, Shat, varY,
     warning("Providing the sample size (N), or even a rough estimate of N, ",
             "is highly recommended. Without N, the implicit assumption is ",
             "N is large (Inf) and the effect sizes are small (close to zero).")
-    if(is.null(residual_variance)){
-      if(is.null(dim(Z))){
-        varY = 1
-      }else{
-        varY = diag(ncol(Z))
+    if(!missing(varY)){
+      if(!is.null(dim(Z))){
+        varY = cov2cor(varY)
       }
     }else{
-      if(is.null(dim(residual_variance))){
-        varY = residual_variance
+      if(is.null(residual_variance)){
+        if(is.null(dim(Z))){
+          varY = 1
+        }else{
+          varY = diag(ncol(Z))
+        }
       }else{
-        varY = cov2cor(residual_variance)
+        if(is.null(dim(residual_variance))){
+          varY = residual_variance
+        }else{
+          varY = cov2cor(residual_variance)
+        }
       }
     }
     s = mvsusie_suff_stat(XtX = R,XtY = Z,YtY = varY,N = 2,
@@ -140,17 +146,23 @@ mvsusie_rss = function (Z, R, N, Bhat, Shat, varY,
       # The effects are on the *standardized* X, y scale.
       XtX = (N-1)*R
       XtY = sqrt(N-1)*Z
-      if(is.null(residual_variance)){
-        if(is.null(dim(Z))){
-          varY = 1
-        }else{
-          varY = diag(ncol(Z))
+      if(!missing(varY)){
+        if(!is.null(dim(Z))){
+          varY = cov2cor(varY)
         }
       }else{
-        if(is.null(dim(residual_variance))){
-          varY = residual_variance
+        if(is.null(residual_variance)){
+          if(is.null(dim(Z))){
+            varY = 1
+          }else{
+            varY = diag(ncol(Z))
+          }
         }else{
-          varY = cov2cor(residual_variance)
+          if(is.null(dim(residual_variance))){
+            varY = residual_variance
+          }else{
+            varY = cov2cor(residual_variance)
+          }
         }
       }
     }
