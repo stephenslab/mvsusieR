@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mvsusieR</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.3.0531</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.3.0535</span>
       </span>
     </div>
 
@@ -71,7 +71,7 @@ fine-mapping</h1>
                         <h4 data-toc-skip class="author">Yuxin Zou, Gao
 Wang, Peter Carbonetto and Matthew Stephens</h4>
             
-            <h4 data-toc-skip class="date">2023-03-30</h4>
+            <h4 data-toc-skip class="date">2023-04-07</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stephenslab/mvsusieR/blob/HEAD/vignettes/mvsusie_intro.Rmd" class="external-link"><code>vignettes/mvsusie_intro.Rmd</code></a></small>
       <div class="hidden name"><code>mvsusie_intro.Rmd</code></div>
@@ -213,7 +213,7 @@ being causal:</p>
 PIP of nearly 40%.</p>
 <p>This is all summarized visually in a “PIP plot”:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/mvsusie_plot_simple.html">mvsusie_plot_simple</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">pip_plot</span></code></pre></div>
+<code class="sourceCode R"><span class="fu"><a href="../reference/mvsusie_plot.html">mvsusie_plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">$</span><span class="va">pip_plot</span></code></pre></div>
 <p><img src="mvsusie_intro_files/figure-html/pip-plot-1.png" width="720" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
@@ -265,7 +265,7 @@ whereas the lfsrs for the rest of the traits are all close to 1.</p>
 <p>The information about which traits are affected by the causal SNP is
 summarized in the “effect plot”:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mvsusie_plot_simple.html">mvsusie_plot_simple</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mvsusie_plot.html">mvsusie_plot</a></span><span class="op">(</span><span class="va">fit</span>,add_cs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">out</span><span class="op">$</span><span class="va">effect_plot</span></code></pre></div>
 <p><img src="mvsusie_intro_files/figure-html/effect-plot-1.png" width="300" style="display: block; margin: auto;"></p>
 </div>

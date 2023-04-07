@@ -125,7 +125,7 @@ PIP of nearly 40%.
 This is all summarized visually in a "PIP plot":
 
 ```{r pip-plot, fig.height=2, fig.width=6}
-mvsusie_plot_simple(fit)$pip_plot
+mvsusie_plot(fit)$pip_plot
 ```
 
 Determining which traits are affected
@@ -184,8 +184,8 @@ the lfsrs for the rest of the traits are all close to 1.
 The information about which traits are affected by the causal SNP is
 summarized in the "effect plot":
 
-```{r effect-plot, fig.height=2.75, fig.width=2.5}
-out <- mvsusie_plot_simple(fit)
+```{r effect-plot, fig.height=3.25, fig.width=2.5}
+out <- mvsusie_plot(fit,add_cs = TRUE)
 out$effect_plot
 ```
 

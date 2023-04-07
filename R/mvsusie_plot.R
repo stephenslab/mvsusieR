@@ -58,6 +58,7 @@
 #' @importFrom ggplot2 guide_legend
 #' @importFrom ggplot2 labs
 #' @importFrom ggplot2 theme
+#' @importFrom ggplot2 margin
 #' @importFrom ggplot2 element_blank
 #' @importFrom ggplot2 element_text
 #' @importFrom ggplot2 element_line
@@ -103,7 +104,8 @@ mvsusie_plot <-
     
     # Add the CS assignments to the data frame.
     #
-    # WARNING: What if no identified CS?
+    # POSSIBLE BUG: What if no identified CS?
+    #
     css <- names(fit$sets$cs) 
     for (i in css) {
       j <- fit$sets$cs[[i]]
@@ -126,12 +128,11 @@ mvsusie_plot <-
     pdat_cs$cs <- factor(pdat_cs$cs)
     css <- levels(pdat_cs$cs)
 
-    # Reorder the CSs by position, then relabel them 1 through L.
+    # Reorder the CSs by position.
     L          <- length(css)
     cs_pos     <- sapply(fit$sets$cs[css],function (x) median(pos[x]))
     css        <- css[order(cs_pos)]
     pdat_cs$cs <- factor(pdat_cs$cs,levels = css)
-    levels(pdat_cs$cs) <- 1:L
 
     # Add key CS statistics to the legend (size, purity).
     cs_size <- sapply(fit$sets$cs[css],length)
@@ -201,7 +202,7 @@ mvsusie_plot <-
       effect_dat <- effect_dat[which(effect_dat$sentinel == 1),]
     if (!missing(cs_plot))
       effect_dat <- effect_dat[which(effect_dat$cs %in% cs_plot),]
-    effect_dat$cs    <- factor(effect_dat$cs)
+    effect_dat$cs    <- factor(effect_dat$cs,levels = css)
     effect_dat$trait <- factor(effect_dat$trait,traits)
     
     # Remove from the effects plot any effects that don't meet the lfsr
@@ -232,7 +233,7 @@ mvsusie_plot <-
       effect_dat$effect_size <- abs(effect_dat$effect)
       levels(effect_dat$effect_sign) <- c("-1","+1")
       effect_plot <- ggplot(effect_dat,
-        aes_string(x = "marker",y = "trait",fill = "effect_sign",
+        aes_string(x = "marker_cs",y = "trait",fill = "effect_sign",
                    size = "effect_size")) +
         geom_point(shape = 21,stroke = 0.5,color = "white") +
         scale_y_discrete(drop = FALSE) +
@@ -255,7 +256,7 @@ mvsusie_plot <-
         if (add_cs) {
           effect_dat$one <- 1
           p_cs <- ggplot(effect_dat,
-                         aes_string(x = "marker",y = "one",color = "cs")) +
+                         aes_string(x = "marker_cs",y = "one",color = "cs")) +
             geom_point(shape = 20,size = 2.5) +
             scale_x_discrete(drop = FALSE) +
             scale_color_manual(values = cs_colors) +
@@ -264,9 +265,10 @@ mvsusie_plot <-
             theme(axis.text   = element_blank(),
                   axis.ticks  = element_blank(),
                   axis.line   = element_blank(),
-                  legend.position = "top")
+                  legend.position = "top",
+                  plot.margin = margin(0,0,-0.5,0,"npc"))
           effect_plot <- plot_grid(p_cs,effect_plot,nrow = 2,ncol = 1,
-                                   rel_heights = c(1,3),axis = "lr",
+                                   rel_heights = c(1,4),axis = "lr",
                                    align = "v")
         }
     } else
@@ -297,7 +299,7 @@ mvsusie_plot <-
                                         linetype = "dotted"))
       if (add_cs)
         z_plot <- plot_grid(p_cs,z_plot,nrow = 2,ncol = 1,
-                            rel_heights = c(1,3),axis = "lr",
+                            rel_heights = c(1,4),axis = "lr",
                             align = "v")
     } else
       z_plot <- NULL
