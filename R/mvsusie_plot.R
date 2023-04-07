@@ -12,28 +12,33 @@
 #' @param pos The positions of the genetic markers. It should have the
 #'   same length as \code{fit$variable_names}.
 #'
-#' @param markers The names of the genetic markers.
+#' @param markers The names of the genetic markers (usually SNPs).
 #' 
 #' @param conditions The names of the conditions.
 #'
-#' @param poslim The range of position in the plot.
+#' @param poslim The range of positions to show in the PIP plot.
 #'
-#' @param lfsr_cutoff The significant level for lfsr. The default is 0.01.
+#' @param lfsr_cutoff The significance level for lfsr. The default is
+#'   0.01.
 #' 
-#' @param sentinel_only If TRUE, only plot the sentinel variant for each CS.
+#' @param sentinel_only If \code{TRUE}, only plot the sentinel marker
+#'   for each CS. If \code{FALSE}, plot all markers in each CS.
 #' 
-#' @param cs_plot The CSs included in the plot. The default is all CSs.
+#' @param cs_plot The CSs included in the plot. The default is to show
+#'   all CSs.
 #' 
-#' @param add_cs If TRUE, add colored dots to the top of the plot showing
-#'   CS membership.
+#' @param add_cs If \code{TRUE}, add colored dots to the top of the
+#'   effect plot showing CS membership.
 #' 
-#' @param conditional_effect If TRUE, plot the conditional effect.
+#' @param conditional_effect If \code{TRUE}, plot the conditional
+#'   effect. If \code{FALSE}, plot the marginal effect.
+#'   \code{conditional_effect = TRUE} is recommended.
 #'
 #' @param cs_colors The color palette for CSs.
 #' 
 #' @return The output includes the PIP plot, effect plot, z-scores
-#'   plot (if z scores are available in \code{fit}), and the table of
-#'   effect estimates at sentinel variants.
+#'   plot (if z-scores are available in \code{fit}), and the table of
+#'   effect estimates at sentinel markers.
 #'
 #' @examples
 #' # See the "mvsusie_intro" vignette for examples.
@@ -225,71 +230,77 @@ mvsusie_plot <-
     if (nrow(effect_dat) > 0) {
       effect_dat$effect_sign <- factor(effect_dat$effect > 0)
       effect_dat$effect_size <- abs(effect_dat$effect)
-      levels(effect_dat$effect_sign) <- c("-1", "+1")
+      levels(effect_dat$effect_sign) <- c("-1","+1")
       effect_plot <- ggplot(effect_dat,
-        aes_string(x = "marker", y = "trait", fill = "effect_sign",
-                       size = "effect_size")) +
-            geom_point(shape = 21, stroke = 0.5, color = "white") +
-            scale_y_discrete(drop = FALSE) +
-            scale_fill_manual(values = c("darkblue", "red"), drop = FALSE) +
-            scale_size(range = c(1, 5),
-                breaks = unname(quantile(effect_dat$effect_size,
-                    seq(0, 1, length.out = 4)))) +
-            labs(x = "", y = "", fill = "effect sign", size = "effect size") +
-            guides(fill = guide_legend(override.aes = list(size = 2)),
-                size = guide_legend(override.aes = list(shape = 21, fill = "black",
-                    color = "white", stroke = 0.5))) +
-            theme_cowplot(font_size = 9) +
-            theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-                panel.grid = element_line(color = "lightgray", linetype = "dotted",
-                    size = 0.3))
+        aes_string(x = "marker",y = "trait",fill = "effect_sign",
+                   size = "effect_size")) +
+        geom_point(shape = 21,stroke = 0.5,color = "white") +
+        scale_y_discrete(drop = FALSE) +
+        scale_fill_manual(values = c("darkblue","red"),drop = FALSE) +
+        scale_size(range = c(1, 5),
+                   breaks = unname(quantile(effect_dat$effect_size,
+                                            seq(0,1,length.out = 4)))) +
+        labs(x = "",y = "",fill = "effect sign",size = "effect size") +
+        guides(fill = guide_legend(override.aes = list(size = 2)),
+               size = guide_legend(override.aes = list(shape=21,fill="black",
+                                                       color="white",
+                                                       stroke = 0.5))) +
+        theme_cowplot(font_size = 9) +
+        theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1),
+              panel.grid = element_line(color = "lightgray",size = 0.3,
+                                        linetype = "dotted"))
+
         # If requested, add colored dots to the top of the plot showing CS
         # membership.
         if (add_cs) {
           effect_dat$one <- 1
-          p_cs <- ggplot(effect_dat,aes_string(x = "marker", y = "one", color = "cs")) +
+          p_cs <- ggplot(effect_dat,
+                         aes_string(x = "marker",y = "one",color = "cs")) +
             geom_point(shape = 20,size = 2.5) +
             scale_x_discrete(drop = FALSE) +
             scale_color_manual(values = cs_colors) +
             labs(x = "",y = "") +
-            theme_cowplot(font_size = 12) +
-            theme(axis.text = element_blank(),
-                  axis.ticks = element_blank(),
-                  axis.line = element_blank())
+            theme_cowplot(font_size = 9) +
+            theme(axis.text   = element_blank(),
+                  axis.ticks  = element_blank(),
+                  axis.line   = element_blank(),
+                  legend.position = "top")
           effect_plot <- plot_grid(p_cs,effect_plot,nrow = 2,ncol = 1,
-                                   rel_heights = c(1,2),axis = "lr",
+                                   rel_heights = c(1,3),axis = "lr",
                                    align = "v")
         }
     } else
       effect_plot <- NULL
 
-    if (nrow(effect_dat) > 0 && all(!is.na(effect_dat$z))){
-        effect_dat$z_sign <- factor(effect_dat$z > 0)
-        effect_dat$z_size <- abs(effect_dat$z)
-        levels(effect_dat$z_sign) <- c("-1", "+1")
-        z_plot <- ggplot(effect_dat, aes_string(x = "marker", y = "trait",
-            fill = "z_sign", size = "z_size")) +
-            geom_point(shape = 21, stroke = 0.5, color = "white") +
-            scale_y_discrete(drop = FALSE) +
-            scale_fill_manual(values = c("darkblue", "red"), drop = FALSE) +
-            scale_size(range = c(1, 5),
-                breaks = unname(quantile(effect_dat$z_size,
-                    seq(0, 1, length.out = 4)))) +
-            labs(x = "", y = "", fill = "z-score sign", size = "z-score size") +
-            guides(fill = guide_legend(override.aes = list(size = 2)),
-                size = guide_legend(override.aes = list(shape = 21, fill = "black",
-                    color = "white", stroke = 0.5))) +
-            theme_cowplot(font_size = 9) +
-            theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-                panel.grid = element_line(color = "lightgray", linetype = "dotted",
-                    size = 0.3))
-        if (add_cs){
-            z_plot <- plot_grid(p_cs, z_plot, nrow = 2, ncol = 1,
-                rel_heights = c(1, 2), axis = "lr", align = "v")
-        }
-    }else{
-        z_plot <- NULL
-    }
+    if (nrow(effect_dat) > 0 && all(!is.na(effect_dat$z))) {
+      effect_dat$z_sign <- factor(effect_dat$z > 0)
+      effect_dat$z_size <- abs(effect_dat$z)
+      levels(effect_dat$z_sign) <- c("-1","+1")
+      z_plot <- ggplot(effect_dat,
+                       aes_string(x = "marker",y = "trait",fill = "z_sign",
+                                  size = "z_size")) +
+        geom_point(shape = 21,stroke = 0.5,color = "white") +
+        scale_y_discrete(drop = FALSE) +
+        scale_fill_manual(values = c("darkblue","red"),drop = FALSE) +
+        scale_size(range = c(1,5),
+                   breaks = unname(quantile(effect_dat$z_size,
+                                            seq(0,1,length.out = 4)))) +
+        labs(x = "",y = "",fill = "z-score sign",size = "z-score size") +
+        guides(fill = guide_legend(override.aes = list(size = 2)),
+               size = guide_legend(override.aes = list(shape = 21,
+                                                       fill = "black",
+                                                       color = "white",
+                                                       stroke = 0.5))) +
+        theme_cowplot(font_size = 9) +
+        theme(axis.text.x = element_text(angle = 90,vjust = 0.5,hjust = 1),
+              panel.grid = element_line(color = "lightgray",size = 0.3,
+                                        linetype = "dotted"))
+      if (add_cs)
+        z_plot <- plot_grid(p_cs,z_plot,nrow = 2,ncol = 1,
+                            rel_heights = c(1,3),axis = "lr",
+                            align = "v")
+    } else
+      z_plot <- NULL
 
     # Output the (1) PIP plot, (2) effect plot, (3) z-scores plot, and
     # (4) the table of effect estimates.

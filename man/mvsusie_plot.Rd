@@ -28,29 +28,34 @@ mvsusie_plot(
 \item{pos}{The positions of the genetic markers. It should have the
 same length as \code{fit$variable_names}.}
 
-\item{markers}{The names of the genetic markers.}
+\item{markers}{The names of the genetic markers (usually SNPs).}
 
 \item{conditions}{The names of the conditions.}
 
-\item{poslim}{The range of position in the plot.}
+\item{poslim}{The range of positions to show in the PIP plot.}
 
-\item{lfsr_cutoff}{The significant level for lfsr. The default is 0.01.}
+\item{lfsr_cutoff}{The significance level for lfsr. The default is
+0.01.}
 
-\item{sentinel_only}{If TRUE, only plot the sentinel variant for each CS.}
+\item{sentinel_only}{If \code{TRUE}, only plot the sentinel marker
+for each CS. If \code{FALSE}, plot all markers in each CS.}
 
-\item{cs_plot}{The CSs included in the plot. The default is all CSs.}
+\item{cs_plot}{The CSs included in the plot. The default is to show
+all CSs.}
 
-\item{add_cs}{If TRUE, add colored dots to the top of the plot showing
-CS membership.}
+\item{add_cs}{If \code{TRUE}, add colored dots to the top of the
+effect plot showing CS membership.}
 
-\item{conditional_effect}{If TRUE, plot the conditional effect.}
+\item{conditional_effect}{If \code{TRUE}, plot the conditional
+effect. If \code{FALSE}, plot the marginal effect.
+\code{conditional_effect = TRUE} is recommended.}
 
 \item{cs_colors}{The color palette for CSs.}
 }
 \value{
 The output includes the PIP plot, effect plot, z-scores
-  plot (if z scores are available in \code{fit}), and the table of
-  effect estimates at sentinel variants.
+  plot (if z-scores are available in \code{fit}), and the table of
+  effect estimates at sentinel markers.
 }
 \description{
 Create the PIP plot and accompanying effect plot
