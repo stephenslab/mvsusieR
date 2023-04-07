@@ -25,12 +25,12 @@ mvsusie_plot(
 
 \item{chr}{The chromosome number.}
 
-\item{pos}{The variant position. It should have the same length as
-\code{fit$variable_names}.}
+\item{pos}{The positions of the genetic markers. It should have the
+same length as \code{fit$variable_names}.}
 
-\item{markers}{The variant names.}
+\item{markers}{The names of the genetic markers.}
 
-\item{conditions}{The condition names.}
+\item{conditions}{The names of the conditions.}
 
 \item{poslim}{The range of position in the plot.}
 
@@ -54,8 +54,9 @@ The output includes the PIP plot, effect plot, z-scores
 }
 \description{
 Create the PIP plot and accompanying effect plot
- showing the effect estimates and significance of the effects for
- all the traits. Optionally, a z-scores plot is also created.
+  showing the effect estimates and significance of the effects for
+  all the traits. A z-scores plot is also created when z-scores are
+  available.
 }
 \examples{
 # See the "mvsusie_intro" vignette for examples.

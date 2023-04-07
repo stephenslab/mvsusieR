@@ -1,19 +1,20 @@
 #' @title mvSuSiE PIP and Effect Plots
 #' 
 #' @description Create the PIP plot and accompanying effect plot
-#'  showing the effect estimates and significance of the effects for
-#'  all the traits. Optionally, a z-scores plot is also created.
+#'   showing the effect estimates and significance of the effects for
+#'   all the traits. A z-scores plot is also created when z-scores are
+#'   available.
 #'
 #' @param fit The mvSuSiE fitted model.
 #'
 #' @param chr The chromosome number.
 #' 
-#' @param pos The variant position. It should have the same length as
-#'   \code{fit$variable_names}.
+#' @param pos The positions of the genetic markers. It should have the
+#'   same length as \code{fit$variable_names}.
 #'
-#' @param markers The variant names.
+#' @param markers The names of the genetic markers.
 #' 
-#' @param conditions The condition names.
+#' @param conditions The names of the conditions.
 #'
 #' @param poslim The range of position in the plot.
 #'
@@ -40,7 +41,7 @@
 #' @importFrom stats quantile
 #' @importFrom stats median
 #' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 aes
+#' @importFrom ggplot2 aes_string
 #' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 xlim
 #' @importFrom ggplot2 scale_x_discrete
@@ -62,25 +63,32 @@
 #' @export
 #'
 mvsusie_plot <-
-  function (fit, chr = 1, pos = seq(1, length(fit$variable_names)),
-            markers = fit$variable_names, conditions = fit$condition_names,
-            poslim = range(pos), lfsr_cutoff = 0.01, sentinel_only = TRUE,
-            cs_plot = names(fit$sets$cs), add_cs = FALSE,
+  function (fit,
+            chr = 1,
+            pos = seq(1,length(fit$variable_names)),
+            markers = fit$variable_names,
+            conditions = fit$condition_names,
+            poslim = range(pos),
+            lfsr_cutoff = 0.01,
+            sentinel_only = TRUE,
+            cs_plot = names(fit$sets$cs),
+            add_cs = FALSE,
             conditional_effect = TRUE,
             cs_colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00",
                 "#6a3d9a", "#b15928", "#a6cee3", "#b2df8a", "#fb9a99",
-                "#fdbf6f", "#cab2d6", "#ffff99", "gray", "cyan")){
+                "#fdbf6f", "#cab2d6", "#ffff99", "gray", "cyan")) {
 
     if (!inherits(fit, "susie"))
-      stop("Input argument \"fit\" should be a susie fit object, such as the ",
-           "output of calling function \"mvsusie\"")
-
+      stop("Input argument \"fit\" should be a susie fit object, such as ",
+           "the output of calling function \"mvsusie\"")
     if (length(pos) != length(fit$variable_names))
       stop("Input \"pos\" should have same length as \"fit$variable_names\"")
     if (length(markers) != length(fit$variable_names))
-      stop("Input \"markers\" should have same length as \"fit$variable_names\"")
+      stop("Input \"markers\" should have same length as ",
+           "\"fit$variable_names\"")
     if (length(conditions) != length(fit$condition_names))
-      stop("Input \"conditions\" should have same length as \"fit$condition_names\"")
+      stop("Input \"conditions\" should have same length as ",
+           "\"fit$condition_names\"")
 
     # Create a data frame containing the data used for plotting.
     pdat <- data.frame("pip" = fit$pip,
@@ -132,101 +140,100 @@ mvsusie_plot <-
                   fit$sets$purity[j, "min.abs.corr"])
     }
   
-    # Create a data frame containing data about the variants
-    # in the CSs (trait-specific effects, lfsrs, sentinel variant)
+    # Create a data frame containing data about the genetic markers
+    # (SNPs) in the CSs (trait-specific effects, lfsr's, sentinel
+    # SNPs).
     traits <- conditions
     r      <- length(traits)
     lmax   <- nrow(fit$alpha)
-    fit$b1_rescaled <- fit$b1_rescaled[, -1, ]
-    rownames(fit$b1_rescaled) <- paste0("L", 1:lmax)
-    rownames(fit$single_effect_lfsr) <- paste0("L", 1:lmax)
+    fit$b1_rescaled <- fit$b1_rescaled[,-1,]
+    rownames(fit$b1_rescaled) <- paste0("L",1:lmax)
+    rownames(fit$single_effect_lfsr) <- paste0("L",1:lmax)
     colnames(fit$single_effect_lfsr) <- traits
-    rownames(fit$alpha) <- paste0("L", 1:lmax)
-    effects <- matrix(0, r, L)
-    rownames(effects) <- traits
-    colnames(effects) <- css
-
-    table <- data.frame(matrix(as.numeric(NA),
-        prod(length(conditions) * length(markers)), 8))
-    colnames(table) <- c("trait", "variant", "pos",
-        "effect", "z", "lfsr", "cs", "sentinel")
-    table$trait <- rep(conditions, length(markers))
-    table$variant <- rep(markers, each = length(conditions))
-    table$pos <- rep(pos, each = length(conditions))
-    table$sentinel <- 0
-    for (i in 1:L){
-        l <- css[i]
-        j <- fit$sets$cs[[l]]
-        b <- fit$b1_rescaled[l, j, ]
-        if (conditional_effect){
-            b <- b / fit$alpha[l, j]
-        }
-        variant_names <- markers[j]
-        variant_idx <- which(table$variant %in% variant_names)
-        table[variant_idx, "cs"] <- l
-        table[variant_idx, "lfsr"] <-
-          rep(fit$single_effect_lfsr[l,], length(variant_names))
-        table[variant_idx, "effect"] <- c(t(b))
-        if(!is.null(fit$z)){
-            table[variant_idx, "z"] <- c(t(fit$z[j, ]))
-        }
-        max_idx <- which.max(fit$alpha[l, j])
-        table[which(table$variant == variant_names[max_idx]), "sentinel"] <- 1
-        effects[, i] <- ifelse(is.null(nrow(b)), b, b[max_idx, ])
+    rownames(fit$alpha) <- paste0("L",1:lmax)
+    effects             <- matrix(0,r,L)
+    rownames(effects)   <- traits
+    colnames(effects)   <- css
+    effect_dat <-
+      data.frame(matrix(as.numeric(NA),
+                        prod(length(conditions) * length(markers)),8))
+    names(effect_dat)   <- c("trait","marker","pos","effect","z","lfsr","cs",
+                             "sentinel")
+    effect_dat$trait    <- rep(conditions,length(markers))
+    effect_dat$marker   <- rep(markers,each = length(conditions))
+    effect_dat$pos      <- rep(pos,each = length(conditions))
+    effect_dat$sentinel <- 0
+    for (i in 1:L) {
+      l <- css[i]
+      j <- fit$sets$cs[[l]]
+      b <- fit$b1_rescaled[l,j,]
+      if (conditional_effect)
+        b <- b/fit$alpha[l,j]
+      marker_names <- markers[j]
+      marker_idx   <- which(effect_dat$marker %in% marker_names)
+      effect_dat[marker_idx,"cs"]     <- l
+      effect_dat[marker_idx,"lfsr"]   <- rep(fit$single_effect_lfsr[l,],
+                                              length(marker_names))
+      effect_dat[marker_idx,"effect"] <- as.vector(t(b))
+      if (!is.null(fit$z))
+        effect_dat[marker_idx,"z"] <- as.vector(t(fit$z[j,]))
+        max_idx <- which.max(fit$alpha[l,j])
+      effect_dat[which(effect_dat$marker == marker_names[max_idx]),
+                  "sentinel"] <- 1
+      effects[,i] <- ifelse(is.null(nrow(b)),b,b[max_idx,])
     }
-    table <- table[which(!is.na(table$cs)), ]
+    effect_dat <- effect_dat[which(!is.na(effect_dat$cs)),]
     if (!missing(poslim)) {
-        rows1 <- which(table$pos >= poslim[1] & table$pos <= poslim[2])
-        table <- table[rows1, ]
+      rows1 <- which(effect_dat$pos >= poslim[1] & effect_dat$pos <= poslim[2])
+      effect_dat <- effect_dat[rows1, ]
     }
-    table$marker <- paste0(table$variant, "(", table$cs, ")")
-    pdat_sentinel <- table[which(table$sentinel == 1), ]
-    pdat_sentinel <- unique(pdat_sentinel[, c("variant", "pos", "marker")])
-    pdat_sentinel$pip <- fit$pip[match(pdat_sentinel$variant,
-        fit$variable_names)]
-    if (sentinel_only){
-        table <- table[which(table$sentinel == 1), ]
-    }
+    effect_dat$marker_cs <- paste0(effect_dat$marker,"(",effect_dat$cs,")")
+    pdat_sentinel <- effect_dat[which(effect_dat$sentinel == 1),]
+    pdat_sentinel <- unique(pdat_sentinel[,c("marker","marker_cs","pos")])
+    pdat_sentinel$pip <-
+      fit$pip[match(pdat_sentinel$marker,fit$variable_names)]
+    if (sentinel_only)
+      effect_dat <- effect_dat[which(effect_dat$sentinel == 1),]
     if (!missing(cs_plot))
-      table <- table[which(table$cs %in% cs_plot),]
-    table$cs    <- factor(table$cs)
-    table$trait <- factor(table$trait,traits)
+      effect_dat <- effect_dat[which(effect_dat$cs %in% cs_plot),]
+    effect_dat$cs    <- factor(effect_dat$cs)
+    effect_dat$trait <- factor(effect_dat$trait,traits)
     
     # Remove from the effects plot any effects that don't meet the lfsr
     # cutoff.
-    rows <- which(table$lfsr < lfsr_cutoff)
-    table <- table[rows,]
+    rows <- which(effect_dat$lfsr < lfsr_cutoff)
+    effect_dat <- effect_dat[rows,]
 
     # Create the PIP plot.
-    pip_plot <- ggplot(pdat, aes(x = "pos", y = "pip")) +
-      geom_point(color = "darkblue", shape = 20, size = 1.25) +
-      geom_point(shape = 1, size = 1.25, stroke = 1.25, data = pdat_cs,
-                 mapping = aes(x = "pos", y = "pip", color = "cs")) +
+    pip_plot <- ggplot(pdat,aes_string(x = "pos",y = "pip")) +
+      geom_point(color = "darkblue",shape = 20,size = 1.25) +
+      geom_point(shape = 1,size = 1.25,stroke = 1.25,data = pdat_cs,
+                 mapping = aes_string(x = "pos",y = "pip",color = "cs")) +
       geom_text_repel(data = pdat_sentinel,
-                      mapping = aes(x = "pos", y = "pip", label = "marker"),
-                      size = 2.2, segment.size = 0.35, max.overlaps = Inf,
+                      mapping = aes_string(x="pos",y="pip",label="marker_cs"),
+                      size = 2.2,segment.size = 0.35,max.overlaps = Inf,
                       min.segment.length = 0) +
-      xlim(poslim[1], poslim[2]) +
+      xlim(poslim[1],poslim[2]) +
       scale_color_manual(values = cs_colors) +
       guides(color = guide_legend(override.aes = list(shape = 20,
                                                       size = 1.5))) +
-      labs(x = sprintf("chromosome %d position (Mb)", chr),
-           y = "PIP", color = "CS") +
+      labs(x = sprintf("chromosome %d position (Mb)",chr),
+           y = "PIP",color = "CS") +
       theme_cowplot(font_size = 9)
 
     # Create the effect plot.
-    if (nrow(table) > 0) {
-        table$effect_sign <- factor(table$effect > 0)
-        table$effect_size <- abs(table$effect)
-        levels(table$effect_sign) <- c("-1", "+1")
-        effect_plot <- ggplot(table,
-            aes(x = "marker", y = "trait", fill = "effect_sign",
-                size = "effect_size")) +
+    if (nrow(effect_dat) > 0) {
+      effect_dat$effect_sign <- factor(effect_dat$effect > 0)
+      effect_dat$effect_size <- abs(effect_dat$effect)
+      levels(effect_dat$effect_sign) <- c("-1", "+1")
+      effect_plot <- ggplot(effect_dat,
+        aes_string(x = "marker", y = "trait", fill = "effect_sign",
+                       size = "effect_size")) +
             geom_point(shape = 21, stroke = 0.5, color = "white") +
             scale_y_discrete(drop = FALSE) +
             scale_fill_manual(values = c("darkblue", "red"), drop = FALSE) +
             scale_size(range = c(1, 5),
-                breaks = unname(quantile(table$effect_size,
+                breaks = unname(quantile(effect_dat$effect_size,
                     seq(0, 1, length.out = 4)))) +
             labs(x = "", y = "", fill = "effect sign", size = "effect size") +
             guides(fill = guide_legend(override.aes = list(size = 2)),
@@ -239,34 +246,34 @@ mvsusie_plot <-
         # If requested, add colored dots to the top of the plot showing CS
         # membership.
         if (add_cs) {
-            table$one <- 1
-            p_cs <- ggplot(table, aes(x = "marker", y = "one", color = "cs")) +
-                geom_point(shape = 20, size = 2.5) +
-                scale_x_discrete(drop = FALSE) +
-                scale_color_manual(values = cs_colors) +
-                labs(x = "", y = "") +
-                theme_cowplot(font_size = 12) +
-                theme(axis.text = element_blank(),
-                    axis.ticks = element_blank(),
-                    axis.line = element_blank())
-            effect_plot <- plot_grid(p_cs, effect_plot, nrow = 2, ncol = 1,
-                rel_heights = c(1, 2), axis = "lr", align = "v")
+          effect_dat$one <- 1
+          p_cs <- ggplot(effect_dat,aes_string(x = "marker", y = "one", color = "cs")) +
+            geom_point(shape = 20,size = 2.5) +
+            scale_x_discrete(drop = FALSE) +
+            scale_color_manual(values = cs_colors) +
+            labs(x = "",y = "") +
+            theme_cowplot(font_size = 12) +
+            theme(axis.text = element_blank(),
+                  axis.ticks = element_blank(),
+                  axis.line = element_blank())
+          effect_plot <- plot_grid(p_cs,effect_plot,nrow = 2,ncol = 1,
+                                   rel_heights = c(1,2),axis = "lr",
+                                   align = "v")
         }
-    }else{
-        effect_plot <- NULL
-    }
+    } else
+      effect_plot <- NULL
 
-    if (nrow(table) > 0 && all(!is.na(table$z))){
-        table$z_sign <- factor(table$z > 0)
-        table$z_size <- abs(table$z)
-        levels(table$z_sign) <- c("-1", "+1")
-        z_plot <- ggplot(table, aes(x = "marker", y = "trait",
+    if (nrow(effect_dat) > 0 && all(!is.na(effect_dat$z))){
+        effect_dat$z_sign <- factor(effect_dat$z > 0)
+        effect_dat$z_size <- abs(effect_dat$z)
+        levels(effect_dat$z_sign) <- c("-1", "+1")
+        z_plot <- ggplot(effect_dat, aes_string(x = "marker", y = "trait",
             fill = "z_sign", size = "z_size")) +
             geom_point(shape = 21, stroke = 0.5, color = "white") +
             scale_y_discrete(drop = FALSE) +
             scale_fill_manual(values = c("darkblue", "red"), drop = FALSE) +
             scale_size(range = c(1, 5),
-                breaks = unname(quantile(table$z_size,
+                breaks = unname(quantile(effect_dat$z_size,
                     seq(0, 1, length.out = 4)))) +
             labs(x = "", y = "", fill = "z-score sign", size = "z-score size") +
             guides(fill = guide_legend(override.aes = list(size = 2)),
@@ -284,10 +291,10 @@ mvsusie_plot <-
         z_plot <- NULL
     }
 
-    # Output the (1) PIP plot, (2) effect plot, (3) z scores plot and
+    # Output the (1) PIP plot, (2) effect plot, (3) z-scores plot, and
     # (4) the table of effect estimates.
-    return(list(pip_plot = pip_plot,
+    return(list(pip_plot    = pip_plot,
                 effect_plot = effect_plot,
-                z_plot = z_plot,
-                effects = effects))
+                z_plot      = z_plot,
+                effects     = effects))
 }
