@@ -51,6 +51,6 @@ predict.mvsusie = function (object, newx = NULL, ...) {
     r <- ncol(b)
     intercept <- b[1,]
     b <- b[-1,]
-    return(matrix(intercept,n,r,byrow = TRUE) + X %*% b)
+    return(matrix(intercept,n,r,byrow = TRUE) + newx %*% b)
   }
 }
