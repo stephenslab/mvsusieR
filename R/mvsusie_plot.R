@@ -84,8 +84,8 @@ mvsusie_plot <-
                 "#6a3d9a", "#b15928", "#a6cee3", "#b2df8a", "#fb9a99",
                 "#fdbf6f", "#cab2d6", "#ffff99", "gray", "cyan")) {
 
-    if (!inherits(fit, "susie"))
-      stop("Input argument \"fit\" should be a susie fit object, such as ",
+    if (!inherits(fit,"mvsusie"))
+      stop("Input argument \"fit\" should be a mvsusie fit object, such as ",
            "the output of calling function \"mvsusie\"")
     if (length(pos) != length(fit$variable_names))
       stop("Input \"pos\" should have same length as \"fit$variable_names\"")

@@ -356,6 +356,7 @@ mvsusie = function (X, Y, L = 10, prior_variance = 0.2,
   colnames(s$alpha)  = s$variable_names
   names(s$intercept) = s$condition_names
   rownames(s$alpha)  = paste0("l",1:L)
+  class(s) = "mvsusie"
   return(s)
 }
 

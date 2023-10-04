@@ -170,6 +170,7 @@ mvsusie_rss = function (Z, R, N, Bhat, Shat, varY,
                           prior_variance = prior_variance, 
                           residual_variance = residual_variance, ...)
   }
-  
+
+  class(s) = "mvsusie"
   return(s)
 }

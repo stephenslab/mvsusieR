@@ -24,7 +24,7 @@ MashRegression <- R6Class("MashRegression",
                     save_var = FALSE,
                     estimate_prior_variance_method = NULL,
                     check_null_threshold = 0, verbose = FALSE) {
-        
+
       # When prior changes (private$prior_variance_scalar != 1),
       # we can no longer use precomputed quantities
       # because the precomputed quantities will be wrong in scale.
@@ -91,6 +91,7 @@ MashRegression <- R6Class("MashRegression",
         private$.posterior_b2 = as.matrix(apply(private$.posterior_b2,3,diag))
         if (!is.null(private$.posterior_variance)) private$.posterior_variance = as.matrix(apply(private$.posterior_variance,3,diag))
       }
+
       # 5. lfsr
       private$.lfsr = compute_lfsr(post$post_neg, post$post_zero)
       # 6. estimate prior via EM

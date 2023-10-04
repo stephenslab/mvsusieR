@@ -63,7 +63,7 @@ mvsusie_get_lfsr = function (clfsr, alpha, weighted = TRUE) {
 #' @importFrom abind abind
 report_susie_model = function (d, m, estimate_prior_variance = TRUE) {
   if (length(dim(m$posterior_b1[[1]])) < 2) {
-      
+
     # univariate case
     b1 = t(do.call(cbind,m$posterior_b1))
     b2 = t(do.call(cbind,m$posterior_b2))

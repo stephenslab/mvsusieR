@@ -135,5 +135,6 @@ mvsusie_suff_stat = function (XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
   colnames(s$alpha)  = s$variable_names
   names(s$intercept) = s$condition_names
   rownames(s$alpha)  = paste0("l",1:L)
+  class(s) = "mvsusie"
   return(s)
 }

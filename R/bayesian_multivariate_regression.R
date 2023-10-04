@@ -61,7 +61,7 @@ BayesianMultivariateRegression = R6Class("BayesianMultivariateRegression",
       if (save_var)
         private$.posterior_variance = post$cov
       private$.lbf = post$lbf
-      
+
       return(invisible(self))
     }
   ),
