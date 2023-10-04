@@ -16,11 +16,11 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       _R_CHECK_FORCE_SUGGESTS_: false
-    steps:
+    steps: 
+      - uses: actions/checkout@v3
+      - uses: r-lib/actions/setup-r@v2
       - name: Install GSL
         run: brew install gsl
-      - uses: actions/checkout@v2
-      - uses: r-lib/actions/setup-r@v1
       - name: Install dependencies
         run: |
           install.packages(c("remotes","rcmdcheck","mvtnorm","matrixStats"))
