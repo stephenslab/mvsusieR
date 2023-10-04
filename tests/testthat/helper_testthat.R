@@ -126,22 +126,24 @@ compute_cov_diag <- function(Y){
 
 expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, 
                                tol = 1E-8, rss = FALSE) {
-  expect_equal(A$alpha, BA$alpha, tolerance = tol)
-  expect_equal(A$lbf, BA$lbf, tolerance = tol)
+  expect_equal(A$alpha, BA$alpha,scale = 1,tolerance = tol)
+  expect_equal(A$lbf, BA$lbf,scale = 1,tolerance = tol)
   if (!any(is.na(A$KL)) && !any(is.na(BA$KL)))
-    expect_equal(A$KL, BA$KL, tolerance = tol)
-  expect_equal(A$alpha * A$mu, BA$b1, tolerance = tol)
-  expect_equal(A$alpha * A$mu2, BA$b2, tolerance = tol)
+    expect_equal(A$KL, BA$KL,scale = 1,tolerance = tol)
+  expect_equal(A$alpha * A$mu, BA$b1,scale = 1,tolerance = tol)
+  expect_equal(A$alpha * A$mu2, BA$b2,scale = 1,tolerance = tol)
   if (!any(is.na(A$elbo)) && !any(is.na(BA$elbo)))
-    expect_equal(A$elbo, BA$elbo, tolerance = tol)
+    expect_equal(A$elbo, BA$elbo,scale = 1,tolerance = tol)
   if (rss) {
-    expect_equal(coef(A)[-1], BA$coef[-1], tolerance = tol)
+    expect_equal(coef(A)[-1],BA$coef[-1],scale = 1,tolerance = tol)
   } else {
-    expect_equal(as.vector(A$fitted), as.vector(BA$fitted), tolerance = tol)
-    expect_equal(coef(A), BA$coef, tolerance = tol)
+    expect_equal(as.vector(A$fitted), as.vector(BA$fitted),scale = 1,
+                 tolerance = tol)
+    expect_equal(coef(A),BA$coef,scale = 1,tolerance = tol)
   }
-  if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2, tolerance = tol)
-  if (estimate_prior_variance) expect_equal(A$V, BA$V, tolerance = tol)
+  if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2,scale = 1,
+                                               tolerance = tol)
+  if (estimate_prior_variance) expect_equal(A$V,BA$V,scale = 1,tolerance = tol)
 }
 
 expect_susie_equal = function(A, B, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, tol = 1E-8) {

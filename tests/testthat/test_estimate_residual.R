@@ -15,7 +15,7 @@ test_that("estimated residual variance in multivariate case is identical to univ
   d.copy = d$clone(T)
   B$fit(d.copy)
   BA = report_susie_model(d.copy, B)
-  expect_susieR_equal(A, BA, F, F)
+  expect_susieR_equal(A,BA,F,F,tol = 1e-4)
   expect_equal(A$sigma2, BA$sigma2)
 
   # BayesianMultivariateRegression

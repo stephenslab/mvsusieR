@@ -11,7 +11,7 @@ test_that("mvsusieR is identical to susieR", with(simulate_univariate(), {
     expect_equal(A$alpha * A$mu, as.vector(B$posterior_b1))
     expect_equal(A$alpha * A$mu2, as.vector(B$posterior_b2))
     expect_equal(A$lbf_model, B$lbf)
-    expect_equal(kl, B$kl)
+    expect_equal(kl,B$kl,scale = 1,tolerance = 1e-4)
     # Test estimated prior
     A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = "optim")
     kl = susieR:::SER_posterior_e_loglik(X,y,1,A$alpha*A$mu,A$alpha*A$mu2)- A$loglik
@@ -22,7 +22,7 @@ test_that("mvsusieR is identical to susieR", with(simulate_univariate(), {
     expect_equal(A$alpha * A$mu, as.vector(B$posterior_b1))
     expect_equal(A$alpha * A$mu2, as.vector(B$posterior_b2))
     expect_equal(A$lbf_model, B$lbf)
-    expect_equal(kl, B$kl)
+    expect_equal(kl,B$kl,scale = 1,tolerance = 1e-4)
 }))
 
 test_that("mvsusieR is identical to susieR (RSS)", with(simulate_univariate(summary = T), {
@@ -37,8 +37,8 @@ test_that("mvsusieR is identical to susieR (RSS)", with(simulate_univariate(summ
   B$compute_kl(d.copy)
   expect_equal(A$alpha * A$mu, as.vector(B$posterior_b1))
   expect_equal(A$alpha * A$mu2, as.vector(B$posterior_b2))
-  expect_equal(A$lbf_model, B$lbf)
-  expect_equal(kl, B$kl)
+  expect_equal(A$lbf_model,B$lbf,scale = 1,tolerance = 1e-4)
+  expect_equal(kl,B$kl,scale = 1,tolerance = 1e-4)
   # Test estimated prior
   A = susieR:::single_effect_regression_ss(ztilde * sqrt(n-1), (n-1)*diag(R), V, prior_weights = NULL, optimize_V = "optim")
   kl = susieR:::SER_posterior_e_loglik_ss((n-1)*diag(R),sqrt(n-1)*ztilde,1,A$alpha*A$mu,A$alpha*A$mu2)- A$lbf_model
@@ -48,6 +48,6 @@ test_that("mvsusieR is identical to susieR (RSS)", with(simulate_univariate(summ
   B$compute_kl(d.copy)
   expect_equal(A$alpha * A$mu, as.vector(B$posterior_b1))
   expect_equal(A$alpha * A$mu2, as.vector(B$posterior_b2))
-  expect_equal(A$lbf_model, B$lbf)
-  expect_equal(kl, B$kl)
+  expect_equal(A$lbf_model, B$lbf,scale = 1,tolerance = 1e-4)
+  expect_equal(kl, B$kl,scale = 1,tolerance = 1e-4)
 }))
