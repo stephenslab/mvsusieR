@@ -18,6 +18,22 @@ test_that("predict() gives accurate estimates in 1 condition",{
 
   # Fit an mvsusie model to the data.
   fit <- mvsusie(X,Y,L = 10,standardize = TRUE)
+
+  # The mvsusie model predictions should be close to the true values
+  # (an RMSE close to 1).
+  Yest <- predict(fit,X)
+  rmse <- sqrt(mean((Y - Yest)^2))
+  expect_lt(rmse,1.1)
+  # 
+  # plot(Y,Yest,pch = 20,xlab = "true Y",ylab = "estimated Y")
+  # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
+
+  # Note that the "fitted" output currently seems to be incorrect:
+  #
+  #   print(sqrt(mean((Y - fit$fitted)^2)))
+  #   plot(Y,fit$fitted,pch = 20,xlab = "true Y",ylab = "estimated Y")
+  #   abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
+  #
 })
 
 test_that("predict() gives accurate estimates in 3 conditions",{

@@ -18,7 +18,7 @@
 #' @export
 #'
 coef.mvsusie <- function (object, ...) {
-  return(object$coef)
+  return(as.matrix(object$coef))
 }
 
 #' @title Predict Outcomes from mvsusie Fit.
