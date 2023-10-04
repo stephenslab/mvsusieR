@@ -30,7 +30,8 @@ coef.mvsusie <- function (object, ...) {
 #'
 #' @param \dots Additional arguments (currently unused).
 #'
-#' @return A matrix of predicted outcomes.
+#' @return A matrix of predicted outcomes, with rows corresponding to
+#'   samples (rows of X), and columns corresponding to outcomes.
 #'
 #' @importFrom stats coef
 #' @importFrom stats predict
@@ -44,6 +45,12 @@ coef.mvsusie <- function (object, ...) {
 predict.mvsusie = function (object, newx = NULL, ...) {
   if (missing(newx))
     return(object$fitted)
-  else
-    return(object$intercept + newx %*% object$coef[-1,])
+  else {
+    b <- coef(object)
+    n <- nrow(newx)
+    r <- ncol(b)
+    intercept <- b[1,]
+    b <- b[-1,]
+    return(matrix(intercept,n,r,byrow = TRUE) + X %*% b)
+  }
 }

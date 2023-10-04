@@ -1,6 +1,6 @@
-context("mvsusie_coef")
+context("mvsusie_predict")
 
-test_that("coef() gives the right coefficients with 1 condition",{
+test_that("predict() gives accurate estimates in 1 condition",{
 
   # Simulate a 500 x 100 data set with 1 response.
   set.seed(1)
@@ -18,21 +18,9 @@ test_that("coef() gives the right coefficients with 1 condition",{
 
   # Fit an mvsusie model to the data.
   fit <- mvsusie(X,Y,L = 10,standardize = TRUE)
-
-  # The estimated coefficients (including the intercept) should
-  # closely match the coefficients used to simulate the data.
-  expect_gt(cor(coef(fit),c(-1,b)),0.999)
-  #
-  # print(round(head(cbind(b,coef(fit)[-1]),n = 6),digits = 4))
-  # plot(b,coef(fit)[-1],pch = 20,xlab = "true coef",ylab = "estimated coef")
-  # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
-
-  # Run the same test again, but now without standardizing X.
-  fit <- mvsusie(X,Y,L = 10,standardize = FALSE)
-  expect_gt(cor(coef(fit),c(-1,b)),0.999)
 })
 
-test_that("coef() gives the right coefficients with 3 conditions",{
+test_that("predict() gives accurate estimates in 3 conditions",{
 
   # Simulate a 500 x 100 data set with 3 outcomes.
   set.seed(1)
@@ -62,15 +50,19 @@ test_that("coef() gives the right coefficients with 3 conditions",{
   prior <- create_mixture_prior(R = 3)
   fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE)
 
-  # The estimated coefficients (including the intercept) should
-  # closely match the coefficients used to simulate the data.
-  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.999)
-  #
-  # print(coef(fit)[1,])
-  # plot(b,coef(fit)[-1,],pch = 20,xlab = "true coef",ylab = "estimated coef")
+  # The mvsusie model predictions should be close to the true values
+  # (an RMSE close to 1).
+  Yest <- predict(fit,X)
+  rmse <- sqrt(mean((Y - Yest)^2))
+  expect_lt(rmse,1.1)
+  # 
+  # plot(Y,Yest,pch = 20,xlab = "true Y",ylab = "estimated Y")
   # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
 
-  # Run the same test again, but now without standardizing X.
-  fit <- mvsusie(X,Y,L = 10,prior_variance = prior,standardize = FALSE)
-  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.999)
+  # Note that the "fitted" output currently seems to be incorrect:
+  #
+  #   print(sqrt(mean((Y - fit$fitted)^2)))
+  #   plot(Y,fit$fitted,pch = 20,xlab = "true Y",ylab = "estimated Y")
+  #   abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
+  #
 })

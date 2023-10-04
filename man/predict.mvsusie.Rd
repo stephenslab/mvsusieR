@@ -15,7 +15,8 @@
 \item{\dots}{Additional arguments (currently unused).}
 }
 \value{
-A matrix of predicted outcomes.
+A matrix of predicted outcomes, with rows corresponding to
+  samples (rows of X), and columns corresponding to outcomes.
 }
 \description{
 Predict Outcomes from mvsusie Fit.
