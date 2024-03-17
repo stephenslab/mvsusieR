@@ -290,8 +290,9 @@ MashInitializer <- R6Class("MashInitializer",
         xUlist = mashr:::expand_cov(Ulist,grid,usepointmass = TRUE)
       } else {
         if (!all(xUlist[[1]] == 0))
-          xUlist = c(list(matrix(0,nrow(xUlist[[1]]),ncol(xUlist[[1]]))),
-                     xUlist)
+          xUlist = c(list(null_model = matrix(0,nrow(xUlist[[1]]),ncol(xUlist[[1]]),
+                                      dimnames = list(rownames= rownames(xUlist[[1]]), colnames = colnames(xUlist[[1]])))),
+                          xUlist)
       }
       if (!is.null(include_conditions)) {
         for (l in 1:length(xUlist)) {
@@ -349,7 +350,7 @@ MashInitializer <- R6Class("MashInitializer",
       if (length(unique(u_rows)) > 1)
         stop("Ulist contains matrices of different dimensions")
       prior_weights = prior_weights/sum(prior_weights)
-      private$xU = list(pi = c(null_weight,prior_weights * (1 - null_weight)),
+      private$xU = list(pi = c(null_model = null_weight,prior_weights * (1 - null_weight)),
                         xUlist = xUlist)
       
       return(invisible(self))
