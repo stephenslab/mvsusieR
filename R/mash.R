@@ -47,9 +47,22 @@ create_mixture_prior = function (mixture_prior, R, null_weight = NULL,
     if(!("matrices" %in% names(mixture_prior))){
       stop("mixture_prior must contain 'matrices'.")
     }
-    if (is.null(mixture_prior$weights))
+    if (is.null(mixture_prior$weights)) {
       mixture_prior$weights = rep(1/length(mixture_prior$matrices),
                                   length(mixture_prior$matrices))
+    }
+    if(!is.null(include_indices)) {
+       mixture_prior$matrices <- lapply(mixture_prior$matrices, function(x, to_keep) {
+                                           x[to_keep, to_keep]
+                                          }, include_indices)
+    }
+    #Check whether the elements of the each matrix are equal to zero and record the corresponding index
+    null_matrix_index <- which(sapply(mixture_prior$matrices, function(mat) all(mat == 0)))
+    #Remove the corresponding indices in matrices 
+    if (length(null_matrix_index) > 0) {
+       mixture_prior$matrices <- mixture_prior$matrices[-null_matrix_index]
+    }                                  
+    mixture_prior$weights <- mixture_prior$weights[-null_matrix_index]/sum(mixture_prior$weights[-null_matrix_index])
     return(MashInitializer$new(NULL,NULL,xUlist = mixture_prior$matrices,
                                prior_weights = mixture_prior$weights,
                                null_weight = null_weight,
