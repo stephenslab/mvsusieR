@@ -1,5 +1,5 @@
 #' @title Extract Coefficient Estimates from mvsusie Fit
-#' 
+#'
 #' @param object An mvsusie fit, such as the output from a call to
 #'   \code{\link{mvsusie}} or \code{\link{mvsusie_rss}}.
 #'
@@ -12,12 +12,12 @@
 #' @importFrom stats coef
 #'
 #' @method coef mvsusie
-#' 
+#'
 #' @export coef.mvsusie
-#' 
+#'
 #' @export
 #'
-coef.mvsusie <- function (object, ...) {
+coef.mvsusie <- function(object, ...) {
   return(as.matrix(object$coef))
 }
 
@@ -37,20 +37,20 @@ coef.mvsusie <- function (object, ...) {
 #' @importFrom stats predict
 #'
 #' @method predict mvsusie
-#' 
+#'
 #' @export predict.mvsusie
-#' 
+#'
 #' @export
 #'
-predict.mvsusie = function (object, newx = NULL, ...) {
-  if (missing(newx))
+predict.mvsusie <- function(object, newx = NULL, ...) {
+  if (missing(newx)) {
     return(object$fitted)
-  else {
+  } else {
     b <- coef(object)
     n <- nrow(newx)
     r <- ncol(b)
-    intercept <- b[1,]
-    b <- b[-1,]
-    return(matrix(intercept,n,r,byrow = TRUE) + newx %*% b)
+    intercept <- b[1, ]
+    b <- b[-1, ]
+    return(matrix(intercept, n, r, byrow = TRUE) + newx %*% b)
   }
 }

@@ -10,15 +10,15 @@
 #'   This is a simulation with three causal genetic variants at
 #'   positions 255, 335 and 493; that is, these are the only genetic
 #'   variants witih nonzero coefficients.
-#' 
+#'
 #' @docType data
-#' 
+#'
 #' @format \code{simdata} is a list with the following elements:
-#' 
+#'
 #' \describe{
-#' 
+#'
 #'   \item{raw$X}{The matrix of simulated genotypes.}
-#' 
+#'
 #'   \item{raw$Y}{The matrix of simulated traits.}
 #'
 #'   \item{Btrue}{The coefficients used to simulate the data.}
@@ -43,7 +43,7 @@
 #'     effect estimates computed using
 #'     \code{\link[susieR]{univariate_regression}}. (Note that \code{X}
 #'     was standardized before computing \code{sehat}.)}}
-#' 
+#'
 #' @keywords data
 #'
 NULL
