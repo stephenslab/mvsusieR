@@ -297,7 +297,7 @@ MashInitializer <- R6Class("MashInitializer",
         if (!all(xUlist[[1]] == 0)) {
           xUlist <- c(
             list(null_model = matrix(0, nrow(xUlist[[1]]), ncol(xUlist[[1]]),
-              dimnames = list(rownames = rownames(xUlist[[1]]), colnames = colnames(xUlist[[1]]))
+              dimnames = list(rownames(xUlist[[1]]),colnames(xUlist[[1]]))
             )),
             xUlist
           )
@@ -373,7 +373,7 @@ MashInitializer <- R6Class("MashInitializer",
       }
       prior_weights <- prior_weights / sum(prior_weights)
       private$xU <- list(
-        pi = c(null_model = null_weight, prior_weights * (1 - null_weight)),
+        pi = setNames(c(null_weight, prior_weights * (1 - null_weight)), names(xUlist)),
         xUlist = xUlist
       )
 
