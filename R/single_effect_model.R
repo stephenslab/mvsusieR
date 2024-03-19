@@ -196,6 +196,7 @@ SingleEffectModel <- function(base) {
         }
       },
       lbf = function() private$lbf_single_effect,
+      lbf_variable = function() private$.lbf,
       kl = function() private$.kl,
       vbxxb = function() private$.vbxxb,
       bxxb = function() private$.bxxb

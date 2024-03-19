@@ -209,6 +209,12 @@ SuSiE <- R6Class("SuSiE",
         function(l) private$SER[[l]]$lbf
       )
     },
+    lbf_variable = function() {
+      do.call(rbind, lapply(
+        seq(1, private$L),
+        function(l) private$SER[[l]]$lbf_variable
+      ))
+    },
     pip_history = function() {
       lapply(
         seq(

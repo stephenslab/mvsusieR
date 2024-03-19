@@ -124,6 +124,7 @@ report_susie_model <- function(d, m, estimate_prior_variance = TRUE) {
     b2 = b2,
     KL = m$kl,
     lbf = m$lbf,
+    lbf_variable = m$lbf_variable,
     V = m$prior_variance,
     sigma2 = d$residual_variance,
     elbo = m$get_objective(dump = TRUE),

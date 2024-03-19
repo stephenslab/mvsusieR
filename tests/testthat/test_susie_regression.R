@@ -116,7 +116,7 @@ test_that("customized initialization interface", with(simulate_multivariate(r=3)
     # let's just test of null is null ...
     null_weight = 0.2
     m_init = create_mixture_prior(R = ncol(y),null_weight = null_weight, max_mixture_len=-1)
-    expect_equal(m_init$prior_variance$pi[1], null_weight)
+    expect_equal(unname(m_init$prior_variance$pi[1]), null_weight)
 }))
 
 test_that("mvsusieR is identical to susieR (RSS)", with(simulate_univariate(summary = T), {
@@ -200,5 +200,5 @@ test_that("customized initialization interface (RSS)", with(simulate_multivariat
   # let's just test of null is null ...
   null_weight = 0.2
   m_init = create_mixture_prior(R = ncol(y),null_weight = null_weight, max_mixture_len=-1)
-  expect_equal(m_init$prior_variance$pi[1], null_weight)
+  expect_equal(unname(m_init$prior_variance$pi[1]), null_weight)
 }))
