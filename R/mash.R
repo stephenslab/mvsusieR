@@ -65,7 +65,13 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
   }
   if (!missing(R)) {
     Ulist <- create_cov_canonical(R, ...)
+    Ulist <- lapply(Ulist, function(mat) {
+                           rownames(mat) <- include_indices
+                           colnames(mat) <- include_indices
+                           return(mat)
+                         })
     weights <- rep(1 / length(Ulist), length(Ulist))
+    weights <- setNames(weights, names(Ulist)) 
     if (max_mixture_len < length(Ulist) && max_mixture_len > 0) {
       stop(paste0(
         "Automatically generated uniform mixture prior is of ",
