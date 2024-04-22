@@ -28,8 +28,8 @@ This function computes canonical covariance matrices
 }
 \examples{
 mvsusieR:::create_cov_canonical(3)
-mvsusieR:::create_cov_canonical(3,singletons = FALSE)
-mvsusieR:::create_cov_canonical(3,hetgrid = NULL)
+mvsusieR:::create_cov_canonical(3, singletons = FALSE)
+mvsusieR:::create_cov_canonical(3, hetgrid = NULL)
 
 }
 \keyword{internal}
