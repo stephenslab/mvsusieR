@@ -1,7 +1,0 @@
-pandoc: 2.17.1.1
-pkgdown: 2.0.2
-pkgdown_sha: ~
-articles:
-  mvsusie_intro: mvsusie_intro.html
-last_built: 2023-03-21T14:15Z
-

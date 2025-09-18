@@ -1,5 +1,8 @@
-Copyright (c) 2018 - 2022, Gao Wang, Yuxin Zou, Peter Carbonetto, Matthew 
+BSD 3-Clause License
+
+Copyright (c) 2018 - 2025, Gao Wang, Yuxin Zou, Peter Carbonetto, Matthew 
 Stephens 
+
 All rights reserved. 
 
 Redistribution and use in source and binary forms, with or without 

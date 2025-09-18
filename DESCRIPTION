@@ -14,7 +14,7 @@ Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
              person("Matthew","Stephens",role="aut"))
 URL: https://github.com/stephenslab/mvsusieR
 BugReports: https://github.com/stephenslab/mvsusieR/issues
-License: MIT + file LICENSE
+License: BSD 3-Clause + file LICENSE
 Depends: R (>= 3.5.0),
     mashr (>= 0.2.43),
     susieR (>= 0.10.1)
@@ -37,9 +37,6 @@ Suggests:
     microbenchmark,
     knitr,
     rmarkdown
-Remotes:
-    stephenslab/mashr,
-    stephenslab/susieR
 LazyData: true
 NeedsCompilation: no
 RoxygenNote: 7.3.1
