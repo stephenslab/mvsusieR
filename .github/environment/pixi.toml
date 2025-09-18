@@ -23,6 +23,7 @@ dependencies = {"r-base" = "4.4.*"}
 
 [environments]
 r44 = {features = ["r44"]}
+gsl = "*" # for mashr
 
 [dependencies]
 # Core dependencies (from Depends)
