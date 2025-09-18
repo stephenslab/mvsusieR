@@ -10,4 +10,4 @@ html:
 	./release
 	rm -r prototypes
 pkg_down:
-	R --slave -e "pkgdown::build_site(lazy = TTRUE,examples = FALSE)"
+	R --slave -e "pkgdown::build_site(lazy = TRUE,examples = FALSE)"

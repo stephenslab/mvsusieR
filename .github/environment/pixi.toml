@@ -23,9 +23,11 @@ dependencies = {"r-base" = "4.4.*"}
 
 [environments]
 r44 = {features = ["r44"]}
-gsl = "*" # for mashr
 
 [dependencies]
+# System dependencies
+gsl = "*" # for mashr
+
 # Core dependencies (from Depends)
 "r-mashr" = ">=0.2.43"
 "r-susier" = ">=0.10.1"
