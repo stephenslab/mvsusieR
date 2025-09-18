@@ -1,7 +1,7 @@
 name: Deploy website
 on:
   push:
-    branches: ["main"]
+    branches: ["master"]
   workflow_dispatch:
 
 env:
@@ -21,10 +21,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
+      - name: Checkout master
         uses: actions/checkout@v5
         with:
-          ref: main
+          ref: master
       - name: Create TOML from recipe
         run: .github/workflows/create_toml_from_yaml.sh
       - name: Setup pixi

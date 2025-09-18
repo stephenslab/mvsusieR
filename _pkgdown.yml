@@ -1,11 +1,98 @@
-navbar:
-  left:
-    - text: "Home"
-      href: index.html
-    - text: "Vignettes"
-      href: articles/index.html
-    - text: "Functions"
-      href: reference/index.html
-  right:
-    - text: "Source"
+url: https://stephenslab.github.io/mvsusieR
+
+template:
+  bootstrap: 5
+  light-switch: true
+  math-rendering: katex
+  bslib:
+    base_font: { google: "Roboto" }
+    heading_font: { google: "Roboto Slab" }
+    code_font: { google: "JetBrains Mono" }
+
+development:
+  mode: auto
+
+home:
+  links:
+    - text: Learn more
       href: https://github.com/stephenslab/mvsusieR
+    - text: Report a bug
+      href: https://github.com/stephenslab/mvsusieR/issues
+
+#authors:
+  # Add your package authors here following the same format
+  # Example:
+  # John Doe:
+  #   href: https://johndoe.com/
+  # Jane Smith:
+  #   href: https://github.com/janesmith
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswitch]
+  components:
+    intro:
+      icon: fa fa-play-circle
+      text: Get Started
+      href: articles/mvsusie_intro.html
+      aria-label: Get started with mvsusieR
+    reference:
+      icon: fa fa-file-code
+      text: Functions
+      href: reference/index.html
+      aria-label: Function reference
+    articles:
+      icon: fa fa-book-reader
+      text: Vignettes
+      href: articles/index.html
+      aria-label: Articles and vignettes
+    news:
+      icon: fa fa-newspaper
+      text: News
+      href: news/index.html
+      aria-label: Package news
+    github:
+      icon: fab fa-github
+      href: https://github.com/stephenslab/mvsusieR
+      aria-label: View source on GitHub
+
+# Optional: Organize your reference documentation
+#reference:
+#  - title: "Main Functions"
+#    desc: "Core functions for multivariate SuSiE analysis"
+#    contents:
+#      - starts_with("mvsusie")
+#  - title: "Data Processing"
+#    desc: "Functions for data preparation and processing"
+#    contents:
+#      - has_concept("data")
+#  - title: "Visualization"
+#    desc: "Functions for plotting and visualization"
+#    contents:
+#      - has_concept("plot")
+#  - title: "Utilities"
+#    desc: "Helper and utility functions"
+#    contents:
+#      - has_concept("utilities")
+
+# Optional: Organize articles/vignettes
+articles:
+  - title: "Getting Started"
+    navbar: ~
+    contents:
+      - ends_with("_intro")
+  #- title: "Examples"
+  #  desc: "Example analyses and use cases"
+  #  contents:
+  #    - starts_with("example")
+  #- title: "Advanced Topics"
+  #  desc: "Advanced usage and methodology"
+  #  contents:
+  #    - matches("advanced|technical")
+
+# Optional: Footer customization
+footer:
+  structure:
+    left: developed_by
+    right: built_with
