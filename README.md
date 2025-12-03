@@ -55,6 +55,6 @@ in the shell:
    for i in `ls R/*.R`; do bash inst/misc/format_r_code.sh $i; done
    ```
 
-[pkgdown-site]: https://stephenslab.github.io/mvsusieR
+[pkgdown-site]: https://stephenslab.github.io/mvsusieR/
 [prediction-vignette]: https://stephenslab.github.io/mvsusieR/articles/prediction.html
 [mashr]: https://github.com/stephenslab/mashr

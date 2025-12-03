@@ -57,7 +57,7 @@ tr <- function(m) {
 
 # Convert a list of matrices to array without losing dimension.
 matlist2array <- function(l) {
-  if (class(l) != "list") {
+  if (!inherits(l, "list")) {
     return(l)
   }
   l <- simplify2array(l)
