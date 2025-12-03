@@ -3,11 +3,6 @@ on:
   push:
     branches: ["master"]
   workflow_dispatch:
-  pull_request:
-    paths-ignore:
-      - .github/*
-      - .gitignore
-      - README.md
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -28,7 +23,7 @@ jobs:
       - name: Checkout master
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          ref: master
 
       - name: Copy TOML to /tmp
         run: |
