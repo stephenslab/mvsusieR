@@ -301,7 +301,7 @@ res <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 10, X_colmeans, Y_colmeans)
 
 # RSS example with one response.
 R <- crossprod(X)
-z <- susieR:::calc_z(X, Y)
+z <- calc_z(X, Y)
 res <- mvsusie_rss(z, R, N = n, L = 10)
 
 # Example with three responses.
@@ -339,7 +339,7 @@ res <- mvsusie_suff_stat(XtX, XtY, YtY, n,
 
 # RSS example with three responses.
 R <- crossprod(X)
-Z <- susieR:::calc_z(X, Y)
+Z <- calc_z(X, Y)
 res <- mvsusie_rss(Z, R, N = n, L = 10, prior_variance = prior)
 
 }

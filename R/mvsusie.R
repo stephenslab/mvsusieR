@@ -187,7 +187,7 @@
 #'
 #' # RSS example with one response.
 #' R <- crossprod(X)
-#' z <- susieR:::calc_z(X, Y)
+#' z <- calc_z(X, Y)
 #' res <- mvsusie_rss(z, R, N = n, L = 10)
 #'
 #' # Example with three responses.
@@ -225,7 +225,7 @@
 #'
 #' # RSS example with three responses.
 #' R <- crossprod(X)
-#' Z <- susieR:::calc_z(X, Y)
+#' Z <- calc_z(X, Y)
 #' res <- mvsusie_rss(Z, R, N = n, L = 10, prior_variance = prior)
 #'
 #' @importFrom Matrix isDiagonal
@@ -329,7 +329,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
 
   # Report z-scores from univariate regression.
   if (compute_univariate_zscore) {
-    s$z <- susieR:::calc_z(X, Y, center = intercept, scale = standardize)
+    s$z <- calc_z(X, Y, center = intercept, scale = standardize)
   }
 
   # Set row and column names of the outputs, and fix dimensions of

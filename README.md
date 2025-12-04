@@ -1,11 +1,10 @@
 # mvsusieR
 
 [![Continuous Integration](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml/badge.svg)](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml)
-[![CircleCI](https://circleci.com/gh/stephenslab/mvsusieR/tree/master.svg?style=svg)](https://app.circleci.com/pipelines/github/stephenslab/mvsusieR?branch=master)
 
 Implements a multivariate generalization of the "Sum of Single
 Effects" (SuSiE) model for variable selection in multivariate linear
-regression.
+regression. Go [here][pkgdown-site] for documentation and tutorials.
   
 ## Setup
 
@@ -24,11 +23,6 @@ they are not installed already.
 Note that mvsusieR uses [mashr][mashr], which in turn requires the GNU
 Scientific libraries (GSL). You may want to install mashr first before
 attempting to install mvsusieR.
-
-## Quick Start
-
-[Here][prediction-vignette] is a quick document to show mvsusieR in
-action. See [here][pkgdown-site] more documentation and examples.
 
 ## Developer notes
 

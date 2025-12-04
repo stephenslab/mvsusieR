@@ -1,13 +1,13 @@
 Encoding: UTF-8
 Type: Package
 Package: mvsusieR
-Date: 2025-12-02
-Version: 0.1.8
+Date: 2025-12-04
+Version: 0.1.9
 Title: Multivariate Sum of Single Effects Regression
 Description: Implements a multivariate generalization of the "Sum of
   Single Effects" (SuSiE) model for variable selection in multivariate
-  linear regression as described in Y. Zhou, P. Carbonetto, D. Xie, G. Wang &
-  M. Stephens (2024) <doi:10.1101/2023.04.14.536893>.
+  linear regression as described in Y. Zhou, P. Carbonetto, D. Xie, 
+  G. Wang & M. Stephens (2025) <doi:10.1101/2023.04.14.536893>.
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="wang.gao@columbia.edu"),
              person("Yuxin","Zou",role="aut"),

@@ -2,6 +2,7 @@
 
 S3method(coef,mvsusie)
 S3method(predict,mvsusie)
+export(calc_z)
 export(coef.mvsusie)
 export(create_mixture_prior)
 export(mvsusie)
@@ -60,3 +61,4 @@ importFrom(stats,uniroot)
 importFrom(stats,var)
 importFrom(susieR,susie_get_cs)
 importFrom(susieR,susie_get_pip)
+importFrom(susieR,univariate_regression)
