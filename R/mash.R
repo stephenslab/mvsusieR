@@ -31,6 +31,7 @@
 #' # Add examples here.
 #'
 #' @importFrom stats cov2cor
+#' @importFrom stats setNames
 #' @importFrom mashr mash
 #'
 #' @export

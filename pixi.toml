@@ -1,60 +1,54 @@
 [project]
-name = "r-mvsusier"
+name = "r-smashr"
 channels = ["dnachun", "conda-forge", "bioconda"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64"]
 
 [system-requirements]
 libc = { family="glibc", version="2.17" }
 
 [tasks]
-install_missing_packages = "echo 'No external packages from github or cran needed'"
 devtools_document = "cd $GITHUB_WORKSPACE; R -e 'devtools::document()'"
 devtools_test = "cd $GITHUB_WORKSPACE; R -e 'devtools::test()'"
 codecov = "cd $GITHUB_WORKSPACE; R -e 'covr::codecov(quiet = FALSE)'"
-build = "cd $GITHUB_WORKSPACE; R -e 'devtools::build(vignettes = FALSE)'"
+build = "cd $GITHUB_WORKSPACE; R -e 'devtools::build()'"
 rcmdcheck = "cd $GITHUB_WORKSPACE; R -e 'pkg <- list.files(\"..\", pattern = \".tar.gz\", full.names = TRUE); rcmdcheck::rcmdcheck(path = pkg[1], args = c(\"--as-cran\", \"--no-manual\"))'"
-use_major_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"major\", push = FALSE)'"
+use_major_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::Use_version(which = \"major\", push = FALSE)'"
 use_minor_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"minor\", push = FALSE)'"
 use_patch_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"patch\", push = FALSE)'"
 pkgdown_build = "cd $GITHUB_WORKSPACE; R -e 'pkgdown::build_site_github_pages(new_process = FALSE, install = TRUE)'"
+
+[feature.r43]
+dependencies = {"r-base" = "4.3.*"}
 
 [feature.r44]
 dependencies = {"r-base" = "4.4.*"}
 
 [environments]
+r43 = {features = ["r43"]}
 r44 = {features = ["r44"]}
 
+[target.linux-64.dependencies]
+"gcc" = "*"
+
 [dependencies]
-# System dependencies
-gsl = "*" # for mashr
-
-# Core dependencies (from Depends)
-"r-mashr" = ">=0.2.43"
-"r-susier" = ">=0.10.1"
-
-# Import dependencies
-"r-r6" = "*"
-"r-matrix" = "*"
 "r-abind" = "*"
-"r-mvtnorm" = "*"
-"r-matrixstats" = "*"
-"r-progress" = "*"
 "r-ashr" = "*"
+"r-cowplot" = "*"
 "r-ggplot2" = "*"
 "r-ggrepel" = "*"
-"r-cowplot" = "*"
-
-# Suggested dependencies (for testing and documentation)
-"r-reshape" = "*"
-"r-pryr" = "*"
-"r-testthat" = "*"
-"r-microbenchmark" = "*"
-"r-knitr" = "*"
-"r-rmarkdown" = "*"
-
-# Development tools
-"r-devtools" = "*"
+"r-mashr" = "*"
+"r-matrix" = "*"
+"r-matrixstats" = "*"
+"r-mvtnorm" = "*"
+"r-progress" = "*"
+"r-r6" = "*"
+"r-susier" = "*"
 "r-covr" = "*"
-"r-rcmdcheck" = "*"
-"r-pkgdown" = "*"
+"r-devtools" = "*"
+"r-knitr" = "*"
+"r-microbenchmark" = "*"
+"r-pryr" = "*"
+"r-reshape" = "*"
+"r-rmarkdown" = "*"
+"r-usethis" = "*"
 "qpdf" = "*"
