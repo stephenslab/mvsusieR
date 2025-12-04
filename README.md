@@ -1,6 +1,6 @@
 # mvsusieR
 
- [![R-CMD-check](https://github.com/stephenslab/mvsusieR/workflows/R-CMD-check/badge.svg)](https://github.com/stephenslab/mvsusieR/actions)
+[![Continuous Integration](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml/badge.svg)](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml)
 [![CircleCI](https://circleci.com/gh/stephenslab/mvsusieR/tree/master.svg?style=svg)](https://app.circleci.com/pipelines/github/stephenslab/mvsusieR?branch=master)
 
 Implements a multivariate generalization of the "Sum of Single
