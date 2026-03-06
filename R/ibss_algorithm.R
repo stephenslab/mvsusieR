@@ -12,7 +12,6 @@ SuSiE <- R6Class("SuSiE",
                           track_prior_est = FALSE) {
       if (!compute_objective) {
         track_pip <- TRUE
-        estimate_residual_variance <- FALSE
       }
 
       # Initialize single effect regression models.
@@ -109,7 +108,8 @@ SuSiE <- R6Class("SuSiE",
               check_null_threshold
             )
           )
-          if (private$to_compute_objective) {
+          if (private$to_compute_objective ||
+              private$to_estimate_residual_variance) {
             private$SER[[l]]$compute_kl(d)
           }
           d$remove_from_residual(private$SER[[l]]$predict(d))
