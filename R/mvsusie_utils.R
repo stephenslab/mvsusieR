@@ -159,8 +159,7 @@ compute_softmax <- function(value, weight, log = TRUE) {
 # Compute P(variable j | component k) for EM update of prior variance scalar.
 #
 # Matrix extension of compute_softmax: applies softmax row-by-row
-# over variables for each mixture component. Matches R6's
-# MashRegression$compute_variable_posterior_weights exactly.
+# over variables for each mixture component.
 #
 # @param prior_variable_weights J-vector of variable-level prior weights.
 # @param llik J x (K+1) log-likelihood matrix.
@@ -501,9 +500,9 @@ loglik_precomputed <- function(betahat, V_scalar, eigen_cache) {
 # @param V_scalar    Scalar prior variance multiplier
 # @param eigen_cache Precomputed cache
 # @param pi_V_post   J x (K+1) matrix of posterior mixture weights
-# @param em_var_wt   (K+1) x J matrix of P(j|k) weights for EM update (from
-#   compute_variable_posterior_weights). NULL if EM not needed. Matches R6's
-#   compute_variable_posterior_weights output.
+# @param em_var_wt   (K+1) x J matrix of P(j|k) posterior variable weights
+#   for EM update (from compute_variable_posterior_weights). NULL if EM
+#   not needed.
 #
 # @return list(post_mean, post_mean2, post_neg, post_zero, prior_scale_em_update)
 posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
@@ -581,8 +580,7 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
 
       # EM statistic for component k:
       # sum_j em_wt_jk [tr(U_k^{-1} C_k) + m_j' U_k^{-1} m_j]
-      # where em_wt = P(j|k) from compute_variable_posterior_weights,
-      # matching R6's compute_variable_posterior_weights output.
+      # where em_wt = P(j|k) posterior variable weights.
       # tr(U_k^{-1} C_k) = V sum_i 1/(1+V*d_i)  (scalar, same for all j)
       # m_j' U_k^{-1} m_j = sum_i V^2*d_i/(1+V*d_i)^2 * b_ji^2
       #   where b_ji = (Q' bhat_j)_i = BQ[j, i]

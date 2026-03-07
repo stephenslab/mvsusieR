@@ -3,7 +3,7 @@ context("Test sufficient data computation")
 # NOTE: Tests using R6 SSData/DenseData/BayesianSimpleRegression/
 # BayesianMultivariateRegression have been removed because R6 classes
 # have been deleted. The remaining tests compare mvsusie() vs
-# mvsusie_suff_stat() through the S3 path.
+# mvsusie_ss() through the S3 path.
 
 test_that("With full observations, matrix vs mash prior agree (suff stat)", with(simulate_multivariate(r=3, center_scale = F),{
   prior_var = V
@@ -16,14 +16,14 @@ test_that("With full observations, matrix vs mash prior agree (suff stat)", with
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
 
-  # Mash regression: compare matrix prior vs mash prior through mvsusie_suff_stat
+  # Mash regression: compare matrix prior vs mash prior through mvsusie_ss
   null_weight = 0
   mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
-  fit3_matrix = mvsusie_suff_stat(XtX, XtY, YtY, n, L=1, X_colmeans, Y_colmeans,
+  fit3_matrix = mvsusie_ss(XtX, XtY, YtY, n, L=1, X_colmeans, Y_colmeans,
                           prior_variance=prior_var, residual_variance = residual_var,
                           compute_objective=F, standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=FALSE)
-  fit3_mash = mvsusie_suff_stat(XtX, XtY, YtY, n, L=1, X_colmeans, Y_colmeans,
+  fit3_mash = mvsusie_ss(XtX, XtY, YtY, n, L=1, X_colmeans, Y_colmeans,
                           prior_variance=mash_init, residual_variance = residual_var,
                           compute_objective=F, standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=FALSE,
@@ -46,7 +46,7 @@ test_that("When R = 1, estimated prior variance with ss data agrees with full da
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
+  fit2 = mvsusie_ss(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=F,
                 standardize = TRUE,
                 estimate_residual_variance=FALSE,
@@ -77,7 +77,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
+  fit2 = mvsusie_ss(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                           prior_variance=prior_var, residual_variance = residual_var, compute_objective=F,
                           standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -93,7 +93,7 @@ test_that("With full observation, the estimated prior variance are same for SSDa
   # Mash regression
   null_weight = 0
   mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
-  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
+  fit3 = mvsusie_ss(XtX, XtY, YtY, n, L=L, X_colmeans, Y_colmeans,
                           prior_variance=mash_init, residual_variance = residual_var, compute_objective=F,
                           standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
@@ -122,7 +122,7 @@ test_that("When R = 1, the elbo using sufficient data agrees with full data", wi
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
+  fit2 = mvsusie_ss(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
                 prior_variance=prior_var, residual_variance = residual_var, compute_objective=T,
                 standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
@@ -146,14 +146,14 @@ test_that("With full observation, the elbo are same for SSData and DenseData", w
   XtY = crossprod(X.c, y.c)
   XtX = crossprod(X.c)
   YtY = crossprod(y.c)
-  fit2 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
+  fit2 = mvsusie_ss(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
                           prior_variance=prior_var, residual_variance = residual_var, compute_objective=T,
                           standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=F)
   # Mash regression
   null_weight = 0
   mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
-  fit3 = mvsusie_suff_stat(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
+  fit3 = mvsusie_ss(XtX, XtY, YtY, n, L=L,X_colmeans, Y_colmeans,
                           prior_variance=mash_init, residual_variance = residual_var, compute_objective=T,
                           standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=F,

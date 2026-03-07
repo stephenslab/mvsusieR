@@ -52,7 +52,7 @@ load_r6_env <- function() {
   funcs <- list(
     mvsusie = ref$env$mvsusie,
     mvsusie_rss = ref$env$mvsusie_rss,
-    mvsusie_suff_stat = tryCatch(ref$env$mvsusie_suff_stat, error = function(e) NULL),
+    mvsusie_ss = tryCatch(ref$env$mvsusie_ss, error = function(e) NULL),
     MashInitializer = ref$env$MashInitializer,
     create_mixture_prior = ref$env$create_mixture_prior,
     mvsusie_sim1 = ref$env$mvsusie_sim1,
@@ -676,6 +676,48 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fix
   })
 })
 
+test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, optim)", {
+  with(sim_r3, {
+    # Same test as above but with estimate_prior_variance = TRUE (optim).
+    # The mashr C++ path (calc_lik_rcpp) and the direct path (multivariate_lbf)
+    # should produce the same V_scalar and posteriors.
+    mash_prior <- create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
+    fit_mash <- mvsusie(X, y, L = L, prior_variance = mash_prior,
+                        residual_variance = cov(y),
+                        estimate_residual_variance = FALSE,
+                        estimate_prior_variance = TRUE,
+                        estimate_prior_method = "optim",
+                        compute_objective = TRUE, max_iter = 20,
+                        intercept = TRUE, standardize = TRUE,
+                        precompute_covariances = FALSE, verbosity = 0)
+    fit_matrix <- mvsusie(X, y, L = L, prior_variance = V,
+                          residual_variance = cov(y),
+                          estimate_residual_variance = FALSE,
+                          estimate_prior_variance = TRUE,
+                          estimate_prior_method = "optim",
+                          compute_objective = TRUE, max_iter = 20,
+                          intercept = TRUE, standardize = TRUE, verbosity = 0)
+    # Optimizer convergence noise (~1e-7) is expected between the two
+    # code paths (mashr C++ vs multivariate_lbf).
+    optim_tol <- 1e-7
+    expect_equal(fit_mash$alpha, fit_matrix$alpha,
+                 tolerance = optim_tol, check.attributes = FALSE,
+                 info = "K1_vs_matrix_optim: alpha")
+    expect_equal(fit_mash$b1, fit_matrix$b1,
+                 tolerance = optim_tol, check.attributes = FALSE,
+                 info = "K1_vs_matrix_optim: b1")
+    expect_equal(fit_mash$lbf, fit_matrix$lbf,
+                 tolerance = optim_tol, check.attributes = FALSE,
+                 info = "K1_vs_matrix_optim: lbf")
+    expect_equal(fit_mash$pip, fit_matrix$pip,
+                 tolerance = optim_tol, check.attributes = FALSE,
+                 info = "K1_vs_matrix_optim: pip")
+    expect_equal(tail(fit_mash$elbo, 1), tail(fit_matrix$elbo, 1),
+                 tolerance = optim_tol, check.attributes = FALSE,
+                 info = "K1_vs_matrix_optim: elbo")
+  })
+})
+
 test_that("R=1 mash K=1: S3 matches R6 at machine precision", {
   # NOTE: For R=1, mash path (mashr C++) and matrix path (R native) use
   # fundamentally different code paths. This test verifies S3 mash = R6 mash.
@@ -713,7 +755,7 @@ test_that("R=1 mash K=1: S3 matches R6 at machine precision", {
 # Section 5: Sufficient statistics path = individual path
 # ============================================================================
 #
-# IMPORTANT: mvsusie_suff_stat expects PRE-CENTERED inputs (as documented in
+# IMPORTANT: mvsusie_ss expects PRE-CENTERED inputs (as documented in
 # R6 examples). The correct way to compute sufficient statistics:
 #   X_c <- scale(X, center = TRUE, scale = FALSE)
 #   Y_c <- scale(Y, center = TRUE, scale = FALSE)
@@ -721,7 +763,7 @@ test_that("R=1 mash K=1: S3 matches R6 at machine precision", {
 # Passing uncentered cross products causes ~1e-3 errors due to catastrophic
 # cancellation in the standardization step.
 
-test_that("mvsusie_suff_stat = mvsusie at machine precision (R=3, centered inputs)", {
+test_that("mvsusie_ss = mvsusie at machine precision (R=3, centered inputs)", {
   with(sim_r3, {
     # Individual-level fit
     fit_ind <- mvsusie(X, y, L = L, prior_variance = V,
@@ -739,7 +781,7 @@ test_that("mvsusie_suff_stat = mvsusie at machine precision (R=3, centered input
     XtY <- crossprod(X_c, Y_c)
     YtY <- crossprod(Y_c)
 
-    fit_ss <- mvsusie_suff_stat(XtX, XtY, YtY, n,
+    fit_ss <- mvsusie_ss(XtX, XtY, YtY, n,
                                  L = L, prior_variance = V,
                                  X_colmeans = colMeans(X),
                                  Y_colmeans = colMeans(y),
@@ -754,7 +796,7 @@ test_that("mvsusie_suff_stat = mvsusie at machine precision (R=3, centered input
   })
 })
 
-test_that("mvsusie_suff_stat = mvsusie at machine precision (R=1, centered inputs)", {
+test_that("mvsusie_ss = mvsusie at machine precision (R=1, centered inputs)", {
   with(sim_r1, {
     fit_ind <- mvsusie(X, y, L = L, prior_variance = V[1, 1],
                        residual_variance = as.numeric(var(y)),
@@ -770,7 +812,7 @@ test_that("mvsusie_suff_stat = mvsusie at machine precision (R=1, centered input
     XtY <- crossprod(X_c, Y_c)
     YtY <- crossprod(Y_c)
 
-    fit_ss <- mvsusie_suff_stat(XtX, XtY, YtY, n,
+    fit_ss <- mvsusie_ss(XtX, XtY, YtY, n,
                                  L = L, prior_variance = V[1, 1],
                                  X_colmeans = colMeans(X),
                                  Y_colmeans = mean(y),

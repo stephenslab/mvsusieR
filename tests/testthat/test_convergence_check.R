@@ -1,7 +1,7 @@
 context("Test check for convergence using ELBO or not")
 
 # NOTE: Tests using R6 SingleEffectModel/BayesianSimpleRegression/SuSiE/DenseData
-# have been replaced with S3 path equivalents using mvsusie() / mvsusie_suff_stat().
+# have been replaced with S3 path equivalents using mvsusie() / mvsusie_ss().
 
 test_that("mvsusie gets same result checking ELBO or not (dense)", {
   set.seed(1)
@@ -12,14 +12,14 @@ test_that("mvsusie gets same result checking ELBO or not (dense)", {
   V <- 0.2 * var(y)
 
   # Fixed prior
-  A <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+  A <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
     compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+  B <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
@@ -29,7 +29,7 @@ test_that("mvsusie gets same result checking ELBO or not (dense)", {
   expect_susie_equal(A, B, FALSE, FALSE, tol = 1e-3)
 
   # Estimated prior (optim)
-  A <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+  A <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
@@ -37,7 +37,7 @@ test_that("mvsusie gets same result checking ELBO or not (dense)", {
     estimate_prior_method = "optim",
     compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+  B <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
@@ -62,13 +62,13 @@ test_that("mvsusie gets same result checking ELBO or not (suff stat)", {
   V <- 0.2 * as.numeric(yty / (n - 1))
 
   # Fixed prior
-  A <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+  A <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
     compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+  B <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
@@ -77,14 +77,14 @@ test_that("mvsusie gets same result checking ELBO or not (suff stat)", {
   expect_susie_equal(A, B, FALSE, FALSE, tol = 1e-3)
 
   # Estimated prior (optim)
-  A <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+  A <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "optim",
     compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+  B <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,

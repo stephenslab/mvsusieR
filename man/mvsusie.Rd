@@ -3,9 +3,9 @@
 \name{mvsusie}
 \alias{mvsusie}
 \alias{mvsusie_rss}
-\alias{mvsusie_suff_stat}
-\alias{mvsusie_s3}
-\alias{mvsusie_suff_stat_s3}
+\alias{mvsusie_ss}
+\alias{mvsusie_core}
+\alias{mvsusie_ss_core}
 \title{Multivariate SUm of Single Effect (SuSiE) Regression}
 \usage{
 mvsusie(
@@ -48,7 +48,7 @@ mvsusie_rss(
   ...
 )
 
-mvsusie_suff_stat(
+mvsusie_ss(
   XtX,
   XtY,
   YtY,
@@ -77,7 +77,7 @@ mvsusie_suff_stat(
   track_fit = FALSE
 )
 
-mvsusie_s3(
+mvsusie_core(
   X,
   Y,
   L = 10,
@@ -97,6 +97,7 @@ mvsusie_s3(
   coverage = 0.95,
   min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE,
+  precompute_covariances = FALSE,
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
@@ -104,7 +105,7 @@ mvsusie_s3(
   track_fit = FALSE
 )
 
-mvsusie_suff_stat_s3(
+mvsusie_ss_core(
   XtX,
   XtY,
   YtY,
@@ -125,6 +126,7 @@ mvsusie_suff_stat_s3(
   model_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
+  precompute_covariances = FALSE,
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
@@ -189,7 +191,8 @@ for univariate Y, or for multivariate Y when the prior variance is
 a matrix).}
 
 \item{estimate_prior_method}{The method used for estimating the
-prior variance; valid choices are \code{"optim"} or \code{"EM"}.}
+prior variance; valid choices are \code{"optim"}, \code{"EM"},
+or \code{"uniroot"}.}
 
 \item{check_null_threshold}{When the prior variance is estimated,
 the estimate is compared against the null, and the prior variance
@@ -262,7 +265,7 @@ When the sample covariance is not provided, the coefficients
 \dQuote{standardized} X, y scale.}
 
 \item{\dots}{Additional arguments passed to
-\code{\link{mvsusie_suff_stat}}.}
+\code{\link{mvsusie_ss}}.}
 
 \item{XtX}{A J x J matrix \eqn{X^TX} in which the columns of \eqn{X}
 are centered to have mean zero.}
@@ -354,7 +357,7 @@ Y <- scale(Y, center = TRUE, scale = FALSE)
 XtX <- crossprod(X)
 XtY <- crossprod(X, Y)
 YtY <- crossprod(Y)
-res <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 10, X_colmeans, Y_colmeans)
+res <- mvsusie_ss(XtX, XtY, YtY, n, L = 10, X_colmeans, Y_colmeans)
 
 # RSS example with one response.
 R <- crossprod(X)
@@ -389,7 +392,7 @@ Y <- scale(Y, center = TRUE, scale = FALSE)
 XtX <- crossprod(X)
 XtY <- crossprod(X, Y)
 YtY <- crossprod(Y)
-res <- mvsusie_suff_stat(XtX, XtY, YtY, n,
+res <- mvsusie_ss(XtX, XtY, YtY, n,
   L = 10, X_colmeans, Y_colmeans,
   prior_variance = prior
 )

@@ -5,8 +5,8 @@ conventions so the two packages feel like parts of the same codebase.
 
 ## Entry points
 
-- `mvsusie.R` -- `mvsusie()`, `mvsusie_rss()`, `mvsusie_suff_stat()` and
-  their internal S3 counterparts `mvsusie_s3()`, `mvsusie_suff_stat_s3()`.
+- `mvsusie.R` -- `mvsusie()`, `mvsusie_rss()`, `mvsusie_ss()` and
+  their internal workhorse functions `mvsusie_core()`, `mvsusie_ss_core()`.
 
 ## Data & constructors
 

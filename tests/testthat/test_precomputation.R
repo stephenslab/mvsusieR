@@ -405,7 +405,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, fixed V
   YtY <- crossprod(Y_centered)
   n <- nrow(sim$X)
 
-  fit_no  <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 5,
+  fit_no  <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                 X_colmeans = X_colmeans,
                                 Y_colmeans = Y_colmeans,
                                 prior_variance = sim$V,
@@ -413,7 +413,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, fixed V
                                 estimate_residual_variance = FALSE,
                                 precompute_covariances = FALSE,
                                 max_iter = 50, tol = 1e-3, verbosity = 0)
-  fit_yes <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 5,
+  fit_yes <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                 X_colmeans = X_colmeans,
                                 Y_colmeans = Y_colmeans,
                                 prior_variance = sim$V,
@@ -439,7 +439,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, optim V
   YtY <- crossprod(Y_centered)
   n <- nrow(sim$X)
 
-  fit_no  <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 5,
+  fit_no  <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                 X_colmeans = X_colmeans,
                                 Y_colmeans = Y_colmeans,
                                 prior_variance = sim$V,
@@ -448,7 +448,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, optim V
                                 estimate_residual_variance = FALSE,
                                 precompute_covariances = FALSE,
                                 max_iter = 50, tol = 1e-3, verbosity = 0)
-  fit_yes <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 5,
+  fit_yes <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                 X_colmeans = X_colmeans,
                                 Y_colmeans = Y_colmeans,
                                 prior_variance = sim$V,

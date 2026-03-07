@@ -29,9 +29,6 @@ get_var_y.mv_individual <- function(data, ...) {
 #' @keywords internal
 #' @importFrom utils modifyList
 ibss_initialize.mv_individual <- function(data, params) {
-  # get_var_y is an internal susieR generic; our methods are registered
-  # in .onLoad so S3 dispatch works, but we need to find the generic.
-  get_var_y <- get("get_var_y", envir = asNamespace("susieR"))
   var_y <- get_var_y(data)
 
   if (data$p < params$L) {
@@ -70,10 +67,8 @@ ibss_initialize.mv_individual <- function(data, params) {
       L <- L_init
     }
 
-    # Create fresh model with correct dimensions
-    # initialize_susie_model is an internal susieR generic; use S3 dispatch
-    init_fn <- get("initialize_susie_model", envir = asNamespace("susieR"))
-    mat_init <- init_fn(data, params, var_y)
+    # Create fresh model with correct dimensions via S3 dispatch
+    mat_init <- initialize_susie_model(data, params, var_y)
 
     # Overwrite alpha from model_init (pad with uniform if L > L_init)
     mat_init$alpha[seq_len(L_init), ] <- m_init$alpha
@@ -111,14 +106,11 @@ ibss_initialize.mv_individual <- function(data, params) {
     mat_init$KL  <- rep(as.numeric(NA), L)
     mat_init$lbf <- rep(as.numeric(NA), L)
   } else {
-    # Create fresh model
-    init_fn <- get("initialize_susie_model", envir = asNamespace("susieR"))
-    mat_init <- init_fn(data, params, var_y)
+    mat_init <- initialize_susie_model(data, params, var_y)
   }
 
   # Initialize fitted values and null index
-  init_fitted_fn <- get("initialize_fitted", envir = asNamespace("susieR"))
-  fitted     <- init_fitted_fn(data, mat_init)
+  fitted     <- initialize_fitted(data, mat_init)
   null_index <- 0
 
   # Preserve model class
@@ -227,10 +219,10 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
     }
   }
 
-  # === K=1 DIRECT PATH: matches R6 BayesianMultivariateRegression ===
+  # === K=1 DIRECT PATH: Woodbury identity computation ===
   # For single-matrix prior (K=1) with no null weight, use multivariate_lbf
-  # directly instead of mashr's mixture C++ path. This ensures the optimizer
-  # evaluates the same function as R6, avoiding numerical divergence.
+  # directly instead of mashr's mixture C++ path. This avoids numerical
+  # divergence by keeping the optimizer and likelihood on the same code path.
   if (length(model$V_structure) == 1 && model$null_weight == 0 &&
       is.null(model$eigen_cache)) {
     U <- V * model$V_structure[[1]]
@@ -434,8 +426,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
     model$residual_correlation else data$residual_correlation
   is_common_cov <- data$is_common_cov
 
-  # Compute variable posterior weights for EM (if needed).
-  # Uses R6's compute_variable_posterior_weights formula: P(j|k) for each (k,j).
+  # Compute P(j|k) posterior variable weights for EM (if needed).
   if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM"
       && !is.null(model$llik_cache)) {
     var_post_wt <- compute_variable_posterior_weights(model$pi, model$llik_cache)

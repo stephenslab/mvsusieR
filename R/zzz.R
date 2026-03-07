@@ -1,15 +1,16 @@
-# Register S3 methods for susieR's internal generics and cache mashr internals.
+# Register S3 methods for susieR's internal generics and cache dependency
+# internals from mashr and susieR.
 #
 # susieR defines S3 generics (compute_kl, check_convergence, etc.) that are
 # not exported. mvsusieR provides methods for these generics (dispatched on
 # mv_individual, mv_ss, and mvsusie classes). We use registerS3method() so
 # that R dispatches to our methods when susieR calls these generics internally.
 #
-# mashr C++ functions and helpers are cached as package-level bindings so we
-# can call them directly without mashr:::.
-#
+# mashr and susieR internal functions are cached as package-level bindings
+# so we can call them directly without mashr::: or susieR:::.
 
-# mashr internal functions -- populated by .onLoad()
+# Dependency internals -- populated by .onLoad()
+# mashr:
 calc_lik_rcpp <- NULL
 calc_sermix_rcpp <- NULL
 compute_null_loglik_from_matrix <- NULL
@@ -18,13 +19,17 @@ expand_cov <- NULL
 check_covmat_basics <- NULL
 issemidef <- NULL
 check_positive_definite <- NULL
+# susieR:
+get_var_y <- NULL
+initialize_susie_model <- NULL
+initialize_fitted <- NULL
 
 .onLoad <- function(libname, pkgname) {
   susie_ns <- asNamespace("susieR")
   pkg_ns   <- asNamespace(pkgname)
-
-  # Cache mashr internal functions into this package's namespace
   mashr_ns <- asNamespace("mashr")
+
+  # Cache mashr internal functions
   for (fn in c("calc_lik_rcpp", "calc_sermix_rcpp",
                "compute_null_loglik_from_matrix",
                "compute_alt_loglik_from_matrix_and_pi",
@@ -33,7 +38,13 @@ check_positive_definite <- NULL
     assign(fn, get(fn, envir = mashr_ns), envir = pkg_ns)
   }
 
-  # Generics with methods for both mv_individual and mv_ss classes
+  # Cache susieR internal generics
+  for (fn in c("get_var_y", "initialize_susie_model",
+               "initialize_fitted")) {
+    assign(fn, get(fn, envir = susie_ns), envir = pkg_ns)
+  }
+
+  # Register S3 methods for both mv_individual and mv_ss classes
   mv_generics <- c(
     "ibss_initialize",
     "SER_posterior_e_loglik",
@@ -71,7 +82,7 @@ check_positive_definite <- NULL
     }
   }
 
-  # Generics with methods for the mvsusie model class
+  # Register S3 methods for the mvsusie model class
   mvsusie_generics <- c(
     "get_alpha_l",
     "get_posterior_mean_l",

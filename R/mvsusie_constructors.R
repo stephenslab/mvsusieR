@@ -285,15 +285,15 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
 
   if (is.matrix(prior_var)) {
     # Single matrix -> K=1 non-null component.
-    # V_structure stores the prior covariance matrix unnormalized (matching R6
-    # convention). V_scalar starts at 1 and is updated by EM/optim.
+    # V_structure stores the unnormalized prior covariance matrix.
+    # V_scalar starts at 1 and is updated by EM/optim.
     V_structure <- list(prior_var)
     pi_V <- 1.0
     null_weight <- 0
     V_scalar_init <- 1
   } else if (class(prior_var)[1] == "mash_prior") {
     # Mixture prior from create_mash_prior.
-    # Store component matrices unnormalized (matching R6 convention).
+    # Store unnormalized component matrices.
     V_structure <- prior_var$xUlist
     pi_V <- prior_var$pi
     null_weight <- prior_var$null_weight

@@ -91,7 +91,7 @@ test_that("uniroot gives similar results to optim for sufficient statistics", {
   YtY <- crossprod(Y_centered)
   n <- nrow(sim$X)
 
-  fit_optim <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 5,
+  fit_optim <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                   X_colmeans = X_colmeans,
                                   Y_colmeans = Y_colmeans,
                                   prior_variance = sim$V,
@@ -99,7 +99,7 @@ test_that("uniroot gives similar results to optim for sufficient statistics", {
                                   estimate_prior_method = "optim",
                                   estimate_residual_variance = FALSE,
                                   max_iter = 50, tol = 1e-3, verbosity = 0)
-  fit_uniroot <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 5,
+  fit_uniroot <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                     X_colmeans = X_colmeans,
                                     Y_colmeans = Y_colmeans,
                                     prior_variance = sim$V,

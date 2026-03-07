@@ -8,7 +8,7 @@
 #
 # Parameter mapping:
 #   susieR::susie(X, y, scaled_prior_variance = V/var(y), residual_variance = 1)
-#   mvsusie_s3(X, Y, prior_variance = V, residual_variance = matrix(1,1,1))
+#   mvsusie_core(X, Y, prior_variance = V, residual_variance = matrix(1,1,1))
 #
 # The small numerical differences (~1e-5) arise from:
 #   - dmvnorm with 1x1 matrices vs dnorm-based BF in susieR
@@ -22,7 +22,7 @@
 
 context("R=1 mvsusie S3 vs susieR identity")
 
-# Helper: run mvsusie_s3 with R=1 and compare against susieR::susie
+# Helper: run mvsusie_core with R=1 and compare against susieR::susie
 compare_r1_fits <- function(fit_susie, fit_mv, tol = 1e-4,
                             check_prior = FALSE,
                             label = "") {
@@ -103,7 +103,7 @@ test_that("R=1: fixed prior, fixed residual", {
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE)
 
-  fit_mv <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+  fit_mv <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
@@ -131,7 +131,7 @@ test_that("R=1: estimated prior (optim), fixed residual", {
     estimate_prior_variance = TRUE,
     estimate_prior_method = "optim")
 
-  fit_mv <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+  fit_mv <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
@@ -161,7 +161,7 @@ test_that("R=1: estimated prior (EM), fixed residual", {
     estimate_prior_variance = TRUE,
     estimate_prior_method = "EM")
 
-  fit_mv <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+  fit_mv <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
@@ -197,7 +197,7 @@ test_that("R=1: sufficient statistics path matches susieR::susie_ss", {
     estimate_prior_variance = FALSE)
 
   # mvsusie suff stat S3
-  fit_mv <- mvsusie_suff_stat_s3(
+  fit_mv <- mvsusie_ss_core(
     XtX = XtX, XtY = Xty,
     YtY = yty, N = n, L = L,
     prior_variance = V,
@@ -243,7 +243,7 @@ test_that("R=1: suff stat with estimated prior (EM), fixed residual", {
     estimate_prior_variance = TRUE,
     estimate_prior_method = "EM")
 
-  fit_mv <- mvsusie_suff_stat_s3(
+  fit_mv <- mvsusie_ss_core(
     XtX = XtX, XtY = Xty,
     YtY = yty, N = n, L = L,
     prior_variance = V,

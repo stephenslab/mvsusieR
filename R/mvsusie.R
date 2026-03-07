@@ -291,7 +291,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' XtX <- crossprod(X)
 #' XtY <- crossprod(X, Y)
 #' YtY <- crossprod(Y)
-#' res <- mvsusie_suff_stat(XtX, XtY, YtY, n, L = 10, X_colmeans, Y_colmeans)
+#' res <- mvsusie_ss(XtX, XtY, YtY, n, L = 10, X_colmeans, Y_colmeans)
 #'
 #' # RSS example with one response.
 #' R <- crossprod(X)
@@ -326,7 +326,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' XtX <- crossprod(X)
 #' XtY <- crossprod(X, Y)
 #' YtY <- crossprod(Y)
-#' res <- mvsusie_suff_stat(XtX, XtY, YtY, n,
+#' res <- mvsusie_ss(XtX, XtY, YtY, n,
 #'   L = 10, X_colmeans, Y_colmeans,
 #'   prior_variance = prior
 #' )
@@ -353,8 +353,6 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     track_fit = FALSE) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
-  # This matches the R6 path behavior in mvsusie_core.R:
-  #   prior_variance <- prior_variance * data$residual_variance
   Y_ncol <- if (is.null(dim(Y))) 1L else ncol(Y)
   is_numeric_prior <- is.numeric(prior_variance) && !is.matrix(prior_variance)
   if (Y_ncol == 1L && is_numeric_prior) {
@@ -362,7 +360,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
           else as.numeric(residual_variance)
     prior_variance <- prior_variance * rv
   }
-  mvsusie_s3(X, Y, L = L, prior_variance = prior_variance,
+  mvsusie_core(X, Y, L = L, prior_variance = prior_variance,
              residual_variance = residual_variance,
              prior_weights = prior_weights,
              standardize = standardize, intercept = intercept,
@@ -412,7 +410,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
 #' @param residual_variance The residual variance
 #'
 #' @param \dots Additional arguments passed to
-#'   \code{\link{mvsusie_suff_stat}}.
+#'   \code{\link{mvsusie_ss}}.
 #'
 #' @export
 #'
@@ -519,7 +517,7 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
         }
       }
     }
-    s <- mvsusie_suff_stat(
+    s <- mvsusie_ss(
       XtX = R, XtY = Z, YtY = varY, N = 2,
       prior_variance = prior_variance,
       standardize = FALSE,
@@ -565,7 +563,7 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
         }
       }
     }
-    s <- mvsusie_suff_stat(
+    s <- mvsusie_ss(
       XtX = XtX, XtY = XtY, YtY = (N - 1) * varY, N = N,
       prior_variance = prior_variance,
       residual_variance = residual_variance, ...
@@ -599,7 +597,7 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
 #'
 #' @export
 #'
-mvsusie_suff_stat <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
+mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                               Y_colmeans = NULL, prior_variance = 0.2,
                               residual_variance = NULL, prior_weights = NULL,
                               standardize = TRUE,
@@ -623,7 +621,7 @@ mvsusie_suff_stat <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
           else as.numeric(residual_variance)
     prior_variance <- prior_variance * rv
   }
-  mvsusie_suff_stat_s3(XtX, XtY, YtY, N, L = L,
+  mvsusie_ss_core(XtX, XtY, YtY, N, L = L,
                        X_colmeans = X_colmeans,
                        Y_colmeans = Y_colmeans,
                        prior_variance = prior_variance,
@@ -651,7 +649,7 @@ mvsusie_suff_stat <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
 #'
 #' @export
 #'
-mvsusie_s3 <- function(X, Y, L = 10, prior_variance = 0.2,
+mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        residual_variance = NULL, prior_weights = NULL,
                        standardize = TRUE, intercept = TRUE,
                        approximate = FALSE,
@@ -796,7 +794,7 @@ mvsusie_s3 <- function(X, Y, L = 10, prior_variance = 0.2,
 #'
 #' @export
 #'
-mvsusie_suff_stat_s3 <- function(XtX, XtY, YtY, N, L = 10,
+mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   X_colmeans = NULL, Y_colmeans = NULL,
                                   prior_variance = 0.2,
                                   residual_variance = NULL,
