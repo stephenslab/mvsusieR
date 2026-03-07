@@ -286,3 +286,72 @@ mvsusie_get_lfsr <- function(clfsr, alpha, weighted = TRUE) {
     ))
   }
 }
+
+#' @title Condition-specific posterior inclusion probabilities.
+#'
+#' @description Computes the PIP for each variable in each condition,
+#'   accounting for the mixture structure of the prior. A variable is
+#'   considered "included" in condition r if its effect has nonzero
+#'   variance in that condition under the selected mixture component.
+#'
+#' @param m A fitted mvsusie object (output of \code{mvsusie}).
+#' @param prior_obj A mash prior object (output of \code{create_mash_prior}
+#'   or \code{create_mixture_prior}) that was used to fit the model.
+#'
+#' @return J x R matrix of condition-specific PIPs.
+#'
+#' @export
+#'
+mvsusie_get_pip_per_condition <- function(m, prior_obj) {
+  alpha_cond <- mvsusie_get_alpha_per_condition(m, prior_obj)
+  R <- dim(alpha_cond)[3]
+  do.call(cbind, lapply(
+    seq_len(R),
+    function(r) apply(alpha_cond[, , r], 2, function(x) 1 - prod(1 - x))
+  ))
+}
+
+#' @title Condition-specific alpha (per-effect inclusion weights).
+#'
+#' @description For each single effect l and variable j, computes the
+#'   probability of having a nonzero effect in each condition r.
+#'   This is the sum of mixture_weights over components that have
+#'   nonzero prior variance in condition r, multiplied by alpha.
+#'
+#' @param m A fitted mvsusie object (output of \code{mvsusie}).
+#' @param prior_obj A mash prior object (output of \code{create_mash_prior}
+#'   or \code{create_mixture_prior}) that was used to fit the model.
+#'
+#' @return L x J x R array of condition-specific alpha values.
+#'
+#' @export
+#'
+mvsusie_get_alpha_per_condition <- function(m, prior_obj) {
+  # Build condition indicator: which components have nonzero variance
+  # in which conditions.
+  # prior_obj$xUlist contains K non-null prior matrices (R x R each).
+  condition_indicator <- do.call(
+    rbind,
+    lapply(
+      seq_along(prior_obj$xUlist),
+      function(i) as.integer(diag(prior_obj$xUlist[[i]]) != 0)
+    )
+  )  # K x R
+
+  # m$mixture_weights is L x J x (K+1) where column 1 is the null component.
+  # We need the K non-null columns (columns 2:(K+1)).
+  L <- nrow(m$alpha)
+  J <- ncol(m$alpha)
+  R <- ncol(condition_indicator)
+
+  alpha_cond <- array(0, c(L, J, R))
+  for (r in seq_len(R)) {
+    for (k in seq_len(nrow(condition_indicator))) {
+      # k-th non-null component = column k+1 in mixture_weights
+      alpha_cond[, , r] <- alpha_cond[, , r] +
+        m$mixture_weights[, , k + 1] * condition_indicator[k, r]
+    }
+    alpha_cond[, , r] <- alpha_cond[, , r] * m$alpha
+  }
+  alpha_cond
+}

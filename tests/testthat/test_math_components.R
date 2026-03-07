@@ -77,11 +77,7 @@ load_r6_env <- function() {
 }
 
 skip_if_no_r6 <- function() {
-  tryCatch(
-    load_r6_env(),
-    error = function(e)
-      skip(paste("R6 reference not available:", e$message))
-  )
+  load_r6_env()
 }
 
 # Machine precision tolerance
@@ -618,7 +614,10 @@ test_that("R=3 matrix optim: ALL fields match R6", {
                       estimate_prior_method = "optim",
                       compute_objective = TRUE,
                       intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
+    # Optim: Brent optimizer convergence noise (~3e-8 in V_scalar)
+    # cascades to ~6e-8 in derived quantities (lbf_variable).
+    # Use 1e-7 tolerance (MACH_TOL ≈ 1.5e-8 is too tight for optim output).
+    expect_all_fields_equal(fit, ref, tol = 1e-7,
                             label = "R3_matrix_optim")
   })
 })

@@ -184,9 +184,10 @@ compute_ser_statistics.mv_individual <- function(data, params, model, l, ...) {
   svs     <- if (!is.null(model$svs)) model$svs else data$svs
   svs_inv <- if (!is.null(model$svs_inv)) model$svs_inv else data$svs_inv
 
-  # Moment-based warm start for optim (analogous to susieR's log(max(betahat^2 - shat2, 1))):
-  # For each variable j, compute tr(betahat_j betahat_j') - tr(S_j) as a scalar
-  # measure of signal strength, then take the max across variables.
+  # Moment-based warm start for optim: multivariate analogue of susieR's
+  # log(max(betahat^2 - shat2, 1)). For each variable j, compute
+  # tr(betahat_j betahat_j') - tr(S_j) as a scalar measure of signal
+  # strength, then take the max across variables.
   signal <- sapply(seq_len(nrow(betahat)), function(j) {
     sum(betahat[j, ]^2) - sum(diag(svs[[j]]))
   })
@@ -223,6 +224,32 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
       return(model)
     } else {
       return(0)
+    }
+  }
+
+  # === K=1 DIRECT PATH: matches R6 BayesianMultivariateRegression ===
+  # For single-matrix prior (K=1) with no null weight, use multivariate_lbf
+  # directly instead of mashr's mixture C++ path. This ensures the optimizer
+  # evaluates the same function as R6, avoiding numerical divergence.
+  if (length(model$V_structure) == 1 && model$null_weight == 0 &&
+      is.null(model$eigen_cache)) {
+    U <- V * model$V_structure[[1]]
+    svs <- if (!is.null(model$svs)) model$svs else data$svs
+    lbf <- multivariate_lbf(ser_stats$betahat, svs, U)
+    lbf[is.na(lbf)] <- 0
+
+    softmax_res <- compute_softmax(lbf, model$pi)
+    if (!is.null(l)) {
+      model$alpha[l, ]        <- softmax_res$weights
+      model$lbf[l]            <- softmax_res$log_sum
+      model$lbf_variable[l, ] <- lbf
+      # K=1, no null: pi_V_posterior is J x 2 (null=0, non-null=1)
+      model$pi_V_posterior[[l]] <- cbind(rep(0, J), rep(1, J))
+      # No llik_cache: K=1 EM uses direct formula (fallback path)
+      model$llik_cache <- NULL
+      return(model)
+    } else {
+      return(softmax_res$log_sum)
     }
   }
 
@@ -359,10 +386,18 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   # === FAST PATH: eigendecomposition precomputation ===
   if (!is.null(model$eigen_cache)) {
     betahat <- model$residuals / data$d  # J x R
-    # Pass alpha for EM weighting (mashr's var_post_wt = alpha * pi_V_post)
+
+    # Compute P(j|k) weights for EM (same formula as slow path).
+    if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM"
+        && !is.null(model$llik_cache)) {
+      em_var_wt <- compute_variable_posterior_weights(model$pi, model$llik_cache)
+    } else {
+      em_var_wt <- NULL
+    }
+
     post <- posterior_precomputed(betahat, V, model$eigen_cache,
                                   model$pi_V_posterior[[l]],
-                                  alpha = model$alpha[l, ])
+                                  em_var_wt = em_var_wt)
 
     model$mu[l, , ] <- post$post_mean
     for (j in seq_len(J)) {
@@ -399,11 +434,11 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
     model$residual_correlation else data$residual_correlation
   is_common_cov <- data$is_common_cov
 
-  # Compute variable posterior weights for EM (if needed)
-  # var_post_wt[k,j] = alpha[l,j] * pi_V_posterior[j,k]
+  # Compute variable posterior weights for EM (if needed).
+  # Uses R6's compute_variable_posterior_weights formula: P(j|k) for each (k,j).
   if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM"
-      && !is.null(model$pi_V_posterior[[l]])) {
-    var_post_wt <- t(model$alpha[l, ] * model$pi_V_posterior[[l]])  # (K+1) x J
+      && !is.null(model$llik_cache)) {
+    var_post_wt <- compute_variable_posterior_weights(model$pi, model$llik_cache)
   } else {
     var_post_wt <- matrix(0, 0, 0)
   }
@@ -848,7 +883,7 @@ compute_multivariate_elbo <- function(data, model) {
   # Constant: -N*R/2*log(2*pi) - N/2*log|sigma2|
   loglik <- -N * R / 2 * log(2 * pi)
   if (is.matrix(model$sigma2)) {
-    loglik <- loglik - N / 2 * log(det(model$sigma2))
+    loglik <- loglik - N / 2 * 2 * sum(log(diag(chol(model$sigma2))))
   } else {
     loglik <- loglik - N * R / 2 * log(model$sigma2)
   }

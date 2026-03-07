@@ -24,11 +24,6 @@ invert_via_chol <- function(x) {
   }
 }
 
-# Invert SPD via triangular back-fitting.
-invert_chol_tri <- function(x) {
-  list(inv = t(backsolve(muffled_chol(x), diag(nrow(x)))), rank = nrow(x))
-}
-
 # Pseudoinverse of matrix.
 pseudo_inverse <- function(x, tol = sqrt(.Machine$double.eps)) {
   xsvd <- svd(x)
@@ -40,24 +35,6 @@ pseudo_inverse <- function(x, tol = sqrt(.Machine$double.eps)) {
       ((1 / xsvd$d[Positive]) * t(xsvd$u[, Positive, drop = FALSE]))
   }
   return(list(inv = xinv, rank = sum(Positive)))
-}
-
-# Check if x is diagonal matrix.
-isDiagonal <- function(x, tol = sqrt(.Machine$double.eps)) {
-  if (is.matrix(x)) {
-    diag(x) <- rep(0, nrow(x))
-    return(all(abs(x) < tol))
-  } else {
-    return(TRUE)
-  }
-}
-
-# Find trace of diag matrix.
-tr <- function(m) {
-  if (!is.matrix(m) | (dim(m)[1] != dim(m)[2])) {
-    stop("Input to tr() function must be a square matrix")
-  }
-  return(sum(diag(m), na.rm = TRUE))
 }
 
 # Convert a list of matrices to array without losing dimension.
@@ -93,16 +70,6 @@ almost.unique <- function(x, tolerance = sqrt(.Machine$double.eps), ...) {
 almost.duplicated <- function(x, tolerance = sqrt(.Machine$double.eps), ...) {
   y <- round(x / tolerance, 0)
   return(duplicated(y, ...))
-}
-
-# Check if all elements are the same in matrix of J by R, J >> R.
-is_mat_common <- function(mat) {
-  nrow(almost.unique(mat)) == 1
-}
-
-# Check if all elements are the same in list.
-is_list_common <- function(lst) {
-  length(almost.unique(lst)) == 1
 }
 
 # Check if matrix has constant columns.
@@ -189,121 +156,23 @@ compute_softmax <- function(value, weight, log = TRUE) {
        log_sum = log(weighted_sum_w) + mvalue)
 }
 
-# Remove duplicated columns in the matrix while keeping track of what
-# columns are removed for duplicates with what other columns. This
-# function is only used for evaluation purposes.
-rm_collinear <- function(mat, ...) {
-  # "duplicated" will only work for matrix, not data frame.
-  mat <- as.matrix(mat)
-  dimmat <- dim(mat)
-  bool_coll <- almost.duplicated(mat, MARGIN = 2, ...)
-  if (any(bool_coll)) {
-    # Get columns to be removed.
-    rmvd_coll <- which(bool_coll)
-
-    # Now find columns they are collinear with. The idea is, when
-    # using fromLast = TRUE, the previously NOT duplicated columns (FALSE)
-    # will now become duplicated (TRUE) then we can find these columns
-    # and use them as the columns that has some duplicated associated
-    # with them.
-    bool_with_coll <-
-      almost.duplicated(mat, MARGIN = 2, fromLast = TRUE, ...) & !bool_coll
-    mat_with_coll <- mat[, bool_with_coll, drop = FALSE]
-    mat_coll <- mat[, bool_coll, drop = FALSE]
-
-    # These are columns with which the removed columns are collinear with
-    # "match"; will only work for data frames.
-    assoc_coll <- which(bool_with_coll)[match(
-      data.frame(mat_coll),
-      data.frame(mat_with_coll)
-    )]
-    rmvd_coll <- cbind(assoc_coll, rmvd_coll)
-    colnames(rmvd_coll) <- c("associated", "removed")
-    mat <- mat[, !bool_coll, drop = FALSE]
-
-    # Now generate index to recover the original.
-  } else {
-    rmvd_coll <- NULL
-  }
-  attr(mat, "original_dim") <- dimmat
-  attr(mat, "collinear_cols") <- rmvd_coll
-  if (is.null(rmvd_coll)) {
-    attr(mat, "collinear_counts") <- NULL
-  } else {
-    attr(mat, "collinear_counts") <- table(rmvd_coll[, "associated"])
-    options(stringsAsFactors = FALSE)
-    attr(mat, "collinear_counts") <-
-      cbind(
-        as.integer(names(attr(mat, "collinear_counts"))),
-        attr(mat, "collinear_counts") + 1
-      )
-    colnames(attr(mat, "collinear_counts")) <- c("associated", "counts")
-    rownames(attr(mat, "collinear_counts")) <- NULL
-  }
-
-  return(mat)
-}
-
-# Reconstruct complete matrix (with duplicates) using stripped matrix
-# and information regarding duplicate pattern in original matrix.
+# Compute P(variable j | component k) for EM update of prior variance scalar.
 #
-# example usage:
+# Matrix extension of compute_softmax: applies softmax row-by-row
+# over variables for each mixture component. Matches R6's
+# MashRegression$compute_variable_posterior_weights exactly.
 #
-#   m = rm_collinear(X1)
-#   X2 = reconstruct_coll(m,attr(m,"collinear_cols"),
-#                         attr(m,"collinear_counts"),
-#                          attr(m,"original_dim"))
-#   sum(X1 - X2) == 0
+# @param prior_variable_weights J-vector of variable-level prior weights.
+# @param llik J x (K+1) log-likelihood matrix.
 #
-reconstruct_coll <- function(mat, coll_cols, coll_counts, original_dim,
-                             adjust_counts = FALSE, transpose = FALSE) {
-  get_count <- function(counts, idx, adjust_counts) {
-    if (!adjust_counts || !(idx %in% counts[, "associated"])) {
-      return(1)
-    } else {
-      print(idx)
-      print(counts[, "counts"][which(counts[, "associated"] == idx)])
-      return(counts[, "counts"][which(counts[, "associated"] == idx)])
-    }
-  }
-
-  vectorise <- FALSE
-  if (is.vector(mat)) {
-    vectorise <- TRUE
-    mat <- matrix(mat, ncol = length(mat), nrow = 1)
-  }
-
-  if (transpose && !vectorise) {
-    mat <- t(mat)
-  }
-
-  # Create empty matrix to the original scale.
-  res <- matrix(as.numeric(NA), original_dim[1], original_dim[2])
-
-  # First column should always be good, and also duplicated columns
-  # always can be found in columns already established.
-  res[, 1] <- mat[, 1] / get_count(coll_counts, 1, adjust_counts)
-  i <- 2
-  for (j in 2:ncol(res)) {
-    if (j %in% coll_cols[, "removed"]) {
-      # A duplicate column, just add it from before.
-      j0 <- coll_cols[, "associated"][which(coll_cols[, "removed"] == j)]
-      res[, j] <- res[, j0]
-    } else {
-      # A new column; have to take it from the next inline in input mat.
-      res[, j] <- mat[, i] / get_count(coll_counts, j, adjust_counts)
-      i <- i + 1
-    }
-  }
-
-  if (transpose && !vectorise) {
-    res <- t(res)
-  }
-  if (vectorise) {
-    res <- as.vector(res)
-  }
-
-  return(res)
+# @return (K+1) x J matrix of P(j|k) posterior weights.
+#
+# @keywords internal
+compute_variable_posterior_weights <- function(prior_variable_weights, llik) {
+  lbf <- t(llik - llik[, 1])               # (K+1) x J
+  lfactors <- apply(lbf, 1, max)            # (K+1)-vector
+  d <- t(prior_variable_weights * t(exp(lbf - lfactors)))  # (K+1) x J
+  d / rowSums(d)
 }
 
 #' @title Create mash prior object.
@@ -632,10 +501,13 @@ loglik_precomputed <- function(betahat, V_scalar, eigen_cache) {
 # @param V_scalar    Scalar prior variance multiplier
 # @param eigen_cache Precomputed cache
 # @param pi_V_post   J x (K+1) matrix of posterior mixture weights
+# @param em_var_wt   (K+1) x J matrix of P(j|k) weights for EM update (from
+#   compute_variable_posterior_weights). NULL if EM not needed. Matches R6's
+#   compute_variable_posterior_weights output.
 #
 # @return list(post_mean, post_mean2, post_neg, post_zero, prior_scale_em_update)
 posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
-                                  alpha = NULL) {
+                                  em_var_wt = NULL) {
   J <- nrow(betahat)
   R <- ncol(betahat)
   K <- length(eigen_cache$components)
@@ -684,25 +556,37 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
           w_k[j] * (C_k + tcrossprod(M_k[j, ]))
       }
 
-      # Sign probabilities for LFSR
-      sd_k <- sqrt(pmax(diag(C_k), 0))
+      # Sign probabilities for LFSR.
+      #
+      # For rank-deficient priors (e.g., singletons), eigendecomposition
+      # introduces O(eps^{1/2}) noise in directions where the posterior
+      # variance should be exactly zero. We clamp these near-zero
+      # variances to 0. When clamped, the posterior is a point mass at
+      # beta[r] = 0 for this component — this is a "zero" contribution
+      # (post_zero), not a "negative" contribution (post_neg), matching
+      # mashr's handling of inactive singleton conditions.
+      diag_Ck <- diag(C_k)
+      diag_Ck[diag_Ck < sqrt(.Machine$double.eps) * max(diag_Ck)] <- 0
+      sd_k <- sqrt(diag_Ck)
       for (r in seq_len(R)) {
         if (sd_k[r] > 0) {
           post_neg[, r] <- post_neg[, r] +
             w_k * pnorm(0, M_k[, r], sd_k[r])
         } else {
-          post_neg[, r] <- post_neg[, r] +
-            w_k * as.numeric(M_k[, r] < 0)
+          # Posterior is a point mass at beta[r] = 0 for this component.
+          # Count as "zero" contribution, matching mashr's Woodbury path.
+          post_zero[, r] <- post_zero[, r] + w_k
         }
       }
 
       # EM statistic for component k:
       # sum_j em_wt_jk [tr(U_k^{-1} C_k) + m_j' U_k^{-1} m_j]
-      # where em_wt = alpha * pi_V_post (matching mashr's var_post_wt)
+      # where em_wt = P(j|k) from compute_variable_posterior_weights,
+      # matching R6's compute_variable_posterior_weights output.
       # tr(U_k^{-1} C_k) = V sum_i 1/(1+V*d_i)  (scalar, same for all j)
       # m_j' U_k^{-1} m_j = sum_i V^2*d_i/(1+V*d_i)^2 * b_ji^2
       #   where b_ji = (Q' bhat_j)_i = BQ[j, i]
-      em_wt <- if (!is.null(alpha)) alpha * w_k else w_k
+      em_wt <- if (!is.null(em_var_wt)) em_var_wt[k + 1, ] else w_k
       tr_term <- V_scalar * sum(inv_factor)
       em_per_var <- V_scalar^2 * drop(BQ^2 %*% (d_k * inv_factor^2))
       em_update[k + 1] <- sum(em_wt * (tr_term + em_per_var))
@@ -731,19 +615,20 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
         post_mean2[j, , ] <- post_mean2[j, , ] +
           w_k[j] * (C_k + tcrossprod(m_j))
 
-        sd_k <- sqrt(pmax(diag(C_k), 0))
+        diag_Ck <- diag(C_k)
+        diag_Ck[diag_Ck < sqrt(.Machine$double.eps) * max(diag_Ck)] <- 0
+        sd_k <- sqrt(diag_Ck)
         for (r in seq_len(R)) {
           if (sd_k[r] > 0)
             post_neg[j, r] <- post_neg[j, r] +
               w_k[j] * pnorm(0, m_j[r], sd_k[r])
           else
-            post_neg[j, r] <- post_neg[j, r] +
-              w_k[j] * as.numeric(m_j[r] < 0)
+            post_zero[j, r] <- post_zero[j, r] + w_k[j]
         }
 
         tr_term <- V_scalar * sum(inv_factor)
         em_j <- V_scalar^2 * sum(d_k * inv_factor^2 * b_rot^2)
-        em_wt_j <- if (!is.null(alpha)) alpha[j] * w_k[j] else w_k[j]
+        em_wt_j <- if (!is.null(em_var_wt)) em_var_wt[k + 1, j] else w_k[j]
         em_update[k + 1] <- em_update[k + 1] + em_wt_j * (tr_term + em_j)
       }
     }
