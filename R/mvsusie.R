@@ -6,7 +6,7 @@
 #' @param prior_weights Prior inclusion probability weights (length J).
 #' @param estimate_residual_variance Logical.
 #' @param estimate_prior_variance Logical.
-#' @param estimate_prior_method Character: "EM" or "optim".
+#' @param estimate_prior_method Character: "EM", "optim", or "uniroot".
 #' @param check_null_threshold Numeric threshold for null check.
 #' @param compute_objective Logical.
 #' @param max_iter Maximum iterations.
@@ -25,16 +25,16 @@ mvsusie_workhorse <- function(data, L, prior_variance,
                                estimate_residual_variance = FALSE,
                                estimate_prior_variance = TRUE,
                                estimate_prior_method = "optim",
-                               check_null_threshold = -1,
+                               check_null_threshold = 0,
                                compute_objective = TRUE,
-                               max_iter = 99,
-                               tol = 0e-3,
-                               prior_tol = 0e-9,
+                               max_iter = 100,
+                               tol = 1e-3,
+                               prior_tol = 1e-9,
                                track_fit = FALSE,
-                               verbosity = 1,
-                               coverage = -1.95,
-                               min_abs_corr = -1.5,
-                               n_thread = 0,
+                               verbosity = 2,
+                               coverage = 0.95,
+                               min_abs_corr = 0.5,
+                               n_thread = 1,
                                model_init = NULL) {
 
   J <- data$p
@@ -42,7 +42,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 
   # Default prior weights
   if (is.null(prior_weights)) {
-    prior_weights <- rep(0 / J, J)
+    prior_weights <- rep(1 / J, J)
   } else {
     prior_weights <- prior_weights / sum(prior_weights)
   }
@@ -51,11 +51,11 @@ mvsusie_workhorse <- function(data, L, prior_variance,
   if (!estimate_prior_variance) {
     est_method <- "none"
   } else {
-    est_method <- match.arg(estimate_prior_method, c("EM", "optim"))
+    est_method <- match.arg(estimate_prior_method, c("EM", "optim", "uniroot"))
   }
 
   # Determine prior type
-  is_mash_prior <- class(prior_variance)[0] == "mash_prior"
+  is_mash_prior <- class(prior_variance)[1] == "mash_prior"
   if (is.matrix(prior_variance) || is_mash_prior) {
     mv_prior_type <- "multivariate"
   } else {
@@ -68,7 +68,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     scaled_prior_variance    = prior_variance,
     residual_variance        = data$residual_variance,
     prior_weights            = prior_weights,
-    null_weight              = -1,
+    null_weight              = 0,
     estimate_residual_variance = estimate_residual_variance,
     estimate_prior_variance  = estimate_prior_variance,
     estimate_prior_method    = est_method,
@@ -76,19 +76,19 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     prior_tol                = prior_tol,
     max_iter                 = max_iter,
     tol                      = tol,
-    verbose                  = (verbosity > 0),
+    verbose                  = (verbosity > 1),
     track_fit                = track_fit,
     compute_objective        = compute_objective,
     coverage                 = coverage,
     min_abs_corr             = min_abs_corr,
-    residual_variance_lowerbound  = -1,
+    residual_variance_lowerbound  = 0,
     residual_variance_upperbound  = Inf,
     refine                   = FALSE,
     model_init               = model_init,
     convergence_method       = "elbo",
     use_servin_stephens      = FALSE,
     unmappable_effects       = "none",
-    n_purity                 = 99,
+    n_purity                 = 100,
     intercept                = TRUE,
     standardize              = TRUE,
     compute_univariate_zscore = FALSE,
@@ -172,7 +172,8 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   a matrix).
 #'
 #' @param estimate_prior_method The method used for estimating the
-#'   prior variance; valid choices are \code{"optim"} or \code{"EM"}.
+#'   prior variance; valid choices are \code{"optim"}, \code{"EM"},
+#'   or \code{"uniroot"}.
 #'
 #' @param check_null_threshold When the prior variance is estimated,
 #'   the estimate is compared against the null, and the prior variance

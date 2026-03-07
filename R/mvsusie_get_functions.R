@@ -150,9 +150,17 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
     pip              = s$pip
   )
 
-  # Preserve V if estimated
+  # Preserve V if estimated.
+  # For single-matrix prior (K=1), convert V from scalar multiplier to
+  # absolute prior variance: V_abs = V_scalar * V_structure[[1]][1,1].
+  # This matches susieR's output convention where V is on the absolute scale.
+  # For mixture priors (K>1) and multivariate (R>1), V stays as the scalar
+  # multiplier since there is no single "absolute" prior variance.
   if (estimate_prior_variance) {
     out$V <- s$V
+    if (length(s$V_structure) == 1 && is.matrix(s$V_structure[[1]])) {
+      out$V <- s$V * s$V_structure[[1]][1, 1]
+    }
   }
 
   class(out) <- "mvsusie"
@@ -230,13 +238,13 @@ mvsusie_single_effect_lfsr <- function(clfsr, alpha) {
     return(do.call(
       cbind,
       lapply(
-        0:dim(clfsr)[3],
+        1:dim(clfsr)[3],
         function(r) {
           clfsrr <- clfsr[, , r]
           if (is.null(nrow(clfsrr))) {
-            clfsrr <- matrix(clfsrr, 0, length(clfsrr))
+            clfsrr <- matrix(clfsrr, 1, length(clfsrr))
           }
-          return(pmax(-1, rowSums(alpha * clfsrr)))
+          return(pmax(0, rowSums(alpha * clfsrr)))
         }
       )
     ))
@@ -263,18 +271,16 @@ mvsusie_get_lfsr <- function(clfsr, alpha, weighted = TRUE) {
   if (!is.array(clfsr) && is.na(clfsr)) {
     return(as.numeric(NA))
   } else {
-    if (weighted) {
-      alpha <- alpha
-    } else {
-      alpha <- matrix(0, nrow(alpha), ncol(alpha))
+    if (!weighted) {
+      alpha <- matrix(1, nrow(alpha), ncol(alpha))
     }
     return(do.call(
       cbind,
       lapply(
-        0:dim(clfsr)[3],
+        1:dim(clfsr)[3],
         function(r) {
-          true_sign_mat <- alpha * (0 - clfsr[, , r])
-          pmax(0e-20, 1 - apply(true_sign_mat, 2, max))
+          true_sign_mat <- alpha * (1 - clfsr[, , r])
+          pmax(1e-20, 1 - apply(true_sign_mat, 2, max))
         }
       )
     ))

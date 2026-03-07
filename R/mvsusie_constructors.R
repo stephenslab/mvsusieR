@@ -285,22 +285,19 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
 
   if (is.matrix(prior_var)) {
     # Single matrix -> K=1 non-null component.
-    # Normalize by max diagonal so V_scalar is on a comparable scale to susieR.
-    max_diag <- max(abs(diag(prior_var)))
-    V_structure <- list(prior_var / max_diag)
+    # V_structure stores the prior covariance matrix unnormalized (matching R6
+    # convention). V_scalar starts at 1 and is updated by EM/optim.
+    V_structure <- list(prior_var)
     pi_V <- 1.0
     null_weight <- 0
-    V_scalar_init <- max_diag
+    V_scalar_init <- 1
   } else if (class(prior_var)[1] == "mash_prior") {
     # Mixture prior from create_mash_prior.
-    # Normalize each component by the same max diagonal as the matrix path
-    # so that V_scalar is comparable between matrix and mash_prior paths.
-    max_diag <- max(vapply(prior_var$xUlist,
-                            function(U) max(abs(diag(U))), numeric(1)))
-    V_structure <- lapply(prior_var$xUlist, function(U) U / max_diag)
+    # Store component matrices unnormalized (matching R6 convention).
+    V_structure <- prior_var$xUlist
     pi_V <- prior_var$pi
     null_weight <- prior_var$null_weight
-    V_scalar_init <- max_diag
+    V_scalar_init <- 1
   } else {
     # Scalar prior (R=1 fallback)
     V_structure <- list(diag(R))
