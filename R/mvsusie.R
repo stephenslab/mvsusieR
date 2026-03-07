@@ -55,8 +55,10 @@
 #'
 #' @param estimate_residual_variance When
 #'   \code{estimate_residual_variance = TRUE}, the residual variance is
-#'   estimated; otherwise it is fixed. Currently
-#'   \code{estimate_residual_variance = TRUE} only works for univariate Y.
+#'   estimated at each iteration using \eqn{E_q[R'R] / n}; otherwise it
+#'   is fixed. For multivariate Y the estimate is a full \eqn{r \times r}
+#'   covariance matrix. Forced to \code{FALSE} when Y contains missing
+#'   values.
 #'
 #' @param estimate_prior_variance When \code{estimate_prior_variance =
 #'   TRUE}, the prior variance is estimated; otherwise it is
@@ -65,9 +67,7 @@
 #'   a matrix).
 #'
 #' @param estimate_prior_method The method used for estimating the
-#'   prior variance; valid choices are \code{"optim"}, \code{"uniroot"}
-#'   or \code{"em"} for univariate Y; and \code{"optim"},
-#'   \code{"simple"} for multivariate Y.
+#'   prior variance; valid choices are \code{"optim"} or \code{"EM"}.
 #'
 #' @param check_null_threshold When the prior variance is estimated,
 #'   the estimate is compared against the null, and the prior variance
@@ -228,11 +228,6 @@
 #' Z <- calc_z(X, Y)
 #' res <- mvsusie_rss(Z, R, N = n, L = 10, prior_variance = prior)
 #'
-#' @importFrom Matrix isDiagonal
-#' @importFrom stats sd
-#' @importFrom stats var
-#' @importFrom susieR susie_get_cs
-#'
 #' @export
 #'
 mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
@@ -240,7 +235,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     standardize = TRUE, intercept = TRUE, approximate = FALSE,
                     estimate_residual_variance = FALSE,
                     estimate_prior_variance = TRUE,
-                    estimate_prior_method = "EM",
+                    estimate_prior_method = "optim",
                     check_null_threshold = 0, prior_tol = 1e-9,
                     compute_objective = TRUE, s_init = NULL,
                     coverage = 0.95, min_abs_corr = 0.5,
@@ -248,134 +243,32 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     precompute_covariances = FALSE, n_thread = 1,
                     max_iter = 100, tol = 1e-3, verbosity = 2,
                     track_fit = FALSE) {
-  # Adjust prior weights.
-  if (is.null(prior_weights)) {
-    prior_weights <- rep(1 / ncol(X), ncol(X))
-  } else {
-    prior_weights <- prior_weights / sum(prior_weights)
+  # For R=1 with scalar prior, convert from susieR "scaled prior variance"
+  # convention to absolute prior variance: actual_V = scaled_V * sigma2.
+  # This matches the R6 path behavior in mvsusie_core.R:
+  #   prior_variance <- prior_variance * data$residual_variance
+  Y_ncol <- if (is.null(dim(Y))) 1L else ncol(Y)
+  is_numeric_prior <- is.numeric(prior_variance) && !is.matrix(prior_variance)
+  if (Y_ncol == 1L && is_numeric_prior) {
+    rv <- if (is.null(residual_variance)) as.numeric(var(Y))
+          else as.numeric(residual_variance)
+    prior_variance <- prior_variance * rv
   }
-
-  # Check and process prior variance.
-  if (inherits(prior_variance, "MashInitializer")) {
-    prior_variance <- prior_variance$clone(deep = TRUE)
-  }
-  is_numeric_prior <- !(is.matrix(prior_variance) ||
-    inherits(prior_variance, "MashInitializer"))
-  if (!is.null(dim(Y)) && ncol(Y) > 1 && is_numeric_prior) {
-    stop("Please specify prior variance for the multivariate response Y")
-  }
-  if (standardize && !is_numeric_prior) {
-    # Scale prior variance; see
-    # https://github.com/stephenslab/mvsusieR/blob/master/
-    # inst/prototypes/prior_matrices_scale.ipynb
-    sigma <- sapply(1:ncol(Y), function(i) sd(Y[, i], na.rm = TRUE))
-    n <- sapply(1:ncol(Y), function(i) length(which(!is.na(Y[, 1]))))
-    sigma <- sigma / sqrt(n)
-
-    # Make sigma numerically more robust against extreme values.
-    if (estimate_prior_variance) {
-      sigma <- sigma / max(sigma)
-    }
-    if (is.matrix(prior_variance)) {
-      prior_variance <- scale_covariance(prior_variance, sigma)
-    } else {
-      prior_variance$scale_prior_variance(sigma)
-    }
-  }
-  if (verbosity > 1) {
-    message("Initializing data object...")
-    message(paste("Dimension of X matrix:", nrow(X), ncol(X)))
-    message(paste("Dimension of Y matrix:", nrow(Y), ncol(Y)))
-  }
-
-  # Set data object.
-  if (anyNA(Y)) {
-    # When the residual variance is a diagonal matrix, the approximate
-    # version has the same result as the exact version, and it is
-    # faster, so we set approximate = TRUE.
-    if (isDiagonal(residual_variance)) {
-      approximate <- TRUE
-    }
-    data <- DenseDataYMissing$new(X, Y, approximate)
-    estimate_residual_variance <- FALSE
-  } else {
-    data <- DenseData$new(X, Y)
-  }
-
-  # Include residual variance in the data object.
-  data$set_residual_variance(residual_variance,
-    numeric = is_numeric_prior,
-    quantities = "residual_variance"
-  )
-  data$standardize(intercept, standardize)
-  data$set_residual_variance(quantities = "effect_variance")
-
-  # Fit the susie model.
-  s <- mvsusie_core(
-    data, s_init, L, prior_variance, prior_weights,
-    estimate_residual_variance, estimate_prior_variance,
-    estimate_prior_method, check_null_threshold,
-    precompute_covariances, compute_objective, n_thread,
-    max_iter, tol, prior_tol, track_fit, verbosity
-  )
-
-  # Compute CSs and PIPs.
-  if (!is.null(coverage) && !is.null(min_abs_corr)) {
-    s$sets <- susie_get_cs(s,
-      coverage = coverage, X = X,
-      min_abs_corr = min_abs_corr
-    )
-  }
-
-  # Report z-scores from univariate regression.
-  if (compute_univariate_zscore) {
-    s$z <- calc_z(X, Y, center = intercept, scale = standardize)
-  }
-
-  # Set row and column names of the outputs, and fix dimensions of
-  # outputs if needed.
-  s$coef <- drop(s$coef)
-  s$fitted <- drop(s$fitted)
-  s$residual_variance <- data$residual_variance
-  if (is.null(colnames(Y))) {
-    s$condition_names <- paste0("cond", 1:ncol(Y))
-  } else {
-    s$condition_names <- colnames(Y)
-  }
-  if (is.null(colnames(X))) {
-    s$variable_names <- paste0("var", 1:ncol(X))
-  } else {
-    s$variable_names <- colnames(X)
-  }
-  if (length(s$condition_names) == 1) {
-    names(s$coef) <- c("(Intercept)", s$variable_names)
-    names(s$fitted) <- rownames(X)
-    rownames(s$b1) <- paste0("l", 1:L)
-    colnames(s$b2) <- s$variable_names
-    rownames(s$b2) <- paste0("l", 1:L)
-    colnames(s$b2) <- s$variable_names
-  } else {
-    rownames(s$coef) <- c("(Intercept)", s$variable_names)
-    colnames(s$coef) <- s$condition_names
-    colnames(s$fitted) <- s$condition_names
-    rownames(s$fitted) <- rownames(X)
-    dimnames(s$b1) <- list(
-      single_effect = paste0("l", 1:L),
-      variable = s$variable_names,
-      condition = s$condition_names
-    )
-    dimnames(s$b2) <- list(
-      single_effect = paste0("l", 1:L),
-      variable = s$variable_names,
-      condition = s$condition_names
-    )
-    rownames(s$residual_variance) <- s$condition_names
-    colnames(s$residual_variance) <- s$condition_names
-  }
-  names(s$pip) <- s$variable_names
-  colnames(s$alpha) <- s$variable_names
-  names(s$intercept) <- s$condition_names
-  rownames(s$alpha) <- paste0("l", 1:L)
-  class(s) <- "mvsusie"
-  return(s)
+  mvsusie_s3(X, Y, L = L, prior_variance = prior_variance,
+             residual_variance = residual_variance,
+             prior_weights = prior_weights,
+             standardize = standardize, intercept = intercept,
+             approximate = approximate,
+             estimate_residual_variance = estimate_residual_variance,
+             estimate_prior_variance = estimate_prior_variance,
+             estimate_prior_method = estimate_prior_method,
+             check_null_threshold = check_null_threshold,
+             prior_tol = prior_tol,
+             compute_objective = compute_objective,
+             model_init = s_init,
+             coverage = coverage, min_abs_corr = min_abs_corr,
+             compute_univariate_zscore = compute_univariate_zscore,
+             n_thread = n_thread,
+             max_iter = max_iter, tol = tol,
+             verbosity = verbosity, track_fit = track_fit)
 }

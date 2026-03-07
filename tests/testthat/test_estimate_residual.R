@@ -1,40 +1,23 @@
 context("Test Estimate Residual Variance")
 
-test_that("estimated residual variance in multivariate case is identical to univariate case", with(simulate_multivariate(r = 1), {
-  # fit susie
-  A = susieR::susie(X, y, L = L,
-                    scaled_prior_variance = V/var(y),
-                    residual_variance = as.numeric(cov(y)), prior_weights = NULL,
-                    estimate_residual_variance = T, estimate_prior_variance = FALSE)
-  d = DenseData$new(X,y)
-  d$standardize(TRUE,TRUE)
-  d$set_residual_variance(as.numeric(cov(y)))
-  # BayesianSimpleRegression
-  SER.simple = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, as.numeric(V))
-  B = SuSiE$new(SER.simple, L, estimate_residual_variance = T)
-  d.copy = d$clone(T)
-  B$fit(d.copy)
-  BA = report_susie_model(d.copy, B)
-  expect_susieR_equal(A,BA,F,F,tol = 1e-4)
-  expect_equal(A$sigma2, BA$sigma2)
+# NOTE: Tests using R6 SingleEffectModel/BayesianSimpleRegression/
+# BayesianMultivariateRegression/SuSiE/DenseData have been removed because
+# R6 classes have been deleted. Those tests are superseded by
+# test_r1_susieR_identity.R which compares the S3 path against susieR for R=1.
 
-  # BayesianMultivariateRegression
-  d$set_residual_variance(cov(y))
-  SER.multi = SingleEffectModel(BayesianMultivariateRegression)$new(d$n_effect, V)
-  C = SuSiE$new(SER.multi, L, estimate_residual_variance = T)
-  d.copy = d$clone(T)
-  C$fit(d.copy)
-  CA = report_susie_model(d.copy, C)
-  expect_susie_equal(BA, CA, F, F)
-  expect_equal(BA$sigma2, as.numeric(CA$sigma2))
-
-  # Mash Regression
+test_that("estimated residual variance: matrix prior vs mash_prior agree", with(simulate_multivariate(r = 1), {
+  # Compare S3 matrix prior vs S3 mash_prior (both go through S3 path)
   null_weight = 0
-  mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-  SER.mash = SingleEffectModel(MashRegression)$new(ncol(X), mash_init)
-  D = SuSiE$new(SER.mash, L, estimate_residual_variance = T)
-  d.copy = d$clone(T)
-  D$fit(d.copy)
-  DA = report_susie_model(d.copy, D)
-  expect_susie_equal(CA, DA, F, T)
+  mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
+  CA_s3 = mvsusie(X, y, L = L, prior_variance = V,
+                  residual_variance = cov(y),
+                  estimate_residual_variance = T,
+                  estimate_prior_variance = FALSE,
+                  compute_objective = FALSE)
+  DA = mvsusie(X, y, L = L, prior_variance = mash_init,
+               residual_variance = cov(y),
+               estimate_residual_variance = T,
+               estimate_prior_variance = FALSE,
+               compute_objective = FALSE)
+  expect_susie_equal(CA_s3, DA, F, T)
 }))

@@ -67,23 +67,6 @@ matlist2array <- function(l) {
   return(l)
 }
 
-# Compute value_j * weight_j / sum(value_j * weight_j).
-compute_softmax <- function(value, weight, log = TRUE) {
-  if (length(value) != length(weight)) {
-    stop("Values and their weights should have equal length")
-  }
-  if (!log) {
-    value <- log(value)
-  }
-  mvalue <- max(value)
-  w <- exp(value - mvalue)
-  w_weighted <- w * weight
-  weighted_sum_w <- sum(w_weighted)
-  return(list(
-    weights = as.vector(w_weighted / weighted_sum_w),
-    log_sum = log(weighted_sum_w) + mvalue
-  ))
-}
 
 # Cannot use "unique" directly here --- for perfectly identical rows
 # (by computation) due to possible numerical issues, "unique" and
@@ -107,14 +90,6 @@ almost.duplicated <- function(x, tolerance = sqrt(.Machine$double.eps), ...) {
   y <- round(x / tolerance, 0)
   return(duplicated(y, ...))
 }
-
-# A null progressbar, because currently "progressbar_enabled" feature
-# does not work for "progress_bar".
-#
-#' @importFrom R6 R6Class
-null_progress_bar <- R6Class("null_progress_bar",
-  public = list(tick = function(...) {})
-)
 
 # Check if all elements are the same in matrix of J by R, J >> R.
 is_mat_common <- function(mat) {

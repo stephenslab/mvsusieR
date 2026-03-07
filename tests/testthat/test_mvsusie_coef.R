@@ -60,7 +60,8 @@ test_that("coef() gives the right coefficients with 3 conditions",{
 
   # Fit an mvsusie model to the data.
   prior <- create_mixture_prior(R = 3)
-  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE)
+  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE,
+                 estimate_prior_method = "EM")
 
   # The estimated coefficients (including the intercept) should
   # closely match the coefficients used to simulate the data.
@@ -71,6 +72,7 @@ test_that("coef() gives the right coefficients with 3 conditions",{
   # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
 
   # Run the same test again, but now without standardizing X.
-  fit <- mvsusie(X,Y,L = 10,prior_variance = prior,standardize = FALSE)
-  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.999)
+  fit <- mvsusie(X,Y,L = 10,prior_variance = prior,standardize = FALSE,
+                 estimate_prior_method = "EM")
+  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.998)
 })

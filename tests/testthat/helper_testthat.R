@@ -14,12 +14,12 @@
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
 set_X_attributes = function (X, center = TRUE, scale = TRUE) {
-    
+
   # if X is a trend filtering matrix
   if (!is.null(attr(X,"matrix.type"))) {
     order = attr(X,"order")
     n = ncol(X)
-    
+
     # Set three attributes for X.
     attr(X,"scaled:center") = compute_tf_cm(order,n)
     attr(X,"scaled:scale") = compute_tf_csd(order,n)
@@ -30,22 +30,22 @@ set_X_attributes = function (X, center = TRUE, scale = TRUE) {
     if (!scale)
       attr(X,"scaled:scale") = rep(1,n)
   } else {
-      
+
     # If X is either a dense or sparse ordinary matrix.
     # Get column means.
     cm = colMeans(X,na.rm = TRUE)
-    
+
     # Get column standard deviations.
     csd = susieR:::compute_colSds(X)
-    
+
     # Set sd = 1 when the column has variance 0.
     csd[csd == 0] = 1
     if (!center)
       cm = rep(0,length = length(cm))
-    if (!scale) 
+    if (!scale)
       csd = rep(1,length = length(cm))
     X.std = (t(X) - cm)/csd
-    
+
     # Set three attributes for X.
     attr(X,"d") = rowSums(X.std * X.std)
     attr(X,"scaled:center") = cm
@@ -91,25 +91,11 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
            Xr=rep(5,n), KL=rep(1.2,L),
            sigma2=residual_variance,
            V=scaled_prior_variance * as.numeric(var(y)))
-  if (sparse) {
-    # FIXME: sparse data not supported
-    data = NA
-  } else if(summary){
-    adj = (n-1)/(z^2 + n - 2)
-    ztilde = sqrt(adj) * z
-    data = SSData$new((n-1)*R, sqrt(n-1)*ztilde, n-1, n, NULL, NULL)
-    data$set_residual_variance(residual_variance)
-  }else {
-    data = DenseData$new(X,y)
-    data$standardize(TRUE,TRUE)
-    data$set_residual_variance(residual_variance)
-  }
   if(summary){
-    return(list(X=X, X.sparse=X.sparse, z = z, R = R, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
+    return(list(X=X, X.sparse=X.sparse, z = z, R = R, s=s, y=y, n=n, p=p, V=s$V, b=beta, L=L))
   }else{
-    return(list(X=X, X.sparse=X.sparse, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
+    return(list(X=X, X.sparse=X.sparse, s=s, y=y, n=n, p=p, V=s$V, b=beta, L=L))
   }
-
 }
 
 simulate_multivariate = function(n=100,p=100,r=2,center_scale=TRUE,y_missing=0) {
@@ -124,7 +110,7 @@ compute_cov_diag <- function(Y){
   return(covar)
 }
 
-expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, 
+expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE,
                                tol = 1E-8, rss = FALSE) {
   expect_equal(A$alpha, BA$alpha,scale = 1,tolerance = tol)
   expect_equal(A$lbf, BA$lbf,scale = 1,tolerance = tol)

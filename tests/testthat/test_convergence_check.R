@@ -1,51 +1,95 @@
 context("Test check for convergence using ELBO or not")
 
-test_that("mvsusieR gets same result checking ELBO or not", with(simulate_univariate(), {
-    # Do not estimate prior variance
-    SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
-    A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
-    d.copy = d$clone(T)
-    A$fit(d.copy)
-    A = report_susie_model(d.copy, A)
-    B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-6)
-    d.copy = d$clone(T)
-    B$fit(d.copy)
-    B = report_susie_model(d.copy, B) 
-    expect_susie_equal(A,B,FALSE,FALSE,tol = 1e-3)
-    # Estimate prior variance
-    SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
-    A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
-    d.copy = d$clone(T)
-    A$fit(d.copy, estimate_prior_variance_method='optim')
-    A = report_susie_model(d.copy, A) 
-    B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-6)
-    d.copy = d$clone(T)
-    B$fit(d.copy, estimate_prior_variance_method='optim')
-    B = report_susie_model(d.copy, B) 
-    expect_susie_equal(A,B,T,F,tol=5E-4)
-}))
+# NOTE: Tests using R6 SingleEffectModel/BayesianSimpleRegression/SuSiE/DenseData
+# have been replaced with S3 path equivalents using mvsusie() / mvsusie_suff_stat().
 
-test_that("mvsusieR gets same result checking ELBO or not RSS", with(simulate_univariate(summary = T), {
-  # Do not estimate prior variance
-  SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
-  A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
-  d.copy = d$clone(T)
-  A$fit(d.copy)
-  A = report_susie_model(d.copy, A)
-  B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-6)
-  d.copy = d$clone(T)
-  B$fit(d.copy)
-  B = report_susie_model(d.copy, B) 
-  expect_susie_equal(A,B,F,F,tol=1E-3)
-  # Estimate prior variance
-  SER = SingleEffectModel(BayesianSimpleRegression)$new(d$n_effect, V)
-  A = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = TRUE, tol = 1E-6)
-  d.copy = d$clone(T)
-  A$fit(d.copy, estimate_prior_variance_method='optim')
-  A = report_susie_model(d.copy, A) 
-  B = SuSiE$new(SER, L, estimate_residual_variance = FALSE, compute_objective = FALSE, tol = 1E-6)
-  d.copy = d$clone(T)
-  B$fit(d.copy, estimate_prior_variance_method='optim')
-  B = report_susie_model(d.copy, B) 
-  expect_susie_equal(A,B,T,F,tol=5E-4)
-}))
+test_that("mvsusie gets same result checking ELBO or not (dense)", {
+  set.seed(1)
+  n <- 100; p <- 200; L <- 10
+  beta <- rep(0, p); beta[1:4] <- 1
+  X <- matrix(rnorm(n * p, 3, 4), n, p)
+  y <- c(X %*% beta + rnorm(n))
+  V <- 0.2 * var(y)
+
+  # Fixed prior
+  A <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+    prior_variance = V,
+    residual_variance = matrix(1, 1, 1),
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = FALSE,
+    compute_objective = TRUE,
+    tol = 1e-6, verbosity = 0)
+  B <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+    prior_variance = V,
+    residual_variance = matrix(1, 1, 1),
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = FALSE,
+    compute_objective = FALSE,
+    tol = 1e-6, verbosity = 0)
+  expect_susie_equal(A, B, FALSE, FALSE, tol = 1e-3)
+
+  # Estimated prior (optim)
+  A <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+    prior_variance = V,
+    residual_variance = matrix(1, 1, 1),
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = TRUE,
+    estimate_prior_method = "optim",
+    compute_objective = TRUE,
+    tol = 1e-6, verbosity = 0)
+  B <- mvsusie_s3(X, matrix(y, ncol = 1), L = L,
+    prior_variance = V,
+    residual_variance = matrix(1, 1, 1),
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = TRUE,
+    estimate_prior_method = "optim",
+    compute_objective = FALSE,
+    tol = 1e-6, verbosity = 0)
+  expect_susie_equal(A, B, TRUE, FALSE, tol = 5e-4)
+})
+
+test_that("mvsusie gets same result checking ELBO or not (suff stat)", {
+  set.seed(1)
+  n <- 100; p <- 200; L <- 10
+  beta <- rep(0, p); beta[1:4] <- 1
+  X <- matrix(rnorm(n * p, 3, 4), n, p)
+  y <- c(X %*% beta + rnorm(n))
+  Xc <- scale(X, center = TRUE, scale = FALSE)
+  yc <- y - mean(y)
+  XtX <- crossprod(Xc)
+  Xty <- crossprod(Xc, yc)
+  yty <- crossprod(yc)
+  V <- 0.2 * as.numeric(yty / (n - 1))
+
+  # Fixed prior
+  A <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+    prior_variance = V,
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = FALSE,
+    compute_objective = TRUE,
+    tol = 1e-6, verbosity = 0)
+  B <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+    prior_variance = V,
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = FALSE,
+    compute_objective = FALSE,
+    tol = 1e-6, verbosity = 0)
+  expect_susie_equal(A, B, FALSE, FALSE, tol = 1e-3)
+
+  # Estimated prior (optim)
+  A <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+    prior_variance = V,
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = TRUE,
+    estimate_prior_method = "optim",
+    compute_objective = TRUE,
+    tol = 1e-6, verbosity = 0)
+  B <- mvsusie_suff_stat_s3(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+    prior_variance = V,
+    estimate_residual_variance = FALSE,
+    estimate_prior_variance = TRUE,
+    estimate_prior_method = "optim",
+    compute_objective = FALSE,
+    tol = 1e-6, verbosity = 0)
+  expect_susie_equal(A, B, TRUE, FALSE, tol = 5e-4)
+})

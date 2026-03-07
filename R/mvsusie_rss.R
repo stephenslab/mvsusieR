@@ -37,7 +37,7 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
                         residual_variance = NULL,
                         ...) {
   is_numeric_prior <-
-    !(is.matrix(prior_variance) || inherits(prior_variance, "MashInitializer"))
+    !(is.matrix(prior_variance) || class(prior_variance)[1] == "mash_prior")
 
   if (sum(c(missing(Z), missing(Bhat) || missing(Shat))) != 1) {
     stop("Please provide either Z or (Bhat, Shat), but not both")

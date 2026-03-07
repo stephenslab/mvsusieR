@@ -18,3 +18,5 @@
 ^pixi\.toml$
 ^pixi\.lock$
 ^\.pixi/.*$
+^doc$
+^Meta$

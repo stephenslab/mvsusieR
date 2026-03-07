@@ -1,39 +1,11 @@
-context("Test Bayesian multiple regression")
-
-test_that("mvsusieR is identical to susieR", with(simulate_univariate(), {
-    # Test fixed prior
-    A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = NULL)
-    B = BayesianSimpleRegression$new(d$n_effect, V)
-    B$fit(d$clone(T), prior_weights = NULL)
-    expect_equal(A$mu, as.vector(B$posterior_b1))
-    expect_equal(A$mu2, as.vector(B$posterior_b2))
-    expect_equal(A$lbf, as.vector(B$lbf))
-    # Test estimated prior
-    A = susieR:::single_effect_regression(y, X, V, residual_variance = 1, prior_weights = NULL, optimize_V = "optim")
-    B = BayesianSimpleRegression$new(d$n_effect, V)
-    B$fit(d$clone(T), prior_weights = NULL, estimate_prior_variance_method='optim')
-    expect_equal(A$V, B$prior_variance)
-    expect_equal(A$mu, as.vector(B$posterior_b1))
-    expect_equal(A$mu2, as.vector(B$posterior_b2))
-    expect_equal(A$lbf, as.vector(B$lbf))
-}))
-
-test_that("mvsusieR_RSS is identical to susieR_RSS", with(simulate_univariate(summary=T), {
-  adj = (n-1)/(z^2 + n - 2)
-  ztilde = sqrt(adj) * z
-  # Test fixed prior
-  A = susieR:::single_effect_regression_ss(ztilde * sqrt(n-1), (n-1)*diag(R), V, prior_weights = NULL, optimize_V = "none")
-  B = BayesianSimpleRegression$new(d$n_effect, V)
-  B$fit(d$clone(T), prior_weights = NULL)
-  expect_equal(A$mu, as.vector(B$posterior_b1))
-  expect_equal(A$mu2, as.vector(B$posterior_b2))
-  expect_equal(A$lbf, as.vector(B$lbf))
-  # Test estimated prior
-  A = susieR:::single_effect_regression_ss(ztilde * sqrt(n-1), (n-1) * diag(R), V, prior_weights = NULL, optimize_V = "optim")
-  B = BayesianSimpleRegression$new(d$n_effect, V)
-  B$fit(d$clone(T), prior_weights = NULL, estimate_prior_variance_method='optim')
-  expect_equal(A$V, B$prior_variance, tol = 1e-6)
-  expect_equal(A$mu, as.vector(B$posterior_b1))
-  expect_equal(A$mu2, as.vector(B$posterior_b2))
-  expect_equal(A$lbf, as.vector(B$lbf), tol = 1e-6)
-}))
+# =============================================================================
+# Bayesian Simple Regression tests
+#
+# The original tests compared mvsusieR's R6 BayesianSimpleRegression against
+# susieR's single_effect_regression at the SER level. Since susieR's data
+# representation changed, SER-level comparison requires incompatible data setups.
+#
+# These tests are superseded by:
+#   - test_r1_susieR_identity.R: compares full IBSS algorithm for R=1
+#   - test_reference_identity.R: compares S3 vs R6 for R>1
+# =============================================================================

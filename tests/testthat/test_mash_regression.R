@@ -1,190 +1,117 @@
 context("Test MASH regression")
 
 test_that("Degenerated mash regression is identical to univariate BR", with(simulate_multivariate(r=1), {
-    # Run univariate BMR
-    prior_var = V[1,1]
-    residual_var = as.numeric(var(y))
-    data = DenseData$new(X,y)
-    data$standardize(TRUE,TRUE)
-    data$set_residual_variance(residual_var)
-    A = BayesianSimpleRegression$new(ncol(X), prior_var)
-    A$fit(data, save_summary_stats = T)
-    # Run MASH BMR
-    # null_weight = 1 - 1 / ncol(X)
+    # Compare matrix prior path vs mash prior path with L=1
+    residual_var = cov(y)
     null_weight = 0
-    mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-    residual_covar = cov(y)
-    data$set_residual_variance(residual_covar)
-    B = MashRegression$new(ncol(X), mash_init)
-    B$fit(data, save_summary_stats = T)
-    # compare result
-    expect_equal(A$bhat, B$bhat)
-    # expect_equal(A$sbhat, B$sbhat)
-    expect_equal(A$posterior_b1, B$posterior_b1)
-    expect_equal(A$posterior_b2, B$posterior_b2)
-    expect_equal(A$lbf, B$lbf)
+    mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
+    # Matrix prior (S3 path)
+    A = mvsusie(X, y, L=1, prior_variance=V,
+                residual_variance=residual_var,
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=FALSE,
+                compute_objective=FALSE)
+    # Mash prior path (S3 path)
+    B = mvsusie(X, y, L=1, prior_variance=mash_init,
+                residual_variance=residual_var,
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=FALSE,
+                compute_objective=FALSE)
+    expect_susie_equal(A, B, F, F)
 }))
 
 test_that("Single component mash regression is identical to multivariate BR", with(simulate_multivariate(r=3), {
-    # Run multivariate regression
+    # Run multivariate regression (matrix prior)
     residual_var = cov(y)
-    data = DenseData$new(X,y)
-    data$standardize(TRUE,TRUE)
-    data$set_residual_variance(residual_var)
-    A = BayesianMultivariateRegression$new(ncol(X), V)
-    A$fit(data, save_summary_stats = T)
-    # Run MASH regression EE model
-    mash_init = MashInitializer$new(list(V), 1)
-    B = MashRegression$new(ncol(X), mash_init)
-    B$fit(data, save_summary_stats = T)
-    # compare result
-    expect_equal(A$bhat, B$bhat)
-    # expect_equal(A$sbhat, B$sbhat)
-    expect_equal(A$posterior_b1, B$posterior_b1)
-    # expect_equal cannot propoerly compare posterior_b2 a 3D array
-    expect_equal(as.vector(A$posterior_b2), as.vector(B$posterior_b2))
-    expect_equal(A$lbf, B$lbf)
-    # mix-up X and don't scale it such that sbhat will be different
-    X = matrix(runif(ncol(X) * nrow(X)), nrow(X), ncol(X))
-    data = DenseData$new(X,y)
-    data$set_residual_variance(residual_var)
-    A = BayesianMultivariateRegression$new(ncol(X), V)
-    A$fit(data, save_summary_stats = T)
-    # Run MASH regression EE model
-    mash_init = MashInitializer$new(list(V), 1)
-    B = MashRegression$new(ncol(X), mash_init)
-    B$fit(data, save_summary_stats = T)
-    # compare result
-    expect_equal(A$bhat, B$bhat)
-    # expect_equal(A$sbhat, B$sbhat)
-    expect_equal(A$posterior_b1, B$posterior_b1)
-    # expect_equal cannot properly compare posterior_b2 a 3D array
-    expect_equal(as.vector(A$posterior_b2), as.vector(B$posterior_b2))
-    expect_equal(A$lbf, B$lbf)
+    # Run MASH regression EE model with single component
+    mash_init = create_mash_prior(Ulist = list(V), grid = 1)
+    A = mvsusie(X, y, L=1, prior_variance=V,
+                residual_variance=residual_var,
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=FALSE,
+                compute_objective=FALSE)
+    B = mvsusie(X, y, L=1, prior_variance=mash_init,
+                residual_variance=residual_var,
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=FALSE,
+                compute_objective=FALSE)
+    expect_susie_equal(A, B, F, F)
 }))
 
 test_that("Mash regression + precomputed cov is identical to not precompute", with(simulate_multivariate(r=2), {
-    # Run univariate BMR
-    prior_var = V[1,1]
     residual_covar = cov(y)
-    data = DenseData$new(X,y)
-    data$standardize(TRUE,TRUE)
-    data$set_residual_variance(residual_covar)
     null_weight = 0
-
-    A_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-    A = MashRegression$new(ncol(X), A_init)
-    A$fit(data, save_summary_stats = T)
-    B_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-    data$set_residual_variance(residual_covar)
-    B_init$precompute_cov_matrices(data, algorithm = 'cpp')
-    B = MashRegression$new(ncol(X), B_init)
-    B$fit(data, save_summary_stats = T)
-    # compare result
-    expect_equal(A$bhat, B$bhat)
-    expect_equal(A$posterior_b1, B$posterior_b1)
-    expect_equal(A$posterior_b2, B$posterior_b2)
-    expect_equal(A$lbf, B$lbf)
+    mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
+    A = mvsusie(X, y, L=1, prior_variance=mash_init,
+                residual_variance=residual_covar,
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=FALSE,
+                compute_objective=FALSE,
+                precompute_covariances=FALSE)
+    B = mvsusie(X, y, L=1, prior_variance=mash_init,
+                residual_variance=residual_covar,
+                estimate_residual_variance=FALSE,
+                estimate_prior_variance=FALSE,
+                compute_objective=FALSE,
+                precompute_covariances=TRUE)
+    expect_susie_equal(A, B, F, F)
 }))
 
 test_that("Degenerated mash regression is identical to univariate BR RSS", with(simulate_multivariate(r=1), {
-  # Run univariate BMR
-  prior_var = V[1,1]
-  residual_var = as.numeric(var(y))
-  ss = susieR:::univariate_regression(X, y)
-  z = ss$betahat/ss$sebetahat
-  R = cor(X)
-  data = RSSData$new(z,R,tol=1e-08)
-  data$set_residual_variance(residual_var)
-  A = BayesianSimpleRegression$new(ncol(X), prior_var)
-  A$fit(data, save_summary_stats = T)
-  # Run MASH BMR
-  # null_weight = 1 - 1 / ncol(X)
+  z = sapply(1:ncol(y), function(j){
+    ss = susieR:::univariate_regression(X, y[,j])
+    ss$betahat/ss$sebetahat
+  })
+  R_ld = cor(X)
+  n = nrow(X)
   null_weight = 0
-  mash_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-  residual_covar = cov(y)
-  data$set_residual_variance(residual_covar)
-  B = MashRegression$new(ncol(X), mash_init)
-  B$fit(data, save_summary_stats = T)
-  # compare result
-  expect_equal(A$bhat, B$bhat)
-  # expect_equal(A$sbhat, B$sbhat)
-  expect_equal(A$posterior_b1, B$posterior_b1)
-  expect_equal(A$posterior_b2, B$posterior_b2)
-  expect_equal(A$lbf, B$lbf)
+  mash_init = create_mash_prior(Ulist = list(V*n), grid = 1, null_weight = null_weight)
+  # Matrix prior (S3 path)
+  A = mvsusie_rss(z, R_ld, N=n, L=1, prior_variance=V*n,
+                  estimate_prior_variance=FALSE,
+                  compute_objective=FALSE)
+  # Mash prior path (S3 path)
+  B = mvsusie_rss(z, R_ld, N=n, L=1, prior_variance=mash_init,
+                  estimate_prior_variance=FALSE,
+                  compute_objective=FALSE)
+  expect_susie_equal(A, B, F, F)
 }))
 
 test_that("Single component mash regression is identical to multivariate BR RSS", with(simulate_multivariate(r=3), {
-  # Run multivariate regression
-  residual_var = cov(y)
   z = sapply(1:ncol(y), function(j){
     ss = susieR:::univariate_regression(X, y[,j])
     ss$betahat/ss$sebetahat
     })
   R = cor(X)
-  data = RSSData$new(z,R, tol=1e-08)
-  data$set_residual_variance(residual_var)
-  A = BayesianMultivariateRegression$new(ncol(X), V)
-  A$fit(data, save_summary_stats = T)
-  # Run MASH regression EE model
-  mash_init = MashInitializer$new(list(V), 1)
-  B = MashRegression$new(ncol(X), mash_init)
-  B$fit(data, save_summary_stats = T)
-  # compare result
-  expect_equal(A$bhat, B$bhat)
-  # expect_equal(A$sbhat, B$sbhat)
-  expect_equal(A$posterior_b1, B$posterior_b1)
-  # expect_equal cannot propoerly compare posterior_b2 a 3D array
-  expect_equal(as.vector(A$posterior_b2), as.vector(B$posterior_b2))
-  expect_equal(A$lbf, B$lbf)
-  # mix-up X and don't scale it such that sbhat will be different
-  X = matrix(runif(ncol(X) * nrow(X)), nrow(X), ncol(X))
-  z = sapply(1:ncol(y), function(j){
-    ss = susieR:::univariate_regression(X, y[,j])
-    ss$betahat/ss$sebetahat
-  })
-  R = cor(X)
-  data = RSSData$new(z,R,tol=1e-08)
-  data$set_residual_variance(residual_var)
-  A = BayesianMultivariateRegression$new(ncol(X), V)
-  A$fit(data, save_summary_stats = T)
-  # Run MASH regression EE model
-  mash_init = MashInitializer$new(list(V), 1)
-  B = MashRegression$new(ncol(X), mash_init)
-  B$fit(data, save_summary_stats = T)
-  # compare result
-  expect_equal(A$bhat, B$bhat)
-  # expect_equal(A$sbhat, B$sbhat)
-  expect_equal(A$posterior_b1, B$posterior_b1)
-  # expect_equal cannot properly compare posterior_b2 a 3D array
-  expect_equal(as.vector(A$posterior_b2), as.vector(B$posterior_b2))
-  expect_equal(A$lbf, B$lbf)
+  n = nrow(X)
+  residual_var = cov(y)
+  # Run MASH regression EE model with single component
+  mash_init = create_mash_prior(Ulist = list(V), grid = 1)
+  A = mvsusie_rss(z, R, N=n, L=1, prior_variance=V,
+                  estimate_prior_method="EM",
+                  compute_objective=FALSE)
+  B = mvsusie_rss(z, R, N=n, L=1, prior_variance=mash_init,
+                  estimate_prior_method="EM",
+                  compute_objective=FALSE)
+  expect_susie_equal(A, B, F, F)
 }))
 
 test_that("Mash regression + precomputed cov is identical to not precompute (RSS)", with(simulate_multivariate(r=2), {
-  # Run univariate BMR
-  prior_var = V[1,1]
-  residual_covar = cov(y)
   z = sapply(1:ncol(y), function(j){
     ss = susieR:::univariate_regression(X, y[,j])
     ss$betahat/ss$sebetahat
   })
   R = cor(X)
-  data = RSSData$new(z,R,tol=1e-08)
-  data$set_residual_variance(residual_covar)
+  n = nrow(X)
   null_weight = 0
-
-  A_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-  A = MashRegression$new(ncol(X), A_init)
-  A$fit(data, save_summary_stats = T)
-  B_init = MashInitializer$new(list(V), 1, 1 - null_weight, null_weight)
-  data$set_residual_variance(residual_covar)
-  B_init$precompute_cov_matrices(data, algorithm = 'cpp')
-  B = MashRegression$new(ncol(X), B_init)
-  B$fit(data, save_summary_stats = T)
-  # compare result
-  expect_equal(A$bhat, B$bhat)
-  expect_equal(A$posterior_b1, B$posterior_b1)
-  expect_equal(A$posterior_b2, B$posterior_b2)
-  expect_equal(A$lbf, B$lbf)
+  mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
+  A = mvsusie_rss(z, R, N=n, L=1, prior_variance=mash_init,
+                  estimate_prior_method="EM",
+                  compute_objective=FALSE,
+                  precompute_covariances=FALSE)
+  B = mvsusie_rss(z, R, N=n, L=1, prior_variance=mash_init,
+                  estimate_prior_method="EM",
+                  compute_objective=FALSE,
+                  precompute_covariances=TRUE)
+  expect_susie_equal(A, B, F, F)
 }))

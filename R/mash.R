@@ -55,7 +55,7 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
         length(mixture_prior$matrices)
       )
     }
-    return(MashInitializer$new(NULL, NULL,
+    return(create_mash_prior(
       xUlist = mixture_prior$matrices,
       prior_weights = mixture_prior$weights,
       null_weight = null_weight,
@@ -82,7 +82,7 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
         "of them (although computational speed will suffer)."
       ))
     }
-    return(MashInitializer$new(NULL, NULL,
+    return(create_mash_prior(
       xUlist = Ulist,
       prior_weights = weights,
       null_weight = null_weight,

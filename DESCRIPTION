@@ -20,13 +20,11 @@ Depends: R (>= 3.5.0),
     mashr (>= 0.2.43),
     susieR (>= 0.10.1)
 Imports:
-    R6,
     stats,
     Matrix,
     abind,
     mvtnorm,
     matrixStats,
-    progress,
     ashr,
     ggplot2,
     ggrepel,
@@ -43,4 +41,4 @@ LazyDataCompression: xz
 NeedsCompilation: no
 RoxygenNote: 7.3.3
 VignetteBuilder: knitr
-Roxygen: list(r6 = FALSE)
+Roxygen: list()

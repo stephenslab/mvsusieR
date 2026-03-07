@@ -64,7 +64,8 @@ test_that("predict() gives accurate estimates in 3 conditions",{
 
   # Fit an mvsusie model to the data.
   prior <- create_mixture_prior(R = 3)
-  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE)
+  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE,
+                 estimate_prior_method = "EM")
 
   # The mvsusie model predictions should be close to the true values
   # (an RMSE close to 1).

@@ -5,3 +5,6 @@
 **/_index.html
 **/.DS_Store
 Overview.ipynb
+/doc/
+/Meta/
+pixi.lock
