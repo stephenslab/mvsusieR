@@ -455,3 +455,305 @@ create_cov_canonical <- function(R, singletons = TRUE,
   names(mats) <- nms
   return(mats)
 }
+
+# ============================================================================
+# Eigendecomposition-based precomputation for O(R^2) SER evaluation
+#
+# The key decomposition: given SVS (R x R, SPD) and U (R x R, PSD),
+#   L = chol(SVS)  (lower triangular)
+#   M = L^{-1} U L^{-T} = P D P'  (eigendecomposition)
+#   Q = L^{-T} P,  G = L P
+#
+# Then for any scalar V:
+#   (SVS + V*U)^{-1} = Q diag(1/(1+V*d)) Q'
+#   log|SVS + V*U| = log|SVS| + sum(log(1 + V*d))
+#   posterior mean = G diag(V*d/(1+V*d)) Q' bhat
+#   posterior cov  = G diag(V*d/(1+V*d)) G'
+# ============================================================================
+
+# Eigendecompose L^{-1} U L^{-T} for a single (SVS, U) pair.
+#
+# @param SVS  R x R symmetric positive definite matrix
+# @param U    R x R symmetric positive semidefinite matrix (prior structure)
+#
+# @return list(Q, G, eigenvalues, log_det_svs)
+#   Q: R x R matrix (L^{-T} P), used for Mahalanobis distances
+#   G: R x R matrix (L P), used for posterior reconstruction
+#   eigenvalues: R-vector of non-negative eigenvalues
+#   log_det_svs: log determinant of SVS
+eigendecompose_one_pair <- function(SVS, U) {
+  R <- nrow(SVS)
+
+  # Cholesky: R's chol() returns upper triangular; we need lower.
+  L_upper <- muffled_chol(SVS)
+  L <- t(L_upper)
+  log_det_svs <- 2 * sum(log(diag(L_upper)))
+
+  # L^{-1} U L^{-T} via triangular solves
+  L_inv <- forwardsolve(L, diag(R))
+  M <- L_inv %*% U %*% t(L_inv)
+  M <- (M + t(M)) / 2  # symmetrize for numerical stability
+
+  # Eigendecompose
+  eig <- eigen(M, symmetric = TRUE)
+  P <- eig$vectors
+  d <- pmax(eig$values, 0)  # clamp negative eigenvalues to 0
+
+  Q <- t(L_inv) %*% P  # L^{-T} P  (R x R)
+  G <- L %*% P          # L P       (R x R)
+
+  list(Q = Q, G = G, eigenvalues = d, log_det_svs = log_det_svs)
+}
+
+# Precompute eigendecomposition cache for all (SVS, U_k) pairs.
+#
+# @param svs         List of J R x R matrices (or length 1 for common_cov)
+# @param V_structure List of K R x R matrices (prior structure)
+# @param is_common_cov Logical: are all SVS_j identical?
+#
+# @return list(is_common_cov, log_det_svs, components)
+#   components: length-K list, each with Q, G, eigenvalues
+precompute_eigen_cache <- function(svs, V_structure, is_common_cov) {
+  K <- length(V_structure)
+
+  if (is_common_cov) {
+    SVS <- svs[[1]]
+    components <- vector("list", K)
+    for (k in seq_len(K)) {
+      components[[k]] <- eigendecompose_one_pair(SVS, V_structure[[k]])
+    }
+    list(
+      is_common_cov = TRUE,
+      log_det_svs   = components[[1]]$log_det_svs,
+      components    = components
+    )
+  } else {
+    J <- length(svs)
+    R <- nrow(svs[[1]])
+    log_det_svs <- numeric(J)
+    components <- vector("list", K)
+    for (k in seq_len(K)) {
+      Q_arr   <- array(0, c(R, R, J))
+      G_arr   <- array(0, c(R, R, J))
+      eig_mat <- matrix(0, R, J)
+      for (j in seq_len(J)) {
+        decomp <- eigendecompose_one_pair(svs[[j]], V_structure[[k]])
+        Q_arr[, , j]  <- decomp$Q
+        G_arr[, , j]  <- decomp$G
+        eig_mat[, j]  <- decomp$eigenvalues
+        if (k == 1) log_det_svs[j] <- decomp$log_det_svs
+      }
+      components[[k]] <- list(Q = Q_arr, G = G_arr, eigenvalues = eig_mat)
+    }
+    list(
+      is_common_cov = FALSE,
+      log_det_svs   = log_det_svs,
+      components    = components
+    )
+  }
+}
+
+# Compute J x (K+1) log-likelihood matrix using precomputed eigendecomposition.
+#
+# Column 1 = null component N(0, SVS).
+# Columns 2..(K+1) = non-null components N(0, SVS + V*U_k).
+#
+# For common_cov, all operations are vectorized over J (BLAS matrix multiply).
+#
+# @param betahat     J x R matrix of effect estimates
+# @param V_scalar    Scalar prior variance multiplier (>= 0)
+# @param eigen_cache Precomputed cache from precompute_eigen_cache()
+#
+# @return J x (K+1) matrix of log-likelihoods
+loglik_precomputed <- function(betahat, V_scalar, eigen_cache) {
+  J <- nrow(betahat)
+  R <- ncol(betahat)
+  K <- length(eigen_cache$components)
+  llik <- matrix(0, J, K + 1)
+  const <- -R / 2 * log(2 * pi)
+
+  if (eigen_cache$is_common_cov) {
+    log_det_svs <- eigen_cache$log_det_svs  # scalar
+
+    # Null component: N(0, SVS)
+    # Q'Q = SVS^{-1} for any component, so use the first
+    Q_null <- eigen_cache$components[[1]]$Q
+    B_null <- betahat %*% Q_null                   # J x R (BLAS)
+    mahal_null <- rowSums(B_null^2)                # J-vector
+    llik[, 1] <- const - 0.5 * log_det_svs - 0.5 * mahal_null
+
+    # Non-null components
+    for (k in seq_len(K)) {
+      comp <- eigen_cache$components[[k]]
+      d_k <- comp$eigenvalues
+      B <- betahat %*% comp$Q                     # J x R (BLAS)
+      log_det <- log_det_svs + sum(log1p(V_scalar * d_k))
+      inv_factors <- 1 / (1 + V_scalar * d_k)     # R-vector
+      mahal <- drop(B^2 %*% inv_factors)           # J-vector
+      llik[, k + 1] <- const - 0.5 * log_det - 0.5 * mahal
+    }
+  } else {
+    log_det_svs_vec <- eigen_cache$log_det_svs     # J-vector
+
+    # Null component
+    for (j in seq_len(J)) {
+      Q_j <- eigen_cache$components[[1]]$Q[, , j]
+      b_rot <- crossprod(Q_j, betahat[j, ])
+      llik[j, 1] <- const - 0.5 * log_det_svs_vec[j] - 0.5 * sum(b_rot^2)
+    }
+
+    # Non-null components
+    for (k in seq_len(K)) {
+      comp <- eigen_cache$components[[k]]
+      for (j in seq_len(J)) {
+        d_k <- comp$eigenvalues[, j]
+        b_rot <- crossprod(comp$Q[, , j], betahat[j, ])
+        log_det <- log_det_svs_vec[j] + sum(log1p(V_scalar * d_k))
+        inv_factors <- 1 / (1 + V_scalar * d_k)
+        mahal <- sum(b_rot^2 * inv_factors)
+        llik[j, k + 1] <- const - 0.5 * log_det - 0.5 * mahal
+      }
+    }
+  }
+  llik
+}
+
+# Compute posterior moments using precomputed eigendecomposition.
+#
+# For each variable j and mixture component k, the posterior under
+# N(bhat | 0, SVS + V*U_k) with prior N(0, V*U_k) is:
+#   mu_post  = G diag(V*d/(1+V*d)) Q' bhat   (R-vector)
+#   Cov_post = G diag(V*d/(1+V*d)) G'         (R x R, same for all j in common_cov)
+#
+# The mixture-weighted posterior mean is sum_k w_jk * mu_post_jk.
+# The posterior second moment mu2 = E[bb'] = sum_k w_jk (C_k + m_jk m_jk').
+#
+# @param betahat     J x R matrix of effect estimates
+# @param V_scalar    Scalar prior variance multiplier
+# @param eigen_cache Precomputed cache
+# @param pi_V_post   J x (K+1) matrix of posterior mixture weights
+#
+# @return list(post_mean, post_mean2, post_neg, post_zero, prior_scale_em_update)
+posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
+                                  alpha = NULL) {
+  J <- nrow(betahat)
+  R <- ncol(betahat)
+  K <- length(eigen_cache$components)
+
+  post_mean  <- matrix(0, J, R)
+  post_mean2 <- array(0, c(J, R, R))
+  post_neg   <- matrix(0, J, R)
+  post_zero  <- matrix(0, J, R)
+  em_update  <- numeric(K + 1)
+
+  # Null component: beta = 0 exactly
+  w_null <- pi_V_post[, 1]
+  post_zero <- matrix(w_null, J, R)
+  # Null contributes nothing to post_mean, post_mean2, post_neg, em_update
+
+  if (eigen_cache$is_common_cov) {
+    for (k in seq_len(K)) {
+      comp <- eigen_cache$components[[k]]
+      d_k <- comp$eigenvalues
+      Q_k <- comp$Q
+      G_k <- comp$G
+      w_k <- pi_V_post[, k + 1]  # J-vector
+
+      # Shrinkage factors
+      shrink <- V_scalar * d_k / (1 + V_scalar * d_k)      # R-vector
+      inv_factor <- 1 / (1 + V_scalar * d_k)                # R-vector
+
+      # Posterior covariance (SAME for all j in common_cov)
+      # C_k = G diag(shrink) G'
+      G_scaled <- G_k * rep(shrink, each = R)  # scale columns of G
+      C_k <- G_scaled %*% t(G_k)
+      C_k <- (C_k + t(C_k)) / 2
+
+      # Posterior means for all J variables:
+      # M_k = bhat %*% Q diag(shrink) G'
+      BQ <- betahat %*% Q_k                              # J x R (BLAS)
+      BQ_shrunk <- t(t(BQ) * shrink)                      # scale columns
+      M_k <- BQ_shrunk %*% t(G_k)                         # J x R (BLAS)
+
+      # Accumulate posterior mean
+      post_mean <- post_mean + w_k * M_k
+
+      # Accumulate posterior second moment: E[bb'] += w_k (C_k + m m')
+      for (j in seq_len(J)) {
+        post_mean2[j, , ] <- post_mean2[j, , ] +
+          w_k[j] * (C_k + tcrossprod(M_k[j, ]))
+      }
+
+      # Sign probabilities for LFSR
+      sd_k <- sqrt(pmax(diag(C_k), 0))
+      for (r in seq_len(R)) {
+        if (sd_k[r] > 0) {
+          post_neg[, r] <- post_neg[, r] +
+            w_k * pnorm(0, M_k[, r], sd_k[r])
+        } else {
+          post_neg[, r] <- post_neg[, r] +
+            w_k * as.numeric(M_k[, r] < 0)
+        }
+      }
+
+      # EM statistic for component k:
+      # sum_j em_wt_jk [tr(U_k^{-1} C_k) + m_j' U_k^{-1} m_j]
+      # where em_wt = alpha * pi_V_post (matching mashr's var_post_wt)
+      # tr(U_k^{-1} C_k) = V sum_i 1/(1+V*d_i)  (scalar, same for all j)
+      # m_j' U_k^{-1} m_j = sum_i V^2*d_i/(1+V*d_i)^2 * b_ji^2
+      #   where b_ji = (Q' bhat_j)_i = BQ[j, i]
+      em_wt <- if (!is.null(alpha)) alpha * w_k else w_k
+      tr_term <- V_scalar * sum(inv_factor)
+      em_per_var <- V_scalar^2 * drop(BQ^2 %*% (d_k * inv_factor^2))
+      em_update[k + 1] <- sum(em_wt * (tr_term + em_per_var))
+    }
+  } else {
+    # Non-common covariance: loop over j
+    for (k in seq_len(K)) {
+      comp <- eigen_cache$components[[k]]
+      w_k <- pi_V_post[, k + 1]
+      for (j in seq_len(J)) {
+        Q_j <- comp$Q[, , j]
+        G_j <- comp$G[, , j]
+        d_k <- comp$eigenvalues[, j]
+
+        shrink <- V_scalar * d_k / (1 + V_scalar * d_k)
+        inv_factor <- 1 / (1 + V_scalar * d_k)
+
+        G_scaled <- G_j * rep(shrink, each = R)
+        C_k <- G_scaled %*% t(G_j)
+        C_k <- (C_k + t(C_k)) / 2
+
+        b_rot <- crossprod(Q_j, betahat[j, ])
+        m_j <- drop(G_j %*% (shrink * b_rot))
+
+        post_mean[j, ] <- post_mean[j, ] + w_k[j] * m_j
+        post_mean2[j, , ] <- post_mean2[j, , ] +
+          w_k[j] * (C_k + tcrossprod(m_j))
+
+        sd_k <- sqrt(pmax(diag(C_k), 0))
+        for (r in seq_len(R)) {
+          if (sd_k[r] > 0)
+            post_neg[j, r] <- post_neg[j, r] +
+              w_k[j] * pnorm(0, m_j[r], sd_k[r])
+          else
+            post_neg[j, r] <- post_neg[j, r] +
+              w_k[j] * as.numeric(m_j[r] < 0)
+        }
+
+        tr_term <- V_scalar * sum(inv_factor)
+        em_j <- V_scalar^2 * sum(d_k * inv_factor^2 * b_rot^2)
+        em_wt_j <- if (!is.null(alpha)) alpha[j] * w_k[j] else w_k[j]
+        em_update[k + 1] <- em_update[k + 1] + em_wt_j * (tr_term + em_j)
+      }
+    }
+  }
+
+  list(
+    post_mean  = post_mean,
+    post_mean2 = post_mean2,
+    post_neg   = post_neg,
+    post_zero  = post_zero,
+    prior_scale_em_update = em_update
+  )
+}

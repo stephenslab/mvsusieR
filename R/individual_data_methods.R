@@ -133,6 +133,13 @@ ibss_initialize.mv_individual <- function(data, params) {
   }
   model$converged <- FALSE
 
+  # Trigger eigendecomposition precomputation if requested
+  if (isTRUE(params$precompute_eigendecomp)) {
+    svs <- if (!is.null(model$svs)) model$svs else data$svs
+    model$eigen_cache <- precompute_eigen_cache(
+      svs, model$V_structure, data$is_common_cov)
+  }
+
   return(model)
 }
 
@@ -218,6 +225,40 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
       return(0)
     }
   }
+
+  # === FAST PATH: eigendecomposition precomputation ===
+  if (!is.null(model$eigen_cache)) {
+    betahat <- ser_stats$betahat                     # J x R
+    llik <- loglik_precomputed(betahat, V, model$eigen_cache)
+
+    # Build pi_full for mixture weights (same as slow path)
+    pi_full <- c(model$null_weight, model$pi_V * (1 - model$null_weight))
+
+    # From here: identical to slow path (lbf, alpha, pi_V_posterior)
+    lfactors <- apply(llik, 1, max)
+    llik_obj <- list(loglik_matrix = llik - lfactors, lfactors = lfactors)
+    s_alpha <- matrix(1, 1, 1)
+    loglik_null <- compute_null_loglik_from_matrix(llik_obj, s_alpha)
+    loglik_alt <- compute_alt_loglik_from_matrix_and_pi(pi_full, llik_obj, s_alpha)
+    lbf <- loglik_alt - loglik_null
+    if (!is.null(ncol(lbf)) && ncol(lbf) == 1) lbf <- as.vector(lbf)
+    lbf[is.na(lbf)] <- 0
+
+    softmax_res <- compute_softmax(lbf, model$pi)
+    if (!is.null(l)) {
+      model$alpha[l, ]        <- softmax_res$weights
+      model$lbf[l]            <- softmax_res$log_sum
+      model$lbf_variable[l, ] <- lbf
+      d_mat <- t(pi_full * t(exp(llik - lfactors)))
+      model$pi_V_posterior[[l]] <- d_mat / rowSums(d_mat)
+      model$llik_cache <- llik
+      return(model)
+    } else {
+      return(softmax_res$log_sum)
+    }
+  }
+
+  # === SLOW PATH: mashr C++ ===
 
   # Build full prior for mashr C++ (prepend null component)
   mashr_prior <- build_mashr_prior(model$V_structure_3d, model$pi_V,
@@ -314,6 +355,30 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
     model$em_cache <- NULL
     return(model)
   }
+
+  # === FAST PATH: eigendecomposition precomputation ===
+  if (!is.null(model$eigen_cache)) {
+    betahat <- model$residuals / data$d  # J x R
+    # Pass alpha for EM weighting (mashr's var_post_wt = alpha * pi_V_post)
+    post <- posterior_precomputed(betahat, V, model$eigen_cache,
+                                  model$pi_V_posterior[[l]],
+                                  alpha = model$alpha[l, ])
+
+    model$mu[l, , ] <- post$post_mean
+    for (j in seq_len(J)) {
+      model$mu2[[l]][j, , ] <- post$post_mean2[j, , ]
+    }
+    model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
+
+    if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM") {
+      model$em_cache <- list(
+        prior_scale_em_update = post$prior_scale_em_update
+      )
+    }
+    return(model)
+  }
+
+  # === SLOW PATH: mashr C++ ===
 
   betahat <- model$residuals / data$d  # J x R
   n_thread <- if (!is.null(params$n_thread)) params$n_thread else 1L
@@ -467,6 +532,11 @@ update_model_variance.mv_individual <- function(data, params, model) {
   model$svs_inv <- lapply(seq_len(data$p), function(j) {
     model$residual_variance_inv * data$d[j]
   })
+
+  # Recompute eigendecomposition cache if precomputation is active
+  if (!is.null(model$eigen_cache))
+    model$eigen_cache <- precompute_eigen_cache(
+      model$svs, model$V_structure, data$is_common_cov)
 
   return(model)
 }
@@ -690,6 +760,7 @@ cleanup_model.mv_individual <- function(data, params, model, ...) {
   model$raw_residuals    <- NULL
   model$llik_cache       <- NULL
   model$em_cache         <- NULL
+  model$eigen_cache      <- NULL
   return(model)
 }
 

@@ -34,6 +34,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
                                verbosity = 2,
                                coverage = 0.95,
                                min_abs_corr = 0.5,
+                               precompute_covariances = FALSE,
                                n_thread = 1,
                                model_init = NULL) {
 
@@ -94,6 +95,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     compute_univariate_zscore = FALSE,
     # Multivariate-specific
     mv_prior_type            = mv_prior_type,
+    precompute_eigendecomp   = precompute_covariances,
     n_thread                 = n_thread
   )
 
@@ -374,6 +376,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              model_init = s_init,
              coverage = coverage, min_abs_corr = min_abs_corr,
              compute_univariate_zscore = compute_univariate_zscore,
+             precompute_covariances = precompute_covariances,
              n_thread = n_thread,
              max_iter = max_iter, tol = tol,
              verbosity = verbosity, track_fit = track_fit)
@@ -635,6 +638,7 @@ mvsusie_suff_stat <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                        compute_objective = compute_objective,
                        model_init = s_init,
                        coverage = coverage, min_abs_corr = min_abs_corr,
+                       precompute_covariances = precompute_covariances,
                        n_thread = n_thread,
                        max_iter = max_iter, tol = tol,
                        verbosity = verbosity, track_fit = track_fit)
@@ -658,6 +662,7 @@ mvsusie_s3 <- function(X, Y, L = 10, prior_variance = 0.2,
                        compute_objective = TRUE, model_init = NULL,
                        coverage = 0.95, min_abs_corr = 0.5,
                        compute_univariate_zscore = FALSE,
+                       precompute_covariances = FALSE,
                        n_thread = 1,
                        max_iter = 100, tol = 1e-3, verbosity = 2,
                        track_fit = FALSE) {
@@ -737,6 +742,7 @@ mvsusie_s3 <- function(X, Y, L = 10, prior_variance = 0.2,
                           verbosity = verbosity,
                           coverage = coverage,
                           min_abs_corr = min_abs_corr,
+                          precompute_covariances = precompute_covariances,
                           n_thread = n_thread,
                           model_init = model_init)
 
@@ -802,6 +808,7 @@ mvsusie_suff_stat_s3 <- function(XtX, XtY, YtY, N, L = 10,
                                   check_null_threshold = 0, prior_tol = 1e-9,
                                   compute_objective = TRUE, model_init = NULL,
                                   coverage = 0.95, min_abs_corr = 0.5,
+                                  precompute_covariances = FALSE,
                                   n_thread = 1,
                                   max_iter = 100, tol = 1e-3, verbosity = 2,
                                   track_fit = FALSE) {
@@ -881,6 +888,7 @@ mvsusie_suff_stat_s3 <- function(XtX, XtY, YtY, N, L = 10,
                           verbosity = verbosity,
                           coverage = coverage,
                           min_abs_corr = min_abs_corr,
+                          precompute_covariances = precompute_covariances,
                           n_thread = n_thread,
                           model_init = model_init)
 

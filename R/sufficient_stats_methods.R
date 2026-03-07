@@ -116,6 +116,11 @@ update_model_variance.mv_ss <- function(data, params, model) {
     model$residual_variance_inv * data$d[j]
   })
 
+  # Recompute eigendecomposition cache if precomputation is active
+  if (!is.null(model$eigen_cache))
+    model$eigen_cache <- precompute_eigen_cache(
+      model$svs, model$V_structure, data$is_common_cov)
+
   return(model)
 }
 
@@ -284,5 +289,6 @@ cleanup_model.mv_ss <- function(data, params, model, ...) {
   model$residuals  <- NULL
   model$llik_cache <- NULL
   model$em_cache   <- NULL
+  model$eigen_cache <- NULL
   return(model)
 }
