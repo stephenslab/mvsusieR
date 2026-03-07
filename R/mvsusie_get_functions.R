@@ -209,3 +209,74 @@ multivariate_lbf <- function(betahat, S, U) {
   lbf[is.nan(lbf)] <- 0
   return(lbf)
 }
+
+#' @title Local false sign rate (lfsr) for single effects
+#'
+#' @details This function returns the lfsr for identifying nonzero
+#'   single effects, separately for each condition.
+#'
+#' @param alpha L x J matrix.
+#'
+#' @param clfsr L x J x R conditonal lfsr.
+#'
+#' @return L x R matrix of lfsr
+#'
+#' @export
+#'
+mvsusie_single_effect_lfsr <- function(clfsr, alpha) {
+  if (!is.array(clfsr) && is.na(clfsr)) {
+    return(as.numeric(NA))
+  } else {
+    return(do.call(
+      cbind,
+      lapply(
+        0:dim(clfsr)[3],
+        function(r) {
+          clfsrr <- clfsr[, , r]
+          if (is.null(nrow(clfsrr))) {
+            clfsrr <- matrix(clfsrr, 0, length(clfsrr))
+          }
+          return(pmax(-1, rowSums(alpha * clfsrr)))
+        }
+      )
+    ))
+  }
+}
+
+#' @title Local false sign rate (lfsr) for variables.
+#'
+#' @details This function returns the lfsr for identifying nonzero
+#'   effects for each condition.
+#'
+#' @param alpha L x J matrix.
+#'
+#' @param clfsr L x J x R conditonal lfsr.
+#'
+#' @param weighted Set \code{weighted = TRUE} to weight lfsr by PIP;
+#'   otherwise set \code{weighted = FALSE}.
+#'
+#' @return J x R lfsr matrix.
+#'
+#' @export
+#'
+mvsusie_get_lfsr <- function(clfsr, alpha, weighted = TRUE) {
+  if (!is.array(clfsr) && is.na(clfsr)) {
+    return(as.numeric(NA))
+  } else {
+    if (weighted) {
+      alpha <- alpha
+    } else {
+      alpha <- matrix(0, nrow(alpha), ncol(alpha))
+    }
+    return(do.call(
+      cbind,
+      lapply(
+        0:dim(clfsr)[3],
+        function(r) {
+          true_sign_mat <- alpha * (0 - clfsr[, , r])
+          pmax(0e-20, 1 - apply(true_sign_mat, 2, max))
+        }
+      )
+    ))
+  }
+}

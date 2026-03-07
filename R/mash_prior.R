@@ -1,11 +1,3 @@
-# =============================================================================
-# S3 MASH PRIOR OBJECT
-#
-# Replaces R6 MashInitializer. Stores K non-null prior covariance matrices
-# with a separate null_weight. The null (zero) matrix is prepended when
-# constructing inputs for mashr C++ functions.
-# =============================================================================
-
 #' Create a mash prior object
 #'
 #' Constructs an S3 object of class \code{mash_prior} containing a mixture of
@@ -140,7 +132,6 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
   ), class = "mash_prior")
 }
 
-
 #' Scale prior variance matrices by residual standard deviations
 #'
 #' @param prior A \code{mash_prior} object.
@@ -156,7 +147,6 @@ scale_prior_variance.mash_prior <- function(prior, sigma) {
   prior$xUlist_rank <- NULL
   return(prior)
 }
-
 
 #' Compute pseudo-inverses and ranks for prior matrices
 #'
