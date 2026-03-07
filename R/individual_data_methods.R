@@ -132,6 +132,21 @@ ibss_initialize.mv_individual <- function(data, params) {
       svs, model$V_structure, data$is_common_cov)
   }
 
+  # Initial imputation for R>1 missing data (variational EM E-step).
+  # At this point Xr is all zeros, so imputed values = conditional mean
+  # given mu=0 (i.e., mean imputation from the prior).
+  if (data$Y_has_missing && data$R > 1 && !is.null(data$miss_info)) {
+    v_inv <- if (!is.null(model$residual_variance_inv))
+      model$residual_variance_inv else data$residual_variance_inv
+    model$pattern_cache <- precompute_pattern_cache(v_inv,
+                                                     data$miss_info$patterns)
+    imp <- impute_missing_Y(data$Y, model$Xr, v_inv,
+                            data$miss_info, model$pattern_cache)
+    model$Y_imputed <- imp$Y
+    model$Y_cov <- imp$Y_cov
+    model$sum_neg_ent_Y_miss <- imp$sum_neg_ent_Y_miss
+  }
+
   return(model)
 }
 
@@ -141,24 +156,50 @@ ibss_initialize.mv_individual <- function(data, params) {
 
 #' @keywords internal
 compute_residuals.mv_individual <- function(data, params, model, l, ...) {
+  # Impute missing Y at start of each IBSS iteration (first SER effect).
+  # This is the variational EM E-step: fill in missing entries using
+  # E[Y_miss | Y_obs] = mu_miss - Lambda_{MM}^-1 Lambda_{MO} (Y_obs - mu_obs)
+  # where Lambda = V^-1 (precision) and mu = model$Xr (current fitted values).
+  if (l == 1 && data$Y_has_missing && data$R > 1 && !is.null(data$miss_info)) {
+    v_inv <- if (!is.null(model$residual_variance_inv))
+      model$residual_variance_inv else data$residual_variance_inv
+    # Recompute pattern cache (Vinv may have changed after V update)
+    model$pattern_cache <- precompute_pattern_cache(v_inv,
+                                                     data$miss_info$patterns)
+    imp <- impute_missing_Y(data$Y, model$Xr, v_inv,
+                            data$miss_info, model$pattern_cache)
+    model$Y_imputed <- imp$Y
+    model$Y_cov <- imp$Y_cov
+    model$sum_neg_ent_Y_miss <- imp$sum_neg_ent_Y_miss
+    # Re-center imputed Y (column means shift after imputation)
+    # and track adjustment for intercept recovery
+    col_adj <- colMeans(model$Y_imputed)
+    model$Y_imputed <- t(t(model$Y_imputed) - col_adj)
+    model$Y_mean_adjustment <- col_adj
+  }
+
+  # Use imputed Y for R>1 missing data, otherwise original Y
+  Y <- if (!is.null(model$Y_imputed)) model$Y_imputed else data$Y
+
   # Fitted for effect l: X %*% (alpha_l * mu_l)
   b_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]  # J x R
   Xb_l <- data$X %*% b_l  # N x R
 
   # Residual: Y - (Xr - Xb_l) = Y - Xr + Xb_l
-  R_mat <- data$Y - model$Xr + Xb_l  # N x R
+  R_mat <- Y - model$Xr + Xb_l  # N x R
 
-  # Zero out missing observations so they don't contribute to X'R
-  if (data$Y_has_missing) {
+  # Zero out missing entries only for R=1 (complete-case approach).
+  # For R>1 with imputation, imputed entries participate fully.
+  if (data$Y_has_missing && is.null(model$Y_imputed)) {
     R_mat[data$Y_missing] <- 0
   }
 
   # X'R for SER computation
   XtR <- crossprod(data$X, R_mat)  # J x R
 
-  model$residuals       <- XtR
+  model$residuals        <- XtR
   model$fitted_without_l <- model$Xr - Xb_l
-  model$raw_residuals   <- R_mat
+  model$raw_residuals    <- R_mat
   return(model)
 }
 
@@ -731,7 +772,12 @@ get_intercept.mv_individual <- function(data, params, model, ...) {
   # Rescale: coefficients on original scale
   coefs_original <- b_sum / data$csd
   # Intercept = Y_mean - X_mean' %*% coefs
-  data$Y_mean - as.vector(t(data$cm) %*% coefs_original)
+  intercept <- data$Y_mean - as.vector(t(data$cm) %*% coefs_original)
+  # Add accumulated centering adjustment from imputation
+  if (!is.null(model$Y_mean_adjustment)) {
+    intercept <- intercept + model$Y_mean_adjustment
+  }
+  return(intercept)
 }
 
 #' Get fitted values on the original Y scale.
@@ -787,6 +833,12 @@ cleanup_model.mv_individual <- function(data, params, model, ...) {
   model$llik_cache       <- NULL
   model$em_cache         <- NULL
   model$eigen_cache      <- NULL
+  # Clean up imputation fields (large N x R matrices)
+  model$Y_imputed          <- NULL
+  model$Y_cov              <- NULL
+  model$sum_neg_ent_Y_miss <- NULL
+  model$pattern_cache      <- NULL
+  model$Y_mean_adjustment  <- NULL
   return(model)
 }
 
@@ -834,13 +886,18 @@ compute_posterior_mean_sum_from_model <- function(model) {
 estimate_residual_variance_mv <- function(data, model) {
   b_sum <- compute_posterior_mean_sum_from_model(model)
   Xb <- data$X %*% b_sum
-  R_mat <- data$Y - Xb
-  # Use effective sample size when Y has missing data
-  N <- if (data$Y_has_missing) data$n_obs else data$n
+
+  # Use imputed Y when available (R>1 missing data)
+  Y <- if (!is.null(model$Y_imputed)) model$Y_imputed else data$Y
+  R_mat <- Y - Xb
+
+  # Use full sample size when imputation is active;
+  # use effective sample size for R=1 missing data (complete-case).
+  N <- if (data$Y_has_missing && is.null(model$Y_imputed)) data$n_obs else data$n
   R <- data$R
 
-  # Zero out missing observations
-  if (data$Y_has_missing) {
+  # Zero out missing entries only for R=1 (complete-case)
+  if (data$Y_has_missing && is.null(model$Y_imputed)) {
     R_mat[data$Y_missing] <- 0
     Xb[data$Y_missing] <- 0
   }
@@ -855,26 +912,43 @@ estimate_residual_variance_mv <- function(data, model) {
     B1_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]  # J x R
     if (!is.matrix(B1_l)) B1_l <- matrix(B1_l, ncol = R)
     XB1_l <- data$X %*% B1_l  # n x R
-    if (data$Y_has_missing) XB1_l[data$Y_missing] <- 0
+    if (data$Y_has_missing && is.null(model$Y_imputed)) XB1_l[data$Y_missing] <- 0
     b1_XtX_b1 <- b1_XtX_b1 + crossprod(XB1_l)  # B1_l' X'X B1_l
   }
 
   V_est <- (E_RtR + bxxb - b1_XtX_b1) / N
+
+  # Add Y_cov for imputation uncertainty (Eq. 52-53 from mr.mash):
+  # V = (R'R + var_part_ERSS + Y_cov) / n
+  if (!is.null(model$Y_cov)) {
+    V_est <- V_est + model$Y_cov / N
+  }
+
   V_est <- (V_est + t(V_est)) / 2
+
+  # Enforce positive-definiteness when imputation is active
+  if (!is.null(model$Y_cov)) {
+    V_est <- makePD(V_est, 1e-10)
+  }
+
   return(V_est)
 }
 
 # Multivariate ELBO expected log-likelihood (dense)
 compute_multivariate_elbo <- function(data, model) {
-  # Use effective sample size when Y has missing data
-  N <- if (data$Y_has_missing) data$n_obs else data$n
+  # Use full sample size when imputation is active (all obs contribute);
+  # use effective sample size for R=1 missing data (complete-case).
+  N <- if (data$Y_has_missing && is.null(model$Y_imputed)) data$n_obs else data$n
   R <- data$R
   v_inv <- get_v_inv(data, model)
+
+  # Use imputed Y when available (R>1 missing data)
+  Y <- if (!is.null(model$Y_imputed)) model$Y_imputed else data$Y
 
   # Constant: -N*R/2*log(2*pi) - N/2*log|sigma2|
   loglik <- -N * R / 2 * log(2 * pi)
   if (is.matrix(model$sigma2)) {
-    loglik <- loglik - N / 2 * 2 * sum(log(diag(chol(model$sigma2))))
+    loglik <- loglik - N / 2 * chol2ldet(chol(model$sigma2))
   } else {
     loglik <- loglik - N * R / 2 * log(model$sigma2)
   }
@@ -885,9 +959,9 @@ compute_multivariate_elbo <- function(data, model) {
   # 1. Raw residual RSS: tr(v_inv * (Y-Xr)'(Y-Xr))
   b_sum <- compute_posterior_mean_sum_from_model(model)
   Xb <- data$X %*% b_sum
-  R_mat <- data$Y - Xb
-  # Zero out missing observations (they don't contribute to likelihood)
-  if (data$Y_has_missing) R_mat[data$Y_missing] <- 0
+  R_mat <- Y - Xb
+  # Zero out missing entries only for R=1 (complete-case)
+  if (data$Y_has_missing && is.null(model$Y_imputed)) R_mat[data$Y_missing] <- 0
   if (is.matrix(v_inv)) {
     essr <- sum(R_mat * (R_mat %*% v_inv))
   } else {
@@ -898,8 +972,8 @@ compute_multivariate_elbo <- function(data, model) {
   for (l in seq_len(nrow(model$alpha))) {
     b_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]  # J x R
     Xb_l <- data$X %*% b_l  # N x R
-    # Zero out missing rows for consistent ESSR decomposition
-    if (data$Y_has_missing) Xb_l[data$Y_missing] <- 0
+    # Zero out missing rows only for R=1 (complete-case)
+    if (data$Y_has_missing && is.null(model$Y_imputed)) Xb_l[data$Y_missing] <- 0
     if (is.matrix(v_inv)) {
       essr <- essr - sum(Xb_l * (Xb_l %*% v_inv))
     } else {
@@ -911,5 +985,14 @@ compute_multivariate_elbo <- function(data, model) {
   #    (d already accounts for missing data in observed-row version)
   essr <- essr + sum(model$vbxxb)
 
-  return(loglik - 0.5 * essr)
+  result <- loglik - 0.5 * essr
+
+  # ELBO correction for imputation uncertainty (Eq. 84 from mr.mash):
+  # ELBO_miss = ELBO_complete - 0.5 * tr(V^-1 Y_cov) - sum_neg_ent
+  if (!is.null(model$Y_cov)) {
+    result <- result - 0.5 * sum(v_inv * model$Y_cov)
+    result <- result - model$sum_neg_ent_Y_miss
+  }
+
+  return(result)
 }

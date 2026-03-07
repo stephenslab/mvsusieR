@@ -15,13 +15,30 @@ muffled_chol <- function(x, ...) {
 }
 
 # Invert a symmetric, positive definite square matrix via its Cholesky
-# decomposition.
+# decomposition. Falls back to SVD pseudo-inverse if Cholesky fails.
 invert_via_chol <- function(x) {
   if (all(x == 0)) {
     return(list(inv = x, rank = 0))
-  } else {
-    return(list(inv = chol2inv(muffled_chol(x)), rank = nrow(x)))
   }
+  tryCatch(
+    list(inv = chol2inv(muffled_chol(x)), rank = nrow(x)),
+    error = function(e) {
+      # Cholesky failed -> fall back to SVD pseudo-inverse
+      pseudo_inverse(x)
+    }
+  )
+}
+
+# Log-determinant from upper Cholesky factor: log(det(A)) = 2 * sum(log(diag(chol(A)))).
+# Borrowed from mr.mash (misc.R).
+chol2ldet <- function(R) {
+  2 * sum(log(diag(R)))
+}
+
+# Add small ridge e to diagonal for positive-definiteness enforcement.
+# Borrowed from mr.mash (misc.R).
+makePD <- function(x, e = 1e-8) {
+  x + diag(nrow(x)) * e
 }
 
 # Pseudoinverse of matrix.
@@ -355,7 +372,7 @@ eigendecompose_one_pair <- function(SVS, U) {
   # Cholesky: R's chol() returns upper triangular; we need lower.
   L_upper <- muffled_chol(SVS)
   L <- t(L_upper)
-  log_det_svs <- 2 * sum(log(diag(L_upper)))
+  log_det_svs <- chol2ldet(L_upper)
 
   # L^{-1} U L^{-T} via triangular solves
   L_inv <- forwardsolve(L, diag(R))

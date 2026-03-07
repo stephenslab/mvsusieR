@@ -21,6 +21,7 @@ Depends: R (>= 3.5.0),
     susieR (>= 0.10.1)
 Imports:
     stats,
+    Rcpp (>= 1.0.1),
     abind,
     mvtnorm,
     matrixStats,
@@ -28,16 +29,21 @@ Imports:
     ggplot2,
     ggrepel,
     cowplot
+LinkingTo:
+    Rcpp,
+    RcppArmadillo (>= 0.9.700.2)
 Suggests:
     reshape,
     pryr,
     testthat,
     microbenchmark,
     knitr,
-    rmarkdown
+    rmarkdown,
+    flashier (>= 1.0.7),
+    ebnm
 LazyData: true
 LazyDataCompression: xz
-NeedsCompilation: no
+NeedsCompilation: yes
 RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Roxygen: list()

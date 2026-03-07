@@ -95,6 +95,14 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
   d <- colSums(X[obs, , drop = FALSE]^2)
   d[d == 0] <- 1e-6
 
+  # Extract missingness patterns for R>1 variational imputation.
+  # For R=1, complete-case (zero-fill) approach is used instead.
+  if (Y_has_missing && R > 1) {
+    miss_info <- extract_missing_patterns(Y_missing)
+  } else {
+    miss_info <- NULL
+  }
+
   data <- list(
     X       = X,
     Y       = Y,
@@ -108,6 +116,7 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
     Y_mean  = Y_mean,
     Y_has_missing  = Y_has_missing,
     Y_missing      = Y_missing,
+    miss_info      = miss_info,
     # Computed lazily or by set_mvsusie_residual_variance
     residual_variance     = NULL,
     residual_variance_inv = NULL,
@@ -141,7 +150,10 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
       if (!data$Y_has_missing) {
         residual_variance <- cov(data$Y)
       } else {
-        stop("residual_variance must be provided when Y has missing data")
+        # Restore NAs for flash-based covariance estimation
+        Y_with_na <- data$Y
+        Y_with_na[data$Y_missing] <- NA
+        residual_variance <- compute_cov_flash(Y_with_na)
       }
     } else {
       residual_variance <- as.numeric(var(data$Y, na.rm = TRUE))
