@@ -46,7 +46,7 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
     if (any(grid <= 0)) {
       stop("grid values should be greater than zero")
     }
-    xUlist <- mashr:::expand_cov(Ulist, grid, usepointmass = TRUE)
+    xUlist <- expand_cov(Ulist, grid, usepointmass = TRUE)
   } else {
     # Ensure null component is first
     if (!all(xUlist[[1]] == 0)) {
@@ -111,8 +111,8 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
   # Validate all matrices
   u_rows <- vapply(xUlist, nrow, integer(1))
   for (i in seq_along(xUlist)) {
-    mashr:::check_covmat_basics(xUlist[[i]])
-    if (!mashr:::issemidef(xUlist[[i]])) {
+    check_covmat_basics(xUlist[[i]])
+    if (!issemidef(xUlist[[i]])) {
       stop(paste("The prior matrices", i, "should be positive semi-definite"))
     }
   }

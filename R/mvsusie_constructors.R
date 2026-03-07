@@ -1,9 +1,14 @@
-# =============================================================================
-# MULTIVARIATE DATA CONSTRUCTORS
+# Multivariate data constructors and model initialization.
 #
-# Plain list data objects for multivariate SuSiE, designed to integrate with
-# susieR's susie_workhorse via S3 dispatch. Data objects are immutable after
-# construction; the model object carries mutable iteration state.
+# Creates data objects (mv_individual, mv_ss) and initializes
+# model/fitted values for susieR's susie_workhorse.
+
+#' @importFrom matrixStats colSds
+#' @importFrom susieR is_symmetric_matrix
+NULL
+
+# =============================================================================
+# DATA CONSTRUCTORS
 # =============================================================================
 
 #' Create multivariate dense data object
@@ -156,7 +161,7 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
     if (anyNA(diag(residual_variance)))
       stop("Diagonal of residual_variance cannot be NA")
     residual_variance[is.na(residual_variance)] <- 0
-    mashr:::check_positive_definite(residual_variance)
+    check_positive_definite(residual_variance)
   } else {
     if (is.na(residual_variance) || is.infinite(residual_variance))
       stop("Invalid residual_variance")
@@ -259,4 +264,117 @@ create_mvsusie_ss_data <- function(XtX, XtY, YtY, N,
 
   class(data) <- c("mv_ss", "ss")
   return(data)
+}
+
+
+# =============================================================================
+# MODEL & FITTED VALUE INITIALIZATION
+# =============================================================================
+
+#' @keywords internal
+initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
+  L <- params$L
+  J <- data$p
+  R <- data$R
+
+  # Unified prior structure: all priors become K-component mixtures.
+  # V_structure stores K non-null prior covariance matrices.
+  # null_weight is stored separately; null (zero) matrix is prepended
+  # when constructing inputs for mashr C++.
+  prior_var <- params$scaled_prior_variance
+
+  if (is.matrix(prior_var)) {
+    # Single matrix -> K=1 non-null component.
+    # Normalize by max diagonal so V_scalar is on a comparable scale to susieR.
+    max_diag <- max(abs(diag(prior_var)))
+    V_structure <- list(prior_var / max_diag)
+    pi_V <- 1.0
+    null_weight <- 0
+    V_scalar_init <- max_diag
+  } else if (class(prior_var)[1] == "mash_prior") {
+    # Mixture prior from create_mash_prior.
+    # Normalize each component by the same max diagonal as the matrix path
+    # so that V_scalar is comparable between matrix and mash_prior paths.
+    max_diag <- max(vapply(prior_var$xUlist,
+                            function(U) max(abs(diag(U))), numeric(1)))
+    V_structure <- lapply(prior_var$xUlist, function(U) U / max_diag)
+    pi_V <- prior_var$pi
+    null_weight <- prior_var$null_weight
+    V_scalar_init <- max_diag
+  } else {
+    # Scalar prior (R=1 fallback)
+    V_structure <- list(diag(R))
+    pi_V <- 1.0
+    null_weight <- 0
+    V_scalar_init <- prior_var
+  }
+
+  K <- length(V_structure)
+
+  # Precompute pseudo-inverses for EM
+  inv_list <- lapply(V_structure, pseudo_inverse)
+  V_structure_inv <- matlist2array(lapply(inv_list, `[[`, "inv"))
+  V_structure_rank <- vapply(inv_list, `[[`, numeric(1), "rank")
+
+  model <- list(
+    alpha        = matrix(1 / J, L, J),
+    mu           = array(0, c(L, J, R)),
+    mu2          = vector("list", L),
+    V            = rep(V_scalar_init, L),
+    # Mixture prior fields (unified for single-matrix and mixture)
+    V_structure       = V_structure,       # list of K RxR matrices (non-null)
+    V_structure_3d    = matlist2array(V_structure),  # RxRxK array
+    V_structure_inv   = V_structure_inv,   # RxRxK pseudo-inverses
+    V_structure_rank  = V_structure_rank,  # K-vector of ranks
+    null_weight       = null_weight,       # scalar
+    pi_V              = pi_V,              # K-vector (non-null weights)
+    pi_V_posterior    = vector("list", L), # per-effect Jx(K+1) mixture weights
+    conditional_lfsr  = vector("list", L), # per-effect JxR LFSR
+    KL           = rep(as.numeric(NA), L),
+    lbf          = rep(as.numeric(NA), L),
+    lbf_variable = matrix(as.numeric(NA), L, J),
+    sigma2       = data$residual_variance,
+    pi           = params$prior_weights,
+    # Precomputed per-effect quantities
+    bxxb         = vector("list", L),
+    vbxxb        = rep(0, L)
+  )
+
+  for (l in seq_len(L)) {
+    model$mu2[[l]] <- array(0, c(J, R, R))
+    model$bxxb[[l]] <- matrix(0, R, R)
+  }
+
+  class(model) <- c("mvsusie", "susie")
+  return(model)
+}
+
+#' @keywords internal
+initialize_susie_model.mv_ss <- function(data, params, var_y, ...) {
+  initialize_susie_model.mv_individual(data, params, var_y, ...)
+}
+
+#' @keywords internal
+initialize_fitted.mv_individual <- function(data, mat_init, ...) {
+  b <- compute_posterior_mean_sum_from_init(mat_init)
+  list(Xr = data$X %*% b)
+}
+
+#' @keywords internal
+initialize_fitted.mv_ss <- function(data, mat_init, ...) {
+  b <- compute_posterior_mean_sum_from_init(mat_init)
+  list(XtXr = data$XtX %*% b)
+}
+
+# Helper: sum of alpha-weighted mu across effects from mat_init
+compute_posterior_mean_sum_from_init <- function(mat_init) {
+  L <- nrow(mat_init$alpha)
+  J <- ncol(mat_init$alpha)
+  R <- dim(mat_init$mu)[3]
+  b <- matrix(0, J, R)
+  for (l in seq_len(L)) {
+    # alpha[l,] is J-vector, mu[l,,] is J x R
+    b <- b + drop(mat_init$alpha[l, ]) * mat_init$mu[l, , , drop = TRUE]
+  }
+  return(b)
 }

@@ -21,7 +21,6 @@ Depends: R (>= 3.5.0),
     susieR (>= 0.10.1)
 Imports:
     stats,
-    Matrix,
     abind,
     mvtnorm,
     matrixStats,

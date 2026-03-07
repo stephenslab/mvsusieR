@@ -1,19 +1,37 @@
-# Register S3 methods for susieR's internal generics.
+# Register S3 methods for susieR's internal generics and cache mashr internals.
 #
 # susieR defines S3 generics (compute_kl, check_convergence, etc.) that are
-# not exported — they are internal to susieR's IBSS framework. mvsusieR
-# provides methods for these generics (dispatched on mv_individual, mv_ss,
-# and mvsusie classes). We use registerS3method() in .onLoad() so that R
-# knows to dispatch to our methods when susieR calls these generics internally.
+# not exported. mvsusieR provides methods for these generics (dispatched on
+# mv_individual, mv_ss, and mvsusie classes). We use registerS3method() so
+# that R dispatches to our methods when susieR calls these generics internally.
 #
-# This approach:
-#   - Does NOT require susieR to export the generics
-#   - Does NOT require mvsusieR to use susieR:::
-#   - Survives devtools::document() (since it's R code, not NAMESPACE directives)
+# mashr C++ functions and helpers are cached as package-level bindings so we
+# can call them directly without mashr:::.
 #
+
+# mashr internal functions -- populated by .onLoad()
+calc_lik_rcpp <- NULL
+calc_sermix_rcpp <- NULL
+compute_null_loglik_from_matrix <- NULL
+compute_alt_loglik_from_matrix_and_pi <- NULL
+expand_cov <- NULL
+check_covmat_basics <- NULL
+issemidef <- NULL
+check_positive_definite <- NULL
+
 .onLoad <- function(libname, pkgname) {
   susie_ns <- asNamespace("susieR")
   pkg_ns   <- asNamespace(pkgname)
+
+  # Cache mashr internal functions into this package's namespace
+  mashr_ns <- asNamespace("mashr")
+  for (fn in c("calc_lik_rcpp", "calc_sermix_rcpp",
+               "compute_null_loglik_from_matrix",
+               "compute_alt_loglik_from_matrix_and_pi",
+               "expand_cov", "check_covmat_basics",
+               "issemidef", "check_positive_definite")) {
+    assign(fn, get(fn, envir = mashr_ns), envir = pkg_ns)
+  }
 
   # Generics with methods for both mv_individual and mv_ss classes
   mv_generics <- c(
