@@ -8,3 +8,8 @@ Overview.ipynb
 /doc/
 /Meta/
 pixi.lock
+
+# Compiled object files from Rcpp/Armadillo
+src/*.o
+src/*.so
+src/*.dll

@@ -104,10 +104,15 @@ precompute_pattern_cache <- function(Vinv, patterns) {
 
 
 # ============================================================================
-# IMPUTATION (R IMPLEMENTATION)
+# IMPUTATION
 # ============================================================================
 
 #' Impute missing Y entries using conditional normal distribution.
+#'
+#' This is a dispatch function: \code{version = "Rcpp"} (default in
+#' production) calls the Armadillo C++ implementation for speed;
+#' \code{version = "R"} calls a pure-R reference implementation kept
+#' for unit testing and debugging only.
 #'
 #' For each observation i with missing entries M_i:
 #'   E[Y_{i,M} | Y_{i,O}] = mu_{i,M} - cov_mm %*% Vinv_mo %*% (Y_{i,O} - mu_{i,O})
@@ -131,7 +136,7 @@ precompute_pattern_cache <- function(Vinv, patterns) {
 #'
 #' @keywords internal
 impute_missing_Y <- function(Y, mu, Vinv, miss_info, pattern_cache,
-                             version = "R") {
+                             version = "Rcpp") {
   if (version == "Rcpp") {
     return(impute_missing_Y_rcpp(Y, mu, Vinv,
                                  miss_info$patterns, miss_info$pattern_obs))
