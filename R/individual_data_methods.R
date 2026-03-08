@@ -644,6 +644,13 @@ get_objective.mv_individual <- function(data, params, model, ...) {
 # CONVERGENCE
 # =============================================================================
 
+#' Check IBSS convergence via ELBO increment.
+#'
+#' The ELBO is guaranteed monotone for standard updates (SER, prior variance
+#' estimation, mixture weight updates). Small ELBO drops may occur when:
+#' (1) missing data imputation adjusts the Y_cov correction term, or
+#' (2) mixture component pruning removes near-zero-weight components.
+#' In these cases the fallback to PIP convergence ensures robustness.
 #' @keywords internal
 check_convergence.mv_individual <- function(data, params, model,
                                              elbo, iter, tracking) {

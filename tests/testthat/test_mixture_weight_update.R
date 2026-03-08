@@ -508,7 +508,7 @@ test_that("K=1 single matrix prior: no weight update triggered", with(simulate_m
                  estimate_residual_variance = FALSE,
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
-                 compute_objective = FALSE)
+                 )
   # pi_V should still be 1.0 (single component)
   expect_equal(fit$pi_V, 1.0)
 }))
@@ -523,7 +523,7 @@ test_that("estimate_prior_mixture_weights = FALSE: pi_V unchanged", with(simulat
                  estimate_residual_variance = FALSE,
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = FALSE,
-                 compute_objective = FALSE)
+                 )
   # pi_V should be unchanged
   expect_equal(fit$pi_V, pi_V_init)
 }))
@@ -539,7 +539,7 @@ test_that("EM weight update changes pi_V with mash prior", with(simulate_multiva
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
                  mixture_weight_method = "EM",
-                 compute_objective = FALSE)
+                 )
   # pi_V should have changed from initial
   expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
   # Weights should sum to 1
@@ -557,7 +557,7 @@ test_that("mixsqp weight update changes pi_V with mash prior", with(simulate_mul
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
                  mixture_weight_method = "mixsqp",
-                 compute_objective = FALSE)
+                 )
   # pi_V should have changed from initial
   expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
   # Weights should sum to 1
@@ -575,7 +575,7 @@ test_that("EM and mixsqp both produce valid updated weights", with(simulate_mult
                     estimate_prior_variance = FALSE,
                     estimate_prior_mixture_weights = TRUE,
                     mixture_weight_method = "EM",
-                    compute_objective = FALSE)
+                    )
 
   fit_msqp <- mvsusie(X, y, L = 3, prior_variance = prior,
                       residual_variance = residual_var,
@@ -583,7 +583,7 @@ test_that("EM and mixsqp both produce valid updated weights", with(simulate_mult
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = TRUE,
                       mixture_weight_method = "mixsqp",
-                      compute_objective = FALSE)
+                      )
 
   # Both produce valid probability vectors
   expect_equal(sum(fit_em$pi_V), 1, tolerance = 1e-10)
@@ -613,7 +613,6 @@ test_that("ELBO is monotonically non-decreasing with EM weight updates", with(si
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
                  mixture_weight_method = "EM",
-                 compute_objective = TRUE,
                  max_iter = 50))
   # ELBO should exist and be finite
   expect_true(length(fit$elbo) > 0)
@@ -636,7 +635,6 @@ test_that("ELBO is monotonically non-decreasing with mixsqp weight updates", wit
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
                  mixture_weight_method = "mixsqp",
-                 compute_objective = TRUE,
                  max_iter = 50))
   # ELBO should exist and be finite
   expect_true(length(fit$elbo) > 0)
@@ -664,7 +662,6 @@ test_that("EM and mixsqp produce similar pi_V weights", with(simulate_multivaria
                     estimate_prior_variance = FALSE,
                     estimate_prior_mixture_weights = TRUE,
                     mixture_weight_method = "EM",
-                    compute_objective = TRUE,
                     max_iter = 50))
 
   fit_msqp <- suppressWarnings(mvsusie(X, y, L = 3, prior_variance = prior,
@@ -673,7 +670,6 @@ test_that("EM and mixsqp produce similar pi_V weights", with(simulate_multivaria
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = TRUE,
                       mixture_weight_method = "mixsqp",
-                      compute_objective = TRUE,
                       max_iter = 50))
 
   # After final pruning, both should have the same number of components
@@ -698,7 +694,7 @@ test_that("EM and mixsqp produce similar alpha", with(simulate_multivariate(r=2)
                     estimate_prior_variance = FALSE,
                     estimate_prior_mixture_weights = TRUE,
                     mixture_weight_method = "EM",
-                    compute_objective = FALSE)
+                    )
 
   fit_msqp <- mvsusie(X, y, L = 3, prior_variance = prior,
                       residual_variance = residual_var,
@@ -706,7 +702,7 @@ test_that("EM and mixsqp produce similar alpha", with(simulate_multivariate(r=2)
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = TRUE,
                       mixture_weight_method = "mixsqp",
-                      compute_objective = FALSE)
+                      )
 
   # Alpha matrices should be similar
   expect_true(max(abs(fit_em$alpha - fit_msqp$alpha)) < 0.1,
@@ -723,7 +719,6 @@ test_that("EM and mixsqp produce similar final ELBO", with(simulate_multivariate
                     estimate_prior_variance = FALSE,
                     estimate_prior_mixture_weights = TRUE,
                     mixture_weight_method = "EM",
-                    compute_objective = TRUE,
                     max_iter = 50))
 
   fit_msqp <- suppressWarnings(mvsusie(X, y, L = 3, prior_variance = prior,
@@ -732,7 +727,6 @@ test_that("EM and mixsqp produce similar final ELBO", with(simulate_multivariate
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = TRUE,
                       mixture_weight_method = "mixsqp",
-                      compute_objective = TRUE,
                       max_iter = 50))
 
   # Final ELBOs should be close
@@ -759,7 +753,7 @@ test_that("estimate_residual_variance=FALSE + weight update works", with(simulat
                  estimate_residual_variance = FALSE,
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
-                 compute_objective = FALSE)
+                 )
   # pi_V should have changed
   expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
   # sigma2 should be unchanged (residual variance not estimated)
@@ -776,7 +770,7 @@ test_that("Both residual variance and weight update work together", with(simulat
                  estimate_residual_variance = TRUE,
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
-                 compute_objective = FALSE)
+                 )
   # pi_V should have changed
   expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
   # sigma2 should also have changed
@@ -793,7 +787,7 @@ test_that("precompute_covariances + weight update work together", with(simulate_
                          estimate_prior_variance = FALSE,
                          estimate_prior_mixture_weights = TRUE,
                          precompute_covariances = TRUE,
-                         compute_objective = FALSE)
+                         )
 
   fit_no_precomp <- mvsusie(X, y, L = 3, prior_variance = prior,
                             residual_variance = residual_var,
@@ -801,7 +795,7 @@ test_that("precompute_covariances + weight update work together", with(simulate_
                             estimate_prior_variance = FALSE,
                             estimate_prior_mixture_weights = TRUE,
                             precompute_covariances = FALSE,
-                            compute_objective = FALSE)
+                            )
 
   # Results should be identical regardless of precomputation strategy
   expect_equal(fit_precomp$alpha, fit_no_precomp$alpha, tolerance = 1e-6)
@@ -828,7 +822,7 @@ test_that("mvsusie_ss with mixture weight updates runs and converges", with(simu
                        estimate_residual_variance = FALSE,
                        estimate_prior_variance = FALSE,
                        estimate_prior_mixture_weights = TRUE,
-                       compute_objective = FALSE)
+                       )
   # pi_V should have changed
   expect_false(isTRUE(all.equal(fit_ss$pi_V, pi_V_init)))
   expect_equal(sum(fit_ss$pi_V), 1, tolerance = 1e-10)
@@ -849,7 +843,7 @@ test_that("mvsusie_rss with weight updates via ... passthrough", with(simulate_m
                          prior_variance = prior,
                          estimate_prior_variance = FALSE,
                          estimate_prior_mixture_weights = TRUE,
-                         compute_objective = FALSE)
+                         )
   # pi_V should have changed (forwarded via ...)
   expect_false(isTRUE(all.equal(fit_rss$pi_V, pi_V_init)))
 }))
@@ -864,7 +858,7 @@ test_that("SS and individual data produce similar pi_V", with(simulate_multivari
                      estimate_prior_variance = FALSE,
                      estimate_prior_mixture_weights = TRUE,
                      mixture_weight_method = "EM",
-                     compute_objective = FALSE)
+                     )
 
   XtX <- crossprod(X)
   XtY <- crossprod(X, y)
@@ -878,7 +872,7 @@ test_that("SS and individual data produce similar pi_V", with(simulate_multivari
                        estimate_prior_variance = FALSE,
                        estimate_prior_mixture_weights = TRUE,
                        mixture_weight_method = "EM",
-                       compute_objective = FALSE)
+                       )
 
   # Both paths should produce valid updated weights
   expect_equal(sum(fit_ind$pi_V), 1, tolerance = 1e-10)
@@ -899,7 +893,7 @@ test_that("Temporary fields are cleaned up in final model", with(simulate_multiv
                  estimate_residual_variance = FALSE,
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
-                 compute_objective = FALSE)
+                 )
   # These should be cleaned up
   expect_null(fit$per_effect_llik)
   expect_null(fit$ibss_iter)
@@ -918,7 +912,7 @@ test_that("Final pruning removes near-zero components at convergence", with(simu
                  estimate_residual_variance = FALSE,
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
-                 compute_objective = FALSE)
+                 )
 
   # All remaining weights should be above the pruning threshold
   expect_true(all(fit$pi_V >= 1e-8))

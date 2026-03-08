@@ -17,7 +17,6 @@ mvsusie(
   prior_weights = NULL,
   standardize = TRUE,
   intercept = TRUE,
-  approximate = FALSE,
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
@@ -25,8 +24,7 @@ mvsusie(
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
-  compute_objective = TRUE,
-  s_init = NULL,
+  model_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE,
@@ -69,9 +67,8 @@ mvsusie_ss(
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
-  compute_objective = TRUE,
   precompute_covariances = FALSE,
-  s_init = NULL,
+  model_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
   n_thread = 1,
@@ -90,7 +87,6 @@ mvsusie_core(
   prior_weights = NULL,
   standardize = TRUE,
   intercept = TRUE,
-  approximate = FALSE,
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
@@ -98,7 +94,6 @@ mvsusie_core(
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
-  compute_objective = TRUE,
   model_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
@@ -130,7 +125,6 @@ mvsusie_ss_core(
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
-  compute_objective = TRUE,
   model_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
@@ -176,15 +170,6 @@ variance is not standardized, but left as is.}
 \item{intercept}{Should intercept be fitted or set to zero. Setting
 \code{intercept = FALSE} is generally not recommended.}
 
-\item{approximate}{Specifies whether to use approximate computation
-for the intercept when there are missing values in Y. The
-approximation saves some computational effort. Note that when the
-residual_variance is a diagonal matrix, running \code{mvsusie} with
-\code{approximate = TRUE} will give same result as
-\code{approximate = FALSE}, but with less running time. This
-setting is only relevant when there are missing values in Y and
-\code{intercept} = TRUE.}
-
 \item{estimate_residual_variance}{When
 \code{estimate_residual_variance = TRUE}, the residual variance is
 estimated at each iteration using \eqn{E_q[R'R] / n}; otherwise it
@@ -215,10 +200,7 @@ estimated value to this value at the end of the analysis and
 exclude a single effect from PIP computation if the estimated prior
 variance is smaller than it.}
 
-\item{compute_objective}{Add description of "compute_objective"
-input argument here.}
-
-\item{s_init}{A previous model fit with which to initialize.}
+\item{model_init}{A previous model fit with which to initialize.}
 
 \item{coverage}{Coverage of credible sets.}
 

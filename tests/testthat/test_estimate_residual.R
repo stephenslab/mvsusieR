@@ -13,11 +13,11 @@ test_that("estimated residual variance: matrix prior vs mash_prior agree", with(
                   residual_variance = cov(y),
                   estimate_residual_variance = T,
                   estimate_prior_variance = FALSE,
-                  compute_objective = FALSE)
+                  )
   DA = mvsusie(X, y, L = L, prior_variance = mash_init,
                residual_variance = cov(y),
                estimate_residual_variance = T,
                estimate_prior_variance = FALSE,
-               compute_objective = FALSE)
+               )
   expect_susie_equal(CA_s3, DA, F, T)
 }))

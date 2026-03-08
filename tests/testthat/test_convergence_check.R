@@ -1,9 +1,6 @@
-context("Test check for convergence using ELBO or not")
+context("Test ELBO convergence")
 
-# NOTE: Tests using R6 SingleEffectModel/BayesianSimpleRegression/SuSiE/DenseData
-# have been replaced with S3 path equivalents using mvsusie() / mvsusie_ss().
-
-test_that("mvsusie gets same result checking ELBO or not (dense)", {
+test_that("mvsusie converges with monotonic ELBO (dense)", {
   set.seed(1)
   n <- 100; p <- 200; L <- 10
   beta <- rep(0, p); beta[1:4] <- 1
@@ -11,44 +8,25 @@ test_that("mvsusie gets same result checking ELBO or not (dense)", {
   y <- c(X %*% beta + rnorm(n))
   V <- 0.2 * var(y)
 
-  # Fixed prior
-  A <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
+  fit <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
-    compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
-    prior_variance = V,
-    residual_variance = matrix(1, 1, 1),
-    estimate_residual_variance = FALSE,
-    estimate_prior_variance = FALSE,
-    compute_objective = FALSE,
-    tol = 1e-6, verbosity = 0)
-  expect_susie_equal(A, B, FALSE, FALSE, tol = 1e-3)
+  expect_true(all(diff(fit$elbo) >= -1e-6))
 
-  # Estimated prior (optim)
-  A <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
+  fit2 <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
     prior_variance = V,
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "optim",
-    compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
-    prior_variance = V,
-    residual_variance = matrix(1, 1, 1),
-    estimate_residual_variance = FALSE,
-    estimate_prior_variance = TRUE,
-    estimate_prior_method = "optim",
-    compute_objective = FALSE,
-    tol = 1e-6, verbosity = 0)
-  expect_susie_equal(A, B, TRUE, FALSE, tol = 5e-4)
+  expect_true(all(diff(fit2$elbo) >= -1e-6))
 })
 
-test_that("mvsusie gets same result checking ELBO or not (suff stat)", {
+test_that("mvsusie converges with monotonic ELBO (suff stat)", {
   set.seed(1)
   n <- 100; p <- 200; L <- 10
   beta <- rep(0, p); beta[1:4] <- 1
@@ -61,35 +39,18 @@ test_that("mvsusie gets same result checking ELBO or not (suff stat)", {
   yty <- crossprod(yc)
   V <- 0.2 * as.numeric(yty / (n - 1))
 
-  # Fixed prior
-  A <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+  fit <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
-    compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
-    prior_variance = V,
-    estimate_residual_variance = FALSE,
-    estimate_prior_variance = FALSE,
-    compute_objective = FALSE,
-    tol = 1e-6, verbosity = 0)
-  expect_susie_equal(A, B, FALSE, FALSE, tol = 1e-3)
+  expect_true(all(diff(fit$elbo) >= -1e-6))
 
-  # Estimated prior (optim)
-  A <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
+  fit2 <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "optim",
-    compute_objective = TRUE,
     tol = 1e-6, verbosity = 0)
-  B <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
-    prior_variance = V,
-    estimate_residual_variance = FALSE,
-    estimate_prior_variance = TRUE,
-    estimate_prior_method = "optim",
-    compute_objective = FALSE,
-    tol = 1e-6, verbosity = 0)
-  expect_susie_equal(A, B, TRUE, FALSE, tol = 5e-4)
+  expect_true(all(diff(fit2$elbo) >= -1e-6))
 })

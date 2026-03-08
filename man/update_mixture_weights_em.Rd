@@ -2,22 +2,31 @@
 % Please edit documentation in R/individual_data_methods.R
 \name{update_mixture_weights_em}
 \alias{update_mixture_weights_em}
-\title{EM update for mixture prior weights pi_V.}
+\title{Inner EM update for mixture prior weights pi_V.}
 \usage{
-update_mixture_weights_em(model, update_null = FALSE)
+update_mixture_weights_em(
+  model,
+  update_null = FALSE,
+  max_inner_iter = 100,
+  inner_tol = 1e-10
+)
 }
 \arguments{
-\item{model}{Model list containing pi_V_posterior (list of L matrices, each J x (K+1)).}
+\item{model}{Model list with per_effect_llik, alpha, pi_V, null_weight.}
 
 \item{update_null}{Logical; if TRUE, also update null_weight.}
+
+\item{max_inner_iter}{Maximum inner EM iterations.}
+
+\item{inner_tol}{Convergence tolerance on max absolute change in pi.}
 }
 \value{
 Updated model with new pi_V (and optionally null_weight).
 }
 \description{
-Averages pi_V_posterior across all L effects and J variables, following
-mr.mash (S1 Text, Eq. 72-73). The M-step update is:
-  pi_full_hat_k = (1/(L*J)) * sum_l sum_j pi_V_posterior[[l]][j, k]
-Then: null_weight = pi_full_hat[1], pi_V = pi_full_hat[-1] / sum(pi_full_hat[-1]).
+Iteratively maximizes the collapsed objective
+  F(pi) = sum_{l,j} alpha[l,j] * log(sum_k pi[k] * exp(llik[l,j,k]))
+via EM on the stacked (L*J) x (K+1) log-likelihood matrix, weighted
+by alpha[l,j]. Core loop implemented in C++ (inner_em_cpp).
 }
 \keyword{internal}

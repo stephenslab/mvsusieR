@@ -2,12 +2,12 @@
 % Please edit documentation in R/individual_data_methods.R
 \name{update_mixture_weights_mixsqp}
 \alias{update_mixture_weights_mixsqp}
-\title{Convex optimization update for mixture prior weights pi_V via mixsqp.}
+\title{Mixture weight update via mixsqp (sequential quadratic programming).}
 \usage{
 update_mixture_weights_mixsqp(model, update_null = FALSE)
 }
 \arguments{
-\item{model}{Model list containing per_effect_llik (list of L matrices, each J x (K+1)).}
+\item{model}{Model list with per_effect_llik, alpha, pi_V, null_weight.}
 
 \item{update_null}{Logical; if TRUE, also update null_weight.}
 }
@@ -15,10 +15,7 @@ update_mixture_weights_mixsqp(model, update_null = FALSE)
 Updated model with new pi_V (and optionally null_weight).
 }
 \description{
-Stacks all L per-effect log-likelihood matrices into a (L*J) x (K+1)
-matrix and solves the maximum likelihood problem:
-  max_{w >= 0, sum(w)=1}  sum_{l,j} log( sum_k w_k * exp(llik^(l)_{jk}) )
-This is a concave problem on the simplex, solved efficiently by mixsqp's
-sequential quadratic programming algorithm (Kim, Carbonetto, Stephens 2020).
+Solves the alpha-weighted ML problem on the stacked (L*J) x (K+1)
+log-likelihood matrix via mixsqp (Kim, Carbonetto, Stephens 2020).
 }
 \keyword{internal}

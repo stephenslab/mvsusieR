@@ -174,7 +174,6 @@ test_that("uniroot converges for R=3 with mixture prior", {
                  estimate_prior_variance = TRUE,
                  estimate_prior_method = "uniroot",
                  estimate_residual_variance = FALSE,
-                 compute_objective = TRUE,
                  max_iter = 100, tol = 1e-3, verbosity = 0)
   # Model should converge
   expect_true(fit$convergence$converged)

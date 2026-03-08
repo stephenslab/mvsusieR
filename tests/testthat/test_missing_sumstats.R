@@ -17,12 +17,11 @@ test_that("With full observations, matrix vs mash prior agree (with missing data
                         residual_variance=residual_var,
                         estimate_residual_variance=FALSE,
                         estimate_prior_variance=FALSE,
-                        compute_objective=FALSE)
+                        )
   fit4_mash = mvsusie(X, y, L=1, prior_variance=mash_init,
                       residual_variance=residual_var,
                       estimate_residual_variance=FALSE,
                       estimate_prior_variance=FALSE,
-                      compute_objective=FALSE,
                       precompute_covariances=TRUE)
   expect_susie_equal(fit4_matrix, fit4_mash, F, F)
 }))
@@ -31,20 +30,19 @@ test_that("When R = 1, estimated prior variance with missing data agrees with fu
   prior_var = V[1,1]
   residual_var = as.numeric(var(y))
   fit1 = mvsusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
-              prior_variance=prior_var, residual_variance = residual_var, compute_objective=F,
+              prior_variance=prior_var, residual_variance = residual_var,
               intercept=T, standardize = T,
               estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
 
   fit2 = mvsusie(X, y_missing, L=L,
-              prior_variance=prior_var, residual_variance = residual_var, compute_objective=F,
+              prior_variance=prior_var, residual_variance = residual_var,
               intercept=T, standardize = T,
               estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
 
   fit3 = mvsusie(X, y_missing, L=L,
-                prior_variance=prior_var, residual_variance = residual_var, compute_objective=F,
+                prior_variance=prior_var, residual_variance = residual_var,
                 intercept=T, standardize = T,
-                estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM',
-                approximate=TRUE)
+                estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
 
   expect_equal(fit1$alpha, fit2$alpha, tolerance = 1E-8)
   expect_equal(fit2$alpha, fit3$alpha)
@@ -67,12 +65,12 @@ test_that("With full observation, the estimated prior variance: matrix vs mash p
   null_weight = 0
   mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
   fit4_matrix = mvsusie(X, y, L=L, prior_variance=V,
-                        residual_variance=residual_var, compute_objective=F,
+                        residual_variance=residual_var,
                         intercept=T, standardize=T,
                         estimate_residual_variance=F, estimate_prior_variance=T,
                         estimate_prior_method='EM')
   fit4_mash = mvsusie(X, y, L=L, prior_variance=mash_init,
-                      residual_variance=residual_var, compute_objective=F,
+                      residual_variance=residual_var,
                       intercept=T, standardize=T,
                       estimate_residual_variance=F, estimate_prior_variance=T,
                       estimate_prior_method='EM')
@@ -89,20 +87,19 @@ test_that("When R = 1, the elbo with missing data agrees with full data", with(s
   prior_var = V[1,1]
   residual_var = as.numeric(var(y))
   fit1 = mvsusie(X[!is.na(y_missing),],y_missing[!is.na(y_missing),,drop=F], L = L,
-                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T,
+                prior_variance=prior_var, residual_variance = residual_var,
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
 
   fit2 = mvsusie(X, y_missing, L=L,
-                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T,
+                prior_variance=prior_var, residual_variance = residual_var,
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
 
   fit3 = mvsusie(X, y_missing, L=L,
-                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T,
+                prior_variance=prior_var, residual_variance = residual_var,
                 intercept=T, standardize = T,
-                estimate_residual_variance=F, estimate_prior_variance=F,
-                approximate=TRUE)
+                estimate_residual_variance=F, estimate_prior_variance=F)
 
   # Compare converged ELBO values (final element); convergence speed
   # may differ between complete-data and missing-data paths.
@@ -115,7 +112,7 @@ test_that("With full observation, the elbo: matrix vs mash prior agree", with(si
   prior_var = V
   residual_var = cov(y)
   fit1 = mvsusie(X, y, L = L,
-                prior_variance=prior_var, residual_variance = residual_var, compute_objective=T,
+                prior_variance=prior_var, residual_variance = residual_var,
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
 
@@ -123,7 +120,7 @@ test_that("With full observation, the elbo: matrix vs mash prior agree", with(si
   null_weight = 0
   mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
   fit4 = mvsusie(X, y, L=L, prior_variance=mash_init,
-                 residual_variance=residual_var, compute_objective=T,
+                 residual_variance=residual_var,
                  intercept=T, standardize=T,
                  estimate_residual_variance=F, estimate_prior_variance=F)
 

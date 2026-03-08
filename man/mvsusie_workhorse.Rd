@@ -15,7 +15,6 @@ mvsusie_workhorse(
   estimate_prior_mixture_weights = FALSE,
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
-  compute_objective = TRUE,
   max_iter = 100,
   tol = 0.001,
   prior_tol = 1e-09,
@@ -44,8 +43,6 @@ mvsusie_workhorse(
 \item{estimate_prior_method}{Character: "EM", "optim", or "uniroot".}
 
 \item{check_null_threshold}{Numeric threshold for null check.}
-
-\item{compute_objective}{Logical.}
 
 \item{max_iter}{Maximum iterations.}
 
