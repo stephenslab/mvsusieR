@@ -26,9 +26,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// inner_em_cpp
+List inner_em_cpp(const arma::mat& llik, const arma::vec& weights, arma::vec pi_init, int max_iter, double tol);
+RcppExport SEXP _mvsusieR_inner_em_cpp(SEXP llikSEXP, SEXP weightsSEXP, SEXP pi_initSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type llik(llikSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pi_init(pi_initSEXP);
+    Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(inner_em_cpp(llik, weights, pi_init, max_iter, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_mvsusieR_impute_missing_Y_rcpp", (DL_FUNC) &_mvsusieR_impute_missing_Y_rcpp, 5},
+    {"_mvsusieR_inner_em_cpp", (DL_FUNC) &_mvsusieR_inner_em_cpp, 5},
     {NULL, NULL, 0}
 };
 

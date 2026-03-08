@@ -303,6 +303,10 @@ get_zscore.mv_ss <- function(data, params, model, ...) {
 
 #' @keywords internal
 cleanup_model.mv_ss <- function(data, params, model, ...) {
+  # Final pruning of near-zero mixture components at convergence
+  if (length(model$pi_V) > 1) {
+    model <- prune_mixture_components(model, threshold = 1e-8)
+  }
   model$residuals  <- NULL
   model$llik_cache <- NULL
   model$em_cache   <- NULL

@@ -708,91 +708,25 @@ em_update_prior_variance.mv_individual <- function(data, params, model,
 # MIXTURE WEIGHT UPDATE
 # =============================================================================
 
-#' EM update for mixture prior weights pi_V.
+#' Inner EM update for mixture prior weights pi_V.
 #'
-#' Computes the alpha-weighted EM M-step for mixture weights in the SuSiE
-#' framework. Unlike mr.mash (which averages over all J variables equally),
-#' SuSiE's single-effect structure requires weighting by alpha[l,j] (the
-#' posterior inclusion probability for variable j in effect l):
+#' Iteratively maximizes the collapsed objective
+#'   F(pi) = sum_{l,j} alpha[l,j] * log(sum_k pi[k] * exp(llik[l,j,k]))
+#' via EM on the stacked (L*J) x (K+1) log-likelihood matrix, weighted
+#' by alpha[l,j]. Core loop implemented in C++ (inner_em_cpp).
 #'
-#'   pi_full_hat_k ∝ sum_l sum_j alpha[l,j] * pi_V_posterior[[l]][j, k]
-#'
-#' This is the correct M-step because pi_V_posterior[[l]][j,k] is the
-#' *conditional* posterior P(z_l = k | gamma_l = j, data), and the marginal
-#' posterior P(z_l = k | data) = sum_j alpha[l,j] * P(z_l = k | gamma_l = j).
-#' Without alpha weighting, non-causal variables (with near-zero alpha) dilute
-#' the signal.
-#'
-#' @note The EM update maximizes the *uncollapsed* ELBO contribution
-#'   E_q[log p(z | pi_V)] = sum alpha * phi * log(pi_V), but the actual ELBO
-#'   uses the *collapsed* form log(sum_k pi_V[k] * BF_k). This mismatch means
-#'   the EM update does not guarantee monotonic collapsed ELBO. For monotonic
-#'   ELBO, use \code{update_mixture_weights_mixsqp} (the default), which
-#'   directly maximizes the collapsed ELBO contribution.
-#'
-#' @param model Model list containing alpha (L x J), pi_V_posterior (list of
-#'   L matrices, each J x (K+1)).
+#' @param model Model list with per_effect_llik, alpha, pi_V, null_weight.
 #' @param update_null Logical; if TRUE, also update null_weight.
+#' @param max_inner_iter Maximum inner EM iterations.
+#' @param inner_tol Convergence tolerance on max absolute change in pi.
 #' @return Updated model with new pi_V (and optionally null_weight).
 #' @keywords internal
-update_mixture_weights_em <- function(model, update_null = FALSE) {
-  L <- length(model$pi_V_posterior)
-  K_plus_1 <- length(model$pi_V) + 1  # K non-null + 1 null
-
-  # Accumulate alpha-weighted posterior assignments across all L effects.
-  # alpha[l,j] weights each variable's contribution so that only the
-  # "selected" variable for each effect meaningfully contributes.
-  pi_sum <- rep(0, K_plus_1)
-  n_valid <- 0
-  for (l in seq_len(L)) {
-    pvp <- model$pi_V_posterior[[l]]
-    if (is.null(pvp)) next
-    # Weight each row j by alpha[l,j] before summing
-    pi_sum <- pi_sum + colSums(model$alpha[l, ] * pvp)
-    n_valid <- n_valid + 1
-  }
-  if (n_valid == 0) return(model)
-
-  # Normalize to get pi_full
-  pi_full <- pi_sum / sum(pi_sum)
-
-  if (update_null) {
-    model$null_weight <- pi_full[1]
-  }
-  non_null <- pi_full[-1]
-
-  # Renormalize non-null weights
-  s <- sum(non_null)
-  if (s > 0) {
-    model$pi_V <- non_null / s
-  }
-  return(model)
-}
-
-#' Convex optimization update for mixture prior weights pi_V via mixsqp.
-#'
-#' Stacks all L per-effect log-likelihood matrices into a (L*J) x (K+1)
-#' matrix and solves the alpha-weighted maximum likelihood problem:
-#'   max_{w >= 0, sum(w)=1}  sum_{l,j} alpha[l,j] * log( sum_k w_k * exp(llik^(l)_{jk}) )
-#' This is a concave problem on the simplex, solved efficiently by mixsqp's
-#' sequential quadratic programming algorithm (Kim, Carbonetto, Stephens 2020).
-#'
-#' In the SuSiE framework, each "observation" (l,j) should be weighted by
-#' alpha[l,j] (the posterior inclusion probability) because only the selected
-#' variable for each effect matters. Without alpha weighting, non-causal
-#' variables with near-zero alpha dilute the signal.
-#'
-#' @param model Model list containing per_effect_llik (list of L matrices,
-#'   each J x (K+1)) and alpha (L x J matrix).
-#' @param update_null Logical; if TRUE, also update null_weight.
-#' @return Updated model with new pi_V (and optionally null_weight).
-#' @importFrom mixsqp mixsqp
-#' @keywords internal
-update_mixture_weights_mixsqp <- function(model, update_null = FALSE) {
+update_mixture_weights_em <- function(model, update_null = FALSE,
+                                       max_inner_iter = 100,
+                                       inner_tol = 1e-10) {
   L <- nrow(model$alpha)
 
-  # Collect all L llik matrices and corresponding alpha weights,
-  # maintaining the same stacking order
+  # Stack per-effect llik matrices and alpha weights
   llik_list <- list()
   alpha_list <- list()
   for (l in seq_len(L)) {
@@ -803,25 +737,61 @@ update_mixture_weights_mixsqp <- function(model, update_null = FALSE) {
   }
   if (length(llik_list) == 0) return(model)
 
-  llik_combined <- do.call(rbind, llik_list)   # (L*J) x (K+1)
-  alpha_weights <- unlist(alpha_list)            # (L*J) vector
+  llik_combined <- do.call(rbind, llik_list)
+  alpha_weights <- unlist(alpha_list)
+  pi_full <- c(model$null_weight, model$pi_V * (1 - model$null_weight))
 
-  # Solve alpha-weighted convex ML problem via mixsqp (log-scale input).
-  # The w argument weights each observation (l,j) by alpha[l,j].
+  # Floor zero weights so EM can discover all components
+  K_plus_1 <- length(pi_full)
+  pi_full <- pmax(pi_full, 1e-10 / K_plus_1)
+  pi_full <- pi_full / sum(pi_full)
+
+  result <- inner_em_cpp(llik_combined, alpha_weights, pi_full,
+                         max_inner_iter, inner_tol)
+  pi_full <- result$pi
+
+  if (update_null) model$null_weight <- pi_full[1]
+  non_null <- pi_full[-1]
+  s <- sum(non_null)
+  if (s > 0) model$pi_V <- non_null / s
+  return(model)
+}
+
+#' Mixture weight update via mixsqp (sequential quadratic programming).
+#'
+#' Solves the alpha-weighted ML problem on the stacked (L*J) x (K+1)
+#' log-likelihood matrix via mixsqp (Kim, Carbonetto, Stephens 2020).
+#'
+#' @param model Model list with per_effect_llik, alpha, pi_V, null_weight.
+#' @param update_null Logical; if TRUE, also update null_weight.
+#' @return Updated model with new pi_V (and optionally null_weight).
+#' @importFrom mixsqp mixsqp
+#' @keywords internal
+update_mixture_weights_mixsqp <- function(model, update_null = FALSE) {
+  L <- nrow(model$alpha)
+
+  # Stack per-effect llik matrices and alpha weights
+  llik_list <- list()
+  alpha_list <- list()
+  for (l in seq_len(L)) {
+    if (!is.null(model$per_effect_llik[[l]])) {
+      llik_list[[length(llik_list) + 1]] <- model$per_effect_llik[[l]]
+      alpha_list[[length(alpha_list) + 1]] <- model$alpha[l, ]
+    }
+  }
+  if (length(llik_list) == 0) return(model)
+
+  llik_combined <- do.call(rbind, llik_list)
+  alpha_weights <- unlist(alpha_list)
+
   out <- mixsqp(llik_combined, w = alpha_weights, log = TRUE,
                 control = list(verbose = FALSE))
   w_new <- out$x
 
-  if (update_null) {
-    model$null_weight <- w_new[1]
-  }
+  if (update_null) model$null_weight <- w_new[1]
   non_null <- w_new[-1]
-
-  # Renormalize non-null weights
   s <- sum(non_null)
-  if (s > 0) {
-    model$pi_V <- non_null / s
-  }
+  if (s > 0) model$pi_V <- non_null / s
   return(model)
 }
 
@@ -1026,6 +996,10 @@ get_zscore.mv_individual <- function(data, params, model, ...) {
 
 #' @keywords internal
 cleanup_model.mv_individual <- function(data, params, model, ...) {
+  # Final pruning of near-zero mixture components at convergence
+  if (length(model$pi_V) > 1) {
+    model <- prune_mixture_components(model, threshold = 1e-8)
+  }
   model$residuals        <- NULL
   model$fitted_without_l <- NULL
   model$raw_residuals    <- NULL

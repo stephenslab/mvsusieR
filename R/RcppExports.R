@@ -5,3 +5,7 @@ impute_missing_Y_rcpp <- function(Y, mu, Vinv, patterns, pattern_obs) {
     .Call('_mvsusieR_impute_missing_Y_rcpp', PACKAGE = 'mvsusieR', Y, mu, Vinv, patterns, pattern_obs)
 }
 
+inner_em_cpp <- function(llik, weights, pi_init, max_iter, tol) {
+    .Call('_mvsusieR_inner_em_cpp', PACKAGE = 'mvsusieR', llik, weights, pi_init, max_iter, tol)
+}
+
