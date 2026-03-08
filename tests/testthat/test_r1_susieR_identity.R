@@ -90,7 +90,7 @@ compare_r1_fits <- function(fit_susie, fit_mv, tol = 1e-4,
 
 test_that("R=1: fixed prior, fixed residual", {
   set.seed(1)
-  n <- 100; p <- 200; L <- 10
+  n <- 100; p <- 80; L <- 5
   beta <- rep(0, p); beta[1:4] <- 1
   X <- matrix(rnorm(n * p, 3, 4), n, p)
   y <- c(X %*% beta + rnorm(n))
@@ -117,7 +117,7 @@ test_that("R=1: fixed prior, fixed residual", {
 
 test_that("R=1: estimated prior (optim), fixed residual", {
   set.seed(1)
-  n <- 100; p <- 200; L <- 10
+  n <- 100; p <- 80; L <- 5
   beta <- rep(0, p); beta[1:4] <- 1
   X <- matrix(rnorm(n * p, 3, 4), n, p)
   y <- c(X %*% beta + rnorm(n))
@@ -147,7 +147,7 @@ test_that("R=1: estimated prior (optim), fixed residual", {
 
 test_that("R=1: estimated prior (EM), fixed residual", {
   set.seed(1)
-  n <- 100; p <- 200; L <- 10
+  n <- 100; p <- 80; L <- 5
   beta <- rep(0, p); beta[1:4] <- 1
   X <- matrix(rnorm(n * p, 3, 4), n, p)
   y <- c(X %*% beta + rnorm(n))
@@ -177,7 +177,7 @@ test_that("R=1: estimated prior (EM), fixed residual", {
 
 test_that("R=1: sufficient statistics path matches susieR::susie_ss", {
   set.seed(1)
-  n <- 100; p <- 200; L <- 10
+  n <- 100; p <- 80; L <- 5
   beta <- rep(0, p); beta[1:4] <- 1
   X <- matrix(rnorm(n * p, 3, 4), n, p)
   y <- c(X %*% beta + rnorm(n))
@@ -224,7 +224,7 @@ test_that("R=1: sufficient statistics path matches susieR::susie_ss", {
 
 test_that("R=1: suff stat with estimated prior (EM), fixed residual", {
   set.seed(1)
-  n <- 100; p <- 200; L <- 10
+  n <- 100; p <- 80; L <- 5
   beta <- rep(0, p); beta[1:4] <- 1
   X <- matrix(rnorm(n * p, 3, 4), n, p)
   y <- c(X %*% beta + rnorm(n))

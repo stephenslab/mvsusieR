@@ -79,6 +79,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     model_init               = model_init,
     unmappable_effects       = "none",
     n_purity                 = 100,
+    use_servin_stephens      = FALSE,  # required by susieR::ibss_finalize
     # Multivariate-specific
     precompute_eigendecomp   = precompute_covariances,
     n_thread                 = n_thread,
@@ -839,12 +840,12 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
     prior_variance <- compute_prior_inv.mash_prior(prior_variance)
   }
 
-  # Default residual variance: correlation matrix for R > 1
+  # Default residual variance: sample covariance YtY/(N-1)
+  # This matches the individual data path which uses cov(Y).
   if (is.null(residual_variance)) {
-    if (R > 1) {
-      residual_variance <- cov2cor(YtY)
-    } else {
-      residual_variance <- as.numeric(YtY / (N - 1))
+    residual_variance <- YtY / (N - 1)
+    if (R == 1) {
+      residual_variance <- as.numeric(residual_variance)
     }
   }
 

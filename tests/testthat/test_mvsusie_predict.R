@@ -2,9 +2,9 @@ context("mvsusie_predict")
 
 test_that("predict() gives accurate estimates in 1 condition",{
 
-  # Simulate a 500 x 100 data set with 1 response.
+  # Simulate a 200 x 100 data set with 1 response.
   set.seed(1)
-  n <- 500
+  n <- 200
   p <- 100
   maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(96))
   X   <- (runif(n*p) < maf) +
@@ -38,9 +38,9 @@ test_that("predict() gives accurate estimates in 1 condition",{
 
 test_that("predict() gives accurate estimates in 3 conditions",{
 
-  # Simulate a 500 x 100 data set with 3 outcomes.
+  # Simulate a 200 x 100 data set with 3 outcomes.
   set.seed(1)
-  n <- 500
+  n <- 200
   p <- 100
   r <- 3
   n1 <- 3

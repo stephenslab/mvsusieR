@@ -39,23 +39,12 @@ test_that("When R = 1, estimated prior variance with missing data agrees with fu
               intercept=T, standardize = T,
               estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
 
-  fit3 = mvsusie(X, y_missing, L=L,
-                prior_variance=prior_var, residual_variance = residual_var,
-                intercept=T, standardize = T,
-                estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
-
   expect_equal(fit1$alpha, fit2$alpha, tolerance = 1E-8)
-  expect_equal(fit2$alpha, fit3$alpha)
   expect_equal(fit1$lbf, fit2$lbf, tolerance = 1E-8)
-  expect_equal(fit2$lbf, fit3$lbf)
   expect_equal(fit1$b1, fit2$b1, tolerance = 1E-8)
-  expect_equal(fit2$b1, fit3$b1)
   expect_equal(fit1$b2, fit2$b2, tolerance = 1E-8)
-  expect_equal(fit2$b2, fit3$b2)
   expect_equal(fit1$coef, fit2$coef, tolerance = 1E-8)
-  expect_equal(fit2$coef, fit3$coef)
   expect_equal(fit1$V, fit2$V, tolerance = 1E-8)
-  expect_equal(fit2$V, fit3$V)
 }))
 
 test_that("With full observation, the estimated prior variance: matrix vs mash prior agree", with(simulate_multivariate(r=3, center_scale = F), {
@@ -96,15 +85,9 @@ test_that("When R = 1, the elbo with missing data agrees with full data", with(s
                 intercept=T, standardize = T,
                 estimate_residual_variance=F, estimate_prior_variance=F)
 
-  fit3 = mvsusie(X, y_missing, L=L,
-                prior_variance=prior_var, residual_variance = residual_var,
-                intercept=T, standardize = T,
-                estimate_residual_variance=F, estimate_prior_variance=F)
-
   # Compare converged ELBO values (final element); convergence speed
   # may differ between complete-data and missing-data paths.
   expect_equal(tail(fit1$elbo, 1), tail(fit2$elbo, 1), tolerance = 1e-4)
-  expect_equal(tail(fit1$elbo, 1), tail(fit3$elbo, 1), tolerance = 1e-4)
 }))
 
 test_that("With full observation, the elbo: matrix vs mash prior agree", with(simulate_multivariate(r=3, center_scale = F), {

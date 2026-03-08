@@ -1,3 +1,8 @@
+# Null-coalescing operator for R < 4.4.0 compatibility
+if (!exists("%||%", baseenv())) {
+  `%||%` <- function(x, y) if (is.null(x)) y else x
+}
+
 # Register S3 methods for susieR's internal generics and cache dependency
 # internals from mashr and susieR.
 #

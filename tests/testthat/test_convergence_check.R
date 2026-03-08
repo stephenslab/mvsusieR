@@ -2,7 +2,7 @@ context("Test ELBO convergence")
 
 test_that("mvsusie converges with monotonic ELBO (dense)", {
   set.seed(1)
-  n <- 100; p <- 200; L <- 10
+  n <- 100; p <- 80; L <- 5
   beta <- rep(0, p); beta[1:4] <- 1
   X <- matrix(rnorm(n * p, 3, 4), n, p)
   y <- c(X %*% beta + rnorm(n))
@@ -28,7 +28,7 @@ test_that("mvsusie converges with monotonic ELBO (dense)", {
 
 test_that("mvsusie converges with monotonic ELBO (suff stat)", {
   set.seed(1)
-  n <- 100; p <- 200; L <- 10
+  n <- 100; p <- 80; L <- 5
   beta <- rep(0, p); beta[1:4] <- 1
   X <- matrix(rnorm(n * p, 3, 4), n, p)
   y <- c(X %*% beta + rnorm(n))

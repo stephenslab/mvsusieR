@@ -1,13 +1,13 @@
 Encoding: UTF-8
 Type: Package
 Package: mvsusieR
-Date: 2025-12-04
-Version: 0.1.10
+Date: 2026-03-08
+Version: 0.2.0
 Title: Multivariate Sum of Single Effects Regression
 Description: Implements a multivariate generalization of the "Sum of
   Single Effects" (SuSiE) model for variable selection in multivariate
   linear regression as described in Y. Zhou, P. Carbonetto, D. Xie, 
-  G. Wang & M. Stephens (2025) <doi:10.1101/2023.04.14.536893>.
+  G. Wang & M. Stephens (2026) <doi:10.5281/zenodo.8088040>.
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="wang.gao@columbia.edu"),
              person("Yuxin","Zou",role="aut"),
@@ -18,7 +18,7 @@ BugReports: https://github.com/stephenslab/mvsusieR/issues
 License: BSD_3_clause + file LICENSE
 Depends: R (>= 3.5.0),
     mashr (>= 0.2.43),
-    susieR (>= 0.10.1)
+    susieR (>= 0.15.54)
 Imports:
     stats,
     Rcpp (>= 1.0.1),
@@ -34,14 +34,12 @@ LinkingTo:
     Rcpp,
     RcppArmadillo (>= 0.9.700.2)
 Suggests:
-    reshape,
-    pryr,
     testthat,
-    microbenchmark,
     knitr,
     rmarkdown,
     flashier (>= 1.0.7),
-    ebnm
+    ebnm,
+    future.apply
 LazyData: true
 LazyDataCompression: xz
 NeedsCompilation: yes

@@ -5,7 +5,6 @@
 
 #' @importFrom susieR susie_get_cs
 #' @importFrom ashr compute_lfsr
-#' @importFrom utils modifyList
 NULL
 
 # =============================================================================
@@ -27,7 +26,6 @@ get_var_y.mv_individual <- function(data, ...) {
 # =============================================================================
 
 #' @keywords internal
-#' @importFrom utils modifyList
 ibss_initialize.mv_individual <- function(data, params) {
   var_y <- get_var_y(data)
 

@@ -225,7 +225,7 @@ compute_variable_posterior_weights <- function(prior_variable_weights, llik) {
 #'
 #' @importFrom stats cov2cor
 #' @importFrom stats setNames
-#' @importFrom mashr mash
+#' @importFrom stats pnorm
 #'
 #' @export
 #'
