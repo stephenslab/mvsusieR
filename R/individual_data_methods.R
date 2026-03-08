@@ -312,6 +312,7 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
       d_mat <- t(pi_full * t(exp(llik - lfactors)))
       model$pi_V_posterior[[l]] <- d_mat / rowSums(d_mat)
       model$llik_cache <- llik
+      model$per_effect_llik[[l]] <- llik
       return(model)
     } else {
       return(softmax_res$log_sum)
@@ -382,6 +383,7 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
 
     # Cache llik for EM update and posterior computation
     model$llik_cache <- llik
+    model$per_effect_llik[[l]] <- llik
 
     return(model)
   } else {
@@ -583,27 +585,43 @@ update_variance_components.mv_individual <- function(data, params, model, ...) {
 
 #' @keywords internal
 update_model_variance.mv_individual <- function(data, params, model) {
-  # Call the estimation function directly (the update_variance_components
-  # generic lives in susieR's unexported namespace and isn't accessible here).
-  model$sigma2 <- estimate_residual_variance_mv(data, model)
+  # Update residual variance if requested
+  if (isTRUE(params$estimate_residual_variance)) {
+    model$sigma2 <- estimate_residual_variance_mv(data, model)
 
-  # Recompute svs/svs_inv and store in MODEL (not data, since data is immutable).
-  # These override the data's precomputed values during SER computation.
-  model$residual_variance_inv <- invert_via_chol(model$sigma2)$inv
-  model$residual_correlation <- cov2cor(model$sigma2)
-  model$svs <- lapply(seq_len(data$p), function(j) {
-    res <- model$sigma2 / data$d[j]
-    res[is.nan(res) | is.infinite(res)] <- 1e6
-    res
-  })
-  model$svs_inv <- lapply(seq_len(data$p), function(j) {
-    model$residual_variance_inv * data$d[j]
-  })
+    # Recompute svs/svs_inv and store in MODEL (not data, since data is immutable).
+    # These override the data's precomputed values during SER computation.
+    model$residual_variance_inv <- invert_via_chol(model$sigma2)$inv
+    model$residual_correlation <- cov2cor(model$sigma2)
+    model$svs <- lapply(seq_len(data$p), function(j) {
+      res <- model$sigma2 / data$d[j]
+      res[is.nan(res) | is.infinite(res)] <- 1e6
+      res
+    })
+    model$svs_inv <- lapply(seq_len(data$p), function(j) {
+      model$residual_variance_inv * data$d[j]
+    })
 
-  # Recompute eigendecomposition cache if precomputation is active
-  if (!is.null(model$eigen_cache))
-    model$eigen_cache <- precompute_eigen_cache(
-      model$svs, model$V_structure, data$is_common_cov)
+    # Recompute eigendecomposition cache if precomputation is active
+    if (!is.null(model$eigen_cache))
+      model$eigen_cache <- precompute_eigen_cache(
+        model$svs, model$V_structure, data$is_common_cov)
+  }
+
+  # Update mixture prior weights if requested
+  if (isTRUE(params$estimate_prior_mixture_weights)) {
+    K <- length(model$pi_V)
+    if (K > 1 && any(!sapply(model$pi_V_posterior, is.null))) {
+      model <- update_mixture_weights(model,
+                 method = params$mixture_weight_method %||% "mixsqp",
+                 update_null = (model$null_weight > 0))
+      iter <- model$ibss_iter %||% 0
+      if (iter > 15) {
+        model <- prune_mixture_components(model, threshold = 1e-8)
+      }
+      model$ibss_iter <- iter + 1
+    }
+  }
 
   return(model)
 }
@@ -684,6 +702,187 @@ em_update_prior_variance.mv_individual <- function(data, params, model,
   scalar <- sum(diag(model$V_structure_inv[, , 1] %*% mu2)) /
             model$V_structure_rank[1]
   return(max(0, scalar))
+}
+
+# =============================================================================
+# MIXTURE WEIGHT UPDATE
+# =============================================================================
+
+#' EM update for mixture prior weights pi_V.
+#'
+#' Computes the alpha-weighted EM M-step for mixture weights in the SuSiE
+#' framework. Unlike mr.mash (which averages over all J variables equally),
+#' SuSiE's single-effect structure requires weighting by alpha[l,j] (the
+#' posterior inclusion probability for variable j in effect l):
+#'
+#'   pi_full_hat_k ∝ sum_l sum_j alpha[l,j] * pi_V_posterior[[l]][j, k]
+#'
+#' This is the correct M-step because pi_V_posterior[[l]][j,k] is the
+#' *conditional* posterior P(z_l = k | gamma_l = j, data), and the marginal
+#' posterior P(z_l = k | data) = sum_j alpha[l,j] * P(z_l = k | gamma_l = j).
+#' Without alpha weighting, non-causal variables (with near-zero alpha) dilute
+#' the signal.
+#'
+#' @note The EM update maximizes the *uncollapsed* ELBO contribution
+#'   E_q[log p(z | pi_V)] = sum alpha * phi * log(pi_V), but the actual ELBO
+#'   uses the *collapsed* form log(sum_k pi_V[k] * BF_k). This mismatch means
+#'   the EM update does not guarantee monotonic collapsed ELBO. For monotonic
+#'   ELBO, use \code{update_mixture_weights_mixsqp} (the default), which
+#'   directly maximizes the collapsed ELBO contribution.
+#'
+#' @param model Model list containing alpha (L x J), pi_V_posterior (list of
+#'   L matrices, each J x (K+1)).
+#' @param update_null Logical; if TRUE, also update null_weight.
+#' @return Updated model with new pi_V (and optionally null_weight).
+#' @keywords internal
+update_mixture_weights_em <- function(model, update_null = FALSE) {
+  L <- length(model$pi_V_posterior)
+  K_plus_1 <- length(model$pi_V) + 1  # K non-null + 1 null
+
+  # Accumulate alpha-weighted posterior assignments across all L effects.
+  # alpha[l,j] weights each variable's contribution so that only the
+  # "selected" variable for each effect meaningfully contributes.
+  pi_sum <- rep(0, K_plus_1)
+  n_valid <- 0
+  for (l in seq_len(L)) {
+    pvp <- model$pi_V_posterior[[l]]
+    if (is.null(pvp)) next
+    # Weight each row j by alpha[l,j] before summing
+    pi_sum <- pi_sum + colSums(model$alpha[l, ] * pvp)
+    n_valid <- n_valid + 1
+  }
+  if (n_valid == 0) return(model)
+
+  # Normalize to get pi_full
+  pi_full <- pi_sum / sum(pi_sum)
+
+  if (update_null) {
+    model$null_weight <- pi_full[1]
+  }
+  non_null <- pi_full[-1]
+
+  # Renormalize non-null weights
+  s <- sum(non_null)
+  if (s > 0) {
+    model$pi_V <- non_null / s
+  }
+  return(model)
+}
+
+#' Convex optimization update for mixture prior weights pi_V via mixsqp.
+#'
+#' Stacks all L per-effect log-likelihood matrices into a (L*J) x (K+1)
+#' matrix and solves the alpha-weighted maximum likelihood problem:
+#'   max_{w >= 0, sum(w)=1}  sum_{l,j} alpha[l,j] * log( sum_k w_k * exp(llik^(l)_{jk}) )
+#' This is a concave problem on the simplex, solved efficiently by mixsqp's
+#' sequential quadratic programming algorithm (Kim, Carbonetto, Stephens 2020).
+#'
+#' In the SuSiE framework, each "observation" (l,j) should be weighted by
+#' alpha[l,j] (the posterior inclusion probability) because only the selected
+#' variable for each effect matters. Without alpha weighting, non-causal
+#' variables with near-zero alpha dilute the signal.
+#'
+#' @param model Model list containing per_effect_llik (list of L matrices,
+#'   each J x (K+1)) and alpha (L x J matrix).
+#' @param update_null Logical; if TRUE, also update null_weight.
+#' @return Updated model with new pi_V (and optionally null_weight).
+#' @importFrom mixsqp mixsqp
+#' @keywords internal
+update_mixture_weights_mixsqp <- function(model, update_null = FALSE) {
+  L <- nrow(model$alpha)
+
+  # Collect all L llik matrices and corresponding alpha weights,
+  # maintaining the same stacking order
+  llik_list <- list()
+  alpha_list <- list()
+  for (l in seq_len(L)) {
+    if (!is.null(model$per_effect_llik[[l]])) {
+      llik_list[[length(llik_list) + 1]] <- model$per_effect_llik[[l]]
+      alpha_list[[length(alpha_list) + 1]] <- model$alpha[l, ]
+    }
+  }
+  if (length(llik_list) == 0) return(model)
+
+  llik_combined <- do.call(rbind, llik_list)   # (L*J) x (K+1)
+  alpha_weights <- unlist(alpha_list)            # (L*J) vector
+
+  # Solve alpha-weighted convex ML problem via mixsqp (log-scale input).
+  # The w argument weights each observation (l,j) by alpha[l,j].
+  out <- mixsqp(llik_combined, w = alpha_weights, log = TRUE,
+                control = list(verbose = FALSE))
+  w_new <- out$x
+
+  if (update_null) {
+    model$null_weight <- w_new[1]
+  }
+  non_null <- w_new[-1]
+
+  # Renormalize non-null weights
+  s <- sum(non_null)
+  if (s > 0) {
+    model$pi_V <- non_null / s
+  }
+  return(model)
+}
+
+#' Update mixture prior weights using either mixsqp (default) or EM.
+#'
+#' @param model Model list.
+#' @param method Character; "mixsqp" (default) or "EM".
+#' @param update_null Logical; if TRUE, also update null_weight.
+#' @return Updated model.
+#' @keywords internal
+update_mixture_weights <- function(model, method = "mixsqp",
+                                    update_null = FALSE) {
+  if (method == "mixsqp") {
+    update_mixture_weights_mixsqp(model, update_null)
+  } else {
+    update_mixture_weights_em(model, update_null)
+  }
+}
+
+#' Drop mixture components with weight below threshold.
+#'
+#' Removes corresponding entries from V_structure, V_structure_3d,
+#' V_structure_inv, V_structure_rank, pi_V, pi_V_posterior columns,
+#' per_effect_llik columns, and eigen_cache entries. Following mr.mash,
+#' this is typically called after iteration 15 with threshold 1e-8.
+#'
+#' @param model Model list containing mixture prior structure.
+#' @param threshold Minimum weight to keep a component.
+#' @return Updated model with pruned components.
+#' @keywords internal
+prune_mixture_components <- function(model, threshold = 1e-8) {
+  keep <- which(model$pi_V >= threshold)
+  if (length(keep) == length(model$pi_V)) return(model)
+
+  model$pi_V <- model$pi_V[keep]
+  model$pi_V <- model$pi_V / sum(model$pi_V)
+  model$V_structure <- model$V_structure[keep]
+  model$V_structure_3d <- model$V_structure_3d[, , keep, drop = FALSE]
+  model$V_structure_inv <- model$V_structure_inv[, , keep, drop = FALSE]
+  model$V_structure_rank <- model$V_structure_rank[keep]
+
+  # Trim pi_V_posterior and per_effect_llik columns (offset by 1 for null)
+  keep_full <- c(1, keep + 1)  # null column + kept non-null columns
+  for (l in seq_along(model$pi_V_posterior)) {
+    if (!is.null(model$pi_V_posterior[[l]])) {
+      model$pi_V_posterior[[l]] <- model$pi_V_posterior[[l]][, keep_full, drop = FALSE]
+      # Renormalize rows
+      rs <- rowSums(model$pi_V_posterior[[l]])
+      model$pi_V_posterior[[l]] <- model$pi_V_posterior[[l]] / rs
+    }
+    if (!is.null(model$per_effect_llik[[l]])) {
+      model$per_effect_llik[[l]] <- model$per_effect_llik[[l]][, keep_full, drop = FALSE]
+    }
+  }
+
+  # Trim eigen_cache if active (one entry per non-null component)
+  if (!is.null(model$eigen_cache)) {
+    model$eigen_cache <- model$eigen_cache[keep]
+  }
+
+  return(model)
 }
 
 # =============================================================================
@@ -831,8 +1030,10 @@ cleanup_model.mv_individual <- function(data, params, model, ...) {
   model$fitted_without_l <- NULL
   model$raw_residuals    <- NULL
   model$llik_cache       <- NULL
+  model$per_effect_llik   <- NULL
   model$em_cache         <- NULL
   model$eigen_cache      <- NULL
+  model$ibss_iter        <- NULL
   # Clean up imputation fields (large N x R matrices)
   model$Y_imputed          <- NULL
   model$Y_cov              <- NULL

@@ -101,25 +101,42 @@ update_variance_components.mv_ss <- function(data, params, model, ...) {
 
 #' @keywords internal
 update_model_variance.mv_ss <- function(data, params, model) {
-  # Call the SS-specific estimation function directly
-  model$sigma2 <- estimate_residual_variance_mv_ss(data, model)
+  # Update residual variance if requested
+  if (isTRUE(params$estimate_residual_variance)) {
+    model$sigma2 <- estimate_residual_variance_mv_ss(data, model)
 
-  # Recompute svs/svs_inv and store in MODEL (not data, since data is immutable).
-  model$residual_variance_inv <- invert_via_chol(model$sigma2)$inv
-  model$residual_correlation <- cov2cor(model$sigma2)
-  model$svs <- lapply(seq_len(data$p), function(j) {
-    res <- model$sigma2 / data$d[j]
-    res[is.nan(res) | is.infinite(res)] <- 1e6
-    res
-  })
-  model$svs_inv <- lapply(seq_len(data$p), function(j) {
-    model$residual_variance_inv * data$d[j]
-  })
+    # Recompute svs/svs_inv and store in MODEL (not data, since data is immutable).
+    model$residual_variance_inv <- invert_via_chol(model$sigma2)$inv
+    model$residual_correlation <- cov2cor(model$sigma2)
+    model$svs <- lapply(seq_len(data$p), function(j) {
+      res <- model$sigma2 / data$d[j]
+      res[is.nan(res) | is.infinite(res)] <- 1e6
+      res
+    })
+    model$svs_inv <- lapply(seq_len(data$p), function(j) {
+      model$residual_variance_inv * data$d[j]
+    })
 
-  # Recompute eigendecomposition cache if precomputation is active
-  if (!is.null(model$eigen_cache))
-    model$eigen_cache <- precompute_eigen_cache(
-      model$svs, model$V_structure, data$is_common_cov)
+    # Recompute eigendecomposition cache if precomputation is active
+    if (!is.null(model$eigen_cache))
+      model$eigen_cache <- precompute_eigen_cache(
+        model$svs, model$V_structure, data$is_common_cov)
+  }
+
+  # Update mixture prior weights if requested
+  if (isTRUE(params$estimate_prior_mixture_weights)) {
+    K <- length(model$pi_V)
+    if (K > 1 && any(!sapply(model$pi_V_posterior, is.null))) {
+      model <- update_mixture_weights(model,
+                 method = params$mixture_weight_method %||% "mixsqp",
+                 update_null = (model$null_weight > 0))
+      iter <- model$ibss_iter %||% 0
+      if (iter > 15) {
+        model <- prune_mixture_components(model, threshold = 1e-8)
+      }
+      model$ibss_iter <- iter + 1
+    }
+  }
 
   return(model)
 }

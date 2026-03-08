@@ -28,7 +28,8 @@ Imports:
     ashr,
     ggplot2,
     ggrepel,
-    cowplot
+    cowplot,
+    mixsqp
 LinkingTo:
     Rcpp,
     RcppArmadillo (>= 0.9.700.2)

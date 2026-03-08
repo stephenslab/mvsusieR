@@ -4,7 +4,7 @@
 \alias{impute_missing_Y}
 \title{Impute missing Y entries using conditional normal distribution.}
 \usage{
-impute_missing_Y(Y, mu, Vinv, miss_info, pattern_cache, version = "R")
+impute_missing_Y(Y, mu, Vinv, miss_info, pattern_cache, version = "Rcpp")
 }
 \arguments{
 \item{Y}{N x R matrix (observed + zero-filled for missing).}
@@ -26,11 +26,16 @@ A list with:
   \item{sum_neg_ent_Y_miss}{scalar negative entropy sum}
 }
 \description{
+This is a dispatch function: \code{version = "Rcpp"} (default in
+production) calls the Armadillo C++ implementation for speed;
+\code{version = "R"} calls a pure-R reference implementation kept
+for unit testing and debugging only.
+}
+\details{
 For each observation i with missing entries M_i:
   E[Y_{i,M} | Y_{i,O}] = mu_{i,M} - cov_mm %*% Vinv_mo %*% (Y_{i,O} - mu_{i,O})
   Var[Y_{i,M} | Y_{i,O}] = cov_mm = Lambda_{MM}^{-1}
-}
-\details{
+
 Uses pattern-based caching: the Cholesky of Lambda_{MM} is computed
 once per unique pattern, and imputation is vectorized over all
 observations sharing the same pattern.

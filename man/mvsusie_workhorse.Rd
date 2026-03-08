@@ -12,6 +12,8 @@ mvsusie_workhorse(
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
+  estimate_prior_mixture_weights = FALSE,
+  mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   compute_objective = TRUE,
   max_iter = 100,

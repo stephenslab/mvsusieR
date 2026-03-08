@@ -338,6 +338,9 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
     null_weight       = null_weight,       # scalar
     pi_V              = pi_V,              # K-vector (non-null weights)
     pi_V_posterior    = vector("list", L), # per-effect Jx(K+1) mixture weights
+    llik_cache       = NULL,              # last-effect Jx(K+1) log-likelihoods (for EM V update)
+    per_effect_llik  = vector("list", L), # per-effect Jx(K+1) log-likelihoods (for mixsqp)
+    ibss_iter        = 0,                 # iteration counter (for pruning schedule)
     conditional_lfsr  = vector("list", L), # per-effect JxR LFSR
     KL           = rep(as.numeric(NA), L),
     lbf          = rep(as.numeric(NA), L),
