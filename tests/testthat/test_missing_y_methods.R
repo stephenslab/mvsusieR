@@ -321,3 +321,245 @@ test_that("approximate converges for R=3 with mixture prior", {
   expect_true(!is.null(fit$pip))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })
+
+# =============================================================================
+# C++ vs R implementation comparison tests
+# =============================================================================
+
+test_that("C++ compute_VinvR_3d matches R implementation", {
+  sim <- simulate_multivariate(n = 80, p = 30, r = 3, y_missing = 0.2)
+  data <- mvsusieR:::create_mvsusie_data(sim$X, sim$y_missing,
+            missing_y_method = "approximate")
+  V <- cov(sim$y)
+  data <- mvsusieR:::set_mvsusie_residual_variance(data, V)
+
+  mat <- matrix(rnorm(data$n * data$R), data$n, data$R)
+  res_cpp <- mvsusieR:::compute_VinvR_3d(data, mat)
+  res_r   <- mvsusieR:::compute_VinvR_3d_R(data, mat)
+  expect_equal(res_cpp, res_r, tolerance = 1e-10)
+})
+
+test_that("C++ compute_XtR_3d matches R for approximate method", {
+  sim <- simulate_multivariate(n = 80, p = 30, r = 3, y_missing = 0.2)
+  data <- mvsusieR:::create_mvsusie_data(sim$X, sim$y_missing,
+            missing_y_method = "approximate")
+  V <- cov(sim$y)
+  data <- mvsusieR:::set_mvsusie_residual_variance(data, V)
+
+  R_mat <- matrix(rnorm(data$n * data$R), data$n, data$R)
+  res_cpp <- mvsusieR:::compute_XtR_3d(data, R_mat)
+  res_r   <- mvsusieR:::compute_XtR_3d_R(data, R_mat)
+  expect_equal(res_cpp, res_r, tolerance = 1e-10)
+})
+
+test_that("C++ compute_XtR_3d matches R for exact method", {
+  sim <- simulate_multivariate(n = 80, p = 30, r = 3, y_missing = 0.2)
+  data <- mvsusieR:::create_mvsusie_data(sim$X, sim$y_missing,
+            missing_y_method = "exact")
+  V <- cov(sim$y)
+  data <- mvsusieR:::set_mvsusie_residual_variance(data, V)
+
+  R_mat <- matrix(rnorm(data$n * data$R), data$n, data$R)
+  res_cpp <- mvsusieR:::compute_XtR_3d(data, R_mat)
+  res_r   <- mvsusieR:::compute_XtR_3d_R(data, R_mat)
+  expect_equal(res_cpp, res_r, tolerance = 1e-10)
+})
+
+test_that("C++ compute_Xb_3d matches R for approximate method", {
+  sim <- simulate_multivariate(n = 80, p = 30, r = 3, y_missing = 0.2)
+  data <- mvsusieR:::create_mvsusie_data(sim$X, sim$y_missing,
+            missing_y_method = "approximate")
+  V <- cov(sim$y)
+  data <- mvsusieR:::set_mvsusie_residual_variance(data, V)
+
+  b <- matrix(rnorm(data$p * data$R), data$p, data$R)
+  res_cpp <- mvsusieR:::compute_Xb_3d(data, b)
+  res_r   <- mvsusieR:::compute_Xb_3d_R(data, b)
+  expect_equal(res_cpp, res_r, tolerance = 1e-10)
+})
+
+test_that("C++ compute_Xb_3d matches R for exact method", {
+  sim <- simulate_multivariate(n = 80, p = 30, r = 3, y_missing = 0.2)
+  data <- mvsusieR:::create_mvsusie_data(sim$X, sim$y_missing,
+            missing_y_method = "exact")
+  V <- cov(sim$y)
+  data <- mvsusieR:::set_mvsusie_residual_variance(data, V)
+
+  b <- matrix(rnorm(data$p * data$R), data$p, data$R)
+  res_cpp <- mvsusieR:::compute_Xb_3d(data, b)
+  res_r   <- mvsusieR:::compute_Xb_3d_R(data, b)
+  expect_equal(res_cpp, res_r, tolerance = 1e-10)
+})
+
+test_that("C++ compute_betahat_3d matches R implementation", {
+  sim <- simulate_multivariate(n = 80, p = 30, r = 3, y_missing = 0.2)
+  data <- mvsusieR:::create_mvsusie_data(sim$X, sim$y_missing,
+            missing_y_method = "approximate")
+  V <- cov(sim$y)
+  data <- mvsusieR:::set_mvsusie_residual_variance(data, V)
+
+  XtR <- matrix(rnorm(data$p * data$R), data$p, data$R)
+  res_cpp <- mvsusieR:::compute_betahat_3d(data, XtR)
+  res_r   <- mvsusieR:::compute_betahat_3d_R(data, XtR)
+  expect_equal(res_cpp, res_r, tolerance = 1e-10)
+})
+
+# =============================================================================
+# C++ vs R comparison tests: Xbar from precomputed sums
+# =============================================================================
+
+test_that("C++ compute_Xbar_from_sums matches naive N-loop", {
+  sim <- simulate_multivariate(n = 80, p = 30, r = 3, y_missing = 0.2)
+  data <- mvsusieR:::create_mvsusie_data(sim$X, sim$y_missing,
+            missing_y_method = "exact")
+  V <- cov(sim$y)
+  data <- mvsusieR:::set_mvsusie_residual_variance(data, V)
+
+  # The Xbar was computed during standardize_3d using C++.
+  # Verify against the naive N-loop computation.
+  my <- data$miss3d
+  J <- data$p
+  N <- data$n
+  R_dim <- data$R
+
+  # Naive N-loop Xbar
+  Xbar_naive <- array(0, dim = c(J, R_dim, R_dim))
+  Vinv <- my$Vinv
+  X_3d <- my$X_3d
+  pattern_assign <- my$pattern_assign
+  for (j in seq_len(J)) {
+    inner <- matrix(0, R_dim, R_dim)
+    for (i in seq_len(N)) {
+      inner <- inner + t(t(Vinv[[pattern_assign[i]]]) * X_3d[i, j, ])
+    }
+    Xbar_naive[j, , ] <- my$Vinvsuminv %*% inner
+  }
+
+  expect_equal(my$Xbar, Xbar_naive, tolerance = 1e-10)
+})
+
+# =============================================================================
+# C++ vs R comparison tests: eigendecomposition precomputation
+# =============================================================================
+
+test_that("C++ precompute_eigen_cache matches R for non-common-cov", {
+  set.seed(42)
+  J <- 20
+  R <- 3
+  K <- 4
+
+  # Generate J different SVS matrices (SPD)
+  svs <- lapply(seq_len(J), function(j) {
+    M <- matrix(rnorm(R * R), R, R)
+    crossprod(M) + diag(R) * 0.5
+  })
+
+  # Generate K prior structure matrices (PSD)
+  V_structure <- lapply(seq_len(K), function(k) {
+    M <- matrix(rnorm(R * R), R, R)
+    crossprod(M) / R
+  })
+
+  cache_cpp <- mvsusieR:::precompute_eigen_cache(svs, V_structure, FALSE)
+  cache_r   <- mvsusieR:::precompute_eigen_cache_R(svs, V_structure, FALSE)
+
+  expect_equal(as.numeric(cache_cpp$log_det_svs),
+               as.numeric(cache_r$log_det_svs), tolerance = 1e-10)
+
+  # Eigenvalues should match (up to ordering differences)
+  for (k in seq_len(K)) {
+    for (j in seq_len(J)) {
+      eig_cpp <- sort(cache_cpp$components[[k]]$eigenvalues[, j], decreasing = TRUE)
+      eig_r   <- sort(cache_r$components[[k]]$eigenvalues[, j], decreasing = TRUE)
+      expect_equal(eig_cpp, eig_r, tolerance = 1e-10)
+    }
+  }
+})
+
+test_that("C++ loglik_non_common matches R implementation", {
+  set.seed(42)
+  J <- 20
+  R <- 3
+  K <- 4
+
+  svs <- lapply(seq_len(J), function(j) {
+    M <- matrix(rnorm(R * R), R, R)
+    crossprod(M) + diag(R) * 0.5
+  })
+  V_structure <- lapply(seq_len(K), function(k) {
+    M <- matrix(rnorm(R * R), R, R)
+    crossprod(M) / R
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  V_scalar <- 1.5
+
+  # Use C++ cache (same format) but compare loglik outputs
+  cache <- mvsusieR:::precompute_eigen_cache(svs, V_structure, FALSE)
+
+  llik_cpp <- mvsusieR:::loglik_non_common_cpp(
+    betahat, V_scalar, cache$log_det_svs, cache$components)
+  llik_r   <- mvsusieR:::loglik_precomputed_R(betahat, V_scalar, cache)
+
+  expect_equal(llik_cpp, llik_r, tolerance = 1e-10)
+})
+
+test_that("C++ posterior_non_common matches R implementation", {
+  set.seed(42)
+  J <- 15
+  R <- 3
+  K <- 3
+
+  svs <- lapply(seq_len(J), function(j) {
+    M <- matrix(rnorm(R * R), R, R)
+    crossprod(M) + diag(R) * 0.5
+  })
+  V_structure <- lapply(seq_len(K), function(k) {
+    M <- matrix(rnorm(R * R), R, R)
+    crossprod(M) / R
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  V_scalar <- 1.5
+
+  cache <- mvsusieR:::precompute_eigen_cache(svs, V_structure, FALSE)
+
+  # Generate random mixture weights (J x (K+1))
+  pi_raw <- matrix(runif(J * (K + 1)), J, K + 1)
+  pi_V_post <- pi_raw / rowSums(pi_raw)
+
+  post_cpp <- mvsusieR:::posterior_non_common_cpp(
+    betahat, V_scalar, cache$components, pi_V_post, matrix(0, 0, 0))
+  post_r   <- mvsusieR:::posterior_precomputed_R(
+    betahat, V_scalar, cache, pi_V_post)
+
+  expect_equal(post_cpp$post_mean, post_r$post_mean, tolerance = 1e-8)
+  expect_equal(post_cpp$post_mean2, post_r$post_mean2, tolerance = 1e-8)
+  expect_equal(post_cpp$post_neg, post_r$post_neg, tolerance = 1e-6)
+  expect_equal(post_cpp$post_zero, post_r$post_zero, tolerance = 1e-10)
+  expect_equal(as.numeric(post_cpp$prior_scale_em_update),
+               as.numeric(post_r$prior_scale_em_update), tolerance = 1e-8)
+})
+
+test_that("C++ accumulate_post_mean2_common matches R loop", {
+  set.seed(42)
+  J <- 30
+  R <- 4
+
+  post_mean2 <- array(rnorm(J * R * R), c(J, R, R))
+  M_k <- matrix(rnorm(J * R), J, R)
+  C_k_raw <- matrix(rnorm(R * R), R, R)
+  C_k <- crossprod(C_k_raw) / R  # SPD
+  w_k <- runif(J)
+
+  # R loop
+  pm2_r <- post_mean2
+  for (j in seq_len(J)) {
+    pm2_r[j, , ] <- pm2_r[j, , ] + w_k[j] * (C_k + tcrossprod(M_k[j, ]))
+  }
+
+  # C++ version
+  pm2_cpp <- mvsusieR:::accumulate_post_mean2_common_cpp(post_mean2, M_k, C_k, w_k)
+
+  expect_equal(pm2_cpp, pm2_r, tolerance = 1e-10)
+})

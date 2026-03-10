@@ -7,7 +7,7 @@ context("Test mixture prior weight updates (EM and mixsqp)")
 test_that("inner_em_cpp converges on uniform llik to uniform weights", {
   K <- 4
   N <- 100
-  # Uniform log-likelihoods → all components equally likely → uniform weights
+  # Uniform log-likelihoods ->all components equally likely ->uniform weights
   llik <- matrix(0, N, K)
   weights <- rep(1, N)
   pi_init <- rep(1 / K, K)
@@ -649,7 +649,7 @@ test_that("ELBO is monotonically non-decreasing with mixsqp weight updates", wit
 }))
 
 # =============================================================================
-# EM ≈ MIXSQP AGREEMENT TESTS (integration)
+# EM ~ MIXSQP AGREEMENT TESTS (integration)
 # =============================================================================
 
 test_that("EM and mixsqp produce similar pi_V weights", with(simulate_multivariate(r=2), {

@@ -82,7 +82,7 @@ load_r6_reference <- function() {
   funcs
 }
 
-# Load R6 eagerly — these tests require the master branch R6 reference.
+# Load R6 eagerly --these tests require the master branch R6 reference.
 # Fail hard if R6 can't be loaded (master should always be available).
 ensure_r6_loaded <- function() {
   load_r6_reference()
@@ -138,7 +138,7 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
   expect_equal(fit$b1,    ref$b1,    tolerance = tol, check.attributes = FALSE)
 
   # Coef: compare slopes only (intercept convention differs).
-  # When intercept=FALSE, S3 returns 0 and R6 returns NA — treat NAs as 0.
+  # When intercept=FALSE, S3 returns 0 and R6 returns NA --treat NAs as 0.
   fit_coef <- fit$coef; fit_coef[is.na(fit_coef)] <- 0
   ref_coef <- ref$coef; ref_coef[is.na(ref_coef)] <- 0
   if (is.matrix(fit_coef) && nrow(fit_coef) > 1) {
@@ -182,7 +182,7 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
   }
 
   # LFSR fields (mash/mixture priors only).
-  # Skipped when check_lfsr = FALSE — downstream of procedural trimming
+  # Skipped when check_lfsr = FALSE --downstream of procedural trimming
   # differences that cause R6 to zero out borderline effects.
   if (check_lfsr) {
     if (is.array(ref$lfsr) || is.matrix(ref$lfsr))

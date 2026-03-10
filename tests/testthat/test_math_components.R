@@ -344,7 +344,7 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
                  check.attributes = FALSE, info = info("sigma2"))
   }
 
-  # V (only when explicitly requested — see NOTE above)
+  # V (only when explicitly requested --see NOTE above)
   if (check_V && !is.null(ref$V)) {
     expect_equal(fit$V, ref$V, tolerance = tol,
                  check.attributes = FALSE, info = info("V"))
@@ -370,7 +370,7 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
                  check.attributes = FALSE, info = info("mixture_weights"))
   }
 
-  # Fitted values (only when explicitly requested — see NOTE above)
+  # Fitted values (only when explicitly requested --see NOTE above)
   if (check_fitted && !is.null(ref$fitted) && !is.null(fit$fitted)) {
     expect_equal(fit$fitted, ref$fitted, tolerance = tol,
                  check.attributes = FALSE, info = info("fitted"))
@@ -596,14 +596,14 @@ test_that("R=3 matrix optim: ALL fields match R6", {
                       intercept = TRUE, standardize = TRUE, verbosity = 0)
     # Optim: Brent optimizer convergence noise (~3e-8 in V_scalar)
     # cascades to ~6e-8 in derived quantities (lbf_variable).
-    # Use 1e-7 tolerance (MACH_TOL ≈ 1.5e-8 is too tight for optim output).
+    # Use 1e-7 tolerance (MACH_TOL ~ 1.5e-8 is too tight for optim output).
     expect_all_fields_equal(fit, ref, tol = 1e-7,
                             label = "R3_matrix_optim")
   })
 })
 
 # ============================================================================
-# Section 4: Special case — mixture K=1 no-null = single matrix prior
+# Section 4: Special case --mixture K=1 no-null = single matrix prior
 # ============================================================================
 
 test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fixed)", {

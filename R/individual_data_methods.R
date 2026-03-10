@@ -559,15 +559,11 @@ SER_posterior_e_loglik.mv_individual <- function(data, params, model, l) {
   # For 3d missing data, svs_inv[j] encodes the per-pattern weighting.
   svs_inv <- if (!is.null(model$svs_inv)) model$svs_inv else data$svs_inv
 
-  bxxb_l <- matrix(0, R, R)
-  vbxxb_l <- 0
-  for (j in seq_len(data$p)) {
-    mu2_j <- model$mu2[[l]][j, , , drop = FALSE]
-    dim(mu2_j) <- c(R, R)
-    pb2_j <- alpha_l[j] * mu2_j   # alpha_j * E[b_j b_j' | j active]
-    bxxb_l <- bxxb_l + data$d[j] * pb2_j
-    vbxxb_l <- vbxxb_l + sum(svs_inv[[j]] * pb2_j)
-  }
+  # C++ fast path: batch computation of bxxb and vbxxb
+  svs_inv_3d <- matlist2array(svs_inv)
+  cpp_res <- compute_vbxxb_cpp(alpha_l, model$mu2[[l]], svs_inv_3d, data$d)
+  bxxb_l <- cpp_res$bxxb
+  vbxxb_l <- cpp_res$vbxxb
 
   eloglik <- 0.5 * (2 * term1 - vbxxb_l)
   return(list(eloglik = eloglik, bxxb = bxxb_l, vbxxb = vbxxb_l))

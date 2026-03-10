@@ -207,14 +207,15 @@ standardize_3d <- function(data, center, scale) {
       data$Y_mean <- Y_mean
 
       # Xbar[j,,] = Vinvsuminv %*% sum_i Vinv_{pattern(i)} * X_3d[i,j,:]
-      # Computed after X_3d has been centered and scaled.
-      Xbar <- array(0, dim = c(J, R, R))
-      for (j in seq_len(J)) {
-        Xbar[j, , ] <- Vinvsuminv %*% Reduce("+", lapply(seq_len(N), function(i) {
-          t(t(Vinv[[pattern_assign[i]]]) * X_3d[i, j, ])
-        }))
-      }
-      my$Xbar <- Xbar
+      # Optimized: use precomputed raw_sum instead of O(J*N*R^2) loop.
+      # For each j: A2[,r] = sum_k Vinv_k[,r] * xsum_kr where
+      # xsum_kr = (raw_sum[k,j] - n_k[k]*cm[j,r])/csd[j,r] for obs r.
+      # This is O(J*K*R^2) instead of O(J*N*R^2).
+      pattern_int <- matrix(as.integer(my$pattern), nrow = nrow(my$pattern),
+                             ncol = ncol(my$pattern))
+      my$Xbar <- compute_Xbar_from_sums_cpp(
+        Vinv, pattern_int, my$raw_sum, as.integer(my$n_k),
+        cm, csd, Vinvsuminv)
     }
   }
 
@@ -233,7 +234,7 @@ standardize_3d <- function(data, center, scale) {
 #'
 #' Called when residual variance is set. On the first call (initialization),
 #' this also triggers standardization of X_3d and Y via standardize_3d().
-#' The call order is: Vinv → standardize → svs_inv, because the exact
+#' The call order is: Vinv -> standardize -> svs_inv, because the exact
 #' method's V^{-1}-weighted centering requires Vinv.
 #'
 #' @param data The full data object with data$miss3d populated.
@@ -315,9 +316,6 @@ set_residual_variance_3d <- function(data, residual_variance,
   cm  <- my$cm
   csd <- my$csd
 
-  # Precompute per-pattern observed indices (shared across all variables)
-  obs_r_list <- lapply(seq_len(K), function(k) which(my$pattern[k, ]))
-
   # For exact method, precompute Vinvsum (shared across all variables)
   Vinvsum <- NULL
   if (my$method == "exact" && R_dim > 1) {
@@ -326,26 +324,27 @@ set_residual_variance_3d <- function(data, residual_variance,
     }))
   }
 
-  # Use future.apply for parallel svs_inv computation when available
-  my_lapply <- if (requireNamespace("future.apply", quietly = TRUE))
-    future.apply::future_lapply else lapply
+  # C++ fast path: compute all J svs_inv matrices at once
+  method_int <- if (my$method == "exact") 2L else 1L
+  Xbar_arg <- if (!is.null(my$Xbar)) my$Xbar else array(0, c(1, R_dim, R_dim))
+  Vinvsum_arg <- if (!is.null(Vinvsum)) Vinvsum else matrix(0, R_dim, R_dim)
 
-  svs_list <- my_lapply(seq_len(J), function(j) {
-    svs_inv_j <- compute_svs_inv_j(j, my$method, R_dim, K, Vinv,
-                                     obs_r_list, cm, csd,
-                                     my$raw_sq_sum, my$raw_sum,
-                                     my$n_k, my$Xbar, Vinvsum)
-    svs_j <- tryCatch(
-      invert_via_chol(svs_inv_j)$inv,
+  pattern_int <- matrix(as.integer(my$pattern), nrow = K, ncol = R_dim)
+  svs_inv_3d <- compute_svs_inv_3d_cpp(
+    Vinv, pattern_int,
+    my$raw_sq_sum, my$raw_sum, as.integer(my$n_k),
+    cm, csd, method_int, Xbar_arg, Vinvsum_arg)
+
+  # Convert R x R x J array to list of J R x R matrices; invert each
+  data$svs_inv <- lapply(seq_len(J), function(j) svs_inv_3d[, , j])
+  data$svs <- lapply(seq_len(J), function(j) {
+    tryCatch(
+      invert_via_chol(svs_inv_3d[, , j])$inv,
       error = function(e) {
-        invert_via_chol(svs_inv_j + 1e-8 * diag(R_dim))$inv
+        invert_via_chol(svs_inv_3d[, , j] + 1e-8 * diag(R_dim))$inv
       }
     )
-    list(svs_inv = svs_inv_j, svs = svs_j)
   })
-
-  data$svs_inv <- lapply(svs_list, `[[`, "svs_inv")
-  data$svs     <- lapply(svs_list, `[[`, "svs")
 
   # Check whether all variables share the same SVS (for mashr C++ path).
   # With missing data, svs varies across variables, so this is typically FALSE.
@@ -372,6 +371,20 @@ set_residual_variance_3d <- function(data, residual_variance,
 #'
 #' @keywords internal
 compute_XtR_3d <- function(data, R_mat) {
+  my <- data$miss3d
+  method_int <- if (my$method == "exact") 2L else 1L
+
+  # Xbar placeholder for approximate method (C++ needs a cube argument)
+  Xbar <- if (!is.null(my$Xbar)) my$Xbar else array(0, c(1, data$R, data$R))
+
+  # C++ fast path
+  return(compute_XtR_3d_cpp(my$X_3d, R_mat, my$Vinv,
+                             as.integer(my$pattern_assign),
+                             method_int, Xbar))
+}
+
+# R fallback (kept for testing / reference)
+compute_XtR_3d_R <- function(data, R_mat) {
   my <- data$miss3d
   Vinv <- my$Vinv
   N <- nrow(R_mat)
@@ -422,6 +435,19 @@ compute_XtR_3d <- function(data, R_mat) {
 compute_Xb_3d <- function(data, b) {
   my <- data$miss3d
   if (is.vector(b)) b <- matrix(b, length(b), 1)
+  method_int <- if (my$method == "exact") 2L else 1L
+
+  # Xbar placeholder for approximate method
+  Xbar <- if (!is.null(my$Xbar)) my$Xbar else array(0, c(1, data$R, data$R))
+
+  # C++ fast path
+  return(compute_Xb_3d_cpp(my$X_3d, b, method_int, Xbar))
+}
+
+# R fallback (kept for testing / reference)
+compute_Xb_3d_R <- function(data, b) {
+  my <- data$miss3d
+  if (is.vector(b)) b <- matrix(b, length(b), 1)
   R_dim <- data$R
   N <- dim(my$X_3d)[1]
 
@@ -459,6 +485,15 @@ compute_Xb_3d <- function(data, b) {
 #' @keywords internal
 compute_VinvR_3d <- function(data, mat) {
   my <- data$miss3d
+
+  # C++ fast path
+  return(compute_VinvR_3d_cpp(mat, my$Vinv,
+                               as.integer(my$pattern_assign)))
+}
+
+# R fallback (kept for testing / reference)
+compute_VinvR_3d_R <- function(data, mat) {
+  my <- data$miss3d
   Vinv <- my$Vinv
   N <- nrow(mat)
   R_dim <- ncol(mat)
@@ -490,6 +525,15 @@ compute_VinvR_3d <- function(data, mat) {
 #'
 #' @keywords internal
 compute_betahat_3d <- function(data, XtR) {
+  svs <- data$svs
+
+  # C++ fast path: needs R x R x J array
+  svs_3d <- matlist2array(svs)
+  return(compute_betahat_3d_cpp(svs_3d, XtR))
+}
+
+# R fallback (kept for testing / reference)
+compute_betahat_3d_R <- function(data, XtR) {
   J <- data$p
   R_dim <- data$R
   svs <- data$svs
