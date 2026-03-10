@@ -94,10 +94,13 @@ ensure_r6_loaded <- function() {
 r6_mvsusie <- function(...) {
   r6 <- load_r6_reference()
   args <- list(...)
+  # Translate S3 parameter names to R6 equivalents
   if ("precompute_cache" %in% names(args)) {
     args$precompute_covariances <- args$precompute_cache
     args$precompute_cache <- NULL
   }
+  # R6 master doesn't have estimate_prior_mixture_weights; strip it
+  args$estimate_prior_mixture_weights <- NULL
   do.call(r6$mvsusie, args)
 }
 
@@ -630,12 +633,14 @@ test_that("R=3, mixture prior K>1, fixed variance matches R6", {
                    residual_variance = cov(y),
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
+                   estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = TRUE, verbosity = 0)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
+                      estimate_prior_mixture_weights = FALSE,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = TRUE, verbosity = 0)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
@@ -655,6 +660,7 @@ test_that("R=3, mixture prior K>1, EM (10 iter) matches R6 at tight tol", {
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = TRUE,
                    estimate_prior_method = "EM",
+                   estimate_prior_mixture_weights = FALSE,
                    max_iter = 10,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = FALSE, verbosity = 0)
@@ -663,6 +669,7 @@ test_that("R=3, mixture prior K>1, EM (10 iter) matches R6 at tight tol", {
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
                       estimate_prior_method = "EM",
+                      estimate_prior_mixture_weights = FALSE,
                       max_iter = 10,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = FALSE, verbosity = 0)
@@ -682,12 +689,14 @@ test_that("R=3, mixture prior K>1 with grid, fixed variance matches R6", {
                    residual_variance = cov(y),
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
+                   estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = TRUE, verbosity = 0)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
+                      estimate_prior_mixture_weights = FALSE,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = TRUE, verbosity = 0)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
@@ -706,6 +715,7 @@ test_that("R=3, mixture prior K>1 with grid, EM (10 iter) matches R6", {
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = TRUE,
                    estimate_prior_method = "EM",
+                   estimate_prior_mixture_weights = FALSE,
                    max_iter = 10,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = FALSE, verbosity = 0)
@@ -714,6 +724,7 @@ test_that("R=3, mixture prior K>1 with grid, EM (10 iter) matches R6", {
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
                       estimate_prior_method = "EM",
+                      estimate_prior_mixture_weights = FALSE,
                       max_iter = 10,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = FALSE, verbosity = 0)
@@ -731,12 +742,14 @@ test_that("R=3, mixture prior K>1 with null_weight, fixed var matches R6", {
                    residual_variance = cov(y),
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
+                   estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = TRUE, verbosity = 0)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
+                      estimate_prior_mixture_weights = FALSE,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = TRUE, verbosity = 0)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
@@ -755,12 +768,14 @@ test_that("R=3, mixture prior K>1, estimate residual var matches R6", {
                    residual_variance = cov(y),
                    estimate_residual_variance = TRUE,
                    estimate_prior_variance = FALSE,
+                   estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = FALSE, verbosity = 0)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = TRUE,
                       estimate_prior_variance = FALSE,
+                      estimate_prior_mixture_weights = FALSE,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = FALSE, verbosity = 0)
     expect_ref_equal(fit, ref, tol = tol_tight)

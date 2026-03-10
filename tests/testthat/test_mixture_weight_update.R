@@ -452,7 +452,11 @@ test_that("prune_mixture_components does nothing when all above threshold", {
     V_structure_rank = c(2, 2, 2),
     pi_V_posterior = list(matrix(1/4, 10, 4)),  # J=10, K+1=4
     per_effect_llik = list(matrix(0, 10, 4)),
-    eigen_cache = list(list(), list(), list())
+    eigen_cache = list(
+      is_common_cov = TRUE,
+      log_det_svs = 0,
+      components = list(list(), list(), list())
+    )
   )
   for (k in 1:K) {
     model$V_structure_3d[, , k] <- model$V_structure[[k]]
@@ -462,6 +466,7 @@ test_that("prune_mixture_components does nothing when all above threshold", {
   result <- mvsusieR:::prune_mixture_components(model, threshold = 1e-8)
   expect_equal(length(result$pi_V), K)
   expect_equal(length(result$V_structure), K)
+  expect_equal(length(result$eigen_cache$components), K)
 })
 
 test_that("prune_mixture_components removes low-weight components", {
@@ -475,7 +480,11 @@ test_that("prune_mixture_components removes low-weight components", {
     V_structure_rank = c(2, 2, 2, 2),
     pi_V_posterior = list(matrix(1/5, 10, 5)),
     per_effect_llik = list(matrix(0, 10, 5)),
-    eigen_cache = list(list(), list(), list(), list())
+    eigen_cache = list(
+      is_common_cov = TRUE,
+      log_det_svs = 0,
+      components = list(list(), list(), list(), list())
+    )
   )
   for (k in 1:K) {
     model$V_structure_3d[, , k] <- model$V_structure[[k]]
@@ -493,7 +502,10 @@ test_that("prune_mixture_components removes low-weight components", {
   # pi_V_posterior should have null + 2 kept = 3 columns
   expect_equal(ncol(result$pi_V_posterior[[1]]), 3)
   expect_equal(ncol(result$per_effect_llik[[1]]), 3)
-  expect_equal(length(result$eigen_cache), 2)
+  # eigen_cache$components should be pruned to 2
+  expect_equal(length(result$eigen_cache$components), 2)
+  # Cache metadata preserved
+  expect_true(result$eigen_cache$is_common_cov)
 })
 
 # =============================================================================

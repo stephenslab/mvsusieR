@@ -489,7 +489,7 @@ test_that("R=3 mash K=1 fixed: ALL fields match R6", {
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_covariances = TRUE, verbosity = 0)
+                   precompute_cache = TRUE, verbosity = 0)
     ref <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
@@ -514,7 +514,7 @@ test_that("R=3 mash K=1 EM: ALL fields match R6", {
                    estimate_prior_variance = TRUE,
                    estimate_prior_method = "EM",
                    intercept = TRUE, standardize = TRUE,
-                   precompute_covariances = TRUE, verbosity = 0)
+                   precompute_cache = TRUE, verbosity = 0)
     ref <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
@@ -542,8 +542,9 @@ test_that("R=3 mash multi-component: ALL fields match R6", {
                    residual_variance = cov(y),
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
+                   estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_covariances = TRUE, verbosity = 0)
+                   precompute_cache = TRUE, verbosity = 0)
     ref <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
@@ -617,7 +618,7 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fix
                         estimate_residual_variance = FALSE,
                         estimate_prior_variance = FALSE,
                         intercept = TRUE, standardize = TRUE,
-                        precompute_covariances = TRUE, verbosity = 0)
+                        precompute_cache = TRUE, verbosity = 0)
 
     # Run with matrix prior
     fit_matrix <- mvsusie(X, y, L = L, prior_variance = V,
@@ -667,7 +668,7 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, opt
                         estimate_prior_method = "optim",
                         max_iter = 20,
                         intercept = TRUE, standardize = TRUE,
-                        precompute_covariances = FALSE, verbosity = 0)
+                        precompute_cache = FALSE, verbosity = 0)
     fit_matrix <- mvsusie(X, y, L = L, prior_variance = V,
                           residual_variance = cov(y),
                           estimate_residual_variance = FALSE,
@@ -711,7 +712,7 @@ test_that("R=1 mash K=1: S3 matches R6 at machine precision", {
                         estimate_residual_variance = FALSE,
                         estimate_prior_variance = FALSE,
                         intercept = TRUE, standardize = TRUE,
-                        precompute_covariances = TRUE, verbosity = 0)
+                        precompute_cache = TRUE, verbosity = 0)
     ref_mash <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
                             residual_variance = cov(y),
                             estimate_residual_variance = FALSE,

@@ -17,10 +17,10 @@ mvsusie(
   prior_weights = NULL,
   standardize = TRUE,
   intercept = TRUE,
-  estimate_residual_variance = FALSE,
+  estimate_residual_variance = TRUE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
-  estimate_prior_mixture_weights = FALSE,
+  estimate_prior_mixture_weights = TRUE,
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
@@ -29,7 +29,7 @@ mvsusie(
   coverage = 0.95,
   min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE,
-  precompute_covariances = FALSE,
+  precompute_cache = TRUE,
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
@@ -64,11 +64,11 @@ mvsusie_ss(
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
-  estimate_prior_mixture_weights = FALSE,
+  estimate_prior_mixture_weights = TRUE,
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
-  precompute_covariances = FALSE,
+  precompute_cache = TRUE,
   model_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
@@ -88,10 +88,10 @@ mvsusie_core(
   prior_weights = NULL,
   standardize = TRUE,
   intercept = TRUE,
-  estimate_residual_variance = FALSE,
+  estimate_residual_variance = TRUE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
-  estimate_prior_mixture_weights = FALSE,
+  estimate_prior_mixture_weights = TRUE,
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
@@ -100,7 +100,7 @@ mvsusie_core(
   coverage = 0.95,
   min_abs_corr = 0.5,
   compute_univariate_zscore = FALSE,
-  precompute_covariances = FALSE,
+  precompute_cache = TRUE,
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
@@ -123,14 +123,14 @@ mvsusie_ss_core(
   estimate_residual_variance = FALSE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
-  estimate_prior_mixture_weights = FALSE,
+  estimate_prior_mixture_weights = TRUE,
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
   prior_tol = 1e-09,
   model_init = NULL,
   coverage = 0.95,
   min_abs_corr = 0.5,
-  precompute_covariances = FALSE,
+  precompute_cache = TRUE,
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
@@ -177,7 +177,9 @@ variance is not standardized, but left as is.}
 estimated at each iteration using \eqn{E_q[R'R] / n}; otherwise it
 is fixed. For multivariate Y the estimate is a full \eqn{r \times r}
 covariance matrix. Forced to \code{FALSE} when Y contains missing
-values.}
+values and \code{missing_y_method} is not \code{"impute"}. Defaults
+to \code{TRUE} for \code{mvsusie()}, and \code{FALSE} for
+\code{mvsusie_ss()} and \code{mvsusie_rss()}.}
 
 \item{estimate_prior_variance}{When \code{estimate_prior_variance =
 TRUE}, the prior variance is estimated; otherwise it is
@@ -217,9 +219,9 @@ per-variable univariate regressions are outputted. (Note that these
 z-scores are not actually used to fit the multivariate susie
 model.)}
 
-\item{precompute_covariances}{If \code{precompute_covariances =
-TRUE}, precomputes various covariance quantities to speed up
-computations at the cost of increased memory usage.}
+\item{precompute_cache}{If \code{precompute_cache =
+TRUE}, precomputes eigendecomposition and covariance quantities
+to speed up computations at the cost of increased memory usage.}
 
 \item{n_thread}{Maximum number of threads to use for parallel
 computation (only applicable when a mixture prior is used).}
