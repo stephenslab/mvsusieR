@@ -590,7 +590,7 @@ test_that("Variable names are preserved with missing data", {
 # Integration: Precomputation + missing data
 # ============================================================================
 
-# 41. precompute_covariances + missing data
+# 41. precompute_cache + missing data
 test_that("Precomputed covariances work with missing data", {
   skip_on_cran()
   d <- generate_mvsusie_data(N = 100, J = 50, R = 3, L = 2,
@@ -599,7 +599,7 @@ test_that("Precomputed covariances work with missing data", {
                       prior_variance = 0.2 * diag(d$R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      precompute_covariances = TRUE,
+                      precompute_cache = TRUE,
                       max_iter = 20, verbosity = 0)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))

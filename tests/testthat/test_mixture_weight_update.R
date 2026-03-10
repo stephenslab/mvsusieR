@@ -777,7 +777,7 @@ test_that("Both residual variance and weight update work together", with(simulat
   expect_false(isTRUE(all.equal(fit$sigma2, residual_var)))
 }))
 
-test_that("precompute_covariances + weight update work together", with(simulate_multivariate(r=2), {
+test_that("precompute_cache + weight update work together", with(simulate_multivariate(r=2), {
   residual_var <- cov(y)
   prior <- create_mash_prior(Ulist = list(V), grid = c(0.5, 1, 2))
 
@@ -786,7 +786,7 @@ test_that("precompute_covariances + weight update work together", with(simulate_
                          estimate_residual_variance = FALSE,
                          estimate_prior_variance = FALSE,
                          estimate_prior_mixture_weights = TRUE,
-                         precompute_covariances = TRUE,
+                         precompute_cache = TRUE,
                          )
 
   fit_no_precomp <- mvsusie(X, y, L = 3, prior_variance = prior,
@@ -794,7 +794,7 @@ test_that("precompute_covariances + weight update work together", with(simulate_
                             estimate_residual_variance = FALSE,
                             estimate_prior_variance = FALSE,
                             estimate_prior_mixture_weights = TRUE,
-                            precompute_covariances = FALSE,
+                            precompute_cache = FALSE,
                             )
 
   # Results should be identical regardless of precomputation strategy

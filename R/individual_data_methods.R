@@ -875,9 +875,10 @@ prune_mixture_components <- function(model, threshold = 1e-8) {
     }
   }
 
-  # Trim eigen_cache if active (one entry per non-null component)
+  # Trim eigen_cache if active: subset the components list (one per non-null
+  # component) and rebuild the cache structure.
   if (!is.null(model$eigen_cache)) {
-    model$eigen_cache <- model$eigen_cache[keep]
+    model$eigen_cache$components <- model$eigen_cache$components[keep]
   }
 
   return(model)

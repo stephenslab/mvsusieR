@@ -17,7 +17,7 @@ test_that("mash regression in SuSiE is identical to univariate case", with(simul
     B = mvsusie(X,y,L=L,prior_variance=m_init,
                 residual_variance=residual_var,
                 estimate_residual_variance=FALSE,
-                estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+                estimate_prior_variance=FALSE, precompute_cache=TRUE)
     expect_susie_equal(A,B,F,F)
 }))
 
@@ -29,11 +29,11 @@ test_that("multivariate regression in SuSiE is identical to univariate case", wi
                 residual_variance=residual_var,
                 estimate_residual_variance=FALSE,
                 estimate_prior_variance=FALSE,
-                precompute_covariances=TRUE)
+                precompute_cache=TRUE)
     B = mvsusie(X,y,L=L,prior_variance=m_init,
                 residual_variance=residual_var,
                 estimate_residual_variance=FALSE,
-                estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+                estimate_prior_variance=FALSE, precompute_cache=TRUE)
     expect_susie_equal(A,B,F,F)
 }))
 
@@ -41,24 +41,24 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
     m_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
     A = mvsusie(X,y,L=L,prior_variance=m_init,
                               estimate_residual_variance=FALSE, estimate_prior_variance=FALSE,
-                              precompute_covariances=FALSE)
+                              precompute_cache=FALSE)
     B = mvsusie(X,y,L=L,prior_variance=m_init,
-               precompute_covariances=TRUE, estimate_prior_variance=FALSE, estimate_residual_variance=FALSE)
+               precompute_cache=TRUE, estimate_prior_variance=FALSE, estimate_residual_variance=FALSE)
     expect_susie_equal(A,B,F,F)
 }))
 
 test_that("mash regression in SuSiE agrees with BMR using one component prior matrix", with(simulate_multivariate(r=3), {
     m_init = create_mixture_prior(mixture_prior = list(matrices=list(V)))
     # don't compare ELBO
-    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE, precompute_cache=TRUE)
     B = mvsusie(X,y,L=L,prior_variance=V, estimate_residual_variance=FALSE, estimate_prior_variance=FALSE)
     expect_susie_equal(A,B,F,F)
     # compare ELBO
-    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=F, estimate_prior_variance=FALSE, precompute_covariances=TRUE)
+    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=F, estimate_prior_variance=FALSE, precompute_cache=TRUE)
     B = mvsusie(X,y,L=L,prior_variance=V, estimate_residual_variance=F, estimate_prior_variance=FALSE)
     expect_susie_equal(A,B,F,F)
     # compare estimate prior variance "EM" method (mash_prior vs matrix prior)
-    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM', precompute_covariances=TRUE)
+    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM', precompute_cache=TRUE)
     B = mvsusie(X,y,L=L,prior_variance=V, estimate_residual_variance=F, estimate_prior_variance=TRUE, estimate_prior_method = 'EM')
     expect_susie_equal(A,B,F,F)
 }))
@@ -66,8 +66,8 @@ test_that("mash regression in SuSiE agrees with BMR using one component prior ma
 test_that("customized initialization interface", with(simulate_multivariate(r=3), {
     # not sure what to test here ...
     m_init = create_mixture_prior(mixture_prior = list(matrices = list(V), weights = 1), null_weight=0)
-    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
-    B = mvsusie(X,y,L=L,prior_variance=m_init,model_init=A, estimate_residual_variance=FALSE, precompute_covariances=TRUE, estimate_prior_variance=FALSE)
+    A = mvsusie(X,y,L=L,prior_variance=m_init, estimate_residual_variance=FALSE, precompute_cache=TRUE, estimate_prior_variance=FALSE)
+    B = mvsusie(X,y,L=L,prior_variance=m_init,model_init=A, estimate_residual_variance=FALSE, precompute_cache=TRUE, estimate_prior_variance=FALSE)
     # let's just test of null is null ...
     null_weight = 0.2
     m_init = create_mixture_prior(R = ncol(y),null_weight = null_weight, max_mixture_len=-1)
@@ -87,7 +87,7 @@ test_that("mash regression in SuSiE is identical to univariate case (RSS)", with
              estimate_prior_variance=FALSE,
              )
   B = mvsusie_rss(z,R_ld,N=n,L=L,prior_variance=m_init,estimate_prior_variance=FALSE,
-                 precompute_covariances=TRUE)
+                 precompute_cache=TRUE)
   expect_susie_equal(A,B,F,F)
 }))
 
@@ -99,8 +99,8 @@ test_that("mash regression in SuSiE agrees with when various covariance quantiti
   R = cor(X)
   n = nrow(X)
   m_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
-  A = mvsusie_rss(z,R,N=n,L=L,prior_variance=m_init, precompute_covariances=FALSE, estimate_prior_method="EM")
-  B = mvsusie_rss(z,R,N=n,L=L,prior_variance=m_init, precompute_covariances=TRUE, estimate_prior_method="EM")
+  A = mvsusie_rss(z,R,N=n,L=L,prior_variance=m_init, precompute_cache=FALSE, estimate_prior_method="EM")
+  B = mvsusie_rss(z,R,N=n,L=L,prior_variance=m_init, precompute_cache=TRUE, estimate_prior_method="EM")
   expect_susie_equal(A,B,F,F)
 }))
 

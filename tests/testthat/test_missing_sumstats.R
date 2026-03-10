@@ -22,7 +22,7 @@ test_that("With full observations, matrix vs mash prior agree (with missing data
                       residual_variance=residual_var,
                       estimate_residual_variance=FALSE,
                       estimate_prior_variance=FALSE,
-                      precompute_covariances=TRUE)
+                      precompute_cache=TRUE)
   expect_susie_equal(fit4_matrix, fit4_mash, F, F)
 }))
 

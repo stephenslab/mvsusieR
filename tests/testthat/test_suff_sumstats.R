@@ -115,7 +115,7 @@ test_that("With full observations, matrix vs mash prior agree (suff stat)", with
                           prior_variance=mash_init, residual_variance = residual_var,
                           standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=FALSE,
-                          precompute_covariances = T)
+                          precompute_cache = T)
   expect_susie_equal(fit3_matrix, fit3_mash, F, F)
 }))
 
@@ -245,7 +245,7 @@ test_that("With full observation, the elbo are same for SSData and DenseData", w
                           prior_variance=mash_init, residual_variance = residual_var,
                           standardize = T,
                           estimate_residual_variance=F, estimate_prior_variance=F,
-                          precompute_covariances = T)
+                          precompute_cache = T)
 
   expect_equal(fit1$elbo, fit2$elbo)
   expect_equal(fit1$elbo, fit3$elbo)

@@ -82,7 +82,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     n_purity                 = 100,
     use_servin_stephens      = FALSE,  # required by susieR::ibss_finalize
     # Multivariate-specific
-    precompute_eigendecomp   = precompute_covariances,
+    precompute_eigendecomp   = precompute_covariances,  # from caller's precompute_cache
     n_thread                 = n_thread,
     estimate_prior_mixture_weights = estimate_prior_mixture_weights,
     mixture_weight_method    = mixture_weight_method,
@@ -146,7 +146,9 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   estimated at each iteration using \eqn{E_q[R'R] / n}; otherwise it
 #'   is fixed. For multivariate Y the estimate is a full \eqn{r \times r}
 #'   covariance matrix. Forced to \code{FALSE} when Y contains missing
-#'   values.
+#'   values and \code{missing_y_method} is not \code{"impute"}. Defaults
+#'   to \code{TRUE} for \code{mvsusie()}, and \code{FALSE} for
+#'   \code{mvsusie_ss()} and \code{mvsusie_rss()}.
 #'
 #' @param estimate_prior_variance When \code{estimate_prior_variance =
 #'   TRUE}, the prior variance is estimated; otherwise it is
@@ -171,9 +173,9 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   exclude a single effect from PIP computation if the estimated prior
 #'   variance is smaller than it.
 #'
-#' @param precompute_covariances If \code{precompute_covariances =
-#'   TRUE}, precomputes various covariance quantities to speed up
-#'   computations at the cost of increased memory usage.
+#' @param precompute_cache If \code{precompute_cache =
+#'   TRUE}, precomputes eigendecomposition and covariance quantities
+#'   to speed up computations at the cost of increased memory usage.
 #'
 #' @param model_init A previous model fit with which to initialize.
 #'
@@ -319,17 +321,17 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     residual_variance = NULL, prior_weights = NULL,
                     standardize = TRUE, intercept = TRUE,
-                    estimate_residual_variance = FALSE,
+                    estimate_residual_variance = TRUE,
                     estimate_prior_variance = TRUE,
                     estimate_prior_method = "optim",
-                    estimate_prior_mixture_weights = FALSE,
+                    estimate_prior_mixture_weights = TRUE,
                     mixture_weight_method = "mixsqp",
                     check_null_threshold = 0, prior_tol = 1e-9,
                     model_init = NULL,
                     missing_y_method = "approximate",
                     coverage = 0.95, min_abs_corr = 0.5,
                     compute_univariate_zscore = FALSE,
-                    precompute_covariances = FALSE, n_thread = 1,
+                    precompute_cache = TRUE, n_thread = 1,
                     max_iter = 100, tol = 1e-3, verbosity = 2,
                     track_fit = FALSE) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
@@ -356,7 +358,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              missing_y_method = missing_y_method,
              coverage = coverage, min_abs_corr = min_abs_corr,
              compute_univariate_zscore = compute_univariate_zscore,
-             precompute_covariances = precompute_covariances,
+             precompute_cache = precompute_cache,
              n_thread = n_thread,
              max_iter = max_iter, tol = tol,
              verbosity = verbosity, track_fit = track_fit)
@@ -586,10 +588,10 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                               estimate_residual_variance = FALSE,
                               estimate_prior_variance = TRUE,
                               estimate_prior_method = "optim",
-                              estimate_prior_mixture_weights = FALSE,
+                              estimate_prior_mixture_weights = TRUE,
                               mixture_weight_method = "mixsqp",
                               check_null_threshold = 0, prior_tol = 1e-9,
-                              precompute_covariances = FALSE, model_init = NULL,
+                              precompute_cache = TRUE, model_init = NULL,
                               coverage = 0.95, min_abs_corr = 0.5, n_thread = 1,
                               max_iter = 100, tol = 1e-3, verbosity = 2,
                               track_fit = FALSE) {
@@ -620,7 +622,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                        prior_tol = prior_tol,
                        model_init = model_init,
                        coverage = coverage, min_abs_corr = min_abs_corr,
-                       precompute_covariances = precompute_covariances,
+                       precompute_cache = precompute_cache,
                        n_thread = n_thread,
                        max_iter = max_iter, tol = tol,
                        verbosity = verbosity, track_fit = track_fit)
@@ -636,17 +638,17 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
 mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        residual_variance = NULL, prior_weights = NULL,
                        standardize = TRUE, intercept = TRUE,
-                       estimate_residual_variance = FALSE,
+                       estimate_residual_variance = TRUE,
                        estimate_prior_variance = TRUE,
                        estimate_prior_method = "optim",
-                       estimate_prior_mixture_weights = FALSE,
+                       estimate_prior_mixture_weights = TRUE,
                        mixture_weight_method = "mixsqp",
                        check_null_threshold = 0, prior_tol = 1e-9,
                        model_init = NULL,
                        missing_y_method = "approximate",
                        coverage = 0.95, min_abs_corr = 0.5,
                        compute_univariate_zscore = FALSE,
-                       precompute_covariances = FALSE,
+                       precompute_cache = TRUE,
                        n_thread = 1,
                        max_iter = 100, tol = 1e-3, verbosity = 2,
                        track_fit = FALSE) {
@@ -777,7 +779,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                           verbosity = verbosity,
                           coverage = coverage,
                           min_abs_corr = min_abs_corr,
-                          precompute_covariances = precompute_covariances,
+                          precompute_covariances = precompute_cache,
                           n_thread = n_thread,
                           model_init = model_init)
 
@@ -840,12 +842,12 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   estimate_residual_variance = FALSE,
                                   estimate_prior_variance = TRUE,
                                   estimate_prior_method = "optim",
-                                  estimate_prior_mixture_weights = FALSE,
+                                  estimate_prior_mixture_weights = TRUE,
                                   mixture_weight_method = "mixsqp",
                                   check_null_threshold = 0, prior_tol = 1e-9,
                                   model_init = NULL,
                                   coverage = 0.95, min_abs_corr = 0.5,
-                                  precompute_covariances = FALSE,
+                                  precompute_cache = TRUE,
                                   n_thread = 1,
                                   max_iter = 100, tol = 1e-3, verbosity = 2,
                                   track_fit = FALSE) {
@@ -926,7 +928,7 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                           verbosity = verbosity,
                           coverage = coverage,
                           min_abs_corr = min_abs_corr,
-                          precompute_covariances = precompute_covariances,
+                          precompute_covariances = precompute_cache,
                           n_thread = n_thread,
                           model_init = model_init)
 

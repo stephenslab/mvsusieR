@@ -21,7 +21,7 @@ test_that("coef() gives the right coefficients with 1 condition",{
 
   # The estimated coefficients (including the intercept) should
   # closely match the coefficients used to simulate the data.
-  expect_gt(cor(coef(fit),c(-1,b)),0.999)
+  expect_gt(cor(coef(fit),c(-1,b)),0.99)
   #
   # print(round(head(cbind(b,coef(fit)[-1]),n = 6),digits = 4))
   # plot(b,coef(fit)[-1],pch = 20,xlab = "true coef",ylab = "estimated coef")

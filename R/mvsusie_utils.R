@@ -35,6 +35,15 @@ chol2ldet <- function(R) {
   2 * sum(log(diag(R)))
 }
 
+# Check if a matrix is positive definite (Cholesky succeeds).
+is_pd <- function(x) {
+  if (anyNA(x)) return(FALSE)
+  tryCatch({
+    chol(x)
+    TRUE
+  }, error = function(e) FALSE)
+}
+
 # Add small ridge e to diagonal for positive-definiteness enforcement.
 # Borrowed from mr.mash (misc.R).
 makePD <- function(x, e = 1e-8) {

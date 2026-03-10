@@ -167,17 +167,29 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
                                           precompute_covariances = TRUE) {
   R <- data$R
 
-  # Auto-compute if NULL
-
+  # Auto-compute if NULL.
+  # For R > 1: try cov(Y), fall back to flash-based covariance if not PD.
+  # This is just an initialization -- residual variance can be estimated later.
   if (is.null(residual_variance)) {
     if (R > 1) {
       if (!data$any_missing) {
         residual_variance <- cov(data$Y)
       } else {
-        # Restore NAs for flash-based covariance estimation
         Y_with_na <- data$Y
         Y_with_na[data$Y_na] <- NA
         residual_variance <- compute_cov_flash(Y_with_na)
+      }
+      # Ensure positive definiteness: cov(Y) can be singular when N < R.
+      # Fall back to flash-based covariance (which applies makePD internally).
+      if (!is_pd(residual_variance)) {
+        warning_message("cov(Y) is not positive definite (N < R or ",
+                       "collinear traits); using flash-based covariance ",
+                       "estimate.")
+        Y_for_flash <- data$Y
+        if (data$any_missing) {
+          Y_for_flash[data$Y_na] <- NA
+        }
+        residual_variance <- compute_cov_flash(Y_for_flash)
       }
     } else {
       residual_variance <- as.numeric(var(data$Y, na.rm = TRUE))
