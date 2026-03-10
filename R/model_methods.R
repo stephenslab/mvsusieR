@@ -26,7 +26,7 @@ get_alpha_l.mvsusie <- function(model, l) {
 get_posterior_moments_l.mvsusie <- function(model, l) {
   list(
     post_mean  = model$mu[l, , , drop = TRUE],    # J x R
-    post_mean2 = model$mu2[[l]]                     # J x R x R
+    post_mean2 = model$mu2_cache[[l]]              # list of reduced stats
   )
 }
 

@@ -128,6 +128,17 @@ ibss_initialize.mv_individual <- function(data, params) {
     svs <- if (!is.null(model$svs)) model$svs else data$svs
     model$eigen_cache <- precompute_eigen_cache(
       svs, model$V_structure, data$is_common_cov)
+    vmessage(params$verbose,
+      "Eigendecomposition cache: K=", length(model$V_structure),
+      ", common_cov=", data$is_common_cov, mem = TRUE)
+  }
+
+  verbose <- isTRUE(params$verbose)
+  if (verbose) {
+    K <- length(model$V_structure)
+    vmessage(TRUE,
+      sprintf("Model initialized: J=%d, R=%d, L=%d, K=%d",
+              data$p, data$R, params$L, K), mem = TRUE)
   }
 
   # Initial imputation for R>1 missing data (variational EM E-step).
@@ -224,7 +235,7 @@ compute_ser_statistics.mv_individual <- function(data, params, model, l, ...) {
   # tr(betahat_j betahat_j') - tr(S_j) as a scalar measure of signal
   # strength, then take the max across variables.
   signal <- sapply(seq_len(nrow(betahat)), function(j) {
-    sum(betahat[j, ]^2) - sum(diag(svs[[j]]))
+    sum(betahat[j, ]^2) - sum(diag(svs[[min(j, length(svs))]]))
   })
   optim_init <- log(max(c(max(signal, na.rm = TRUE), 1)))
 
@@ -324,7 +335,7 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
   # === SLOW PATH: mashr C++ ===
 
   # Build full prior for mashr C++ (prepend null component)
-  mashr_prior <- build_mashr_prior(model$V_structure_3d, model$pi_V,
+  mashr_prior <- build_mashr_prior(model$V_structure, model$pi_V,
                                     model$null_weight, V, R)
 
   # Prepare mashr inputs
@@ -409,16 +420,24 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   J <- data$p
   R <- data$R
 
-  # When V ~= 0 or NA, posterior is null: mu = 0, mu2 = 0
+  # When V ~= 0 or NA, posterior is null: mu = 0, cache = zeros
   if (is.na(V) || V < 1e-15) {
     model$mu[l, , ] <- 0
-    for (j in seq_len(J)) {
-      model$mu2[[l]][j, , ] <- 0
-    }
+    model$mu2_cache[[l]] <- list(
+      bxxb = matrix(0, R, R), vbxxb = 0,
+      alpha_mu2_sum = matrix(0, R, R), mu2_diag = matrix(0, J, R)
+    )
     model$conditional_lfsr[l] <- list(NULL)
     model$em_cache <- NULL
     return(model)
   }
+
+  # Build reduce_params for inline bxxb/vbxxb accumulation
+  alpha_l <- model$alpha[l, ]
+  svs_inv <- if (!is.null(model$svs_inv)) model$svs_inv else data$svs_inv
+  v_inv   <- get_v_inv(data, model)
+  reduce_params <- list(alpha = alpha_l, d = data$d, svs_inv = svs_inv,
+                        v_inv = v_inv)
 
   # === FAST PATH: eigendecomposition precomputation ===
   if (!is.null(model$eigen_cache)) {
@@ -434,17 +453,21 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
 
     post <- posterior_precomputed(betahat, V, model$eigen_cache,
                                   model$pi_V_posterior[[l]],
-                                  em_var_wt = em_var_wt)
+                                  em_var_wt = em_var_wt,
+                                  reduce_params = reduce_params)
 
     model$mu[l, , ] <- post$post_mean
-    for (j in seq_len(J)) {
-      model$mu2[[l]][j, , ] <- post$post_mean2[j, , ]
-    }
+    # Store reduced statistics (no J x R x R array)
+    model$mu2_cache[[l]] <- list(
+      bxxb = post$bxxb, vbxxb = post$vbxxb,
+      alpha_mu2_sum = post$alpha_mu2_sum, mu2_diag = post$mu2_diag
+    )
     model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
 
     if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM") {
       model$em_cache <- list(
-        prior_scale_em_update = post$prior_scale_em_update
+        prior_scale_em_update = post$prior_scale_em_update,
+        alpha_mu2_sum = post$alpha_mu2_sum
       )
     }
     return(model)
@@ -456,16 +479,20 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   n_thread <- if (!is.null(params$n_thread)) params$n_thread else 1L
 
   # Build full prior arrays (prepend null)
-  mashr_prior <- build_mashr_prior(model$V_structure_3d, model$pi_V,
+  mashr_prior <- build_mashr_prior(model$V_structure, model$pi_V,
                                     model$null_weight, V, R)
 
-  # Build inverse array (prepend null inverse = zero)
+  # Build inverse array (prepend null inverse = zero).
+  # V_structure_inv is computed lazily (only for slow path).
+  if (is.null(model$V_structure_inv)) {
+    inv_list <- lapply(model$V_structure, pseudo_inverse)
+    model$V_structure_inv <- matlist2array(lapply(inv_list, `[[`, "inv"))
+  }
   null_inv <- array(0, c(R, R, 1))
   V_inv_full <- abind::abind(null_inv, model$V_structure_inv, along = 3)
 
   # Prepare inputs
   bhat_t <- t(betahat)
-  svs_inv <- if (!is.null(model$svs_inv)) model$svs_inv else data$svs_inv
   svs_inv_3d <- matlist2array(svs_inv)
   res_corr <- if (!is.null(model$residual_correlation))
     model$residual_correlation else data$residual_correlation
@@ -494,11 +521,27 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
     n_thread
   )
 
-  # Store marginalized posteriors
+  # Store posterior means
   model$mu[l, , ] <- post$post_mean  # J x R
+
+  # Compute reduced statistics from post_cov (R x R x J) + post_mean
+  # instead of storing full J x R x R mu2 array
+  bxxb          <- matrix(0, R, R)
+  alpha_mu2_sum <- matrix(0, R, R)
+  vbxxb         <- 0
+  mu2_diag      <- matrix(0, J, R)
   for (j in seq_len(J)) {
-    model$mu2[[l]][j, , ] <- post$post_cov[, , j] + tcrossprod(post$post_mean[j, ])
+    mu2_j <- post$post_cov[, , j] + tcrossprod(post$post_mean[j, ])
+    a_j <- alpha_l[j]
+    bxxb          <- bxxb + data$d[j] * a_j * mu2_j
+    alpha_mu2_sum <- alpha_mu2_sum + a_j * mu2_j
+    vbxxb         <- vbxxb + a_j * sum(svs_inv[[min(j, length(svs_inv))]] * mu2_j)
+    mu2_diag[j, ] <- diag(mu2_j)
   }
+  model$mu2_cache[[l]] <- list(
+    bxxb = bxxb, vbxxb = vbxxb,
+    alpha_mu2_sum = alpha_mu2_sum, mu2_diag = mu2_diag
+  )
 
   # LFSR from posterior sign probabilities
   model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
@@ -506,7 +549,8 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   # Cache EM statistics (no recomputation needed)
   if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM") {
     model$em_cache <- list(
-      prior_scale_em_update = post$prior_scale_em_update
+      prior_scale_em_update = post$prior_scale_em_update,
+      alpha_mu2_sum = alpha_mu2_sum
     )
   }
 
@@ -554,16 +598,10 @@ SER_posterior_e_loglik.mv_individual <- function(data, params, model, l) {
     term1 <- v_inv * sum(model$raw_residuals * Xb_l)
   }
 
-  # Use svs_inv for the quadratic form. For the standard path,
-  # svs_inv[j] = d[j] * v_inv, so sum(svs_inv[j] * M) = d[j] * sum(v_inv * M).
-  # For 3d missing data, svs_inv[j] encodes the per-pattern weighting.
-  svs_inv <- if (!is.null(model$svs_inv)) model$svs_inv else data$svs_inv
-
-  # C++ fast path: batch computation of bxxb and vbxxb
-  svs_inv_3d <- matlist2array(svs_inv)
-  cpp_res <- compute_vbxxb_cpp(alpha_l, model$mu2[[l]], svs_inv_3d, data$d)
-  bxxb_l <- cpp_res$bxxb
-  vbxxb_l <- cpp_res$vbxxb
+  # Use precomputed bxxb/vbxxb from calculate_posterior_moments
+  cache <- model$mu2_cache[[l]]
+  bxxb_l  <- cache$bxxb
+  vbxxb_l <- cache$vbxxb
 
   eloglik <- 0.5 * (2 * term1 - vbxxb_l)
   return(list(eloglik = eloglik, bxxb = bxxb_l, vbxxb = vbxxb_l))
@@ -600,14 +638,22 @@ update_model_variance.mv_individual <- function(data, params, model) {
     # These override the data's precomputed values during SER computation.
     model$residual_variance_inv <- invert_via_chol(model$sigma2)$inv
     model$residual_correlation <- cov2cor(model$sigma2)
-    model$svs <- lapply(seq_len(data$p), function(j) {
-      res <- model$sigma2 / data$d[j]
-      res[is.nan(res) | is.infinite(res)] <- 1e6
-      res
-    })
-    model$svs_inv <- lapply(seq_len(data$p), function(j) {
-      model$residual_variance_inv * data$d[j]
-    })
+    # For common-cov, store single copy to save O(J*R^2) memory
+    if (data$is_common_cov) {
+      svs_one <- model$sigma2 / data$d[1]
+      svs_one[is.nan(svs_one) | is.infinite(svs_one)] <- 1e6
+      model$svs <- list(svs_one)
+      model$svs_inv <- list(model$residual_variance_inv * data$d[1])
+    } else {
+      model$svs <- lapply(seq_len(data$p), function(j) {
+        res <- model$sigma2 / data$d[j]
+        res[is.nan(res) | is.infinite(res)] <- 1e6
+        res
+      })
+      model$svs_inv <- lapply(seq_len(data$p), function(j) {
+        model$residual_variance_inv * data$d[j]
+      })
+    }
 
     # Recompute eigendecomposition cache if precomputation is active
     if (!is.null(model$eigen_cache))
@@ -665,13 +711,21 @@ check_convergence.mv_individual <- function(data, params, model,
     return(model)
   }
 
+  verbose <- isTRUE(params$verbose)
+
   # PIP convergence: max change in alpha across all effects
   use_pip <- identical(params$convergence_method, "pip")
+  pip_diff <- if (!is.null(tracking$convergence$prev_alpha))
+    max(abs(tracking$convergence$prev_alpha - model$alpha)) else NA
 
   if (use_pip) {
-    if (!is.null(tracking$convergence$prev_alpha)) {
-      pip_diff <- max(abs(tracking$convergence$prev_alpha - model$alpha))
+    if (!is.na(pip_diff)) {
       model$converged <- (pip_diff < params$tol)
+      vmessage(verbose,
+        sprintf("iter %3d: max|dPIP|=%.2e%s",
+                iter, pip_diff,
+                if (model$converged) " -- converged" else ""),
+        mem = TRUE)
     } else {
       model$converged <- FALSE
     }
@@ -682,17 +736,22 @@ check_convergence.mv_individual <- function(data, params, model,
   delta <- elbo[iter + 1] - tracking$convergence$prev_elbo
   if (is.na(delta) || is.infinite(delta)) {
     # Fallback to PIP convergence
-    if (!is.null(tracking$convergence$prev_alpha)) {
-      pip_diff <- max(abs(tracking$convergence$prev_alpha - model$alpha))
+    if (!is.na(pip_diff)) {
       model$converged <- (pip_diff < params$tol)
     } else {
       model$converged <- FALSE
     }
+    vmessage(verbose,
+      sprintf("iter %3d: ELBO=NA, PIP fallback, max|dPIP|=%s",
+              iter, if (!is.na(pip_diff)) sprintf("%.2e", pip_diff) else "NA"),
+      mem = TRUE)
   } else {
-    if (params$verbose) {
-      message("ELBO: ", format(elbo[iter + 1], digits = 6))
-    }
     model$converged <- (delta < params$tol)
+    vmessage(verbose,
+      sprintf("iter %3d: ELBO=%.4f, delta=%.2e%s",
+              iter, elbo[iter + 1], delta,
+              if (model$converged) " -- converged" else ""),
+      mem = TRUE)
   }
   return(model)
 }
@@ -724,9 +783,8 @@ em_update_prior_variance.mv_individual <- function(data, params, model,
   }
 
   # Fallback: simple EM using marginalized posteriors (for single-matrix K=1)
-  mu2 <- Reduce("+", lapply(seq_along(alpha), function(j) {
-    alpha[j] * moments$post_mean2[j, , ]
-  }))
+  # Use precomputed alpha_mu2_sum = sum_j alpha[j] * mu2[j,,] from em_cache
+  mu2 <- model$em_cache$alpha_mu2_sum
   scalar <- sum(diag(model$V_structure_inv[, , 1] %*% mu2)) /
             model$V_structure_rank[1]
   return(max(0, scalar))
@@ -857,8 +915,10 @@ prune_mixture_components <- function(model, threshold = 1e-8) {
   model$pi_V <- model$pi_V[keep]
   model$pi_V <- model$pi_V / sum(model$pi_V)
   model$V_structure <- model$V_structure[keep]
-  model$V_structure_3d <- model$V_structure_3d[, , keep, drop = FALSE]
-  model$V_structure_inv <- model$V_structure_inv[, , keep, drop = FALSE]
+  if (!is.null(model$V_structure_3d))
+    model$V_structure_3d <- model$V_structure_3d[, , keep, drop = FALSE]
+  if (!is.null(model$V_structure_inv))
+    model$V_structure_inv <- model$V_structure_inv[, , keep, drop = FALSE]
   model$V_structure_rank <- model$V_structure_rank[keep]
 
   # Trim pi_V_posterior and per_effect_llik columns (offset by 1 for null)
@@ -912,7 +972,7 @@ track_ibss_fit.mv_individual <- function(data, params, model,
       V      = model$V,
       sigma2 = model$sigma2,
       mu     = model$mu,
-      mu2    = model$mu2,
+      mu2_cache = model$mu2_cache,
       KL     = model$KL,
       lbf    = model$lbf,
       elbo   = elbo[iter + 1]
@@ -937,13 +997,18 @@ validate_prior.mv_individual <- function(data, params, model, ...) {
 #' @keywords internal
 trim_null_effects.mv_individual <- function(data, params, model) {
   K_plus_1 <- length(model$pi_V) + 1  # K non-null + 1 null
+  J <- ncol(model$alpha)
+  R <- dim(model$mu)[3]
   for (l in seq_len(nrow(model$alpha))) {
     # V is now a numeric scalar per effect
     if (is.na(model$V[l]) || abs(model$V[l]) < params$prior_tol) {
       model$V[l]               <- 0
-      model$alpha[l, ]         <- 1 / ncol(model$alpha)
+      model$alpha[l, ]         <- 1 / J
       model$mu[l, , ]          <- 0
-      model$mu2[[l]]           <- array(0, dim(model$mu2[[l]]))
+      model$mu2_cache[[l]]     <- list(
+        bxxb = matrix(0, R, R), vbxxb = 0,
+        alpha_mu2_sum = matrix(0, R, R), mu2_diag = matrix(0, J, R)
+      )
       model$lbf_variable[l, ]  <- 0
       model$lbf[l]             <- 0
       model$KL[l]              <- 0

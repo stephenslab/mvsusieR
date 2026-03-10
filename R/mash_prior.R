@@ -178,9 +178,12 @@ compute_prior_inv.mash_prior <- function(prior) {
 #' @return List with \code{xUlist_full_3d} (R x R x (K+1)) and
 #'   \code{pi_full} ((K+1)-vector).
 #' @keywords internal
-build_mashr_prior <- function(V_structure_3d, pi_V, null_weight, V_scalar, R) {
+build_mashr_prior <- function(V_structure, pi_V, null_weight, V_scalar, R) {
   null_mat <- array(0, c(R, R, 1))
-  V_scaled <- V_structure_3d * V_scalar
+  # V_structure can be an R×R×K array or a list of K R×R matrices.
+  # Convert list to array on-the-fly (avoids storing the 3d array permanently).
+  if (is.list(V_structure)) V_structure <- matlist2array(V_structure)
+  V_scaled <- V_structure * V_scalar
   list(
     xUlist_full_3d = abind::abind(null_mat, V_scaled, along = 3),
     pi_full = c(null_weight, pi_V * (1 - null_weight))

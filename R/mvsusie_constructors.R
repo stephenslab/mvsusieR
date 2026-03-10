@@ -232,16 +232,26 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
   # Whether all variables share the same SVS (optimization for mashr C++)
   data$is_common_cov <- (length(unique(data$d)) == 1)
 
-  # Precompute per-variable covariance matrices
+  # Precompute per-variable covariance matrices.
+  # For common-cov (all d[j] equal), store a single copy to save memory.
+  # With R=128, J=1000: full lists = 2 * J * R * R * 8 = 250 MB,
+  # compact = 2 * R * R * 8 = 0.25 MB.
   if (precompute_covariances) {
-    data$svs <- lapply(seq_len(data$p), function(j) {
-      res <- residual_variance / data$d[j]
-      res[is.nan(res) | is.infinite(res)] <- 1e6
-      res
-    })
-    data$svs_inv <- lapply(seq_len(data$p), function(j) {
-      data$residual_variance_inv * data$d[j]
-    })
+    if (data$is_common_cov) {
+      svs_one <- residual_variance / data$d[1]
+      svs_one[is.nan(svs_one) | is.infinite(svs_one)] <- 1e6
+      data$svs <- list(svs_one)
+      data$svs_inv <- list(data$residual_variance_inv * data$d[1])
+    } else {
+      data$svs <- lapply(seq_len(data$p), function(j) {
+        res <- residual_variance / data$d[j]
+        res[is.nan(res) | is.infinite(res)] <- 1e6
+        res
+      })
+      data$svs_inv <- lapply(seq_len(data$p), function(j) {
+        data$residual_variance_inv * data$d[j]
+      })
+    }
   }
 
   return(data)
@@ -363,20 +373,24 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
 
   K <- length(V_structure)
 
-  # Precompute pseudo-inverses for EM
-  inv_list <- lapply(V_structure, pseudo_inverse)
-  V_structure_inv <- matlist2array(lapply(inv_list, `[[`, "inv"))
-  V_structure_rank <- vapply(inv_list, `[[`, numeric(1), "rank")
+  # Compute ranks for EM update (cheap K-vector).
+  # V_structure_inv (R×R×K array) is deferred to slow-path only — saves
+  # K*R^2*8 bytes (17 MB for R=128, K=133) when using eigendecomposition
+  # fast path.  V_structure_3d is also deferred (same savings).
+  V_structure_rank <- vapply(V_structure, function(U) {
+    svd_d <- svd(U, nu = 0, nv = 0)$d
+    sum(svd_d > max(sqrt(.Machine$double.eps) * svd_d[1], 0))
+  }, numeric(1))
 
   model <- list(
     alpha        = matrix(1 / J, L, J),
     mu           = array(0, c(L, J, R)),
-    mu2          = vector("list", L),
+    mu2_cache    = vector("list", L),  # bxxb/vbxxb accumulated during SER
     V            = rep(V_scalar_init, L),
     # Mixture prior fields (unified for single-matrix and mixture)
     V_structure       = V_structure,       # list of K RxR matrices (non-null)
-    V_structure_3d    = matlist2array(V_structure),  # RxRxK array
-    V_structure_inv   = V_structure_inv,   # RxRxK pseudo-inverses
+    V_structure_3d    = NULL,              # built lazily for slow-path mashr C++
+    V_structure_inv   = NULL,              # built lazily for slow-path mashr C++
     V_structure_rank  = V_structure_rank,  # K-vector of ranks
     null_weight       = null_weight,       # scalar
     pi_V              = pi_V,              # K-vector (non-null weights)
@@ -396,7 +410,6 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
   )
 
   for (l in seq_len(L)) {
-    model$mu2[[l]] <- array(0, c(J, R, R))
     model$bxxb[[l]] <- matrix(0, R, R)
   }
 

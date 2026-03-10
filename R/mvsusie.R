@@ -696,10 +696,11 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
     prior_variance <- matrix(prior_variance, 1, 1)
   }
 
-  if (verbosity > 1) {
-    message("Initializing data object...")
-    message(paste("Dimension of X matrix:", nrow(X), ncol(X)))
-    message(paste("Dimension of Y matrix:", nrow(Y), ncol(Y)))
+  verbose <- verbosity > 1
+  if (verbose) {
+    vmessage(TRUE,
+      sprintf("mvsusie: N=%d, J=%d, R=%d, L=%d", nrow(X), ncol(X), R, L),
+      mem = TRUE)
   }
 
   # Validate missing_y_method and apply upfront overrides.
@@ -749,11 +750,18 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
 
   # Set residual variance (also triggers standardize_3d for approximate/exact)
   data <- set_mvsusie_residual_variance(data, residual_variance)
+  vmessage(verbose, "Residual variance set, common_cov=", data$is_common_cov,
+           mem = TRUE)
 
   # Compute prior inverses for EM (mixture priors)
   if (is_mash_prior && estimate_prior_variance &&
       estimate_prior_method == "EM") {
     prior_variance <- compute_prior_inv.mash_prior(prior_variance)
+  }
+
+  if (verbose && is_mash_prior) {
+    vmessage(TRUE, "Prior: K=", length(prior_variance$xUlist),
+             " mixture components", mem = TRUE)
   }
 
   # When Y has missing data, use PIP convergence. ELBO is not guaranteed

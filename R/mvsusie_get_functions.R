@@ -35,11 +35,10 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
   # ----- b2: alpha-weighted diag of second moment (L x J x R) -----
   b2 <- array(0, c(L, J, R))
   for (l in seq_len(L)) {
-    # mu2[[l]] is J x R x R; extract diagonal for each variable
-    for (j in seq_len(J)) {
-      mu2_j <- s$mu2[[l]][j, , , drop = FALSE]
-      dim(mu2_j) <- c(R, R)
-      b2[l, j, ] <- s$alpha[l, j] * diag(mu2_j)
+    # mu2_cache[[l]]$mu2_diag is J x R (diagonal of E[b^2])
+    cache_l <- s$mu2_cache[[l]]
+    if (!is.null(cache_l) && !is.null(cache_l$mu2_diag)) {
+      b2[l, , ] <- s$alpha[l, ] * cache_l$mu2_diag
     }
   }
 
@@ -210,9 +209,11 @@ apply_mvsusie_dimnames <- function(s) {
 multivariate_lbf <- function(betahat, S, U) {
   # Log Bayes factor per variable: log p(bhat|H1) - log p(bhat|H0)
   # Using dmvnorm for numerical stability
-  lbf <- sapply(seq_along(S), function(j) {
-    mvtnorm::dmvnorm(x = betahat[j, ], sigma = S[[j]] + U, log = TRUE) -
-      mvtnorm::dmvnorm(x = betahat[j, ], sigma = S[[j]], log = TRUE)
+  J <- nrow(betahat)
+  lbf <- sapply(seq_len(J), function(j) {
+    S_j <- S[[min(j, length(S))]]
+    mvtnorm::dmvnorm(x = betahat[j, ], sigma = S_j + U, log = TRUE) -
+      mvtnorm::dmvnorm(x = betahat[j, ], sigma = S_j, log = TRUE)
   })
   lbf[is.nan(lbf)] <- 0
   return(lbf)

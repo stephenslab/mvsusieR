@@ -73,15 +73,10 @@ SER_posterior_e_loglik.mv_ss <- function(data, params, model, l) {
     term1 <- v_inv * sum(alpha_l * mu_l * model$residuals)
   }
 
-  bxxb_l <- matrix(0, R, R)
-  vbxxb_l <- 0
-  for (j in seq_len(data$p)) {
-    mu2_j <- model$mu2[[l]][j, , , drop = FALSE]
-    dim(mu2_j) <- c(R, R)
-    pb2_j <- alpha_l[j] * mu2_j
-    bxxb_l <- bxxb_l + data$d[j] * pb2_j
-    vbxxb_l <- vbxxb_l + data$d[j] * sum(v_inv * pb2_j)
-  }
+  # Use precomputed bxxb/vbxxb from calculate_posterior_moments
+  cache <- model$mu2_cache[[l]]
+  bxxb_l  <- cache$bxxb
+  vbxxb_l <- cache$vbxxb
 
   eloglik <- 0.5 * (2 * term1 - vbxxb_l)
   return(list(eloglik = eloglik, bxxb = bxxb_l, vbxxb = vbxxb_l))
@@ -108,14 +103,22 @@ update_model_variance.mv_ss <- function(data, params, model) {
     # Recompute svs/svs_inv and store in MODEL (not data, since data is immutable).
     model$residual_variance_inv <- invert_via_chol(model$sigma2)$inv
     model$residual_correlation <- cov2cor(model$sigma2)
-    model$svs <- lapply(seq_len(data$p), function(j) {
-      res <- model$sigma2 / data$d[j]
-      res[is.nan(res) | is.infinite(res)] <- 1e6
-      res
-    })
-    model$svs_inv <- lapply(seq_len(data$p), function(j) {
-      model$residual_variance_inv * data$d[j]
-    })
+    # For common-cov, store single copy to save O(J*R^2) memory
+    if (data$is_common_cov) {
+      svs_one <- model$sigma2 / data$d[1]
+      svs_one[is.nan(svs_one) | is.infinite(svs_one)] <- 1e6
+      model$svs <- list(svs_one)
+      model$svs_inv <- list(model$residual_variance_inv * data$d[1])
+    } else {
+      model$svs <- lapply(seq_len(data$p), function(j) {
+        res <- model$sigma2 / data$d[j]
+        res[is.nan(res) | is.infinite(res)] <- 1e6
+        res
+      })
+      model$svs_inv <- lapply(seq_len(data$p), function(j) {
+        model$residual_variance_inv * data$d[j]
+      })
+    }
 
     # Recompute eigendecomposition cache if precomputation is active
     if (!is.null(model$eigen_cache))

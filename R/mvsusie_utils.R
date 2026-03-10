@@ -1,7 +1,28 @@
 # Utility functions for mvsusieR.
 #
 # Includes matrix operations, numerical helpers, benchmarking tools,
-# and lfsr computation functions.
+# verbose diagnostics, and lfsr computation functions.
+
+# =============================================================================
+# VERBOSE DIAGNOSTICS
+# =============================================================================
+
+# Report R process memory usage (MB). Uses gc() which is cheap.
+mem_used_mb <- function() {
+  gc_info <- gc(verbose = FALSE, reset = FALSE)
+  sum(gc_info[, "(Mb)"])
+}
+
+# One-line verbose message with optional memory report.
+# @param verbose Logical; skip if FALSE.
+# @param ... Passed to message().
+# @param mem Logical; if TRUE, append memory usage.
+vmessage <- function(verbose, ..., mem = FALSE) {
+  if (!isTRUE(verbose)) return(invisible(NULL))
+  msg <- paste0(...)
+  if (mem) msg <- paste0(msg, sprintf(" [mem: %.0f MB]", mem_used_mb()))
+  message(msg)
+}
 
 # chol decomposition without warning message.
 muffled_chol <- function(x, ...) {
@@ -578,27 +599,46 @@ loglik_precomputed_R <- function(betahat, V_scalar, eigen_cache) {
 #   for EM update (from compute_variable_posterior_weights). NULL if EM
 #   not needed.
 #
-# @return list(post_mean, post_mean2, post_neg, post_zero, prior_scale_em_update)
+# @param reduce_params If non-NULL, a list(alpha, d, v_inv) for computing
+#   reduced statistics (bxxb, vbxxb, alpha_mu2_sum, mu2_diag) instead of
+#   the full J x R x R post_mean2 array.  Saves O(J*R^2) memory.
+# @return list with post_mean, post_neg, post_zero, prior_scale_em_update,
+#   and either post_mean2 (when reduce_params is NULL) or reduced statistics.
 posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
-                                  em_var_wt = NULL) {
+                                  em_var_wt = NULL, reduce_params = NULL) {
   if (!eigen_cache$is_common_cov) {
     # C++ fast path for non-common-cov (eliminates K*J R-level loops)
     em_wt <- if (!is.null(em_var_wt)) em_var_wt else matrix(0, 0, 0)
-    return(posterior_non_common_cpp(betahat, V_scalar,
-                                    eigen_cache$components,
-                                    pi_V_post, em_wt))
+    result <- posterior_non_common_cpp(betahat, V_scalar,
+                                       eigen_cache$components,
+                                       pi_V_post, em_wt)
+    # Reduce if requested (post_mean2 was allocated in C++; compute stats, free it)
+    if (!is.null(reduce_params)) {
+      result <- reduce_post_mean2(result, reduce_params)
+    }
+    return(result)
   }
 
-  # Common-cov path: BLAS-vectorized over J, C++ for post_mean2 J-loop
+  # Common-cov path: BLAS-vectorized over J
   J <- nrow(betahat)
   R <- ncol(betahat)
   K <- length(eigen_cache$components)
+  do_reduce <- !is.null(reduce_params)
 
   post_mean  <- matrix(0, J, R)
-  post_mean2 <- array(0, c(J, R, R))
   post_neg   <- matrix(0, J, R)
   post_zero  <- matrix(0, J, R)
   em_update  <- numeric(K + 1)
+
+  if (do_reduce) {
+    alpha <- reduce_params$alpha
+    d_var <- reduce_params$d
+    bxxb <- matrix(0, R, R)
+    alpha_mu2_sum <- matrix(0, R, R)
+    mu2_diag <- matrix(0, J, R)   # diagonal of second moment: E[b_{j,r}^2]
+  } else {
+    post_mean2 <- array(0, c(J, R, R))
+  }
 
   # Null component: beta = 0 exactly
   w_null <- pi_V_post[, 1]
@@ -628,8 +668,30 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
     # Accumulate posterior mean
     post_mean <- post_mean + w_k * M_k
 
-    # Accumulate post_mean2 via C++ (replaces R-level J-loop)
-    post_mean2 <- accumulate_post_mean2_common_cpp(post_mean2, M_k, C_k, w_k)
+    if (do_reduce) {
+      # Accumulate bxxb, alpha_mu2_sum, mu2_diag using BLAS (no J x R x R)
+      aw_k  <- alpha * w_k         # J-vector
+      daw_k <- d_var * aw_k        # J-vector
+
+      # C_k contribution (R x R, same for all j)
+      bxxb          <- bxxb          + sum(daw_k) * C_k
+      alpha_mu2_sum <- alpha_mu2_sum + sum(aw_k) * C_k
+
+      # Outer product contributions via BLAS crossprod: sum_j wt_j * M_kj M_kj'
+      sqrt_daw <- sqrt(daw_k)
+      bxxb <- bxxb + crossprod(sqrt_daw * M_k)           # R x R
+      sqrt_aw <- sqrt(aw_k)
+      alpha_mu2_sum <- alpha_mu2_sum + crossprod(sqrt_aw * M_k)
+
+      # mu2_diag: E[b_{j,r}^2] contribution from component k
+      # mu2_diag[j,r] += w_k[j] * (C_k[r,r] + M_k[j,r]^2)
+      diag_Ck <- diag(C_k)
+      mu2_diag <- mu2_diag + w_k * matrix(diag_Ck, J, R, byrow = TRUE) +
+                  w_k * M_k^2
+    } else {
+      # Build full J x R x R post_mean2 via C++
+      post_mean2 <- accumulate_post_mean2_common_cpp(post_mean2, M_k, C_k, w_k)
+    }
 
     # Sign probabilities for LFSR
     diag_Ck <- diag(C_k)
@@ -651,13 +713,58 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
     em_update[k + 1] <- sum(em_wt * (tr_term + em_per_var))
   }
 
-  list(
+  result <- list(
     post_mean  = post_mean,
-    post_mean2 = post_mean2,
     post_neg   = post_neg,
     post_zero  = post_zero,
     prior_scale_em_update = em_update
   )
+
+  if (do_reduce) {
+    # vbxxb = tr(v_inv * bxxb) for common-cov (svs_inv[j] = d[j]*v_inv)
+    v_inv <- reduce_params$v_inv
+    result$bxxb          <- bxxb
+    result$vbxxb         <- sum(v_inv * bxxb)
+    result$alpha_mu2_sum <- alpha_mu2_sum
+    result$mu2_diag      <- mu2_diag
+  } else {
+    result$post_mean2 <- post_mean2
+  }
+
+  return(result)
+}
+
+# Reduce a full J x R x R post_mean2 to summary statistics.
+# Used for non-common-cov path where C++ builds the full array.
+reduce_post_mean2 <- function(post_result, reduce_params) {
+  alpha   <- reduce_params$alpha
+  d_var   <- reduce_params$d
+  svs_inv <- reduce_params$svs_inv  # list of J (or 1 for common-cov) R x R matrices
+  pm2     <- post_result$post_mean2
+  J       <- length(alpha)
+  R       <- ncol(post_result$post_mean)
+
+  bxxb          <- matrix(0, R, R)
+  alpha_mu2_sum <- matrix(0, R, R)
+  vbxxb         <- 0
+  mu2_diag      <- matrix(0, J, R)
+
+  for (j in seq_len(J)) {
+    mu2_j <- pm2[j, , ]
+    if (!is.matrix(mu2_j)) dim(mu2_j) <- c(R, R)
+    a_j <- alpha[j]
+    bxxb          <- bxxb + d_var[j] * a_j * mu2_j
+    alpha_mu2_sum <- alpha_mu2_sum + a_j * mu2_j
+    vbxxb         <- vbxxb + a_j * sum(svs_inv[[min(j, length(svs_inv))]] * mu2_j)
+    mu2_diag[j, ] <- diag(mu2_j)
+  }
+
+  post_result$post_mean2    <- NULL   # free J x R x R
+  post_result$bxxb          <- bxxb
+  post_result$vbxxb         <- vbxxb
+  post_result$alpha_mu2_sum <- alpha_mu2_sum
+  post_result$mu2_diag      <- mu2_diag
+  return(post_result)
 }
 
 # R fallback for posterior_precomputed (for testing)
