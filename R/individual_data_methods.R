@@ -1228,7 +1228,7 @@ compute_multivariate_elbo <- function(data, model) {
   # Constant: -N*R/2*log(2*pi) - N/2*log|sigma2|
   loglik <- -N * R / 2 * log(2 * pi)
   if (is.matrix(model$sigma2)) {
-    loglik <- loglik - N / 2 * chol2ldet(chol(model$sigma2))
+    loglik <- loglik - N / 2 * log_det_sym(model$sigma2)
   } else {
     loglik <- loglik - N * R / 2 * log(model$sigma2)
   }

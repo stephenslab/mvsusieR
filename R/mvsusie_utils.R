@@ -8,36 +8,64 @@ mem_used_mb <- function() {
   sum(gc_info[, "(Mb)"])
 }
 
-# chol decomposition without warning message.
-muffled_chol <- function(x, ...) {
-  withCallingHandlers(chol(x, ...),
-    warning = function(w) {
-      if (grepl("the matrix is either rank-deficient or indefinite", w$message)) {
-        invokeRestart("muffleWarning")
-      }
-    }
+# Cholesky decomposition with automatic ridge fallback.
+#
+# Tries plain Cholesky first, suppressing rank-deficiency warnings.
+# If Cholesky fails, adds a small ridge (proportional to the matrix
+# diagonal) and retries. Issues an R warning when ridge is applied.
+safe_chol <- function(x, ...) {
+  res <- tryCatch(
+    withCallingHandlers(chol(x, ...),
+      warning = function(w) {
+        if (grepl("rank-deficient or indefinite", w$message))
+          invokeRestart("muffleWarning")
+      }),
+    error = function(e) NULL
   )
+  if (!is.null(res)) return(res)
+  ridge <- max(abs(diag(x))) * sqrt(.Machine$double.eps)
+  warning("Cholesky failed; adding ridge ", signif(ridge, 3),
+          " to diagonal", call. = FALSE)
+  chol(x + ridge * diag(nrow(x)), ...)
 }
 
 # Invert a symmetric, positive definite square matrix via its Cholesky
 # decomposition. Falls back to SVD pseudo-inverse if Cholesky fails.
+# Uses plain chol() (not safe_chol) so that truly singular matrices
+# correctly fall through to SVD pseudo-inverse with proper rank.
 invert_via_chol <- function(x) {
   if (all(x == 0)) {
     return(list(inv = x, rank = 0))
   }
-  tryCatch(
-    list(inv = chol2inv(muffled_chol(x)), rank = nrow(x)),
-    error = function(e) {
-      # Cholesky failed -> fall back to SVD pseudo-inverse
-      pseudo_inverse(x)
-    }
+  ch <- tryCatch(
+    withCallingHandlers(chol(x),
+      warning = function(w) {
+        if (grepl("rank-deficient or indefinite", w$message))
+          invokeRestart("muffleWarning")
+      }),
+    error = function(e) NULL
   )
+  if (!is.null(ch)) {
+    return(list(inv = chol2inv(ch), rank = nrow(x)))
+  }
+  # Cholesky failed -> fall back to SVD pseudo-inverse
+  warning("Cholesky failed for ", nrow(x), "x", ncol(x),
+          " matrix; falling back to SVD pseudo-inverse", call. = FALSE)
+  pseudo_inverse(x)
 }
 
 # Log-determinant from upper Cholesky factor: log(det(A)) = 2 * sum(log(diag(chol(A)))).
 # Borrowed from mr.mash (misc.R).
 chol2ldet <- function(R) {
   2 * sum(log(diag(R)))
+}
+
+# Log-determinant of a symmetric PSD matrix via eigenvalues.
+# Handles rank-deficient matrices (e.g. when N < R and sigma2 is
+# re-estimated) without requiring Cholesky factorization.
+log_det_sym <- function(x) {
+  eig <- eigen(x, symmetric = TRUE, only.values = TRUE)$values
+  sum(log(pmax(eig, .Machine$double.xmin)))
 }
 
 # Check if a matrix is positive definite (Cholesky succeeds).
@@ -384,7 +412,7 @@ eigendecompose_one_pair <- function(SVS, U) {
   R <- nrow(SVS)
 
   # Cholesky: R's chol() returns upper triangular; we need lower.
-  L_upper <- muffled_chol(SVS)
+  L_upper <- safe_chol(SVS)
   L <- t(L_upper)
   log_det_svs <- chol2ldet(L_upper)
 
