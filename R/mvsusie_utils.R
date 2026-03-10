@@ -1,27 +1,11 @@
 # Utility functions for mvsusieR.
 #
-# Includes matrix operations, numerical helpers, benchmarking tools,
-# verbose diagnostics, and lfsr computation functions.
-
-# =============================================================================
-# VERBOSE DIAGNOSTICS
-# =============================================================================
+# Includes matrix operations, numerical helpers, and lfsr computation functions.
 
 # Report R process memory usage (MB). Uses gc() which is cheap.
 mem_used_mb <- function() {
   gc_info <- gc(verbose = FALSE, reset = FALSE)
   sum(gc_info[, "(Mb)"])
-}
-
-# One-line verbose message with optional memory report.
-# @param verbose Logical; skip if FALSE.
-# @param ... Passed to message().
-# @param mem Logical; if TRUE, append memory usage.
-vmessage <- function(verbose, ..., mem = FALSE) {
-  if (!isTRUE(verbose)) return(invisible(NULL))
-  msg <- paste0(...)
-  if (mem) msg <- paste0(msg, sprintf(" [mem: %.0f MB]", mem_used_mb()))
-  message(msg)
 }
 
 # chol decomposition without warning message.
@@ -428,7 +412,8 @@ eigendecompose_one_pair <- function(SVS, U) {
 #
 # @return list(is_common_cov, log_det_svs, components)
 #   components: length-K list, each with Q, G, eigenvalues
-precompute_eigen_cache <- function(svs, V_structure, is_common_cov) {
+precompute_eigen_cache <- function(svs, V_structure, is_common_cov,
+                                    max_cache_gb = 8) {
   K <- length(V_structure)
 
   if (is_common_cov) {
@@ -443,6 +428,18 @@ precompute_eigen_cache <- function(svs, V_structure, is_common_cov) {
       components    = components
     )
   } else {
+    # Memory guard: non-common-cov stores K cubes of R x R x J each for
+    # Q and G arrays.  For large R/J/K this can exceed available memory.
+    J <- length(svs)
+    R <- nrow(svs[[1]])
+    cache_bytes <- K * 2 * R * R * J * 8  # Q + G cubes
+    cache_gb <- cache_bytes / 1e9
+    if (cache_gb > max_cache_gb) {
+      message("Eigen cache would use ~", round(cache_gb, 1),
+              " GB (K=", K, ", R=", R, ", J=", J,
+              "); skipping precomputation (falling back to mashr C++).")
+      return(NULL)
+    }
     # C++ fast path: batch K*J eigendecompositions with Cholesky caching
     return(precompute_eigen_cache_non_common_cpp(svs, V_structure))
   }

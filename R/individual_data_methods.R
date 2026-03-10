@@ -124,21 +124,22 @@ ibss_initialize.mv_individual <- function(data, params) {
   model$converged <- FALSE
 
   # Trigger eigendecomposition precomputation if requested
+  verbose <- isTRUE(params$verbose)
   if (isTRUE(params$precompute_eigendecomp)) {
     svs <- if (!is.null(model$svs)) model$svs else data$svs
     model$eigen_cache <- precompute_eigen_cache(
       svs, model$V_structure, data$is_common_cov)
-    vmessage(params$verbose,
-      "Eigendecomposition cache: K=", length(model$V_structure),
-      ", common_cov=", data$is_common_cov, mem = TRUE)
+    if (verbose) {
+      message("Eigendecomposition cache: K=", length(model$V_structure),
+              ", common_cov=", data$is_common_cov,
+              " [mem: ", round(mem_used_mb()), " MB]")
+    }
   }
 
-  verbose <- isTRUE(params$verbose)
   if (verbose) {
     K <- length(model$V_structure)
-    vmessage(TRUE,
-      sprintf("Model initialized: J=%d, R=%d, L=%d, K=%d",
-              data$p, data$R, params$L, K), mem = TRUE)
+    message(sprintf("Model initialized: J=%d, R=%d, L=%d, K=%d [mem: %.0f MB]",
+                    data$p, data$R, params$L, K, mem_used_mb()))
   }
 
   # Initial imputation for R>1 missing data (variational EM E-step).
@@ -721,11 +722,12 @@ check_convergence.mv_individual <- function(data, params, model,
   if (use_pip) {
     if (!is.na(pip_diff)) {
       model$converged <- (pip_diff < params$tol)
-      vmessage(verbose,
-        sprintf("iter %3d: max|dPIP|=%.2e%s",
-                iter, pip_diff,
-                if (model$converged) " -- converged" else ""),
-        mem = TRUE)
+      if (verbose) {
+        message(sprintf("iter %3d: max|dPIP|=%.2e%s [mem: %.0f MB]",
+                        iter, pip_diff,
+                        if (model$converged) " -- converged" else "",
+                        mem_used_mb()))
+      }
     } else {
       model$converged <- FALSE
     }
@@ -741,17 +743,20 @@ check_convergence.mv_individual <- function(data, params, model,
     } else {
       model$converged <- FALSE
     }
-    vmessage(verbose,
-      sprintf("iter %3d: ELBO=NA, PIP fallback, max|dPIP|=%s",
-              iter, if (!is.na(pip_diff)) sprintf("%.2e", pip_diff) else "NA"),
-      mem = TRUE)
+    if (verbose) {
+      message(sprintf("iter %3d: ELBO=NA, PIP fallback, max|dPIP|=%s [mem: %.0f MB]",
+                      iter,
+                      if (!is.na(pip_diff)) sprintf("%.2e", pip_diff) else "NA",
+                      mem_used_mb()))
+    }
   } else {
     model$converged <- (delta < params$tol)
-    vmessage(verbose,
-      sprintf("iter %3d: ELBO=%.4f, delta=%.2e%s",
-              iter, elbo[iter + 1], delta,
-              if (model$converged) " -- converged" else ""),
-      mem = TRUE)
+    if (verbose) {
+      message(sprintf("iter %3d: ELBO=%.4f, delta=%.2e%s [mem: %.0f MB]",
+                      iter, elbo[iter + 1], delta,
+                      if (model$converged) " -- converged" else "",
+                      mem_used_mb()))
+    }
   }
   return(model)
 }

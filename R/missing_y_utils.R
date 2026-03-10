@@ -813,10 +813,12 @@ compute_svs_inv_j <- function(j, method, R_dim, K, Vinv, obs_r_list,
 }
 
 
-# Check if all elements of a list of matrices are identical.
+# Check if all elements of a list of matrices are (approximately) identical.
 # Used for is_common_cov check with missing data.
-is_list_common_3d <- function(lst) {
+is_list_common_3d <- function(lst, tol = 1e-10) {
   if (length(lst) <= 1) return(TRUE)
   ref <- lst[[1]]
-  all(vapply(lst[-1], function(x) identical(x, ref), logical(1)))
+  ref_norm <- max(abs(ref))
+  if (ref_norm == 0) ref_norm <- 1
+  all(vapply(lst[-1], function(x) max(abs(x - ref)) / ref_norm < tol, logical(1)))
 }

@@ -698,9 +698,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
 
   verbose <- verbosity > 1
   if (verbose) {
-    vmessage(TRUE,
-      sprintf("mvsusie: N=%d, J=%d, R=%d, L=%d", nrow(X), ncol(X), R, L),
-      mem = TRUE)
+    message(sprintf("mvsusie: N=%d, J=%d, R=%d, L=%d [mem: %.0f MB]",
+                    nrow(X), ncol(X), R, L, mem_used_mb()))
   }
 
   # Validate missing_y_method and apply upfront overrides.
@@ -750,8 +749,10 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
 
   # Set residual variance (also triggers standardize_3d for approximate/exact)
   data <- set_mvsusie_residual_variance(data, residual_variance)
-  vmessage(verbose, "Residual variance set, common_cov=", data$is_common_cov,
-           mem = TRUE)
+  if (verbose) {
+    message("Residual variance set, common_cov=", data$is_common_cov,
+            " [mem: ", round(mem_used_mb()), " MB]")
+  }
 
   # Compute prior inverses for EM (mixture priors)
   if (is_mash_prior && estimate_prior_variance &&
@@ -760,8 +761,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   }
 
   if (verbose && is_mash_prior) {
-    vmessage(TRUE, "Prior: K=", length(prior_variance$xUlist),
-             " mixture components", mem = TRUE)
+    message("Prior: K=", length(prior_variance$xUlist),
+            " mixture components [mem: ", round(mem_used_mb()), " MB]")
   }
 
   # When Y has missing data, use PIP convergence. ELBO is not guaranteed

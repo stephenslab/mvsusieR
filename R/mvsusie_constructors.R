@@ -229,8 +229,11 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
     return(data)
   }
 
-  # Whether all variables share the same SVS (optimization for mashr C++)
-  data$is_common_cov <- (length(unique(data$d)) == 1)
+  # Whether all variables share the same SVS (optimization for mashr C++).
+  # After standardization d[j] should be N-1 for all j, but floating point
+  # imprecision can produce tiny differences.  
+  data$is_common_cov <- length(unique(round(
+    data$d / sqrt(.Machine$double.eps)))) == 1
 
   # Precompute per-variable covariance matrices.
   # For common-cov (all d[j] equal), store a single copy to save memory.
