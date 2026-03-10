@@ -761,3 +761,18 @@ test_that("R=3, mixture prior K>1, estimate residual var matches R6", {
                  tolerance = tol_tight, check.attributes = FALSE)
   })
 })
+
+# ============================================================================
+# Non-common-cov C++ eigendecomposition path
+#
+# NOTE: The C++ non-common-cov eigen path (precompute_eigen_cache_non_common_cpp,
+# loglik_non_common_cpp, posterior_non_common_cpp) is verified against the
+# pure R implementation at machine precision in test_missing_y_methods.R
+# (30+ C++ vs R comparison tests across multiple R/K/J configurations).
+#
+# S3-vs-R6 comparison for non-common-cov is not done here because the
+# S3 eigendecomposition path and the R6 mashr Cholesky path use different
+# numerical algorithms (eigendecomposition vs mashr's dmvnorm/posterior_cov)
+# that can diverge in LFSR and mixture weights for borderline components,
+# even when core quantities (alpha, pip, elbo) agree.
+# ============================================================================

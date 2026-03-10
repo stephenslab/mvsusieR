@@ -4,7 +4,13 @@
 \alias{create_mvsusie_data}
 \title{Create multivariate dense data object}
 \usage{
-create_mvsusie_data(X, Y, center = TRUE, scale = TRUE)
+create_mvsusie_data(
+  X,
+  Y,
+  center = TRUE,
+  scale = TRUE,
+  missing_y_method = "approximate"
+)
 }
 \arguments{
 \item{X}{N x J matrix of covariates.}

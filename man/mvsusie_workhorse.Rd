@@ -15,6 +15,7 @@ mvsusie_workhorse(
   estimate_prior_mixture_weights = FALSE,
   mixture_weight_method = "mixsqp",
   check_null_threshold = 0,
+  convergence_method = "elbo",
   max_iter = 100,
   tol = 0.001,
   prior_tol = 1e-09,

@@ -6,7 +6,7 @@ Version: 0.2.0
 Title: Multivariate Sum of Single Effects Regression
 Description: Implements a multivariate generalization of the "Sum of
   Single Effects" (SuSiE) model for variable selection in multivariate
-  linear regression as described in Y. Zhou, P. Carbonetto, D. Xie, 
+  linear regression as described in Y. Zou, P. Carbonetto, D. Xie, 
   G. Wang & M. Stephens (2026) <doi:10.5281/zenodo.8088040>.
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="wang.gao@columbia.edu"),

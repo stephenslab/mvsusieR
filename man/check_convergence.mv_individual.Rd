@@ -2,15 +2,14 @@
 % Please edit documentation in R/individual_data_methods.R
 \name{check_convergence.mv_individual}
 \alias{check_convergence.mv_individual}
-\title{Check IBSS convergence via ELBO increment.}
+\title{Check IBSS convergence.}
 \usage{
 check_convergence.mv_individual(data, params, model, elbo, iter, tracking)
 }
 \description{
-The ELBO is guaranteed monotone for standard updates (SER, prior variance
-estimation, mixture weight updates). Small ELBO drops may occur when:
-(1) missing data imputation adjusts the Y_cov correction term, or
-(2) mixture component pruning removes near-zero-weight components.
-In these cases the fallback to PIP convergence ensures robustness.
+Uses the convergence criterion set in params: "PIP" checks max change
+in posterior inclusion probabilities, "ELBO" checks the ELBO increment.
+PIP convergence is set upfront for approximate/exact missing data methods.
+ELBO convergence falls back to PIP when ELBO is NA or infinite.
 }
 \keyword{internal}

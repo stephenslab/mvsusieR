@@ -4,34 +4,47 @@
 
 Implements a multivariate generalization of the "Sum of Single
 Effects" (SuSiE) model for variable selection in multivariate linear
-regression. Go [here][pkgdown-site] for documentation and tutorials.
-  
+regression (Y = XB + E, where Y is N x R). The methods are
+particularly well-suited to settings where some of the X variables
+are highly correlated, the true effects are sparse, and effects may
+be shared across multiple conditions (traits). A major motivation is
+multi-trait genetic fine-mapping, but the methods are applicable more
+generally.
+
+Go [here][pkgdown-site] for documentation and tutorials.
+
 ## Setup
 
-To install the latest version of the mvsusieR package from GitHub, run
-the following code in R:
+To install the latest version of the mvsusieR package from GitHub:
 
 ```R
-install.packages("remotes")
-library(remotes)
-install_github("stephenslab/mvsusieR")
+# install.packages("remotes")
+remotes::install_github("stephenslab/mvsusieR")
 ```
 
 This command should automatically install all required packages if
 they are not installed already.
 
-Note that mvsusieR uses [mashr][mashr], which in turn requires the GNU
-Scientific libraries (GSL). You may want to install mashr first before
+Note that mvsusieR depends on [mashr][mashr], which requires the GNU
+Scientific Library (GSL). You may want to install mashr first before
 attempting to install mvsusieR.
+
+## Citing this work
+
+If you find the `mvsusieR` package useful for your work, please cite:
+
+> Zou, Y., Carbonetto, P., Xie, D., Wang, G. & Stephens, M. (2026).
+> Fast and flexible joint fine-mapping of multiple traits via the Sum
+> of Single Effects model. *Nature Genetics* **58**, 454-462.
+> https://doi.org/10.1038/s41588-025-02486-7
 
 ## Developer notes
 
-+ When any changes are made to `roxygen2` markup, simply run 
++ When any changes are made to `roxygen2` markup, run
 `devtools::document()` to update package `NAMESPACE`
 and documentation files.
 
-+ To install and test the package, run the following commands
-in the shell:
++ To install and test the package:
 
     ```bash
     VERSION=`grep Version DESCRIPTION | awk '{print $2}'`
@@ -42,13 +55,5 @@ in the shell:
 
 + Run `pkgdown::build_site()` to build the pkgdown site.
 
-
-+ To format R codes in the `R` folder,
-
-   ```bash
-   for i in `ls R/*.R`; do bash inst/misc/format_r_code.sh $i; done
-   ```
-
 [pkgdown-site]: https://stephenslab.github.io/mvsusieR/
-[prediction-vignette]: https://stephenslab.github.io/mvsusieR/articles/prediction.html
 [mashr]: https://github.com/stephenslab/mashr
