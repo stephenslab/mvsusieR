@@ -23,7 +23,8 @@ NULL
 #' @importFrom matrixStats colSds
 #'
 #' @keywords internal
-create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
+create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE,
+                                missing_y_method = "approximate") {
   is_numeric_matrix(X, "X")
   if (is.null(dim(Y))) {
     Y <- matrix(Y, length(Y), 1)
@@ -45,6 +46,21 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
   Y_missing <- is.na(Y)
   Y_has_missing <- any(Y_missing)
 
+  # Determine whether to use the per-condition (3d) missing data path.
+  # This is active when method is "approximate" or "exact", Y has missing
+  # entries, and R > 1.
+  use_missing_3d <- missing_y_method %in% c("approximate", "exact") &&
+    Y_has_missing && R > 1
+
+  # Initialize per-condition missing data structure BEFORE centering,
+  # using the raw X and Y. The 3d path handles its own centering/scaling
+  # in standardize_3d (called from set_residual_variance_3d).
+  missing_y <- NULL
+  if (use_missing_3d) {
+    missing_y <- init_missing_data_3d(X, Y, Y_missing, R,
+                                       method = missing_y_method)
+  }
+
   # For missing data in Y, center/scale using observed rows only so that
   # the result matches fitting on the subset of complete observations.
   if (Y_has_missing && R == 1) {
@@ -62,7 +78,10 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
   csd[csd == 0] <- 1
 
   # Y column means (for intercept recovery)
-  if (R == 1) {
+  # For the 3d path, Y centering is deferred to standardize_3d.
+  if (use_missing_3d) {
+    Y_mean <- rep(0, R)  # placeholder; updated by standardize_3d
+  } else if (R == 1) {
     Y_mean <- mean(Y[obs, 1])
   } else {
     Y_mean <- colMeans(Y, na.rm = TRUE)
@@ -71,10 +90,13 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
   # Center
   if (center) {
     X <- t(t(X) - cm)
-    Y <- t(t(Y) - Y_mean)
+    if (!use_missing_3d) {
+      # Standard path: center Y globally
+      Y <- t(t(Y) - Y_mean)
+    }
   } else {
     cm <- rep(0, J)
-    Y_mean <- rep(0, R)
+    if (!use_missing_3d) Y_mean <- rep(0, R)
   }
 
   # Replace NAs with 0 AFTER centering so missing observations
@@ -97,7 +119,8 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
 
   # Extract missingness patterns for R>1 variational imputation.
   # For R=1, complete-case (zero-fill) approach is used instead.
-  if (Y_has_missing && R > 1) {
+  # Not needed when using the 3d path (patterns are stored in missing_y).
+  if (Y_has_missing && R > 1 && !use_missing_3d) {
     miss_info <- extract_missing_patterns(Y_missing)
   } else {
     miss_info <- NULL
@@ -114,9 +137,10 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE) {
     cm      = cm,
     csd     = csd,
     Y_mean  = Y_mean,
-    Y_has_missing  = Y_has_missing,
-    Y_missing      = Y_missing,
-    miss_info      = miss_info,
+    any_missing    = Y_has_missing,
+    Y_na           = Y_missing,
+    impute_info    = miss_info,
+    miss3d         = missing_y,
     # Computed lazily or by set_mvsusie_residual_variance
     residual_variance     = NULL,
     residual_variance_inv = NULL,
@@ -147,12 +171,12 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
 
   if (is.null(residual_variance)) {
     if (R > 1) {
-      if (!data$Y_has_missing) {
+      if (!data$any_missing) {
         residual_variance <- cov(data$Y)
       } else {
         # Restore NAs for flash-based covariance estimation
         Y_with_na <- data$Y
-        Y_with_na[data$Y_missing] <- NA
+        Y_with_na[data$Y_na] <- NA
         residual_variance <- compute_cov_flash(Y_with_na)
       }
     } else {
@@ -185,6 +209,13 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
 
   # Residual correlation matrix for mashr C++
   data$residual_correlation <- cov2cor(residual_variance)
+
+  # Per-condition missing data path: compute per-pattern precision,
+  # standardize X_3d and Y, and compute per-variable svs/svs_inv.
+  if (!is.null(data$miss3d)) {
+    data <- set_residual_variance_3d(data, residual_variance)
+    return(data)
+  }
 
   # Whether all variables share the same SVS (optimization for mashr C++)
   data$is_common_cov <- (length(unique(data$d)) == 1)
@@ -263,7 +294,7 @@ create_mvsusie_ss_data <- function(XtX, XtY, YtY, N,
     csd     = csd,
     X_colmeans = X_colmeans,
     Y_colmeans = Y_colmeans,
-    Y_has_missing = FALSE,
+    any_missing = FALSE,
     residual_variance     = NULL,
     residual_variance_inv = NULL,
     svs     = NULL,
@@ -369,7 +400,7 @@ initialize_susie_model.mv_ss <- function(data, params, var_y, ...) {
 #' @keywords internal
 initialize_fitted.mv_individual <- function(data, mat_init, ...) {
   b <- compute_posterior_mean_sum_from_init(mat_init)
-  list(Xr = data$X %*% b)
+  list(Xr = compute_Xb(data, b))
 }
 
 #' @keywords internal

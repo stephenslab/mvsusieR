@@ -27,6 +27,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
                                estimate_prior_mixture_weights = FALSE,
                                mixture_weight_method = "mixsqp",
                                check_null_threshold = 0,
+                               convergence_method = "elbo",
                                max_iter = 100,
                                tol = 1e-3,
                                prior_tol = 1e-9,
@@ -84,7 +85,8 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     precompute_eigendecomp   = precompute_covariances,
     n_thread                 = n_thread,
     estimate_prior_mixture_weights = estimate_prior_mixture_weights,
-    mixture_weight_method    = mixture_weight_method
+    mixture_weight_method    = mixture_weight_method,
+    convergence_method       = convergence_method
   )
 
   # Call susieR's workhorse
@@ -324,6 +326,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     mixture_weight_method = "mixsqp",
                     check_null_threshold = 0, prior_tol = 1e-9,
                     model_init = NULL,
+                    missing_y_method = "approximate",
                     coverage = 0.95, min_abs_corr = 0.5,
                     compute_univariate_zscore = FALSE,
                     precompute_covariances = FALSE, n_thread = 1,
@@ -350,6 +353,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              check_null_threshold = check_null_threshold,
              prior_tol = prior_tol,
              model_init = model_init,
+             missing_y_method = missing_y_method,
              coverage = coverage, min_abs_corr = min_abs_corr,
              compute_univariate_zscore = compute_univariate_zscore,
              precompute_covariances = precompute_covariances,
@@ -639,6 +643,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        mixture_weight_method = "mixsqp",
                        check_null_threshold = 0, prior_tol = 1e-9,
                        model_init = NULL,
+                       missing_y_method = "approximate",
                        coverage = 0.95, min_abs_corr = 0.5,
                        compute_univariate_zscore = FALSE,
                        precompute_covariances = FALSE,
@@ -695,10 +700,52 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
     message(paste("Dimension of Y matrix:", nrow(Y), ncol(Y)))
   }
 
-  # Create data object
-  data <- create_mvsusie_data(X, Y, center = intercept, scale = standardize)
+  # Validate missing_y_method and apply upfront overrides.
+  #
+  # Three methods for handling missing Y entries:
+  #   "impute"      - Variational imputation (E[Y_miss | Y_obs] at each IBSS
+  #                   iteration). Discussed in the mvSuSiE paper
+  #                   (doi:10.1038/s41588-025-02486-7). Does not guarantee
+  #                   monotone ELBO.
+  #   "approximate" - Per-condition centering with per-pattern V_i^{-1}. Exact
+  #                   when V is diagonal or patterns don't overlap.
+  #   "exact"       - V^{-1}-weighted centering with full R x R correction.
+  #                   Guarantees correct ELBO.
+  # The approximate and exact methods are from Zou's PhD thesis, Appendix
+  # C.1.2-C.1.3 (http://stephenslab.uchicago.edu/assets/papers/yuxin-thesis.pdf).
+  Y_has_missing <- any(is.na(Y))
+  missing_y_method <- match.arg(missing_y_method,
+                                 c("impute", "approximate", "exact"))
+  if (R == 1 || !Y_has_missing) {
+    # For R=1 or no missing data, fall back to impute (standard) method
+    missing_y_method <- "impute"
+  }
 
-  # Set residual variance
+  # When Y has missing data (R > 1) and using approximate/exact methods:
+  # 1. Force estimate_residual_variance = FALSE (not supported)
+  # 2. Auto-switch exact -> approximate when V is diagonal (they are equivalent)
+  # Note: impute method supports estimate_residual_variance via Y_cov correction.
+  if (Y_has_missing && R > 1 &&
+      missing_y_method %in% c("approximate", "exact")) {
+    if (isTRUE(estimate_residual_variance)) {
+      warning_message("estimate_residual_variance is set to FALSE for ",
+                      "missing_y_method = '", missing_y_method, "'.")
+      estimate_residual_variance <- FALSE
+    }
+    if (missing_y_method == "exact" && !is.null(residual_variance) &&
+        is.matrix(residual_variance) &&
+        all(residual_variance[row(residual_variance) != col(residual_variance)] == 0)) {
+      warning_message("Switching to approximate method (equivalent to ",
+                      "exact for diagonal residual_variance, but faster).")
+      missing_y_method <- "approximate"
+    }
+  }
+
+  # Create data object
+  data <- create_mvsusie_data(X, Y, center = intercept, scale = standardize,
+                               missing_y_method = missing_y_method)
+
+  # Set residual variance (also triggers standardize_3d for approximate/exact)
   data <- set_mvsusie_residual_variance(data, residual_variance)
 
   # Compute prior inverses for EM (mixture priors)
@@ -706,6 +753,13 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
       estimate_prior_method == "EM") {
     prior_variance <- compute_prior_inv.mash_prior(prior_variance)
   }
+
+  # When Y has missing data, use PIP convergence. ELBO is not guaranteed
+  # to be monotone for any of the missing data methods: the impute method
+  # (doi:10.1038/s41588-025-02486-7) uses variational approximations that
+  # don't guarantee monotone ELBO, and the approximate method's centering
+  # can also break monotonicity.
+  convergence_method <- if (Y_has_missing && R > 1) "pip" else "elbo"
 
   # Fit model
   s <- mvsusie_workhorse(data, L = L, prior_variance = prior_variance,
@@ -716,6 +770,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                           estimate_prior_mixture_weights = estimate_prior_mixture_weights,
                           mixture_weight_method = mixture_weight_method,
                           check_null_threshold = check_null_threshold,
+                          convergence_method = convergence_method,
                           max_iter = max_iter, tol = tol,
                           prior_tol = prior_tol,
                           track_fit = track_fit,

@@ -133,13 +133,13 @@ ibss_initialize.mv_individual <- function(data, params) {
   # Initial imputation for R>1 missing data (variational EM E-step).
   # At this point Xr is all zeros, so imputed values = conditional mean
   # given mu=0 (i.e., mean imputation from the prior).
-  if (data$Y_has_missing && data$R > 1 && !is.null(data$miss_info)) {
+  if (data$any_missing && data$R > 1 && !is.null(data$impute_info)) {
     v_inv <- if (!is.null(model$residual_variance_inv))
       model$residual_variance_inv else data$residual_variance_inv
     model$pattern_cache <- precompute_pattern_cache(v_inv,
-                                                     data$miss_info$patterns)
+                                                     data$impute_info$patterns)
     imp <- impute_missing_Y(data$Y, model$Xr, v_inv,
-                            data$miss_info, model$pattern_cache)
+                            data$impute_info, model$pattern_cache)
     model$Y_imputed <- imp$Y
     model$Y_cov <- imp$Y_cov
     model$sum_neg_ent_Y_miss <- imp$sum_neg_ent_Y_miss
@@ -158,14 +158,16 @@ compute_residuals.mv_individual <- function(data, params, model, l, ...) {
   # This is the variational EM E-step: fill in missing entries using
   # E[Y_miss | Y_obs] = mu_miss - Lambda_{MM}^-1 Lambda_{MO} (Y_obs - mu_obs)
   # where Lambda = V^-1 (precision) and mu = model$Xr (current fitted values).
-  if (l == 1 && data$Y_has_missing && data$R > 1 && !is.null(data$miss_info)) {
+  # Skip imputation when using per-condition (3d) missing data methods.
+  if (l == 1 && data$any_missing && data$R > 1 &&
+      !is.null(data$impute_info) && is.null(data$miss3d)) {
     v_inv <- if (!is.null(model$residual_variance_inv))
       model$residual_variance_inv else data$residual_variance_inv
     # Recompute pattern cache (Vinv may have changed after V update)
     model$pattern_cache <- precompute_pattern_cache(v_inv,
-                                                     data$miss_info$patterns)
+                                                     data$impute_info$patterns)
     imp <- impute_missing_Y(data$Y, model$Xr, v_inv,
-                            data$miss_info, model$pattern_cache)
+                            data$impute_info, model$pattern_cache)
     model$Y_imputed <- imp$Y
     model$Y_cov <- imp$Y_cov
     model$sum_neg_ent_Y_miss <- imp$sum_neg_ent_Y_miss
@@ -181,19 +183,21 @@ compute_residuals.mv_individual <- function(data, params, model, l, ...) {
 
   # Fitted for effect l: X %*% (alpha_l * mu_l)
   b_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]  # J x R
-  Xb_l <- data$X %*% b_l  # N x R
+  Xb_l <- compute_Xb(data, b_l)  # N x R
 
   # Residual: Y - (Xr - Xb_l) = Y - Xr + Xb_l
   R_mat <- Y - model$Xr + Xb_l  # N x R
 
-  # Zero out missing entries only for R=1 (complete-case approach).
+  # Zero out missing entries only for R=1 (complete-case approach) or
+  # when using per-condition (3d) methods (missing entries should not contribute).
   # For R>1 with imputation, imputed entries participate fully.
-  if (data$Y_has_missing && is.null(model$Y_imputed)) {
-    R_mat[data$Y_missing] <- 0
+  if (data$any_missing &&
+      (is.null(model$Y_imputed) || !is.null(data$miss3d))) {
+    R_mat[data$Y_na] <- 0
   }
 
   # X'R for SER computation
-  XtR <- crossprod(data$X, R_mat)  # J x R
+  XtR <- compute_XtR(data, R_mat)  # J x R
 
   model$residuals        <- XtR
   model$fitted_without_l <- model$Xr - Xb_l
@@ -207,8 +211,8 @@ compute_residuals.mv_individual <- function(data, params, model, l, ...) {
 
 #' @keywords internal
 compute_ser_statistics.mv_individual <- function(data, params, model, l, ...) {
-  # betahat_j = (X'R)_j / d_j, a J x R matrix
-  betahat <- as.matrix(model$residuals / data$d)
+  # betahat_j: GLS estimate (svs %*% XtR for 3d, or XtR/d for standard)
+  betahat <- compute_betahat(data, model$residuals)
 
   # Use model's svs/svs_inv if available (updated after residual variance change),
   # otherwise fall back to data's precomputed values
@@ -418,7 +422,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
 
   # === FAST PATH: eigendecomposition precomputation ===
   if (!is.null(model$eigen_cache)) {
-    betahat <- model$residuals / data$d  # J x R
+    betahat <- compute_betahat(data, model$residuals)  # J x R
 
     # Compute P(j|k) weights for EM (same formula as slow path).
     if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM"
@@ -448,7 +452,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
 
   # === SLOW PATH: mashr C++ ===
 
-  betahat <- model$residuals / data$d  # J x R
+  betahat <- compute_betahat(data, model$residuals)  # J x R
   n_thread <- if (!is.null(params$n_thread)) params$n_thread else 1L
 
   # Build full prior arrays (prepend null)
@@ -536,15 +540,24 @@ SER_posterior_e_loglik.mv_individual <- function(data, params, model, l) {
   R <- data$R
 
   # Weighted contribution: X %*% (alpha * mu)
-  Xb_l <- data$X %*% (alpha_l * mu_l)  # N x R
+  Xb_l <- compute_Xb(data, alpha_l * mu_l)  # N x R
 
   # E1 = tr(v_inv * (B1'XtR + XtR'B1)) = 2 * tr(v_inv * B1'XtR)
   # (factor of 2 from v_inv symmetry)
-  if (is.matrix(v_inv)) {
+  # For per-condition (3d) methods, use V_i^{-1}-weighted inner product.
+  if (!is.null(data$miss3d)) {
+    VinvXb_l <- compute_VinvR_3d(data, Xb_l)
+    term1 <- sum(model$raw_residuals * VinvXb_l)
+  } else if (is.matrix(v_inv)) {
     term1 <- sum(model$raw_residuals * (Xb_l %*% v_inv))
   } else {
     term1 <- v_inv * sum(model$raw_residuals * Xb_l)
   }
+
+  # Use svs_inv for the quadratic form. For the standard path,
+  # svs_inv[j] = d[j] * v_inv, so sum(svs_inv[j] * M) = d[j] * sum(v_inv * M).
+  # For 3d missing data, svs_inv[j] encodes the per-pattern weighting.
+  svs_inv <- if (!is.null(model$svs_inv)) model$svs_inv else data$svs_inv
 
   bxxb_l <- matrix(0, R, R)
   vbxxb_l <- 0
@@ -553,7 +566,7 @@ SER_posterior_e_loglik.mv_individual <- function(data, params, model, l) {
     dim(mu2_j) <- c(R, R)
     pb2_j <- alpha_l[j] * mu2_j   # alpha_j * E[b_j b_j' | j active]
     bxxb_l <- bxxb_l + data$d[j] * pb2_j
-    vbxxb_l <- vbxxb_l + data$d[j] * sum(v_inv * pb2_j)
+    vbxxb_l <- vbxxb_l + sum(svs_inv[[j]] * pb2_j)
   }
 
   eloglik <- 0.5 * (2 * term1 - vbxxb_l)
@@ -568,7 +581,7 @@ SER_posterior_e_loglik.mv_individual <- function(data, params, model, l) {
 update_fitted_values.mv_individual <- function(data, params, model, l, ...) {
   # Efficient update: Xr = fitted_without_l + X %*% (alpha_l * mu_l)
   b_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]
-  model$Xr <- model$fitted_without_l + data$X %*% b_l
+  model$Xr <- model$fitted_without_l + compute_Xb(data, b_l)
   return(model)
 }
 
@@ -642,13 +655,12 @@ get_objective.mv_individual <- function(data, params, model, ...) {
 # CONVERGENCE
 # =============================================================================
 
-#' Check IBSS convergence via ELBO increment.
+#' Check IBSS convergence.
 #'
-#' The ELBO is guaranteed monotone for standard updates (SER, prior variance
-#' estimation, mixture weight updates). Small ELBO drops may occur when:
-#' (1) missing data imputation adjusts the Y_cov correction term, or
-#' (2) mixture component pruning removes near-zero-weight components.
-#' In these cases the fallback to PIP convergence ensures robustness.
+#' Uses the convergence criterion set in params: "PIP" checks max change
+#' in posterior inclusion probabilities, "ELBO" checks the ELBO increment.
+#' PIP convergence is set upfront for approximate/exact missing data methods.
+#' ELBO convergence falls back to PIP when ELBO is NA or infinite.
 #' @keywords internal
 check_convergence.mv_individual <- function(data, params, model,
                                              elbo, iter, tracking) {
@@ -656,7 +668,22 @@ check_convergence.mv_individual <- function(data, params, model,
     model$converged <- FALSE
     return(model)
   }
-  delta <- elbo[iter + 1] - elbo[iter]
+
+  # PIP convergence: max change in alpha across all effects
+  use_pip <- identical(params$convergence_method, "pip")
+
+  if (use_pip) {
+    if (!is.null(tracking$convergence$prev_alpha)) {
+      pip_diff <- max(abs(tracking$convergence$prev_alpha - model$alpha))
+      model$converged <- (pip_diff < params$tol)
+    } else {
+      model$converged <- FALSE
+    }
+    return(model)
+  }
+
+  # ELBO convergence (default)
+  delta <- elbo[iter + 1] - tracking$convergence$prev_elbo
   if (is.na(delta) || is.infinite(delta)) {
     # Fallback to PIP convergence
     if (!is.null(tracking$convergence$prev_alpha)) {
@@ -942,6 +969,9 @@ get_scale_factors.mv_individual <- function(data, params, ...) {
 
 #' @keywords internal
 get_intercept.mv_individual <- function(data, params, model, ...) {
+  # Per-condition (3d) missing data methods use their own intercept recovery
+  if (!is.null(data$miss3d)) return(get_intercept_3d(data, model))
+
   b_sum <- compute_posterior_mean_sum_from_model(model)
   # Rescale: coefficients on original scale
   coefs_original <- b_sum / data$csd
@@ -1073,13 +1103,13 @@ estimate_residual_variance_mv <- function(data, model) {
 
   # Use full sample size when imputation is active;
   # use effective sample size for R=1 missing data (complete-case).
-  N <- if (data$Y_has_missing && is.null(model$Y_imputed)) data$n_obs else data$n
+  N <- if (data$any_missing && is.null(model$Y_imputed)) data$n_obs else data$n
   R <- data$R
 
   # Zero out missing entries only for R=1 (complete-case)
-  if (data$Y_has_missing && is.null(model$Y_imputed)) {
-    R_mat[data$Y_missing] <- 0
-    Xb[data$Y_missing] <- 0
+  if (data$any_missing && is.null(model$Y_imputed)) {
+    R_mat[data$Y_na] <- 0
+    Xb[data$Y_na] <- 0
   }
 
   # R_hat' R_hat
@@ -1092,7 +1122,7 @@ estimate_residual_variance_mv <- function(data, model) {
     B1_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]  # J x R
     if (!is.matrix(B1_l)) B1_l <- matrix(B1_l, ncol = R)
     XB1_l <- data$X %*% B1_l  # n x R
-    if (data$Y_has_missing && is.null(model$Y_imputed)) XB1_l[data$Y_missing] <- 0
+    if (data$any_missing && is.null(model$Y_imputed)) XB1_l[data$Y_na] <- 0
     b1_XtX_b1 <- b1_XtX_b1 + crossprod(XB1_l)  # B1_l' X'X B1_l
   }
 
@@ -1116,9 +1146,12 @@ estimate_residual_variance_mv <- function(data, model) {
 
 # Multivariate ELBO expected log-likelihood (dense)
 compute_multivariate_elbo <- function(data, model) {
+  # Per-condition (3d) missing data methods have their own ELBO
+  if (!is.null(data$miss3d)) return(compute_elbo_3d(data, model))
+
   # Use full sample size when imputation is active (all obs contribute);
   # use effective sample size for R=1 missing data (complete-case).
-  N <- if (data$Y_has_missing && is.null(model$Y_imputed)) data$n_obs else data$n
+  N <- if (data$any_missing && is.null(model$Y_imputed)) data$n_obs else data$n
   R <- data$R
   v_inv <- get_v_inv(data, model)
 
@@ -1141,7 +1174,7 @@ compute_multivariate_elbo <- function(data, model) {
   Xb <- data$X %*% b_sum
   R_mat <- Y - Xb
   # Zero out missing entries only for R=1 (complete-case)
-  if (data$Y_has_missing && is.null(model$Y_imputed)) R_mat[data$Y_missing] <- 0
+  if (data$any_missing && is.null(model$Y_imputed)) R_mat[data$Y_na] <- 0
   if (is.matrix(v_inv)) {
     essr <- sum(R_mat * (R_mat %*% v_inv))
   } else {
@@ -1153,7 +1186,7 @@ compute_multivariate_elbo <- function(data, model) {
     b_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]  # J x R
     Xb_l <- data$X %*% b_l  # N x R
     # Zero out missing rows only for R=1 (complete-case)
-    if (data$Y_has_missing && is.null(model$Y_imputed)) Xb_l[data$Y_missing] <- 0
+    if (data$any_missing && is.null(model$Y_imputed)) Xb_l[data$Y_na] <- 0
     if (is.matrix(v_inv)) {
       essr <- essr - sum(Xb_l * (Xb_l %*% v_inv))
     } else {

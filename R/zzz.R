@@ -28,6 +28,7 @@ check_positive_definite <- NULL
 get_var_y <- NULL
 initialize_susie_model <- NULL
 initialize_fitted <- NULL
+warning_message <- NULL
 
 .onLoad <- function(libname, pkgname) {
   susie_ns <- asNamespace("susieR")
@@ -43,9 +44,9 @@ initialize_fitted <- NULL
     assign(fn, get(fn, envir = mashr_ns), envir = pkg_ns)
   }
 
-  # Cache susieR internal generics
+  # Cache susieR internal functions
   for (fn in c("get_var_y", "initialize_susie_model",
-               "initialize_fitted")) {
+               "initialize_fitted", "warning_message")) {
     assign(fn, get(fn, envir = susie_ns), envir = pkg_ns)
   }
 
