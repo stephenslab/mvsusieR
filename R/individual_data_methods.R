@@ -709,6 +709,15 @@ check_convergence.mv_individual <- function(data, params, model,
                                              elbo, iter, tracking) {
   if (iter <= 1) {
     model$converged <- FALSE
+    if (isTRUE(params$verbose)) {
+      elbo_val <- elbo[iter + 1]
+      if (!is.na(elbo_val) && is.finite(elbo_val)) {
+        message(sprintf("iter %3d: ELBO=%.4f [mem: %.2f GB]",
+                        iter, elbo_val, mem_used_gb()))
+      } else {
+        message(sprintf("iter %3d: [mem: %.2f GB]", iter, mem_used_gb()))
+      }
+    }
     return(model)
   }
 
