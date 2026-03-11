@@ -12,11 +12,6 @@ get_var_y.mv_ss <- function(data, ...) {
 }
 
 #' @keywords internal
-ibss_initialize.mv_ss <- function(data, params) {
-  ibss_initialize.mv_individual(data, params)
-}
-
-#' @keywords internal
 compute_residuals.mv_ss <- function(data, params, model, l, ...) {
   # Fitted for effect l
   b_l <- drop(model$alpha[l, ]) * model$mu[l, , , drop = TRUE]  # J x R
@@ -28,26 +23,6 @@ compute_residuals.mv_ss <- function(data, params, model, l, ...) {
 
   model$residuals <- XtR
   return(model)
-}
-
-#' @keywords internal
-compute_ser_statistics.mv_ss <- function(data, params, model, l, ...) {
-  compute_ser_statistics.mv_individual(data, params, model, l, ...)
-}
-
-#' @keywords internal
-loglik.mv_ss <- function(data, params, model, V, ser_stats, l = NULL, ...) {
-  loglik.mv_individual(data, params, model, V, ser_stats, l, ...)
-}
-
-#' @keywords internal
-neg_loglik.mv_ss <- function(data, params, model, V_param, ser_stats, ...) {
-  neg_loglik.mv_individual(data, params, model, V_param, ser_stats, ...)
-}
-
-#' @keywords internal
-calculate_posterior_moments.mv_ss <- function(data, params, model, V, l, ...) {
-  calculate_posterior_moments.mv_individual(data, params, model, V, l, ...)
 }
 
 #' @keywords internal
@@ -126,20 +101,8 @@ update_model_variance.mv_ss <- function(data, params, model) {
         model$svs, model$V_structure, data$is_common_cov)
   }
 
-  # Update mixture prior weights if requested
-  if (isTRUE(params$estimate_prior_mixture_weights)) {
-    K <- length(model$pi_V)
-    if (K > 1 && any(!sapply(model$pi_V_posterior, is.null))) {
-      model <- update_mixture_weights(model,
-                 method = params$mixture_weight_method %||% "mixsqp",
-                 update_null = (model$null_weight > 0))
-      iter <- model$ibss_iter %||% 0
-      if (iter > 15) {
-        model <- prune_mixture_components(model, threshold = 1e-8)
-      }
-      model$ibss_iter <- iter + 1
-    }
-  }
+  # Update mixture prior weights and prune near-zero components
+  model <- update_mixture_weights_and_prune(model, params)
 
   return(model)
 }
@@ -222,26 +185,8 @@ compute_multivariate_elbo_ss <- function(data, model) {
 }
 
 #' @keywords internal
-em_update_prior_variance.mv_ss <- function(data, params, model,
-                                             alpha, moments, V_init) {
-  em_update_prior_variance.mv_individual(data, params, model,
-                                           alpha, moments, V_init)
-}
-
-#' @keywords internal
-track_ibss_fit.mv_ss <- function(data, params, model,
-                                   tracking, iter, elbo, ...) {
-  track_ibss_fit.mv_individual(data, params, model, tracking, iter, elbo, ...)
-}
-
-#' @keywords internal
 validate_prior.mv_ss <- function(data, params, model, ...) {
   invisible(TRUE)
-}
-
-#' @keywords internal
-trim_null_effects.mv_ss <- function(data, params, model) {
-  trim_null_effects.mv_individual(data, params, model)
 }
 
 #' @keywords internal

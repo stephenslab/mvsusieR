@@ -339,7 +339,7 @@ create_mvsusie_ss_data <- function(XtX, XtY, YtY, N,
     data <- set_mvsusie_residual_variance(data, residual_variance)
   }
 
-  class(data) <- c("mv_ss", "ss")
+  class(data) <- c("mv_ss", "mv_individual", "ss")
   return(data)
 }
 

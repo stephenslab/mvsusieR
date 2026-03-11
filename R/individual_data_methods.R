@@ -276,7 +276,7 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
   n_thread <- if (!is.null(params$n_thread)) params$n_thread else 1L
 
   # When V ~= 0 or NA, the prior is null: lbf = 0 everywhere, uniform alpha
-  if (is.na(V) || V < 1e-15) {
+  if (is.na(V) || V < params$prior_tol) {
     if (!is.null(l)) {
       model$alpha[l, ]        <- 1 / J
       model$lbf[l]            <- 0
@@ -440,7 +440,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   R <- data$R
 
   # When V ~= 0 or NA, posterior is null: mu = 0, cache = zeros
-  if (is.na(V) || V < 1e-15) {
+  if (is.na(V) || V < params$prior_tol) {
     model$mu[l, , ] <- 0
     model$mu2_cache[[l]] <- list(
       bxxb = matrix(0, R, R), vbxxb = 0,
@@ -682,20 +682,8 @@ update_model_variance.mv_individual <- function(data, params, model) {
         model$svs, model$V_structure, data$is_common_cov)
   }
 
-  # Update mixture prior weights if requested
-  if (isTRUE(params$estimate_prior_mixture_weights)) {
-    K <- length(model$pi_V)
-    if (K > 1 && any(!sapply(model$pi_V_posterior, is.null))) {
-      model <- update_mixture_weights(model,
-                 method = params$mixture_weight_method %||% "mixsqp",
-                 update_null = (model$null_weight > 0))
-      iter <- model$ibss_iter %||% 0
-      if (iter > 15) {
-        model <- prune_mixture_components(model, threshold = 1e-8)
-      }
-      model$ibss_iter <- iter + 1
-    }
-  }
+  # Update mixture prior weights and prune near-zero components
+  model <- update_mixture_weights_and_prune(model, params)
 
   return(model)
 }

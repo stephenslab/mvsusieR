@@ -45,6 +45,27 @@ flush_warn_once <- function(verbose = TRUE) {
   reset_warn_once()
 }
 
+# Update mixture prior weights and prune near-zero components.
+#
+# Shared helper called by both update_model_variance.mv_individual and
+# update_model_variance.mv_ss. Prunes every 10 iterations (10, 20, 30, ...)
+# to remove mixture components whose weight has collapsed below threshold.
+update_mixture_weights_and_prune <- function(model, params) {
+  if (!isTRUE(params$estimate_prior_mixture_weights)) return(model)
+  K <- length(model$pi_V)
+  if (K <= 1 || !any(!sapply(model$pi_V_posterior, is.null))) return(model)
+
+  model <- update_mixture_weights(model,
+             method = params$mixture_weight_method %||% "mixsqp",
+             update_null = (model$null_weight > 0))
+  iter <- model$ibss_iter %||% 0
+  if (iter > 0 && iter %% 10 == 0) {
+    model <- prune_mixture_components(model, threshold = 1e-8)
+  }
+  model$ibss_iter <- iter + 1
+  return(model)
+}
+
 # Cholesky decomposition with automatic ridge fallback.
 #
 # Tries plain Cholesky first, suppressing rank-deficiency warnings.

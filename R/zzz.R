@@ -52,7 +52,9 @@ mem_used_gb <- NULL
     assign(fn, get(fn, envir = susie_ns), envir = pkg_ns)
   }
 
-  # Register S3 methods for both mv_individual and mv_ss classes
+  # Register all S3 methods for mv_individual.
+  # mv_ss inherits from mv_individual (class vector), so S3 dispatch
+  # falls through automatically for shared methods.
   mv_generics <- c(
     "ibss_initialize",
     "SER_posterior_e_loglik",
@@ -83,10 +85,34 @@ mem_used_gb <- NULL
     "validate_prior"
   )
   for (g in mv_generics) {
-    for (cls in c("mv_individual", "mv_ss")) {
-      method_fn <- get(paste0(g, ".", cls), envir = pkg_ns)
-      registerS3method(g, cls, method_fn, envir = susie_ns)
-    }
+    method_fn <- get(paste0(g, ".mv_individual"), envir = pkg_ns)
+    registerS3method(g, "mv_individual", method_fn, envir = susie_ns)
+  }
+
+  # Register mv_ss-specific overrides (methods with actual different
+  # implementations that cannot fall through to mv_individual)
+  mv_ss_generics <- c(
+    "SER_posterior_e_loglik",
+    "cleanup_model",
+    "compute_kl",
+    "compute_residuals",
+    "get_cs",
+    "get_fitted",
+    "get_intercept",
+    "get_objective",
+    "get_scale_factors",
+    "get_var_y",
+    "get_variable_names",
+    "get_zscore",
+    "update_derived_quantities",
+    "update_fitted_values",
+    "update_model_variance",
+    "update_variance_components",
+    "validate_prior"
+  )
+  for (g in mv_ss_generics) {
+    method_fn <- get(paste0(g, ".mv_ss"), envir = pkg_ns)
+    registerS3method(g, "mv_ss", method_fn, envir = susie_ns)
   }
 
   # Register S3 methods for the mvsusie model class
