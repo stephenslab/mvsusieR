@@ -779,7 +779,13 @@ check_convergence.mv_individual <- function(data, params, model,
                       mem_used_gb()))
     }
   } else {
-    model$converged <- (delta < params$tol)
+    # Converge when ELBO stabilizes: small non-negative change.
+    # A large negative delta means the objective dropped, not convergence.
+    if (delta < -params$tol) {
+      warning_message(sprintf("ELBO decreased by %.2e at iteration %d",
+                              -delta, iter))
+    }
+    model$converged <- (delta >= 0 && delta < params$tol)
     if (verbose) {
       message(sprintf("iter %3d: ELBO=%.4f, delta=%.2e%s [mem: %.2f GB]",
                       iter, elbo[iter + 1], delta,
@@ -904,8 +910,14 @@ update_mixture_weights_mixsqp <- function(model, update_null = FALSE) {
   llik_combined <- do.call(rbind, llik_list)
   alpha_weights <- unlist(alpha_list)
 
-  out <- mixsqp(llik_combined, w = alpha_weights, log = TRUE,
-                control = list(verbose = FALSE))
+  out <- withCallingHandlers(
+    mixsqp(llik_combined, w = alpha_weights, log = TRUE,
+            control = list(verbose = FALSE)),
+    warning = function(w) {
+      warn_once("mixsqp_zero_cols", conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
   w_new <- out$x
 
   if (update_null) model$null_weight <- w_new[1]
