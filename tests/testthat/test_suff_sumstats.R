@@ -86,9 +86,10 @@ test_that("R>1 individual vs SS agree with optim and default residual_variance",
   expect_equal(fit_ind$elbo, fit_ss$elbo)
   expect_equal(fit_ind$b1, fit_ss$b1)
   expect_equal(fit_ind$coef, fit_ss$coef)
-  # V tolerance slightly relaxed: common_cov optimization changes the
-  # floating point path through optim iterations (d values differ by ~1e-14)
-  expect_equal(fit_ind$V, fit_ss$V, tolerance = 1e-6)
+  # V is estimated by iterative optimization (optim); individual data uses
+  # crossprod(X, residual) while SS uses XtX %*% b, which accumulate different
+  # floating point errors over 20 iterations. Use slightly relaxed tolerance.
+  expect_equal(fit_ind$V, fit_ss$V, tolerance = 1e-7)
 }))
 
 # =============================================================================

@@ -112,9 +112,17 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE,
     csd <- rep(1, J)
   }
 
-  # X'X diagonal = colSums(X^2) using observed rows only when Y has
-  # missing data; missing rows don't contribute to regression.
-  d <- colSums(X[obs, , drop = FALSE]^2)
+  # X'X diagonal = colSums(X^2).
+  # When both center and scale are TRUE, d[j] is exactly n_obs - 1 by
+
+  # construction (standardized columns have sum-of-squares = n-1).
+  # Setting d analytically avoids floating point accumulation errors
+  # that would otherwise produce tiny differences across columns.
+  if (center && scale) {
+    d <- rep(n_obs - 1, J)
+  } else {
+    d <- colSums(X[obs, , drop = FALSE]^2)
+  }
   d[d == 0] <- 1e-6
 
   # Extract missingness patterns for R>1 variational imputation.
@@ -305,7 +313,12 @@ create_mvsusie_ss_data <- function(XtX, XtY, YtY, N,
     csd <- rep(1, J)
   }
 
-  d <- diag(XtX)
+  # After standardization, diag(XtX) is exactly N-1 by construction.
+  if (standardize) {
+    d <- rep(N - 1, J)
+  } else {
+    d <- diag(XtX)
+  }
   d[d == 0] <- 1e-6
 
   data <- list(
