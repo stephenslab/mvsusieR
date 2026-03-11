@@ -10,11 +10,13 @@ test_that("uniroot gives similar results to optim for R=1 individual data", {
                        estimate_prior_variance = TRUE,
                        estimate_prior_method = "optim",
                        estimate_residual_variance = FALSE,
+                       prior_tol = 1e-15,
                        max_iter = 20, tol = 1e-3, verbosity = 0)
   fit_uniroot <- mvsusie(sim$X, sim$y, L = 5,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "uniroot",
                           estimate_residual_variance = FALSE,
+                          prior_tol = 1e-15,
                           max_iter = 20, tol = 1e-3, verbosity = 0)
   # Effects with signal should have similar V (null effects may differ
   # between optim and uniroot due to null-check threshold sensitivity)
@@ -35,12 +37,14 @@ test_that("uniroot gives similar results to optim for R>1 matrix prior", {
                        estimate_prior_variance = TRUE,
                        estimate_prior_method = "optim",
                        estimate_residual_variance = FALSE,
+                       prior_tol = 1e-15,
                        max_iter = 20, tol = 1e-3, verbosity = 0)
   fit_uniroot <- mvsusie(sim$X, sim$y, L = 5,
                           prior_variance = sim$V,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "uniroot",
                           estimate_residual_variance = FALSE,
+                          prior_tol = 1e-15,
                           max_iter = 20, tol = 1e-3, verbosity = 0)
   # Effects with signal should have similar V (null effects may differ
   # between optim and uniroot due to null-check threshold sensitivity)
@@ -62,12 +66,14 @@ test_that("uniroot gives similar results to optim for mixture prior", {
                        estimate_prior_variance = TRUE,
                        estimate_prior_method = "optim",
                        estimate_residual_variance = FALSE,
+                       prior_tol = 1e-15,
                        max_iter = 20, tol = 1e-3, verbosity = 0)
   fit_uniroot <- mvsusie(sim$X, sim$y, L = 5,
                           prior_variance = mash_init,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "uniroot",
                           estimate_residual_variance = FALSE,
+                          prior_tol = 1e-15,
                           max_iter = 20, tol = 1e-3, verbosity = 0)
   # Effects with signal should have similar V
   active <- which(fit_optim$V > 1)
@@ -98,6 +104,7 @@ test_that("uniroot gives similar results to optim for sufficient statistics", {
                                   estimate_prior_variance = TRUE,
                                   estimate_prior_method = "optim",
                                   estimate_residual_variance = FALSE,
+                                  prior_tol = 1e-15,
                                   max_iter = 20, tol = 1e-3, verbosity = 0)
   fit_uniroot <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                     X_colmeans = X_colmeans,
@@ -106,6 +113,7 @@ test_that("uniroot gives similar results to optim for sufficient statistics", {
                                     estimate_prior_variance = TRUE,
                                     estimate_prior_method = "uniroot",
                                     estimate_residual_variance = FALSE,
+                                    prior_tol = 1e-15,
                                     max_iter = 20, tol = 1e-3, verbosity = 0)
   # V estimates should be close (null effects may differ)
   expect_equal(fit_uniroot$V, fit_optim$V, tolerance = 0.5)
@@ -130,12 +138,14 @@ test_that("uniroot gives similar results to optim for RSS", with(simulate_multiv
                            estimate_prior_variance = TRUE,
                            estimate_prior_method = "optim",
                            estimate_residual_variance = FALSE,
+                           prior_tol = 1e-15,
                            max_iter = 20, tol = 1e-3, verbosity = 0)
   fit_uniroot <- mvsusie_rss(z, R_ld, N = n, L = 5,
                               prior_variance = V,
                               estimate_prior_variance = TRUE,
                               estimate_prior_method = "uniroot",
                               estimate_residual_variance = FALSE,
+                              prior_tol = 1e-15,
                               max_iter = 20, tol = 1e-3, verbosity = 0)
   # V estimates should be close
   expect_equal(fit_uniroot$V, fit_optim$V, tolerance = 0.2)
