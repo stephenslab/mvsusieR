@@ -21,113 +21,82 @@
 create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
                                prior_weights = NULL, null_weight = 0,
                                weights_tol = 1e-10, null_tol = 5e-7,
-                               top_mixtures = 20,
+                               top_mixtures = -1,
                                include_outcomes = NULL) {
-  all_zeros <- vector()
 
-  # Build xUlist from Ulist + grid if not provided directly
-  if (is.null(xUlist)) {
-    if (is.null(Ulist)) {
-      stop("Either xUlist or Ulist have to be non-null")
-    }
+  # --- Build non-null xUlist ---
+  if (!is.null(Ulist)) {
+    if (is.null(grid)) stop("grid is required when Ulist is provided")
+    if (any(grid <= 0)) stop("grid values must be positive")
     for (l in seq_along(Ulist)) {
-      if (all(abs(Ulist[[l]]) < null_tol)) {
-        stop(paste("Prior covariance", l, "is zero matrix. This is not allowed."))
-      }
+      if (all(abs(Ulist[[l]]) < null_tol))
+        Ulist[[l]] <- Ulist[[l]] * 0
+      check_covmat_basics(Ulist[[l]])
     }
-    if (any(grid <= 0)) {
-      stop("grid values should be greater than zero")
-    }
-    xUlist <- expand_cov(Ulist, grid, usepointmass = TRUE)
+    # Remove zero matrices (they would produce redundant null components)
+    nonzero <- !vapply(Ulist, function(m) all(m == 0), logical(1))
+    if (!any(nonzero))
+      stop("All prior covariance matrices are zero or near-zero")
+    Ulist <- Ulist[nonzero]
+    # expand_cov prepends a null component; strip it immediately
+    xUlist <- expand_cov(Ulist, grid, usepointmass = TRUE)[-1]
+  } else if (!is.null(xUlist)) {
+    # Strip leading null if present
+    if (all(xUlist[[1]] == 0)) xUlist <- xUlist[-1]
+    for (i in seq_along(xUlist))
+      check_covmat_basics(xUlist[[i]])
   } else {
-    # Ensure null component is first
-    if (!all(xUlist[[1]] == 0)) {
-      xUlist <- c(
-        list(null_model = matrix(0, nrow(xUlist[[1]]), ncol(xUlist[[1]]),
-          dimnames = list(rownames(xUlist[[1]]), colnames(xUlist[[1]]))
-        )),
-        xUlist
-      )
-    }
+    stop("Either Ulist or xUlist must be provided")
   }
 
-  # Subset outcomes if requested
+  # --- Dimension check ---
+  dims <- vapply(xUlist, nrow, integer(1))
+  if (length(unique(dims)) > 1)
+    stop("Prior matrices have different dimensions")
+
+  # --- Default weights ---
+  K <- length(xUlist)
+  if (is.null(prior_weights)) prior_weights <- rep(1 / K, K)
+  if (length(prior_weights) != K) {
+    stop(paste("prior_weights length", length(prior_weights),
+               "!= number of matrices", K))
+  }
+
+  # --- Subset outcomes ---
   if (!is.null(include_outcomes)) {
-    for (l in seq_along(xUlist)) {
-      xUlist[[l]] <- xUlist[[l]][include_outcomes, include_outcomes]
-      if (l > 1) {
-        all_zeros[l - 1] <- all(abs(xUlist[[l]]) < null_tol)
-      }
-    }
+    xUlist <- lapply(xUlist, function(m) m[include_outcomes, include_outcomes])
+    nonzero <- vapply(xUlist,
+                      function(m) !all(abs(m) < null_tol), logical(1))
+    xUlist <- xUlist[nonzero]
+    prior_weights <- prior_weights[nonzero]
   }
 
-  # Set up prior weights for non-null components
-  plen <- length(xUlist) - 1
-  if (is.null(prior_weights)) {
-    prior_weights <- rep(1 / plen, plen)
-  }
-  if (length(prior_weights) != plen) {
-    stop(paste(
-      "Invalid prior_weights setting: expect length", plen,
-      "but input is of length", length(prior_weights)
-    ))
-  }
-
-  # Filter by weights lower bound (keep null component)
+  # --- Filter by weight threshold ---
   if (weights_tol > 0) {
-    which.comp <- which(prior_weights > weights_tol)
-    prior_weights <- prior_weights[which.comp]
-    xUlist <- xUlist[c(1, which.comp + 1)]
+    keep <- prior_weights > weights_tol
+    xUlist <- xUlist[keep]
+    prior_weights <- prior_weights[keep]
   }
 
-  # Remove all-zero priors after outcome subsetting
-  if (length(which(all_zeros)) > 0) {
-    which.comp <- which(sapply(
-      2:length(xUlist),
-      function(l) !all(xUlist[[l]] == 0)
-    ))
-    prior_weights <- prior_weights[which.comp]
-    xUlist <- xUlist[c(1, which.comp + 1)]
-  }
-
-  # Keep only top components by weight
+  # --- Keep top components by weight ---
   if (top_mixtures > 0 && top_mixtures < length(prior_weights)) {
-    which.comp <- head(
-      sort(prior_weights, index.return = TRUE, decreasing = TRUE)$ix,
-      top_mixtures
-    )
-    prior_weights <- prior_weights[which.comp]
-    xUlist <- xUlist[c(1, which.comp + 1)]
+    top_idx <- order(prior_weights, decreasing = TRUE)[seq_len(top_mixtures)]
+    xUlist <- xUlist[top_idx]
+    prior_weights <- prior_weights[top_idx]
   }
 
-  # Validate all matrices
-  u_rows <- vapply(xUlist, nrow, integer(1))
-  for (i in seq_along(xUlist)) {
-    check_covmat_basics(xUlist[[i]])
-    if (!issemidef(xUlist[[i]])) {
-      stop(paste("The prior matrices", i, "should be positive semi-definite"))
-    }
-  }
-  if (length(unique(u_rows)) > 1) {
-    stop("Ulist contains matrices of different dimensions")
-  }
-
-  # Normalize non-null weights
+  # --- Normalize and build S3 object ---
   prior_weights <- prior_weights / sum(prior_weights)
-
-  # Separate null from non-null: xUlist[[1]] is always the null (zero matrix)
-  # Store only non-null components in the S3 object
-  xUlist_nonnull <- xUlist[-1]  # K non-null components
-  K <- length(xUlist_nonnull)
+  K <- length(xUlist)
 
   structure(list(
     null_weight  = null_weight,
-    pi           = setNames(prior_weights, names(xUlist_nonnull)),
-    xUlist       = xUlist_nonnull,
-    xUlist_3d    = matlist2array(xUlist_nonnull),
+    pi           = setNames(prior_weights, names(xUlist)),
+    xUlist       = xUlist,
+    xUlist_3d    = matlist2array(xUlist),
     xUlist_inv   = NULL,
     xUlist_rank  = NULL,
-    n_outcome    = nrow(xUlist_nonnull[[1]]),
+    n_outcome    = nrow(xUlist[[1]]),
     n_component  = K
   ), class = "mash_prior")
 }

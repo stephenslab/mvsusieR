@@ -302,35 +302,62 @@ compute_variable_posterior_weights <- function(prior_variable_weights, llik) {
 
 #' @title Create mash prior object.
 #'
-#' @param mixture_prior a list of (weights = vector(), matrices =
-#'   list()) where matrices is a list of prior matrices and have same
-#'   length as weights.
+#' @description Constructs a mixture prior for use with \code{mvsusie()}.
+#'   Accepts one of three input types:
+#'   \itemize{
+#'     \item \code{fitted_g}: Output from \code{mashr::mash()}, which
+#'       provides data-driven mixture weights and covariance matrices.
+#'       This is the recommended approach for large R.
+#'     \item \code{mixture_prior}: A list with \code{matrices} (list of
+#'       covariance matrices) and optional \code{weights}.
+#'     \item \code{R}: Number of outcomes, to auto-generate canonical
+#'       covariance matrices (singletons + shared effects).
+#'   }
 #'
-#' @param R number of traits
+#' @param fitted_g The \code{fitted_g} element from \code{mashr::mash()}
+#'   output. Must contain \code{Ulist}, \code{grid}, \code{pi}, and
+#'   \code{usepointmass}. The estimated mixture weights are used directly.
 #'
-#' @param null_weight whether or not to add a weight for null in
-#'   single effect models. By default it takes the null weight from
-#'   fitted_g if available. Use \code{null_weight = 0} to override this.
+#' @param mixture_prior A list of \code{(weights = vector(), matrices =
+#'   list())} where matrices is a list of prior covariance matrices.
+#'
+#' @param R Number of outcomes. Generates canonical covariance matrices
+#'   via \code{create_cov_canonical(R)}.
+#'
+#' @param null_weight Weight for the null component in single effect
+#'   models. For \code{fitted_g}, defaults to the mash-estimated null
+#'   weight. Use \code{null_weight = 0} to override.
 #'
 #' @param weights_tol Filter out mixture components with weights
-#' smaller than \code{weights_tol}.
+#'   smaller than \code{weights_tol}.
 #'
 #' @param max_mixture_len Only keep the top priors by weight so that
 #'   the list of mixture prior is of length \code{max_mixture_len}. Use
 #'   \code{max_mixture_len = -1} to include all input weights after
 #'   filtering by \code{weights_tol}.
 #'
+#' @param grid Numeric vector of scaling factors for the canonical
+#'   covariance matrices (used only with \code{R}). When provided, each
+#'   canonical matrix is scaled by each grid value, producing
+#'   \code{length(Ulist) * length(grid)} mixture components. When
+#'   \code{NULL} (default), unscaled canonical matrices are used directly.
+#'
 #' @param include_indices Post-process input prior to only include
 #'   outcomes at these indices.
 #'
-#' @param \dots other parameters, for mvsusieR:::create_cov_canonical
+#' @param \dots Other parameters passed to
+#'   \code{mvsusieR:::create_cov_canonical} (e.g., \code{singletons},
+#'   \code{hetgrid}).
 #'
-#' @return mash prior object for use with mvsusie() function
-#'
-#' @details Add details here.
+#' @return A \code{mash_prior} object for use with \code{mvsusie()}.
 #'
 #' @examples
-#' # Add examples here.
+#' # Canonical prior for R=3 outcomes:
+#' prior <- create_mixture_prior(R = 3)
+#'
+#' # Data-driven prior from mashr (recommended for large R):
+#' # m <- mashr::mash(data, Ulist = c(U.ed, U.c))
+#' # prior <- create_mixture_prior(fitted_g = m$fitted_g)
 #'
 #' @importFrom stats cov2cor
 #' @importFrom stats setNames
@@ -340,14 +367,47 @@ compute_variable_posterior_weights <- function(prior_variable_weights, llik) {
 #'
 create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
                                  weights_tol = 1e-10,
-                                 max_mixture_len = -1, include_indices = NULL, ...) {
-  if (sum(c(missing(mixture_prior), missing(R))) != 1) {
-    stop("Require exactly one of mixture_prior and R")
+                                 max_mixture_len = -1, grid = NULL,
+                                 fitted_g = NULL,
+                                 include_indices = NULL, ...) {
+  n_provided <- sum(!missing(mixture_prior), !missing(R), !is.null(fitted_g))
+  if (n_provided != 1) {
+    stop("Require exactly one of fitted_g, mixture_prior, or R")
   }
-  if (is.null(null_weight)) {
-    null_weight <- 0
+
+  # fitted_g from mashr::mash()
+  if (!is.null(fitted_g)) {
+    for (item in c("pi", "Ulist", "grid", "usepointmass")) {
+      if (!(item %in% names(fitted_g))) {
+        stop(paste("Cannot find", item, "in fitted_g input"))
+      }
+    }
+    if (fitted_g$usepointmass) {
+      prior_weights <- fitted_g$pi[-1]
+      # Inherit null weight from mash unless user overrides
+      if (is.null(null_weight)) {
+        null_weight <- fitted_g$pi[1]
+      }
+    } else {
+      prior_weights <- fitted_g$pi
+      if (is.null(null_weight)) null_weight <- 0
+    }
+    return(create_mash_prior(
+      Ulist = fitted_g$Ulist, grid = fitted_g$grid,
+      prior_weights = prior_weights,
+      null_weight = null_weight,
+      weights_tol = weights_tol,
+      top_mixtures = max_mixture_len,
+      include_outcomes = include_indices
+    ))
   }
+
+  # mixture_prior (list of matrices + weights)
+  if (is.null(null_weight)) null_weight <- 0
   if (!missing(mixture_prior)) {
+    if (!is.null(grid)) {
+      stop("grid cannot be used with mixture_prior (matrices are already scaled)")
+    }
     if (!("matrices" %in% names(mixture_prior))) {
       stop("mixture_prior must contain 'matrices'.")
     }
@@ -366,15 +426,28 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
       include_outcomes = include_indices
     ))
   }
+
+  # R (auto-generate canonical covariances)
   if (!missing(R)) {
     Ulist <- create_cov_canonical(R, ...)
-    Ulist <- lapply(Ulist, function(mat) {
-                           rownames(mat) <- include_indices
-                           colnames(mat) <- include_indices
-                           return(mat)
-                         })
+    if (!is.null(include_indices)) {
+      Ulist <- lapply(Ulist, function(mat) {
+        rownames(mat) <- include_indices
+        colnames(mat) <- include_indices
+        return(mat)
+      })
+    }
+    if (!is.null(grid)) {
+      return(create_mash_prior(
+        Ulist = Ulist, grid = grid,
+        null_weight = null_weight,
+        weights_tol = weights_tol,
+        top_mixtures = max_mixture_len,
+        include_outcomes = include_indices
+      ))
+    }
     weights <- rep(1 / length(Ulist), length(Ulist))
-    weights <- setNames(weights, names(Ulist)) 
+    weights <- setNames(weights, names(Ulist))
     if (max_mixture_len < length(Ulist) && max_mixture_len > 0) {
       stop(paste0(
         "Automatically generated uniform mixture prior is of ",
