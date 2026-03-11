@@ -66,6 +66,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// loglik_common_rcpp
+Rcpp::List loglik_common_rcpp(const arma::mat& betahat, double V_scalar, double log_det_svs, const Rcpp::List& components, const Rcpp::List& BQ_cache_in);
+RcppExport SEXP _mvsusieR_loglik_common_rcpp(SEXP betahatSEXP, SEXP V_scalarSEXP, SEXP log_det_svsSEXP, SEXP componentsSEXP, SEXP BQ_cache_inSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type betahat(betahatSEXP);
+    Rcpp::traits::input_parameter< double >::type V_scalar(V_scalarSEXP);
+    Rcpp::traits::input_parameter< double >::type log_det_svs(log_det_svsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type components(componentsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type BQ_cache_in(BQ_cache_inSEXP);
+    rcpp_result_gen = Rcpp::wrap(loglik_common_rcpp(betahat, V_scalar, log_det_svs, components, BQ_cache_in));
+    return rcpp_result_gen;
+END_RCPP
+}
+// posterior_common_rcpp
+Rcpp::List posterior_common_rcpp(const arma::mat& betahat, double V_scalar, const Rcpp::List& components, const arma::mat& pi_V_post, const arma::mat& em_var_wt, const Rcpp::List& BQ_cache_list, bool do_reduce, const arma::vec& alpha, const arma::vec& d_var, const arma::mat& v_inv);
+RcppExport SEXP _mvsusieR_posterior_common_rcpp(SEXP betahatSEXP, SEXP V_scalarSEXP, SEXP componentsSEXP, SEXP pi_V_postSEXP, SEXP em_var_wtSEXP, SEXP BQ_cache_listSEXP, SEXP do_reduceSEXP, SEXP alphaSEXP, SEXP d_varSEXP, SEXP v_invSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type betahat(betahatSEXP);
+    Rcpp::traits::input_parameter< double >::type V_scalar(V_scalarSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type components(componentsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type pi_V_post(pi_V_postSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type em_var_wt(em_var_wtSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type BQ_cache_list(BQ_cache_listSEXP);
+    Rcpp::traits::input_parameter< bool >::type do_reduce(do_reduceSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type d_var(d_varSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type v_inv(v_invSEXP);
+    rcpp_result_gen = Rcpp::wrap(posterior_common_rcpp(betahat, V_scalar, components, pi_V_post, em_var_wt, BQ_cache_list, do_reduce, alpha, d_var, v_inv));
+    return rcpp_result_gen;
+END_RCPP
+}
 // impute_missing_Y_rcpp
 List impute_missing_Y_rcpp(arma::mat Y, const arma::mat& mu, const arma::mat& Vinv, const List& patterns, const List& pattern_obs);
 RcppExport SEXP _mvsusieR_impute_missing_Y_rcpp(SEXP YSEXP, SEXP muSEXP, SEXP VinvSEXP, SEXP patternsSEXP, SEXP pattern_obsSEXP) {
@@ -208,6 +243,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mvsusieR_loglik_non_common_cpp", (DL_FUNC) &_mvsusieR_loglik_non_common_cpp, 4},
     {"_mvsusieR_posterior_non_common_cpp", (DL_FUNC) &_mvsusieR_posterior_non_common_cpp, 5},
     {"_mvsusieR_accumulate_post_mean2_common_cpp", (DL_FUNC) &_mvsusieR_accumulate_post_mean2_common_cpp, 4},
+    {"_mvsusieR_loglik_common_rcpp", (DL_FUNC) &_mvsusieR_loglik_common_rcpp, 5},
+    {"_mvsusieR_posterior_common_rcpp", (DL_FUNC) &_mvsusieR_posterior_common_rcpp, 10},
     {"_mvsusieR_impute_missing_Y_rcpp", (DL_FUNC) &_mvsusieR_impute_missing_Y_rcpp, 5},
     {"_mvsusieR_inner_em_cpp", (DL_FUNC) &_mvsusieR_inner_em_cpp, 5},
     {"_mvsusieR_compute_VinvR_3d_cpp", (DL_FUNC) &_mvsusieR_compute_VinvR_3d_cpp, 3},

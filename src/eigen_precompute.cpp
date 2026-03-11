@@ -362,3 +362,277 @@ arma::cube accumulate_post_mean2_common_cpp(
 
   return post_mean2;
 }
+
+
+// ---------------------------------------------------------------------------
+// 5. loglik_common_rcpp
+//
+// C++ implementation of the common-cov loglik K-loop.
+// All variables share the same SVS, so Q_k are R x R matrices (not cubes).
+// Accepts optional BQ_cache to skip recomputing betahat %*% Q_k.
+// Returns both the J x (K+1) log-likelihood matrix and BQ_cache.
+//
+// betahat:       J x R matrix
+// V_scalar:      scalar prior variance multiplier
+// log_det_svs:   scalar log|SVS|
+// components:    list of K items, each with Q (R x R), eigenvalues (R-vector)
+// BQ_cache_in:   list of K J x R matrices (or empty list to compute fresh)
+//
+// Returns list(llik = J x (K+1), BQ_cache = list of K J x R matrices)
+// ---------------------------------------------------------------------------
+// [[Rcpp::export]]
+Rcpp::List loglik_common_rcpp(
+    const arma::mat& betahat,
+    double V_scalar,
+    double log_det_svs,
+    const Rcpp::List& components,
+    const Rcpp::List& BQ_cache_in) {
+
+  unsigned int J = betahat.n_rows;
+  unsigned int R = betahat.n_cols;
+  int K = components.size();
+  bool has_cache = (BQ_cache_in.size() == K);
+  double const_term = -(double)R / 2.0 * std::log(2.0 * M_PI);
+
+  arma::mat llik(J, K + 1, arma::fill::zeros);
+
+  // Load or compute BQ products
+  std::vector<arma::vec> d_all(K);
+  std::vector<arma::mat> BQ_all(K);
+  for (int k = 0; k < K; k++) {
+    Rcpp::List comp_k = components[k];
+    d_all[k] = Rcpp::as<arma::vec>(comp_k["eigenvalues"]);
+    if (has_cache) {
+      BQ_all[k] = Rcpp::as<arma::mat>(BQ_cache_in[k]);
+    } else {
+      arma::mat Q_k = Rcpp::as<arma::mat>(comp_k["Q"]);
+      BQ_all[k] = betahat * Q_k;
+    }
+  }
+
+  // Null component: uses BQ from component 1
+  arma::vec mahal_null = arma::sum(BQ_all[0] % BQ_all[0], 1);
+  llik.col(0) = const_term - 0.5 * log_det_svs - 0.5 * mahal_null;
+
+  // Non-null components
+  for (int k = 0; k < K; k++) {
+    double log_det = log_det_svs + arma::sum(arma::log1p(V_scalar * d_all[k]));
+    arma::vec inv_factors = 1.0 / (1.0 + V_scalar * d_all[k]);
+    arma::vec mahal = (BQ_all[k] % BQ_all[k]) * inv_factors;
+    llik.col(k + 1) = const_term - 0.5 * log_det - 0.5 * mahal;
+  }
+
+  // Return BQ_cache for reuse
+  Rcpp::List BQ_cache_out(K);
+  if (!has_cache) {
+    for (int k = 0; k < K; k++)
+      BQ_cache_out[k] = BQ_all[k];
+  } else {
+    BQ_cache_out = BQ_cache_in;  // pass through
+  }
+
+  return Rcpp::List::create(
+    Rcpp::Named("llik") = llik,
+    Rcpp::Named("BQ_cache") = BQ_cache_out
+  );
+}
+
+
+// ---------------------------------------------------------------------------
+// 6. posterior_common_rcpp
+//
+// C++ implementation of the common-cov posterior K-loop.
+// Computes posterior means, sign probabilities (LFSR), EM statistics,
+// and optionally reduced second-moment statistics (bxxb, alpha_mu2_sum,
+// mu2_diag) to avoid allocating a J x R x R array.
+//
+// betahat:      J x R matrix
+// V_scalar:     scalar prior variance multiplier
+// components:   list of K items (Q, G, eigenvalues — all R x R / R-vector)
+// pi_V_post:    J x (K+1) posterior mixture weights
+// em_var_wt:    (K+1) x J matrix (or 0x0 if EM not needed)
+// BQ_cache:     list of K J x R matrices (or empty list to compute fresh)
+// do_reduce:    if true, compute bxxb/alpha_mu2_sum/mu2_diag instead of post_mean2
+// alpha:        J-vector (only used if do_reduce)
+// d_var:        J-vector of d values (only used if do_reduce)
+// v_inv:        R x R matrix (only used if do_reduce, for vbxxb)
+//
+// Returns list(post_mean, post_neg, post_zero, prior_scale_em_update,
+//              and either post_mean2 or reduced stats)
+// ---------------------------------------------------------------------------
+// [[Rcpp::export]]
+Rcpp::List posterior_common_rcpp(
+    const arma::mat& betahat,
+    double V_scalar,
+    const Rcpp::List& components,
+    const arma::mat& pi_V_post,
+    const arma::mat& em_var_wt,
+    const Rcpp::List& BQ_cache_list,
+    bool do_reduce,
+    const arma::vec& alpha,
+    const arma::vec& d_var,
+    const arma::mat& v_inv) {
+
+  unsigned int J = betahat.n_rows;
+  unsigned int R = betahat.n_cols;
+  int K = components.size();
+  bool do_em = (em_var_wt.n_rows > 0);
+  bool has_BQ_cache = (BQ_cache_list.size() == K);
+
+  arma::mat post_mean(J, R, arma::fill::zeros);
+  arma::mat post_neg(J, R, arma::fill::zeros);
+  arma::mat post_zero(J, R);
+  arma::vec em_update(K + 1, arma::fill::zeros);
+
+  // Null component: beta = 0
+  for (unsigned int j = 0; j < J; j++)
+    for (unsigned int r = 0; r < R; r++)
+      post_zero(j, r) = pi_V_post(j, 0);
+
+  // Reduce accumulators
+  arma::mat bxxb(R, R, arma::fill::zeros);
+  arma::mat alpha_mu2_sum(R, R, arma::fill::zeros);
+  arma::mat mu2_diag(J, R, arma::fill::zeros);
+
+  // Full post_mean2 (only if !do_reduce)
+  arma::cube pm2_internal;
+  if (!do_reduce)
+    pm2_internal = arma::cube(R, R, J, arma::fill::zeros);
+
+  // Cache component data
+  std::vector<arma::mat> Q_all(K), G_all(K);
+  std::vector<arma::vec> d_all(K);
+  for (int k = 0; k < K; k++) {
+    Rcpp::List comp_k = components[k];
+    Q_all[k] = Rcpp::as<arma::mat>(comp_k["Q"]);
+    G_all[k] = Rcpp::as<arma::mat>(comp_k["G"]);
+    d_all[k] = Rcpp::as<arma::vec>(comp_k["eigenvalues"]);
+  }
+
+  // Load BQ cache if available
+  std::vector<arma::mat> BQ_all(K);
+  if (has_BQ_cache) {
+    for (int k = 0; k < K; k++)
+      BQ_all[k] = Rcpp::as<arma::mat>(BQ_cache_list[k]);
+  }
+
+  double eps_thresh = std::sqrt(std::numeric_limits<double>::epsilon());
+
+  for (int k = 0; k < K; k++) {
+    arma::vec d_k = d_all[k];
+
+    // Shrinkage factors
+    arma::vec shrink = V_scalar * d_k / (1.0 + V_scalar * d_k);
+    arma::vec inv_factor = 1.0 / (1.0 + V_scalar * d_k);
+
+    // Posterior covariance (same for all j in common-cov)
+    arma::mat G_scaled = G_all[k] * arma::diagmat(shrink);
+    arma::mat C_k = G_scaled * G_all[k].t();
+    C_k = (C_k + C_k.t()) / 2.0;
+
+    // BQ: betahat %*% Q_k (J x R)
+    arma::mat BQ = has_BQ_cache ? BQ_all[k] : betahat * Q_all[k];
+
+    // Posterior means: M_k = BQ * diag(shrink) * G_k' (J x R)
+    arma::mat BQ_shrunk = BQ * arma::diagmat(shrink);
+    arma::mat M_k = BQ_shrunk * G_all[k].t();
+
+    // Accumulate weighted posterior mean
+    for (unsigned int j = 0; j < J; j++) {
+      double w = pi_V_post(j, k + 1);
+      post_mean.row(j) += w * M_k.row(j);
+    }
+
+    if (do_reduce) {
+      // Accumulate bxxb, alpha_mu2_sum, mu2_diag
+      arma::vec aw(J), daw(J);
+      for (unsigned int j = 0; j < J; j++) {
+        aw(j) = alpha(j) * pi_V_post(j, k + 1);
+        daw(j) = d_var(j) * aw(j);
+      }
+
+      double sum_daw = arma::sum(daw);
+      double sum_aw = arma::sum(aw);
+      bxxb += sum_daw * C_k;
+      alpha_mu2_sum += sum_aw * C_k;
+
+      // Outer product contributions: sum_j wt_j * M_kj M_kj'
+      arma::mat sqrt_daw_M = M_k;
+      arma::mat sqrt_aw_M = M_k;
+      for (unsigned int j = 0; j < J; j++) {
+        sqrt_daw_M.row(j) *= std::sqrt(daw(j));
+        sqrt_aw_M.row(j) *= std::sqrt(aw(j));
+      }
+      bxxb += sqrt_daw_M.t() * sqrt_daw_M;
+      alpha_mu2_sum += sqrt_aw_M.t() * sqrt_aw_M;
+
+      // mu2_diag
+      arma::vec diag_Ck = C_k.diag();
+      for (unsigned int j = 0; j < J; j++) {
+        double w = pi_V_post(j, k + 1);
+        for (unsigned int r = 0; r < R; r++) {
+          mu2_diag(j, r) += w * (diag_Ck(r) + M_k(j, r) * M_k(j, r));
+        }
+      }
+    } else {
+      // Full post_mean2
+      for (unsigned int j = 0; j < J; j++) {
+        double w = pi_V_post(j, k + 1);
+        arma::vec m = M_k.row(j).t();
+        pm2_internal.slice(j) += w * (C_k + m * m.t());
+      }
+    }
+
+    // Sign probabilities for LFSR
+    arma::vec diag_Ck = C_k.diag();
+    double max_diag = arma::max(diag_Ck);
+    double thresh = eps_thresh * max_diag;
+    for (unsigned int r = 0; r < R; r++) {
+      if (diag_Ck(r) > thresh && diag_Ck(r) > 0) {
+        double sd_r = std::sqrt(diag_Ck(r));
+        for (unsigned int j = 0; j < J; j++) {
+          double w = pi_V_post(j, k + 1);
+          post_neg(j, r) += w * R::pnorm(0.0, M_k(j, r), sd_r, 1, 0);
+        }
+      } else {
+        for (unsigned int j = 0; j < J; j++) {
+          post_zero(j, r) += pi_V_post(j, k + 1);
+        }
+      }
+    }
+
+    // EM statistic
+    double tr_term = V_scalar * arma::sum(inv_factor);
+    arma::vec em_per_var = V_scalar * V_scalar *
+      ((BQ % BQ) * (d_k % inv_factor % inv_factor));
+    for (unsigned int j = 0; j < J; j++) {
+      double em_wt_j = do_em ? em_var_wt(k + 1, j) : pi_V_post(j, k + 1);
+      em_update(k + 1) += em_wt_j * (tr_term + em_per_var(j));
+    }
+  }
+
+  Rcpp::List result = Rcpp::List::create(
+    Rcpp::Named("post_mean") = post_mean,
+    Rcpp::Named("post_neg") = post_neg,
+    Rcpp::Named("post_zero") = post_zero,
+    Rcpp::Named("prior_scale_em_update") = em_update
+  );
+
+  if (do_reduce) {
+    double vbxxb = arma::accu(v_inv % bxxb);
+    result["bxxb"] = bxxb;
+    result["vbxxb"] = vbxxb;
+    result["alpha_mu2_sum"] = alpha_mu2_sum;
+    result["mu2_diag"] = mu2_diag;
+  } else {
+    // Convert pm2 from R x R x J to J x R x R for R
+    arma::cube post_mean2(J, R, R);
+    for (unsigned int j = 0; j < J; j++)
+      for (unsigned int r1 = 0; r1 < R; r1++)
+        for (unsigned int r2 = 0; r2 < R; r2++)
+          post_mean2(j, r1, r2) = pm2_internal(r1, r2, j);
+    result["post_mean2"] = post_mean2;
+  }
+
+  return result;
+}

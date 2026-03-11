@@ -498,13 +498,33 @@ precompute_eigen_cache <- function(svs, V_structure, is_common_cov,
 
   if (is_common_cov) {
     SVS <- svs[[1]]
+    R <- nrow(SVS)
+
+    # Cholesky of SVS: compute once, reuse for all K components
+    L_upper <- safe_chol(SVS)
+    L <- t(L_upper)
+    log_det_svs <- chol2ldet(L_upper)
+    L_inv <- forwardsolve(L, diag(R))
+    L_inv_t <- t(L_inv)
+
     components <- vector("list", K)
     for (k in seq_len(K)) {
-      components[[k]] <- eigendecompose_one_pair(SVS, V_structure[[k]])
+      # Only the U_k-dependent part: M = L_inv U_k L_inv', eigen, Q, G
+      M <- L_inv %*% V_structure[[k]] %*% L_inv_t
+      M <- (M + t(M)) / 2
+      eig <- eigen(M, symmetric = TRUE)
+      P <- eig$vectors
+      d <- pmax(eig$values, 0)
+      components[[k]] <- list(
+        Q = L_inv_t %*% P,
+        G = L %*% P,
+        eigenvalues = d,
+        log_det_svs = log_det_svs
+      )
     }
     list(
       is_common_cov = TRUE,
-      log_det_svs   = components[[1]]$log_det_svs,
+      log_det_svs   = log_det_svs,
       components    = components
     )
   } else {
@@ -531,13 +551,32 @@ precompute_eigen_cache_R <- function(svs, V_structure, is_common_cov) {
 
   if (is_common_cov) {
     SVS <- svs[[1]]
+    R <- nrow(SVS)
+
+    # Cholesky of SVS: compute once, reuse for all K components
+    L_upper <- safe_chol(SVS)
+    L <- t(L_upper)
+    log_det_svs <- chol2ldet(L_upper)
+    L_inv <- forwardsolve(L, diag(R))
+    L_inv_t <- t(L_inv)
+
     components <- vector("list", K)
     for (k in seq_len(K)) {
-      components[[k]] <- eigendecompose_one_pair(SVS, V_structure[[k]])
+      M <- L_inv %*% V_structure[[k]] %*% L_inv_t
+      M <- (M + t(M)) / 2
+      eig <- eigen(M, symmetric = TRUE)
+      P <- eig$vectors
+      d <- pmax(eig$values, 0)
+      components[[k]] <- list(
+        Q = L_inv_t %*% P,
+        G = L %*% P,
+        eigenvalues = d,
+        log_det_svs = log_det_svs
+      )
     }
     list(
       is_common_cov = TRUE,
-      log_det_svs   = components[[1]]$log_det_svs,
+      log_det_svs   = log_det_svs,
       components    = components
     )
   } else {
@@ -578,39 +617,21 @@ precompute_eigen_cache_R <- function(svs, V_structure, is_common_cov) {
 # @param eigen_cache Precomputed cache from precompute_eigen_cache()
 #
 # @return J x (K+1) matrix of log-likelihoods
-loglik_precomputed <- function(betahat, V_scalar, eigen_cache) {
+loglik_precomputed <- function(betahat, V_scalar, eigen_cache,
+                                BQ_cache = NULL) {
   if (!eigen_cache$is_common_cov) {
-    # C++ fast path for non-common-cov (eliminates K*J R-level loops)
     return(loglik_non_common_cpp(betahat, V_scalar,
                                   eigen_cache$log_det_svs,
                                   eigen_cache$components))
   }
 
-  # Common-cov path: already vectorized over J via BLAS
-  J <- nrow(betahat)
-  R <- ncol(betahat)
-  K <- length(eigen_cache$components)
-  llik <- matrix(0, J, K + 1)
-  const <- -R / 2 * log(2 * pi)
-  log_det_svs <- eigen_cache$log_det_svs  # scalar
-
-  # Null component: N(0, SVS)
-  Q_null <- eigen_cache$components[[1]]$Q
-  B_null <- betahat %*% Q_null                   # J x R (BLAS)
-  mahal_null <- rowSums(B_null^2)                # J-vector
-  llik[, 1] <- const - 0.5 * log_det_svs - 0.5 * mahal_null
-
-  # Non-null components
-  for (k in seq_len(K)) {
-    comp <- eigen_cache$components[[k]]
-    d_k <- comp$eigenvalues
-    B <- betahat %*% comp$Q                     # J x R (BLAS)
-    log_det <- log_det_svs + sum(log1p(V_scalar * d_k))
-    inv_factors <- 1 / (1 + V_scalar * d_k)     # R-vector
-    mahal <- drop(B^2 %*% inv_factors)           # J-vector
-    llik[, k + 1] <- const - 0.5 * log_det - 0.5 * mahal
-  }
-  llik
+  # Common-cov C++ fast path
+  BQ_list <- if (!is.null(BQ_cache)) BQ_cache else list()
+  res <- loglik_common_rcpp(betahat, V_scalar,
+                             eigen_cache$log_det_svs,
+                             eigen_cache$components,
+                             BQ_list)
+  res$llik
 }
 
 # R fallback for loglik_precomputed (for testing)
@@ -682,7 +703,8 @@ loglik_precomputed_R <- function(betahat, V_scalar, eigen_cache) {
 # @return list with post_mean, post_neg, post_zero, prior_scale_em_update,
 #   and either post_mean2 (when reduce_params is NULL) or reduced statistics.
 posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
-                                  em_var_wt = NULL, reduce_params = NULL) {
+                                  em_var_wt = NULL, reduce_params = NULL,
+                                  BQ_cache = NULL) {
   if (!eigen_cache$is_common_cov) {
     # C++ fast path for non-common-cov (eliminates K*J R-level loops)
     em_wt <- if (!is.null(em_var_wt)) em_var_wt else matrix(0, 0, 0)
@@ -696,119 +718,24 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
     return(result)
   }
 
-  # Common-cov path: BLAS-vectorized over J
-  J <- nrow(betahat)
-  R <- ncol(betahat)
-  K <- length(eigen_cache$components)
+  # Common-cov C++ fast path
+  em_wt_mat <- if (!is.null(em_var_wt)) em_var_wt else matrix(0, 0, 0)
+  BQ_list <- if (!is.null(BQ_cache)) BQ_cache else list()
   do_reduce <- !is.null(reduce_params)
 
-  post_mean  <- matrix(0, J, R)
-  post_neg   <- matrix(0, J, R)
-  post_zero  <- matrix(0, J, R)
-  em_update  <- numeric(K + 1)
-
   if (do_reduce) {
-    alpha <- reduce_params$alpha
-    d_var <- reduce_params$d
-    bxxb <- matrix(0, R, R)
-    alpha_mu2_sum <- matrix(0, R, R)
-    mu2_diag <- matrix(0, J, R)   # diagonal of second moment: E[b_{j,r}^2]
+    posterior_common_rcpp(betahat, V_scalar,
+                          eigen_cache$components,
+                          pi_V_post, em_wt_mat, BQ_list,
+                          do_reduce, reduce_params$alpha,
+                          reduce_params$d, reduce_params$v_inv)
   } else {
-    post_mean2 <- array(0, c(J, R, R))
+    posterior_common_rcpp(betahat, V_scalar,
+                          eigen_cache$components,
+                          pi_V_post, em_wt_mat, BQ_list,
+                          do_reduce, numeric(0),
+                          numeric(0), matrix(0, 0, 0))
   }
-
-  # Null component: beta = 0 exactly
-  w_null <- pi_V_post[, 1]
-  post_zero <- matrix(w_null, J, R)
-
-  for (k in seq_len(K)) {
-    comp <- eigen_cache$components[[k]]
-    d_k <- comp$eigenvalues
-    Q_k <- comp$Q
-    G_k <- comp$G
-    w_k <- pi_V_post[, k + 1]  # J-vector
-
-    # Shrinkage factors
-    shrink <- V_scalar * d_k / (1 + V_scalar * d_k)      # R-vector
-    inv_factor <- 1 / (1 + V_scalar * d_k)                # R-vector
-
-    # Posterior covariance (SAME for all j in common_cov)
-    G_scaled <- G_k * rep(shrink, each = R)  # scale columns of G
-    C_k <- G_scaled %*% t(G_k)
-    C_k <- (C_k + t(C_k)) / 2
-
-    # Posterior means for all J variables (BLAS)
-    BQ <- betahat %*% Q_k                              # J x R
-    BQ_shrunk <- t(t(BQ) * shrink)                      # scale columns
-    M_k <- BQ_shrunk %*% t(G_k)                         # J x R
-
-    # Accumulate posterior mean
-    post_mean <- post_mean + w_k * M_k
-
-    if (do_reduce) {
-      # Accumulate bxxb, alpha_mu2_sum, mu2_diag using BLAS (no J x R x R)
-      aw_k  <- alpha * w_k         # J-vector
-      daw_k <- d_var * aw_k        # J-vector
-
-      # C_k contribution (R x R, same for all j)
-      bxxb          <- bxxb          + sum(daw_k) * C_k
-      alpha_mu2_sum <- alpha_mu2_sum + sum(aw_k) * C_k
-
-      # Outer product contributions via BLAS crossprod: sum_j wt_j * M_kj M_kj'
-      sqrt_daw <- sqrt(daw_k)
-      bxxb <- bxxb + crossprod(sqrt_daw * M_k)           # R x R
-      sqrt_aw <- sqrt(aw_k)
-      alpha_mu2_sum <- alpha_mu2_sum + crossprod(sqrt_aw * M_k)
-
-      # mu2_diag: E[b_{j,r}^2] contribution from component k
-      # mu2_diag[j,r] += w_k[j] * (C_k[r,r] + M_k[j,r]^2)
-      diag_Ck <- diag(C_k)
-      mu2_diag <- mu2_diag + w_k * matrix(diag_Ck, J, R, byrow = TRUE) +
-                  w_k * M_k^2
-    } else {
-      # Build full J x R x R post_mean2 via C++
-      post_mean2 <- accumulate_post_mean2_common_cpp(post_mean2, M_k, C_k, w_k)
-    }
-
-    # Sign probabilities for LFSR
-    diag_Ck <- diag(C_k)
-    diag_Ck[diag_Ck < sqrt(.Machine$double.eps) * max(diag_Ck)] <- 0
-    sd_k <- sqrt(diag_Ck)
-    for (r in seq_len(R)) {
-      if (sd_k[r] > 0) {
-        post_neg[, r] <- post_neg[, r] +
-          w_k * pnorm(0, M_k[, r], sd_k[r])
-      } else {
-        post_zero[, r] <- post_zero[, r] + w_k
-      }
-    }
-
-    # EM statistic
-    em_wt <- if (!is.null(em_var_wt)) em_var_wt[k + 1, ] else w_k
-    tr_term <- V_scalar * sum(inv_factor)
-    em_per_var <- V_scalar^2 * drop(BQ^2 %*% (d_k * inv_factor^2))
-    em_update[k + 1] <- sum(em_wt * (tr_term + em_per_var))
-  }
-
-  result <- list(
-    post_mean  = post_mean,
-    post_neg   = post_neg,
-    post_zero  = post_zero,
-    prior_scale_em_update = em_update
-  )
-
-  if (do_reduce) {
-    # vbxxb = tr(v_inv * bxxb) for common-cov (svs_inv[j] = d[j]*v_inv)
-    v_inv <- reduce_params$v_inv
-    result$bxxb          <- bxxb
-    result$vbxxb         <- sum(v_inv * bxxb)
-    result$alpha_mu2_sum <- alpha_mu2_sum
-    result$mu2_diag      <- mu2_diag
-  } else {
-    result$post_mean2 <- post_mean2
-  }
-
-  return(result)
 }
 
 # Reduce a full J x R x R post_mean2 to summary statistics.

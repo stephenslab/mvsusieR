@@ -17,6 +17,14 @@ accumulate_post_mean2_common_cpp <- function(post_mean2, M_k, C_k, w_k) {
     .Call('_mvsusieR_accumulate_post_mean2_common_cpp', PACKAGE = 'mvsusieR', post_mean2, M_k, C_k, w_k)
 }
 
+loglik_common_rcpp <- function(betahat, V_scalar, log_det_svs, components, BQ_cache_in) {
+    .Call('_mvsusieR_loglik_common_rcpp', PACKAGE = 'mvsusieR', betahat, V_scalar, log_det_svs, components, BQ_cache_in)
+}
+
+posterior_common_rcpp <- function(betahat, V_scalar, components, pi_V_post, em_var_wt, BQ_cache_list, do_reduce, alpha, d_var, v_inv) {
+    .Call('_mvsusieR_posterior_common_rcpp', PACKAGE = 'mvsusieR', betahat, V_scalar, components, pi_V_post, em_var_wt, BQ_cache_list, do_reduce, alpha, d_var, v_inv)
+}
+
 impute_missing_Y_rcpp <- function(Y, mu, Vinv, patterns, pattern_obs) {
     .Call('_mvsusieR_impute_missing_Y_rcpp', PACKAGE = 'mvsusieR', Y, mu, Vinv, patterns, pattern_obs)
 }

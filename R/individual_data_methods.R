@@ -240,13 +240,28 @@ compute_ser_statistics.mv_individual <- function(data, params, model, l, ...) {
   })
   optim_init <- log(max(c(max(signal, na.rm = TRUE), 1)))
 
+  # Precompute BQ_cache for Brent optimizer: betahat %*% Q_k for all K.
+  # Only when using optim (Brent) with eigendecomposition precomputation,
+  # since these V-independent products are recomputed ~17 times otherwise.
+  BQ_cache <- NULL
+  if (!is.null(params$estimate_prior_method) &&
+      params$estimate_prior_method == "optim" &&
+      !is.null(model$eigen_cache) &&
+      model$eigen_cache$is_common_cov) {
+    K <- length(model$eigen_cache$components)
+    BQ_cache <- vector("list", K)
+    for (k in seq_len(K))
+      BQ_cache[[k]] <- betahat %*% model$eigen_cache$components[[k]]$Q
+  }
+
   list(
     betahat      = betahat,
     shat2        = svs,            # list of J RxR matrices
     shat2_inv    = svs_inv,        # list of J RxR matrices
     optim_init   = optim_init,
     optim_bounds = c(-30, 15),
-    optim_scale  = "log"
+    optim_scale  = "log",
+    BQ_cache     = BQ_cache
   )
 }
 
@@ -303,7 +318,8 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
   # === FAST PATH: eigendecomposition precomputation ===
   if (!is.null(model$eigen_cache)) {
     betahat <- ser_stats$betahat                     # J x R
-    llik <- loglik_precomputed(betahat, V, model$eigen_cache)
+    llik <- loglik_precomputed(betahat, V, model$eigen_cache,
+                                ser_stats$BQ_cache)
 
     # Build pi_full for mixture weights (same as slow path)
     pi_full <- c(model$null_weight, model$pi_V * (1 - model$null_weight))
@@ -327,6 +343,8 @@ loglik.mv_individual <- function(data, params, model, V, ser_stats, l = NULL, ..
       model$pi_V_posterior[[l]] <- d_mat / rowSums(d_mat)
       model$llik_cache <- llik
       model$per_effect_llik[[l]] <- llik
+      # Pass BQ_cache to posterior (avoids recomputing betahat %*% Q_k)
+      model$BQ_cache <- ser_stats$BQ_cache
       return(model)
     } else {
       return(softmax_res$log_sum)
@@ -455,7 +473,9 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
     post <- posterior_precomputed(betahat, V, model$eigen_cache,
                                   model$pi_V_posterior[[l]],
                                   em_var_wt = em_var_wt,
-                                  reduce_params = reduce_params)
+                                  reduce_params = reduce_params,
+                                  BQ_cache = model$BQ_cache)
+    model$BQ_cache <- NULL  # free memory after use
 
     model$mu[l, , ] <- post$post_mean
     # Store reduced statistics (no J x R x R array)
