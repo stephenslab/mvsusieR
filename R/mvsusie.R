@@ -653,6 +653,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        max_iter = 100, tol = 1e-3, verbosity = 2,
                        track_fit = FALSE) {
   start_time <- proc.time()
+  reset_warn_once()
 
   # Validate inputs
   if (is.null(dim(Y))) {
@@ -831,6 +832,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   s <- apply_mvsusie_dimnames(s)
 
   s$walltime <- proc.time() - start_time
+  flush_warn_once(verbose = verbosity > 1)
   return(s)
 }
 
@@ -861,6 +863,7 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   max_iter = 100, tol = 1e-3, verbosity = 2,
                                   track_fit = FALSE) {
   start_time <- proc.time()
+  reset_warn_once()
 
   XtY <- as.matrix(XtY)
   YtY <- as.matrix(YtY)
@@ -980,5 +983,6 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
   s <- apply_mvsusie_dimnames(s)
 
   s$walltime <- proc.time() - start_time
+  flush_warn_once(verbose = verbosity > 1)
   return(s)
 }

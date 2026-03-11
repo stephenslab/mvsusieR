@@ -8,11 +8,53 @@ mem_used_mb <- function() {
   sum(gc_info[, "(Mb)"])
 }
 
+# ============================================================================
+# Warning deduplication: emit each warning type once, summarize at end.
+#
+# During fitting, numerical fallbacks (Cholesky ridge, SVD pseudo-inverse)
+# can fire hundreds of times. We emit the warning once for each type, then
+# report counts at the end of fitting via message().
+# ============================================================================
+.mvsusie_warn_state <- new.env(parent = emptyenv())
+.mvsusie_warn_state$counts <- list()
+
+# Emit a warning the first time id is seen; silently count subsequent calls.
+warn_once <- function(id, ..., call. = FALSE) {
+  msg <- paste0(...)
+  entry <- .mvsusie_warn_state$counts[[id]]
+  if (is.null(entry)) {
+    .mvsusie_warn_state$counts[[id]] <- list(msg = msg, count = 1L)
+    warning(msg, call. = call.)
+  } else {
+    .mvsusie_warn_state$counts[[id]]$count <- entry$count + 1L
+  }
+}
+
+# Reset warning counts (call at start of fitting).
+reset_warn_once <- function() {
+  .mvsusie_warn_state$counts <- list()
+}
+
+# Report suppressed warning counts and reset (call at end of fitting).
+# Set verbose = FALSE to suppress the summary messages (verbosity = 0).
+flush_warn_once <- function(verbose = TRUE) {
+  if (verbose) {
+    for (id in names(.mvsusie_warn_state$counts)) {
+      entry <- .mvsusie_warn_state$counts[[id]]
+      if (entry$count > 1L) {
+        message(sprintf("Note: \"%s\" occurred %d times total (%d suppressed)",
+                        entry$msg, entry$count, entry$count - 1L))
+      }
+    }
+  }
+  reset_warn_once()
+}
+
 # Cholesky decomposition with automatic ridge fallback.
 #
 # Tries plain Cholesky first, suppressing rank-deficiency warnings.
-# If Cholesky fails, adds a small ridge (proportional to the matrix
-# diagonal) and retries. Issues an R warning when ridge is applied.
+# If Cholesky fails, applies makePD and retries. Issues an R warning
+# when ridge is applied.
 safe_chol <- function(x, ...) {
   res <- tryCatch(
     withCallingHandlers(chol(x, ...),
@@ -23,10 +65,11 @@ safe_chol <- function(x, ...) {
     error = function(e) NULL
   )
   if (!is.null(res)) return(res)
-  ridge <- max(abs(diag(x))) * sqrt(.Machine$double.eps)
-  warning("Cholesky failed; adding ridge ", signif(ridge, 3),
-          " to diagonal", call. = FALSE)
-  chol(x + ridge * diag(nrow(x)), ...)
+  x_pd <- makePD(x)
+  warn_once("safe_chol_ridge",
+            "Cholesky failed; adding ridge ",
+            signif(attr(x_pd, "ridge"), 3), " to diagonal")
+  chol(x_pd, ...)
 }
 
 # Invert a symmetric, positive definite square matrix via its Cholesky
@@ -49,8 +92,9 @@ invert_via_chol <- function(x) {
     return(list(inv = chol2inv(ch), rank = nrow(x)))
   }
   # Cholesky failed -> fall back to SVD pseudo-inverse
-  warning("Cholesky failed for ", nrow(x), "x", ncol(x),
-          " matrix; falling back to SVD pseudo-inverse", call. = FALSE)
+  warn_once("chol_svd_fallback",
+            "Cholesky failed for ", nrow(x), "x", ncol(x),
+            " matrix; falling back to SVD pseudo-inverse")
   pseudo_inverse(x)
 }
 
@@ -77,10 +121,17 @@ is_pd <- function(x) {
   }, error = function(e) FALSE)
 }
 
-# Add small ridge e to diagonal for positive-definiteness enforcement.
-# Borrowed from mr.mash (misc.R).
-makePD <- function(x, e = 1e-8) {
-  x + diag(nrow(x)) * e
+# Add ridge to diagonal for positive-definiteness enforcement.
+#
+# By default uses a scale-relative ridge: max(|diag(x)|) * sqrt(eps).
+# An explicit absolute ridge can be passed via e.
+# The applied ridge value is attached as attr(result, "ridge").
+makePD <- function(x, e = NULL) {
+  if (is.null(e))
+    e <- max(abs(diag(x))) * sqrt(.Machine$double.eps)
+  result <- x + diag(nrow(x)) * e
+  attr(result, "ridge") <- e
+  result
 }
 
 # Pseudoinverse of matrix.

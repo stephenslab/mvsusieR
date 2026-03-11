@@ -4,11 +4,9 @@
 \alias{build_mashr_prior}
 \title{Construct full prior arrays for mashr C++ (prepend null component)}
 \usage{
-build_mashr_prior(V_structure_3d, pi_V, null_weight, V_scalar, R)
+build_mashr_prior(V_structure, pi_V, null_weight, V_scalar, R)
 }
 \arguments{
-\item{V_structure_3d}{R x R x K array of non-null prior components.}
-
 \item{pi_V}{K-vector of non-null mixture weights.}
 
 \item{null_weight}{Scalar null component weight.}
@@ -16,6 +14,8 @@ build_mashr_prior(V_structure_3d, pi_V, null_weight, V_scalar, R)
 \item{V_scalar}{Scalar to scale the non-null components.}
 
 \item{R}{Number of conditions.}
+
+\item{V_structure_3d}{R x R x K array of non-null prior components.}
 }
 \value{
 List with \code{xUlist_full_3d} (R x R x (K+1)) and
