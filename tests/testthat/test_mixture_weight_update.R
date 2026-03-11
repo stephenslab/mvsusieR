@@ -1,10 +1,10 @@
 context("Test mixture prior weight updates (EM and mixsqp)")
 
 # =============================================================================
-# UNIT TESTS: inner_em_cpp (C++ core)
+# UNIT TESTS: inner_em_rcpp (C++ core)
 # =============================================================================
 
-test_that("inner_em_cpp converges on uniform llik to uniform weights", {
+test_that("inner_em_rcpp converges on uniform llik to uniform weights", {
   K <- 4
   N <- 100
   # Uniform log-likelihoods ->all components equally likely ->uniform weights
@@ -12,12 +12,12 @@ test_that("inner_em_cpp converges on uniform llik to uniform weights", {
   weights <- rep(1, N)
   pi_init <- rep(1 / K, K)
 
-  result <- mvsusieR:::inner_em_cpp(llik, weights, pi_init, 100L, 1e-10)
+  result <- mvsusieR:::inner_em_rcpp(llik, weights, pi_init, 100L, 1e-10)
   expect_equal(as.numeric(result$pi), rep(1 / K, K), tolerance = 1e-8)
   expect_true(result$converged)
 })
 
-test_that("inner_em_cpp concentrates weight on dominant component", {
+test_that("inner_em_rcpp concentrates weight on dominant component", {
   K <- 3
   N <- 50
   # Component 2 has much higher log-likelihood for all observations
@@ -26,13 +26,13 @@ test_that("inner_em_cpp concentrates weight on dominant component", {
   weights <- rep(1, N)
   pi_init <- rep(1 / K, K)
 
-  result <- mvsusieR:::inner_em_cpp(llik, weights, pi_init, 100L, 1e-10)
+  result <- mvsusieR:::inner_em_rcpp(llik, weights, pi_init, 100L, 1e-10)
   expect_true(result$pi[2] > 0.99)
   expect_true(result$converged)
   expect_equal(sum(result$pi), 1, tolerance = 1e-10)
 })
 
-test_that("inner_em_cpp respects observation weights", {
+test_that("inner_em_rcpp respects observation weights", {
   K <- 3
   N <- 100
   # Half the observations favor component 1, half favor component 3
@@ -42,16 +42,16 @@ test_that("inner_em_cpp respects observation weights", {
 
   # Equal weights: roughly equal split between components 1 and 3
   weights_equal <- rep(1, N)
-  result_equal <- mvsusieR:::inner_em_cpp(llik, weights_equal, rep(1/K, K), 100L, 1e-10)
+  result_equal <- mvsusieR:::inner_em_rcpp(llik, weights_equal, rep(1/K, K), 100L, 1e-10)
   expect_true(abs(result_equal$pi[1] - result_equal$pi[3]) < 0.1)
 
   # Weight only the first 50: component 1 should dominate
   weights_first <- c(rep(1, 50), rep(1e-10, 50))
-  result_first <- mvsusieR:::inner_em_cpp(llik, weights_first, rep(1/K, K), 100L, 1e-10)
+  result_first <- mvsusieR:::inner_em_rcpp(llik, weights_first, rep(1/K, K), 100L, 1e-10)
   expect_true(result_first$pi[1] > 0.9)
 })
 
-test_that("inner_em_cpp converges early on well-conditioned problems", {
+test_that("inner_em_rcpp converges early on well-conditioned problems", {
   set.seed(42)
   K <- 5
   N <- 200
@@ -59,12 +59,12 @@ test_that("inner_em_cpp converges early on well-conditioned problems", {
   weights <- rep(1, N)
   pi_init <- rep(1 / K, K)
 
-  result <- mvsusieR:::inner_em_cpp(llik, weights, pi_init, 1000L, 1e-10)
+  result <- mvsusieR:::inner_em_rcpp(llik, weights, pi_init, 1000L, 1e-10)
   expect_true(result$converged)
   expect_true(result$n_iter < 1000)  # should converge well before max
 })
 
-test_that("inner_em_cpp matches pure R reference implementation", {
+test_that("inner_em_rcpp matches pure R reference implementation", {
   set.seed(123)
   K <- 4
   N <- 80
@@ -73,7 +73,7 @@ test_that("inner_em_cpp matches pure R reference implementation", {
   pi_init <- rep(1 / K, K)
 
   # C++ result
-  result_cpp <- mvsusieR:::inner_em_cpp(llik, weights, pi_init, 200L, 1e-12)
+  result_cpp <- mvsusieR:::inner_em_rcpp(llik, weights, pi_init, 200L, 1e-12)
 
   # Pure R reference implementation
   pi_cur <- pi_init

@@ -12,7 +12,7 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-List inner_em_cpp(const arma::mat& llik,      // (N x K) log-likelihood matrix
+List inner_em_rcpp(const arma::mat& llik,      // (N x K) log-likelihood matrix
                   const arma::vec& weights,    // (N) observation weights (alpha)
                   arma::vec pi_init,           // (K) initial mixture weights
                   int max_iter,                // max inner iterations

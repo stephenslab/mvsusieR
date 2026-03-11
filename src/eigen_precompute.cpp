@@ -7,10 +7,10 @@
 // per-iteration function call overhead and improves cache locality.
 //
 // Functions:
-//   precompute_eigen_cache_non_common_cpp  - batch eigendecomposition
-//   loglik_non_common_cpp                  - K*J log-likelihood
-//   posterior_non_common_cpp               - K*J posterior moments
-//   accumulate_post_mean2_common_cpp       - common-cov J-loop helper
+//   precompute_eigen_cache_non_common_rcpp  - batch eigendecomposition
+//   loglik_non_common_rcpp                  - K*J log-likelihood
+//   posterior_non_common_rcpp               - K*J posterior moments
+//   accumulate_post_mean2_common_rcpp       - common-cov J-loop helper
 //
 // Each has a corresponding R implementation in R/mvsusie_utils.R.
 
@@ -33,7 +33,7 @@ static bool safe_chol_lower(arma::mat& L, const arma::mat& A) {
 
 
 // ---------------------------------------------------------------------------
-// 1. precompute_eigen_cache_non_common_cpp
+// 1. precompute_eigen_cache_non_common_rcpp
 //
 // Batch eigendecomposition for the non-common-covariance path.
 // For each variable j, computes chol(SVS_j) once and reuses it for
@@ -54,7 +54,7 @@ static bool safe_chol_lower(arma::mat& L, const arma::mat& A) {
 //     eigenvalues = R x J matrix
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-Rcpp::List precompute_eigen_cache_non_common_cpp(
+Rcpp::List precompute_eigen_cache_non_common_rcpp(
     const Rcpp::List& svs_list,
     const Rcpp::List& U_list) {
 
@@ -141,7 +141,7 @@ Rcpp::List precompute_eigen_cache_non_common_cpp(
 
 
 // ---------------------------------------------------------------------------
-// 2. loglik_non_common_cpp
+// 2. loglik_non_common_rcpp
 //
 // Compute J x (K+1) log-likelihood matrix for the non-common-cov path.
 // Column 1 = null component N(0, SVS).
@@ -155,7 +155,7 @@ Rcpp::List precompute_eigen_cache_non_common_cpp(
 // Returns J x (K+1) matrix.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::mat loglik_non_common_cpp(
+arma::mat loglik_non_common_rcpp(
     const arma::mat& betahat,
     double V_scalar,
     const arma::vec& log_det_svs,
@@ -202,7 +202,7 @@ arma::mat loglik_non_common_cpp(
 
 
 // ---------------------------------------------------------------------------
-// 3. posterior_non_common_cpp
+// 3. posterior_non_common_rcpp
 //
 // Compute posterior moments for the non-common-cov path.
 // For each (k, j): computes posterior mean, second moment, sign
@@ -218,7 +218,7 @@ arma::mat loglik_non_common_cpp(
 //              prior_scale_em_update)
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-Rcpp::List posterior_non_common_cpp(
+Rcpp::List posterior_non_common_rcpp(
     const arma::mat& betahat,
     double V_scalar,
     const Rcpp::List& components,
@@ -328,7 +328,7 @@ Rcpp::List posterior_non_common_cpp(
 
 
 // ---------------------------------------------------------------------------
-// 4. accumulate_post_mean2_common_cpp
+// 4. accumulate_post_mean2_common_rcpp
 //
 // Helper for the common-cov path: replaces the R-level J-loop for
 // accumulating post_mean2.
@@ -341,7 +341,7 @@ Rcpp::List posterior_non_common_cpp(
 // Returns updated J x R x R array.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::cube accumulate_post_mean2_common_cpp(
+arma::cube accumulate_post_mean2_common_rcpp(
     arma::cube post_mean2,
     const arma::mat& M_k,
     const arma::mat& C_k,

@@ -11,21 +11,21 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// precompute_eigen_cache_non_common_cpp
-Rcpp::List precompute_eigen_cache_non_common_cpp(const Rcpp::List& svs_list, const Rcpp::List& U_list);
-RcppExport SEXP _mvsusieR_precompute_eigen_cache_non_common_cpp(SEXP svs_listSEXP, SEXP U_listSEXP) {
+// precompute_eigen_cache_non_common_rcpp
+Rcpp::List precompute_eigen_cache_non_common_rcpp(const Rcpp::List& svs_list, const Rcpp::List& U_list);
+RcppExport SEXP _mvsusieR_precompute_eigen_cache_non_common_rcpp(SEXP svs_listSEXP, SEXP U_listSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type svs_list(svs_listSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type U_list(U_listSEXP);
-    rcpp_result_gen = Rcpp::wrap(precompute_eigen_cache_non_common_cpp(svs_list, U_list));
+    rcpp_result_gen = Rcpp::wrap(precompute_eigen_cache_non_common_rcpp(svs_list, U_list));
     return rcpp_result_gen;
 END_RCPP
 }
-// loglik_non_common_cpp
-arma::mat loglik_non_common_cpp(const arma::mat& betahat, double V_scalar, const arma::vec& log_det_svs, const Rcpp::List& components);
-RcppExport SEXP _mvsusieR_loglik_non_common_cpp(SEXP betahatSEXP, SEXP V_scalarSEXP, SEXP log_det_svsSEXP, SEXP componentsSEXP) {
+// loglik_non_common_rcpp
+arma::mat loglik_non_common_rcpp(const arma::mat& betahat, double V_scalar, const arma::vec& log_det_svs, const Rcpp::List& components);
+RcppExport SEXP _mvsusieR_loglik_non_common_rcpp(SEXP betahatSEXP, SEXP V_scalarSEXP, SEXP log_det_svsSEXP, SEXP componentsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,13 +33,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type V_scalar(V_scalarSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type log_det_svs(log_det_svsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type components(componentsSEXP);
-    rcpp_result_gen = Rcpp::wrap(loglik_non_common_cpp(betahat, V_scalar, log_det_svs, components));
+    rcpp_result_gen = Rcpp::wrap(loglik_non_common_rcpp(betahat, V_scalar, log_det_svs, components));
     return rcpp_result_gen;
 END_RCPP
 }
-// posterior_non_common_cpp
-Rcpp::List posterior_non_common_cpp(const arma::mat& betahat, double V_scalar, const Rcpp::List& components, const arma::mat& pi_V_post, const arma::mat& em_var_wt);
-RcppExport SEXP _mvsusieR_posterior_non_common_cpp(SEXP betahatSEXP, SEXP V_scalarSEXP, SEXP componentsSEXP, SEXP pi_V_postSEXP, SEXP em_var_wtSEXP) {
+// posterior_non_common_rcpp
+Rcpp::List posterior_non_common_rcpp(const arma::mat& betahat, double V_scalar, const Rcpp::List& components, const arma::mat& pi_V_post, const arma::mat& em_var_wt);
+RcppExport SEXP _mvsusieR_posterior_non_common_rcpp(SEXP betahatSEXP, SEXP V_scalarSEXP, SEXP componentsSEXP, SEXP pi_V_postSEXP, SEXP em_var_wtSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -48,13 +48,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::List& >::type components(componentsSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type pi_V_post(pi_V_postSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type em_var_wt(em_var_wtSEXP);
-    rcpp_result_gen = Rcpp::wrap(posterior_non_common_cpp(betahat, V_scalar, components, pi_V_post, em_var_wt));
+    rcpp_result_gen = Rcpp::wrap(posterior_non_common_rcpp(betahat, V_scalar, components, pi_V_post, em_var_wt));
     return rcpp_result_gen;
 END_RCPP
 }
-// accumulate_post_mean2_common_cpp
-arma::cube accumulate_post_mean2_common_cpp(arma::cube post_mean2, const arma::mat& M_k, const arma::mat& C_k, const arma::vec& w_k);
-RcppExport SEXP _mvsusieR_accumulate_post_mean2_common_cpp(SEXP post_mean2SEXP, SEXP M_kSEXP, SEXP C_kSEXP, SEXP w_kSEXP) {
+// accumulate_post_mean2_common_rcpp
+arma::cube accumulate_post_mean2_common_rcpp(arma::cube post_mean2, const arma::mat& M_k, const arma::mat& C_k, const arma::vec& w_k);
+RcppExport SEXP _mvsusieR_accumulate_post_mean2_common_rcpp(SEXP post_mean2SEXP, SEXP M_kSEXP, SEXP C_kSEXP, SEXP w_kSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -62,7 +62,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type M_k(M_kSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type C_k(C_kSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type w_k(w_kSEXP);
-    rcpp_result_gen = Rcpp::wrap(accumulate_post_mean2_common_cpp(post_mean2, M_k, C_k, w_k));
+    rcpp_result_gen = Rcpp::wrap(accumulate_post_mean2_common_rcpp(post_mean2, M_k, C_k, w_k));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -116,9 +116,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// inner_em_cpp
-List inner_em_cpp(const arma::mat& llik, const arma::vec& weights, arma::vec pi_init, int max_iter, double tol);
-RcppExport SEXP _mvsusieR_inner_em_cpp(SEXP llikSEXP, SEXP weightsSEXP, SEXP pi_initSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
+// inner_em_rcpp
+List inner_em_rcpp(const arma::mat& llik, const arma::vec& weights, arma::vec pi_init, int max_iter, double tol);
+RcppExport SEXP _mvsusieR_inner_em_rcpp(SEXP llikSEXP, SEXP weightsSEXP, SEXP pi_initSEXP, SEXP max_iterSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -127,26 +127,26 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::vec >::type pi_init(pi_initSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(inner_em_cpp(llik, weights, pi_init, max_iter, tol));
+    rcpp_result_gen = Rcpp::wrap(inner_em_rcpp(llik, weights, pi_init, max_iter, tol));
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_VinvR_3d_cpp
-arma::mat compute_VinvR_3d_cpp(const arma::mat& mat, const Rcpp::List& Vinv_list, const arma::ivec& pattern_assign);
-RcppExport SEXP _mvsusieR_compute_VinvR_3d_cpp(SEXP matSEXP, SEXP Vinv_listSEXP, SEXP pattern_assignSEXP) {
+// compute_VinvR_3d_rcpp
+arma::mat compute_VinvR_3d_rcpp(const arma::mat& mat, const Rcpp::List& Vinv_list, const arma::ivec& pattern_assign);
+RcppExport SEXP _mvsusieR_compute_VinvR_3d_rcpp(SEXP matSEXP, SEXP Vinv_listSEXP, SEXP pattern_assignSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type mat(matSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type Vinv_list(Vinv_listSEXP);
     Rcpp::traits::input_parameter< const arma::ivec& >::type pattern_assign(pattern_assignSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_VinvR_3d_cpp(mat, Vinv_list, pattern_assign));
+    rcpp_result_gen = Rcpp::wrap(compute_VinvR_3d_rcpp(mat, Vinv_list, pattern_assign));
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_XtR_3d_cpp
-arma::mat compute_XtR_3d_cpp(const arma::cube& X_3d, const arma::mat& R_mat, const Rcpp::List& Vinv_list, const arma::ivec& pattern_assign, int method, const arma::cube& Xbar);
-RcppExport SEXP _mvsusieR_compute_XtR_3d_cpp(SEXP X_3dSEXP, SEXP R_matSEXP, SEXP Vinv_listSEXP, SEXP pattern_assignSEXP, SEXP methodSEXP, SEXP XbarSEXP) {
+// compute_XtR_3d_rcpp
+arma::mat compute_XtR_3d_rcpp(const arma::cube& X_3d, const arma::mat& R_mat, const Rcpp::List& Vinv_list, const arma::ivec& pattern_assign, int method, const arma::cube& Xbar);
+RcppExport SEXP _mvsusieR_compute_XtR_3d_rcpp(SEXP X_3dSEXP, SEXP R_matSEXP, SEXP Vinv_listSEXP, SEXP pattern_assignSEXP, SEXP methodSEXP, SEXP XbarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -156,13 +156,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::ivec& >::type pattern_assign(pattern_assignSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type Xbar(XbarSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_XtR_3d_cpp(X_3d, R_mat, Vinv_list, pattern_assign, method, Xbar));
+    rcpp_result_gen = Rcpp::wrap(compute_XtR_3d_rcpp(X_3d, R_mat, Vinv_list, pattern_assign, method, Xbar));
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_Xb_3d_cpp
-arma::mat compute_Xb_3d_cpp(const arma::cube& X_3d, const arma::mat& b, int method, const arma::cube& Xbar);
-RcppExport SEXP _mvsusieR_compute_Xb_3d_cpp(SEXP X_3dSEXP, SEXP bSEXP, SEXP methodSEXP, SEXP XbarSEXP) {
+// compute_Xb_3d_rcpp
+arma::mat compute_Xb_3d_rcpp(const arma::cube& X_3d, const arma::mat& b, int method, const arma::cube& Xbar);
+RcppExport SEXP _mvsusieR_compute_Xb_3d_rcpp(SEXP X_3dSEXP, SEXP bSEXP, SEXP methodSEXP, SEXP XbarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -170,25 +170,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type b(bSEXP);
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type Xbar(XbarSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_Xb_3d_cpp(X_3d, b, method, Xbar));
+    rcpp_result_gen = Rcpp::wrap(compute_Xb_3d_rcpp(X_3d, b, method, Xbar));
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_betahat_3d_cpp
-arma::mat compute_betahat_3d_cpp(const arma::cube& svs_3d, const arma::mat& XtR);
-RcppExport SEXP _mvsusieR_compute_betahat_3d_cpp(SEXP svs_3dSEXP, SEXP XtRSEXP) {
+// compute_betahat_3d_rcpp
+arma::mat compute_betahat_3d_rcpp(const arma::cube& svs_3d, const arma::mat& XtR);
+RcppExport SEXP _mvsusieR_compute_betahat_3d_rcpp(SEXP svs_3dSEXP, SEXP XtRSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::cube& >::type svs_3d(svs_3dSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type XtR(XtRSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_betahat_3d_cpp(svs_3d, XtR));
+    rcpp_result_gen = Rcpp::wrap(compute_betahat_3d_rcpp(svs_3d, XtR));
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_svs_inv_3d_cpp
-arma::cube compute_svs_inv_3d_cpp(const Rcpp::List& Vinv_list, const arma::imat& pattern, const arma::mat& raw_sq_sum, const arma::mat& raw_sum, const arma::ivec& n_k, const arma::mat& cm, const arma::mat& csd, int method, const arma::cube& Xbar, const arma::mat& Vinvsum);
-RcppExport SEXP _mvsusieR_compute_svs_inv_3d_cpp(SEXP Vinv_listSEXP, SEXP patternSEXP, SEXP raw_sq_sumSEXP, SEXP raw_sumSEXP, SEXP n_kSEXP, SEXP cmSEXP, SEXP csdSEXP, SEXP methodSEXP, SEXP XbarSEXP, SEXP VinvsumSEXP) {
+// compute_svs_inv_3d_rcpp
+arma::cube compute_svs_inv_3d_rcpp(const Rcpp::List& Vinv_list, const arma::imat& pattern, const arma::mat& raw_sq_sum, const arma::mat& raw_sum, const arma::ivec& n_k, const arma::mat& cm, const arma::mat& csd, int method, const arma::cube& Xbar, const arma::mat& Vinvsum);
+RcppExport SEXP _mvsusieR_compute_svs_inv_3d_rcpp(SEXP Vinv_listSEXP, SEXP patternSEXP, SEXP raw_sq_sumSEXP, SEXP raw_sumSEXP, SEXP n_kSEXP, SEXP cmSEXP, SEXP csdSEXP, SEXP methodSEXP, SEXP XbarSEXP, SEXP VinvsumSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -202,13 +202,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type method(methodSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type Xbar(XbarSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Vinvsum(VinvsumSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_svs_inv_3d_cpp(Vinv_list, pattern, raw_sq_sum, raw_sum, n_k, cm, csd, method, Xbar, Vinvsum));
+    rcpp_result_gen = Rcpp::wrap(compute_svs_inv_3d_rcpp(Vinv_list, pattern, raw_sq_sum, raw_sum, n_k, cm, csd, method, Xbar, Vinvsum));
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_vbxxb_cpp
-Rcpp::List compute_vbxxb_cpp(const arma::vec& alpha, const arma::cube& mu2_3d, const arma::cube& svs_inv_3d, const arma::vec& d);
-RcppExport SEXP _mvsusieR_compute_vbxxb_cpp(SEXP alphaSEXP, SEXP mu2_3dSEXP, SEXP svs_inv_3dSEXP, SEXP dSEXP) {
+// compute_vbxxb_rcpp
+Rcpp::List compute_vbxxb_rcpp(const arma::vec& alpha, const arma::cube& mu2_3d, const arma::cube& svs_inv_3d, const arma::vec& d);
+RcppExport SEXP _mvsusieR_compute_vbxxb_rcpp(SEXP alphaSEXP, SEXP mu2_3dSEXP, SEXP svs_inv_3dSEXP, SEXP dSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -216,13 +216,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::cube& >::type mu2_3d(mu2_3dSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type svs_inv_3d(svs_inv_3dSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type d(dSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_vbxxb_cpp(alpha, mu2_3d, svs_inv_3d, d));
+    rcpp_result_gen = Rcpp::wrap(compute_vbxxb_rcpp(alpha, mu2_3d, svs_inv_3d, d));
     return rcpp_result_gen;
 END_RCPP
 }
-// compute_Xbar_from_sums_cpp
-arma::cube compute_Xbar_from_sums_cpp(const Rcpp::List& Vinv_list, const arma::imat& pattern, const arma::mat& raw_sum, const arma::ivec& n_k, const arma::mat& cm, const arma::mat& csd, const arma::mat& Vinvsuminv);
-RcppExport SEXP _mvsusieR_compute_Xbar_from_sums_cpp(SEXP Vinv_listSEXP, SEXP patternSEXP, SEXP raw_sumSEXP, SEXP n_kSEXP, SEXP cmSEXP, SEXP csdSEXP, SEXP VinvsuminvSEXP) {
+// compute_Xbar_from_sums_rcpp
+arma::cube compute_Xbar_from_sums_rcpp(const Rcpp::List& Vinv_list, const arma::imat& pattern, const arma::mat& raw_sum, const arma::ivec& n_k, const arma::mat& cm, const arma::mat& csd, const arma::mat& Vinvsuminv);
+RcppExport SEXP _mvsusieR_compute_Xbar_from_sums_rcpp(SEXP Vinv_listSEXP, SEXP patternSEXP, SEXP raw_sumSEXP, SEXP n_kSEXP, SEXP cmSEXP, SEXP csdSEXP, SEXP VinvsuminvSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -233,27 +233,27 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type cm(cmSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type csd(csdSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Vinvsuminv(VinvsuminvSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_Xbar_from_sums_cpp(Vinv_list, pattern, raw_sum, n_k, cm, csd, Vinvsuminv));
+    rcpp_result_gen = Rcpp::wrap(compute_Xbar_from_sums_rcpp(Vinv_list, pattern, raw_sum, n_k, cm, csd, Vinvsuminv));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_mvsusieR_precompute_eigen_cache_non_common_cpp", (DL_FUNC) &_mvsusieR_precompute_eigen_cache_non_common_cpp, 2},
-    {"_mvsusieR_loglik_non_common_cpp", (DL_FUNC) &_mvsusieR_loglik_non_common_cpp, 4},
-    {"_mvsusieR_posterior_non_common_cpp", (DL_FUNC) &_mvsusieR_posterior_non_common_cpp, 5},
-    {"_mvsusieR_accumulate_post_mean2_common_cpp", (DL_FUNC) &_mvsusieR_accumulate_post_mean2_common_cpp, 4},
+    {"_mvsusieR_precompute_eigen_cache_non_common_rcpp", (DL_FUNC) &_mvsusieR_precompute_eigen_cache_non_common_rcpp, 2},
+    {"_mvsusieR_loglik_non_common_rcpp", (DL_FUNC) &_mvsusieR_loglik_non_common_rcpp, 4},
+    {"_mvsusieR_posterior_non_common_rcpp", (DL_FUNC) &_mvsusieR_posterior_non_common_rcpp, 5},
+    {"_mvsusieR_accumulate_post_mean2_common_rcpp", (DL_FUNC) &_mvsusieR_accumulate_post_mean2_common_rcpp, 4},
     {"_mvsusieR_loglik_common_rcpp", (DL_FUNC) &_mvsusieR_loglik_common_rcpp, 5},
     {"_mvsusieR_posterior_common_rcpp", (DL_FUNC) &_mvsusieR_posterior_common_rcpp, 10},
     {"_mvsusieR_impute_missing_Y_rcpp", (DL_FUNC) &_mvsusieR_impute_missing_Y_rcpp, 5},
-    {"_mvsusieR_inner_em_cpp", (DL_FUNC) &_mvsusieR_inner_em_cpp, 5},
-    {"_mvsusieR_compute_VinvR_3d_cpp", (DL_FUNC) &_mvsusieR_compute_VinvR_3d_cpp, 3},
-    {"_mvsusieR_compute_XtR_3d_cpp", (DL_FUNC) &_mvsusieR_compute_XtR_3d_cpp, 6},
-    {"_mvsusieR_compute_Xb_3d_cpp", (DL_FUNC) &_mvsusieR_compute_Xb_3d_cpp, 4},
-    {"_mvsusieR_compute_betahat_3d_cpp", (DL_FUNC) &_mvsusieR_compute_betahat_3d_cpp, 2},
-    {"_mvsusieR_compute_svs_inv_3d_cpp", (DL_FUNC) &_mvsusieR_compute_svs_inv_3d_cpp, 10},
-    {"_mvsusieR_compute_vbxxb_cpp", (DL_FUNC) &_mvsusieR_compute_vbxxb_cpp, 4},
-    {"_mvsusieR_compute_Xbar_from_sums_cpp", (DL_FUNC) &_mvsusieR_compute_Xbar_from_sums_cpp, 7},
+    {"_mvsusieR_inner_em_rcpp", (DL_FUNC) &_mvsusieR_inner_em_rcpp, 5},
+    {"_mvsusieR_compute_VinvR_3d_rcpp", (DL_FUNC) &_mvsusieR_compute_VinvR_3d_rcpp, 3},
+    {"_mvsusieR_compute_XtR_3d_rcpp", (DL_FUNC) &_mvsusieR_compute_XtR_3d_rcpp, 6},
+    {"_mvsusieR_compute_Xb_3d_rcpp", (DL_FUNC) &_mvsusieR_compute_Xb_3d_rcpp, 4},
+    {"_mvsusieR_compute_betahat_3d_rcpp", (DL_FUNC) &_mvsusieR_compute_betahat_3d_rcpp, 2},
+    {"_mvsusieR_compute_svs_inv_3d_rcpp", (DL_FUNC) &_mvsusieR_compute_svs_inv_3d_rcpp, 10},
+    {"_mvsusieR_compute_vbxxb_rcpp", (DL_FUNC) &_mvsusieR_compute_vbxxb_rcpp, 4},
+    {"_mvsusieR_compute_Xbar_from_sums_rcpp", (DL_FUNC) &_mvsusieR_compute_Xbar_from_sums_rcpp, 7},
     {NULL, NULL, 0}
 };
 

@@ -27,6 +27,6 @@ Updated model with new pi_V (and optionally null_weight).
 Iteratively maximizes the collapsed objective
   F(pi) = sum_{l,j} alpha[l,j] * log(sum_k pi[k] * exp(llik[l,j,k]))
 via EM on the stacked (L*J) x (K+1) log-likelihood matrix, weighted
-by alpha[l,j]. Core loop implemented in C++ (inner_em_cpp).
+by alpha[l,j]. Core loop implemented in C++ (inner_em_rcpp).
 }
 \keyword{internal}

@@ -160,6 +160,14 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   prior variance; valid choices are \code{"optim"}, \code{"EM"},
 #'   or \code{"uniroot"}.
 #'
+#' @param estimate_prior_mixture_weights When \code{TRUE} and
+#'   \code{prior_variance} is a mixture prior, the mixture weights
+#'   are updated at each iteration. Components with near-zero weight
+#'   are pruned.
+#'
+#' @param mixture_weight_method Method for updating mixture weights;
+#'   \code{"mixsqp"} or \code{"EM"}.
+#'
 #' @param check_null_threshold When the prior variance is estimated,
 #'   the estimate is compared against the null, and the prior variance
 #'   is set to zero unless the log-likelihood using the estimate is
@@ -185,6 +193,9 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   allowed in a credible set. The setting \code{min_abs_corr = 0.5}
 #'   corresponds to squared correlation of 0.25, which is a commonly
 #'   used threshold for genotype data in genetics studies.
+#'
+#' @param missing_y_method Method for handling missing values in Y;
+#'   \code{"approximate"} or \code{"exact"}.
 #'
 #' @param compute_univariate_zscore When
 #'   \code{compute_univariate_zscore = TRUE}, the z-scores from the
@@ -247,10 +258,17 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' \item{single_effect_lfsr}{Average lfsr (local false sign rate) for
 #'   each CS.}
 #'
-#' \item{lfsr}{TO DO: Explain what this output is.}
+#' \item{lfsr}{J by R matrix of local false sign rates, averaging
+#'   over the single-effect posterior assignments.}
 #'
 #' \item{conditional_lfsr}{The lfsr (local false sign rate) given that
 #'   the variable is the single effect.}
+#'
+#' \item{pi_V}{Vector of mixture prior weights (only present when
+#'   \code{prior_variance} is a mixture prior).}
+#'
+#' \item{V_structure}{List of prior covariance matrices (only present
+#'   when \code{prior_variance} is a mixture prior).}
 #'
 #' @examples
 #' # Example with one response.

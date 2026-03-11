@@ -787,8 +787,8 @@ test_that("R=3, mixture prior K>1, estimate residual var matches R6", {
 # ============================================================================
 # Non-common-cov C++ eigendecomposition path
 #
-# NOTE: The C++ non-common-cov eigen path (precompute_eigen_cache_non_common_cpp,
-# loglik_non_common_cpp, posterior_non_common_cpp) is verified against the
+# NOTE: The C++ non-common-cov eigen path (precompute_eigen_cache_non_common_rcpp,
+# loglik_non_common_rcpp, posterior_non_common_rcpp) is verified against the
 # pure R implementation at machine precision in test_missing_y_methods.R
 # (30+ C++ vs R comparison tests across multiple R/K/J configurations).
 #

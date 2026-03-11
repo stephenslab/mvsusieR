@@ -475,7 +475,7 @@ test_that("C++ loglik_non_common matches R across parameter regimes", {
     betahat <- matrix(rnorm(params$J * params$R), params$J, params$R)
     cache <- mvsusieR:::precompute_eigen_cache(d$svs, d$V_structure, FALSE)
 
-    llik_cpp <- mvsusieR:::loglik_non_common_cpp(
+    llik_cpp <- mvsusieR:::loglik_non_common_rcpp(
       betahat, params$V, cache$log_det_svs, cache$components)
     llik_r <- mvsusieR:::loglik_precomputed_R(betahat, params$V, cache)
 
@@ -511,7 +511,7 @@ test_that("C++ posterior_non_common matches R across parameter regimes", {
       em_wt_r <- em_wt
     }
 
-    post_cpp <- mvsusieR:::posterior_non_common_cpp(
+    post_cpp <- mvsusieR:::posterior_non_common_rcpp(
       betahat, params$V, cache$components, pi_V_post, em_wt)
     post_r <- mvsusieR:::posterior_precomputed_R(
       betahat, params$V, cache, pi_V_post, em_wt_r)
@@ -537,7 +537,7 @@ test_that("C++ accumulate_post_mean2_common matches R loop", {
     for (j in seq_len(J)) {
       pm2_r[j, , ] <- pm2_r[j, , ] + w_k[j] * (C_k + tcrossprod(M_k[j, ]))
     }
-    pm2_cpp <- mvsusieR:::accumulate_post_mean2_common_cpp(
+    pm2_cpp <- mvsusieR:::accumulate_post_mean2_common_rcpp(
       post_mean2, M_k, C_k, w_k)
     expect_equal(pm2_cpp, pm2_r, tolerance = 1e-10,
                  info = paste("R =", R))
@@ -589,7 +589,7 @@ test_that("Full eigen pipeline C++ vs R end-to-end", {
   cache_cpp <- mvsusieR:::precompute_eigen_cache(d$svs, d$V_structure, FALSE)
   cache_r   <- mvsusieR:::precompute_eigen_cache_R(d$svs, d$V_structure, FALSE)
 
-  llik_cpp <- mvsusieR:::loglik_non_common_cpp(
+  llik_cpp <- mvsusieR:::loglik_non_common_rcpp(
     betahat, V_scalar, cache_cpp$log_det_svs, cache_cpp$components)
   llik_r <- mvsusieR:::loglik_precomputed_R(betahat, V_scalar, cache_r)
   expect_equal(llik_cpp, llik_r, tolerance = 1e-9)
@@ -597,7 +597,7 @@ test_that("Full eigen pipeline C++ vs R end-to-end", {
   pi_raw <- matrix(runif(J * (K + 1)), J, K + 1)
   pi_V_post <- pi_raw / rowSums(pi_raw)
 
-  post_cpp <- mvsusieR:::posterior_non_common_cpp(
+  post_cpp <- mvsusieR:::posterior_non_common_rcpp(
     betahat, V_scalar, cache_cpp$components, pi_V_post, matrix(0, 0, 0))
   post_r <- mvsusieR:::posterior_precomputed_R(
     betahat, V_scalar, cache_r, pi_V_post)

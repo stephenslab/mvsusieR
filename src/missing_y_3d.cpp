@@ -7,12 +7,12 @@
 // without compilation).
 //
 // Functions:
-//   compute_VinvR_3d_cpp   - per-pattern precision application (N x R)
-//   compute_XtR_3d_cpp     - V^{-1}-weighted X'R cross-product  (J x R)
-//   compute_Xb_3d_cpp      - per-condition X*b with optional Xbar correction
-//   compute_betahat_3d_cpp - batch matrix-vector: betahat[j] = svs[j] * XtR[j]
-//   compute_svs_inv_3d_cpp - assemble J svs_inv matrices from precomputed sums
-//   compute_vbxxb_cpp      - sum_j alpha_j tr(svs_inv_j * mu2_j) scalar
+//   compute_VinvR_3d_rcpp   - per-pattern precision application (N x R)
+//   compute_XtR_3d_rcpp     - V^{-1}-weighted X'R cross-product  (J x R)
+//   compute_Xb_3d_rcpp      - per-condition X*b with optional Xbar correction
+//   compute_betahat_3d_rcpp - batch matrix-vector: betahat[j] = svs[j] * XtR[j]
+//   compute_svs_inv_3d_rcpp - assemble J svs_inv matrices from precomputed sums
+//   compute_vbxxb_rcpp      - sum_j alpha_j tr(svs_inv_j * mu2_j) scalar
 
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
@@ -20,7 +20,7 @@ using namespace Rcpp;
 using namespace arma;
 
 // ---------------------------------------------------------------------------
-// 1. compute_VinvR_3d_cpp
+// 1. compute_VinvR_3d_rcpp
 //
 // Apply per-pattern V_i^{-1} to each row of an N x R matrix.
 // pattern_assign is 1-indexed (R convention).
@@ -32,7 +32,7 @@ using namespace arma;
 // Returns N x R matrix.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::mat compute_VinvR_3d_cpp(const arma::mat& mat,
+arma::mat compute_VinvR_3d_rcpp(const arma::mat& mat,
                                 const Rcpp::List& Vinv_list,
                                 const arma::ivec& pattern_assign) {
   unsigned int N = mat.n_rows;
@@ -60,7 +60,7 @@ arma::mat compute_VinvR_3d_cpp(const arma::mat& mat,
 
 
 // ---------------------------------------------------------------------------
-// 2. compute_XtR_3d_cpp
+// 2. compute_XtR_3d_rcpp
 //
 // Compute V^{-1}-weighted cross-product X'R for approximate or exact method.
 //
@@ -79,7 +79,7 @@ arma::mat compute_VinvR_3d_cpp(const arma::mat& mat,
 // Returns J x R matrix.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::mat compute_XtR_3d_cpp(const arma::cube& X_3d,
+arma::mat compute_XtR_3d_rcpp(const arma::cube& X_3d,
                               const arma::mat& R_mat,
                               const Rcpp::List& Vinv_list,
                               const arma::ivec& pattern_assign,
@@ -132,7 +132,7 @@ arma::mat compute_XtR_3d_cpp(const arma::cube& X_3d,
 
 
 // ---------------------------------------------------------------------------
-// 3. compute_Xb_3d_cpp
+// 3. compute_Xb_3d_rcpp
 //
 // Per-condition X*b with optional Xbar correction (exact method).
 //
@@ -144,7 +144,7 @@ arma::mat compute_XtR_3d_cpp(const arma::cube& X_3d,
 // Returns N x R matrix.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::mat compute_Xb_3d_cpp(const arma::cube& X_3d,
+arma::mat compute_Xb_3d_rcpp(const arma::cube& X_3d,
                              const arma::mat& b,
                              int method,
                              const arma::cube& Xbar) {
@@ -181,7 +181,7 @@ arma::mat compute_Xb_3d_cpp(const arma::cube& X_3d,
 
 
 // ---------------------------------------------------------------------------
-// 4. compute_betahat_3d_cpp
+// 4. compute_betahat_3d_rcpp
 //
 // Batch GLS: betahat[j,:] = svs[j] * XtR[j,:] for j = 1..J.
 //
@@ -191,7 +191,7 @@ arma::mat compute_Xb_3d_cpp(const arma::cube& X_3d,
 // Returns J x R matrix (NaN replaced with 0).
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::mat compute_betahat_3d_cpp(const arma::cube& svs_3d,
+arma::mat compute_betahat_3d_rcpp(const arma::cube& svs_3d,
                                   const arma::mat& XtR) {
   unsigned int J = XtR.n_rows;
   unsigned int R = XtR.n_cols;
@@ -209,7 +209,7 @@ arma::mat compute_betahat_3d_cpp(const arma::cube& svs_3d,
 
 
 // ---------------------------------------------------------------------------
-// 5. compute_svs_inv_3d_cpp
+// 5. compute_svs_inv_3d_rcpp
 //
 // Assemble all J svs_inv matrices from precomputed K x J summary matrices.
 //
@@ -235,7 +235,7 @@ arma::mat compute_betahat_3d_cpp(const arma::cube& svs_3d,
 // Returns R x R x J array.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::cube compute_svs_inv_3d_cpp(const Rcpp::List& Vinv_list,
+arma::cube compute_svs_inv_3d_rcpp(const Rcpp::List& Vinv_list,
                                    const arma::imat& pattern,
                                    const arma::mat& raw_sq_sum,
                                    const arma::mat& raw_sum,
@@ -336,7 +336,7 @@ arma::cube compute_svs_inv_3d_cpp(const Rcpp::List& Vinv_list,
 
 
 // ---------------------------------------------------------------------------
-// 6. compute_vbxxb_cpp
+// 6. compute_vbxxb_rcpp
 //
 // Compute the vbxxb scalar from SER_posterior_e_loglik:
 //   vbxxb = sum_j alpha[j] * tr(svs_inv[j] * mu2[j])
@@ -352,7 +352,7 @@ arma::cube compute_svs_inv_3d_cpp(const Rcpp::List& Vinv_list,
 // Returns list(bxxb = R x R matrix, vbxxb = scalar)
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-Rcpp::List compute_vbxxb_cpp(const arma::vec& alpha,
+Rcpp::List compute_vbxxb_rcpp(const arma::vec& alpha,
                               const arma::cube& mu2_3d,
                               const arma::cube& svs_inv_3d,
                               const arma::vec& d) {
@@ -388,7 +388,7 @@ Rcpp::List compute_vbxxb_cpp(const arma::vec& alpha,
 
 
 // ---------------------------------------------------------------------------
-// 7. compute_Xbar_from_sums_cpp
+// 7. compute_Xbar_from_sums_rcpp
 //
 // Compute the Xbar correction array for the exact missing-data method
 // using precomputed K x J summary matrices instead of an O(J*N*R^2) loop.
@@ -411,7 +411,7 @@ Rcpp::List compute_vbxxb_cpp(const arma::vec& alpha,
 // Returns J x R x R array (Xbar).
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::cube compute_Xbar_from_sums_cpp(
+arma::cube compute_Xbar_from_sums_rcpp(
     const Rcpp::List& Vinv_list,
     const arma::imat& pattern,
     const arma::mat& raw_sum,

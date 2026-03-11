@@ -191,6 +191,14 @@ a matrix).}
 prior variance; valid choices are \code{"optim"}, \code{"EM"},
 or \code{"uniroot"}.}
 
+\item{estimate_prior_mixture_weights}{When \code{TRUE} and
+\code{prior_variance} is a mixture prior, the mixture weights
+are updated at each iteration. Components with near-zero weight
+are pruned.}
+
+\item{mixture_weight_method}{Method for updating mixture weights;
+\code{"mixsqp"} or \code{"EM"}.}
+
 \item{check_null_threshold}{When the prior variance is estimated,
 the estimate is compared against the null, and the prior variance
 is set to zero unless the log-likelihood using the estimate is
@@ -205,6 +213,9 @@ exclude a single effect from PIP computation if the estimated prior
 variance is smaller than it.}
 
 \item{model_init}{A previous model fit with which to initialize.}
+
+\item{missing_y_method}{Method for handling missing values in Y;
+\code{"approximate"} or \code{"exact"}.}
 
 \item{coverage}{Coverage of credible sets.}
 
@@ -318,10 +329,17 @@ of the following elements:
 \item{single_effect_lfsr}{Average lfsr (local false sign rate) for
   each CS.}
 
-\item{lfsr}{TO DO: Explain what this output is.}
+\item{lfsr}{J by R matrix of local false sign rates, averaging
+  over the single-effect posterior assignments.}
 
 \item{conditional_lfsr}{The lfsr (local false sign rate) given that
   the variable is the single effect.}
+
+\item{pi_V}{Vector of mixture prior weights (only present when
+  \code{prior_variance} is a mixture prior).}
+
+\item{V_structure}{List of prior covariance matrices (only present
+  when \code{prior_variance} is a mixture prior).}
 }
 \description{
 Performs a Bayesian multiple linear regression of Y on X.

@@ -541,3 +541,349 @@ test_that("E2E: precompute=TRUE matches FALSE with uniroot", {
   expect_equal(fit_yes$V, fit_no$V, tolerance = 0.05)
   expect_equal(fit_yes$fitted, fit_no$fitted, tolerance = 0.05)
 })
+
+# =============================================================================
+# Optimization #2: Cholesky caching in precompute_eigen_cache
+# =============================================================================
+
+test_that("#2: precompute_eigen_cache common-cov matches per-K eigendecompose", {
+  set.seed(20)
+  R <- 5
+  K <- 4
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.2
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+  for (k in seq_len(K)) {
+    ref <- mvsusieR:::eigendecompose_one_pair(SVS, V_structure[[k]])
+
+    expect_equal(cache$components[[k]]$eigenvalues, ref$eigenvalues,
+                 tolerance = 1e-12, info = paste("eigenvalues, k =", k))
+
+    expect_equal(crossprod(cache$components[[k]]$Q, cache$components[[k]]$G),
+                 diag(R), tolerance = 1e-12, info = paste("Q'G=I, k =", k))
+
+    d <- cache$components[[k]]$eigenvalues
+    G <- cache$components[[k]]$G
+    expect_equal(G %*% diag(d) %*% t(G), V_structure[[k]],
+                 tolerance = 1e-12, info = paste("G*d*G'=U, k =", k))
+
+    expect_equal(cache$components[[k]]$log_det_svs, ref$log_det_svs,
+                 tolerance = 1e-12, info = paste("log_det_svs, k =", k))
+  }
+})
+
+test_that("#2: precompute_eigen_cache_R matches cached version", {
+  set.seed(21)
+  R <- 4
+  K <- 3
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.3
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  cache_main <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                                    is_common_cov = TRUE)
+  cache_R <- mvsusieR:::precompute_eigen_cache_R(list(SVS), V_structure,
+                                                   is_common_cov = TRUE)
+
+  expect_equal(cache_main$log_det_svs, cache_R$log_det_svs, tolerance = 1e-12)
+  for (k in seq_len(K)) {
+    expect_equal(cache_main$components[[k]]$eigenvalues,
+                 cache_R$components[[k]]$eigenvalues, tolerance = 1e-12)
+  }
+})
+
+# =============================================================================
+# Optimization #1: BQ_cache in loglik_precomputed
+# =============================================================================
+
+test_that("#1: loglik_precomputed with BQ_cache matches without cache", {
+  set.seed(10)
+  R <- 4
+  J <- 25
+  K <- 5
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.3
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+
+  BQ_cache <- lapply(seq_len(K), function(k)
+    betahat %*% cache$components[[k]]$Q)
+
+  for (V_scalar in c(0.1, 0.5, 1, 3, 10)) {
+    llik_no_cache <- mvsusieR:::loglik_precomputed(betahat, V_scalar, cache,
+                                                    BQ_cache = NULL)
+    llik_cached   <- mvsusieR:::loglik_precomputed(betahat, V_scalar, cache,
+                                                    BQ_cache = BQ_cache)
+    expect_equal(llik_cached, llik_no_cache, tolerance = 1e-14,
+                 info = paste("V_scalar =", V_scalar))
+  }
+})
+
+# =============================================================================
+# Optimization #5: BQ_cache in posterior_precomputed
+# =============================================================================
+
+test_that("#5: posterior with BQ_cache matches without (no reduce)", {
+  set.seed(50)
+  R <- 3
+  J <- 15
+  K <- 3
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.4
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+
+  V_scalar <- 1.5
+  pi_V_post <- matrix(runif(J * (K + 1)), J, K + 1)
+  pi_V_post <- pi_V_post / rowSums(pi_V_post)
+
+  BQ_cache <- lapply(seq_len(K), function(k)
+    betahat %*% cache$components[[k]]$Q)
+
+  post_no  <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
+                                                pi_V_post, BQ_cache = NULL)
+  post_yes <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
+                                                pi_V_post, BQ_cache = BQ_cache)
+
+  expect_equal(post_yes$post_mean, post_no$post_mean, tolerance = 1e-10)
+  expect_equal(post_yes$post_mean2, post_no$post_mean2, tolerance = 1e-10)
+  expect_equal(post_yes$post_neg, post_no$post_neg, tolerance = 1e-10)
+  expect_equal(post_yes$post_zero, post_no$post_zero, tolerance = 1e-10)
+  expect_equal(post_yes$prior_scale_em_update,
+               post_no$prior_scale_em_update, tolerance = 1e-10)
+})
+
+test_that("#5: posterior with BQ_cache matches without (reduce)", {
+  set.seed(51)
+  R <- 3
+  J <- 15
+  K <- 3
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.4
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+
+  V_scalar <- 1.5
+  pi_V_post <- matrix(runif(J * (K + 1)), J, K + 1)
+  pi_V_post <- pi_V_post / rowSums(pi_V_post)
+
+  alpha <- runif(J); alpha <- alpha / sum(alpha)
+  d_var <- runif(J, 0.5, 2)
+  v_inv <- solve(SVS)
+  reduce_params <- list(alpha = alpha, d = d_var, v_inv = v_inv)
+
+  BQ_cache <- lapply(seq_len(K), function(k)
+    betahat %*% cache$components[[k]]$Q)
+
+  post_no  <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
+                                                pi_V_post,
+                                                reduce_params = reduce_params,
+                                                BQ_cache = NULL)
+  post_yes <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
+                                                pi_V_post,
+                                                reduce_params = reduce_params,
+                                                BQ_cache = BQ_cache)
+
+  expect_equal(post_yes$post_mean, post_no$post_mean, tolerance = 1e-10)
+  expect_equal(post_yes$bxxb, post_no$bxxb, tolerance = 1e-10)
+  expect_equal(post_yes$vbxxb, post_no$vbxxb, tolerance = 1e-10)
+  expect_equal(post_yes$alpha_mu2_sum, post_no$alpha_mu2_sum, tolerance = 1e-10)
+  expect_equal(post_yes$mu2_diag, post_no$mu2_diag, tolerance = 1e-10)
+})
+
+# =============================================================================
+# Optimization #3: loglik_common_rcpp matches R reference
+# =============================================================================
+
+test_that("#3: loglik_common_rcpp matches loglik_precomputed_R", {
+  set.seed(30)
+  R <- 4
+  J <- 20
+  K <- 5
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.3
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+
+  for (V_scalar in c(0, 0.1, 1, 5)) {
+    llik_cpp <- mvsusieR:::loglik_precomputed(betahat, V_scalar, cache)
+    llik_R   <- mvsusieR:::loglik_precomputed_R(betahat, V_scalar, cache)
+    expect_equal(llik_cpp, llik_R, tolerance = 1e-12,
+                 info = paste("V_scalar =", V_scalar))
+  }
+})
+
+# =============================================================================
+# Optimization #4: posterior_common_rcpp matches R reference
+# =============================================================================
+
+test_that("#4: posterior_common_rcpp matches R reference (no reduce, no EM)", {
+  set.seed(40)
+  R <- 3
+  J <- 15
+  K <- 3
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.4
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+
+  V_scalar <- 1.5
+  pi_V_post <- matrix(runif(J * (K + 1)), J, K + 1)
+  pi_V_post <- pi_V_post / rowSums(pi_V_post)
+
+  post_cpp <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
+                                                pi_V_post)
+  post_R   <- mvsusieR:::posterior_precomputed_R(betahat, V_scalar, cache,
+                                                  pi_V_post)
+
+  expect_equal(post_cpp$post_mean, post_R$post_mean, tolerance = 1e-10)
+  expect_equal(post_cpp$post_mean2, post_R$post_mean2, tolerance = 1e-10)
+  expect_equal(post_cpp$post_neg, post_R$post_neg, tolerance = 1e-10)
+  expect_equal(post_cpp$post_zero, post_R$post_zero, tolerance = 1e-10)
+  expect_equal(as.vector(post_cpp$prior_scale_em_update),
+               as.vector(post_R$prior_scale_em_update), tolerance = 1e-10)
+})
+
+test_that("#4: posterior_common_rcpp matches R reference (with EM weights)", {
+  set.seed(41)
+  R <- 3
+  J <- 15
+  K <- 3
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.4
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+
+  V_scalar <- 1.5
+  pi_V_post <- matrix(runif(J * (K + 1)), J, K + 1)
+  pi_V_post <- pi_V_post / rowSums(pi_V_post)
+
+  em_var_wt <- matrix(runif((K + 1) * J), K + 1, J)
+  em_var_wt <- em_var_wt / rowSums(em_var_wt)
+
+  post_cpp <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
+                                                pi_V_post,
+                                                em_var_wt = em_var_wt)
+  post_R   <- mvsusieR:::posterior_precomputed_R(betahat, V_scalar, cache,
+                                                  pi_V_post,
+                                                  em_var_wt = em_var_wt)
+
+  expect_equal(post_cpp$post_mean, post_R$post_mean, tolerance = 1e-10)
+  expect_equal(post_cpp$post_mean2, post_R$post_mean2, tolerance = 1e-10)
+  expect_equal(as.vector(post_cpp$prior_scale_em_update),
+               as.vector(post_R$prior_scale_em_update), tolerance = 1e-10)
+})
+
+test_that("#4: posterior_common_rcpp reduce matches R full + reduce", {
+  set.seed(42)
+  R <- 3
+  J <- 15
+  K <- 3
+
+  A <- matrix(rnorm(R * R), R, R)
+  SVS <- crossprod(A) + diag(R) * 0.4
+
+  V_structure <- lapply(seq_len(K), function(k) {
+    B <- matrix(rnorm(R * R), R, R)
+    crossprod(B)
+  })
+
+  betahat <- matrix(rnorm(J * R), J, R)
+  cache <- mvsusieR:::precompute_eigen_cache(list(SVS), V_structure,
+                                              is_common_cov = TRUE)
+
+  V_scalar <- 1.5
+  pi_V_post <- matrix(runif(J * (K + 1)), J, K + 1)
+  pi_V_post <- pi_V_post / rowSums(pi_V_post)
+
+  alpha <- runif(J); alpha <- alpha / sum(alpha)
+  d_var <- runif(J, 0.5, 2)
+  v_inv <- solve(SVS)
+  reduce_params <- list(alpha = alpha, d = d_var, v_inv = v_inv)
+
+  post_reduce <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
+                                                   pi_V_post,
+                                                   reduce_params = reduce_params)
+
+  post_R <- mvsusieR:::posterior_precomputed_R(betahat, V_scalar, cache,
+                                                pi_V_post)
+
+  bxxb <- matrix(0, R, R)
+  alpha_mu2_sum <- matrix(0, R, R)
+  mu2_diag <- matrix(0, J, R)
+  for (j in seq_len(J)) {
+    mu2_j <- post_R$post_mean2[j, , ]
+    if (!is.matrix(mu2_j)) dim(mu2_j) <- c(R, R)
+    bxxb <- bxxb + d_var[j] * alpha[j] * mu2_j
+    alpha_mu2_sum <- alpha_mu2_sum + alpha[j] * mu2_j
+    mu2_diag[j, ] <- diag(mu2_j)
+  }
+  vbxxb <- sum(v_inv * bxxb)
+
+  expect_equal(post_reduce$post_mean, post_R$post_mean, tolerance = 1e-10)
+  expect_equal(post_reduce$bxxb, bxxb, tolerance = 1e-10)
+  expect_equal(post_reduce$vbxxb, vbxxb, tolerance = 1e-10)
+  expect_equal(post_reduce$alpha_mu2_sum, alpha_mu2_sum, tolerance = 1e-10)
+  expect_equal(post_reduce$mu2_diag, mu2_diag, tolerance = 1e-10)
+})

@@ -833,7 +833,7 @@ em_update_prior_variance.mv_individual <- function(data, params, model,
 #' Iteratively maximizes the collapsed objective
 #'   F(pi) = sum_{l,j} alpha[l,j] * log(sum_k pi[k] * exp(llik[l,j,k]))
 #' via EM on the stacked (L*J) x (K+1) log-likelihood matrix, weighted
-#' by alpha[l,j]. Core loop implemented in C++ (inner_em_cpp).
+#' by alpha[l,j]. Core loop implemented in C++ (inner_em_rcpp).
 #'
 #' @param model Model list with per_effect_llik, alpha, pi_V, null_weight.
 #' @param update_null Logical; if TRUE, also update null_weight.
@@ -866,7 +866,7 @@ update_mixture_weights_em <- function(model, update_null = FALSE,
   pi_full <- pmax(pi_full, 1e-10 / K_plus_1)
   pi_full <- pi_full / sum(pi_full)
 
-  result <- inner_em_cpp(llik_combined, alpha_weights, pi_full,
+  result <- inner_em_rcpp(llik_combined, alpha_weights, pi_full,
                          max_inner_iter, inner_tol)
   pi_full <- result$pi
 

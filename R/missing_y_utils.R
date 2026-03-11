@@ -213,7 +213,7 @@ standardize_3d <- function(data, center, scale) {
       # This is O(J*K*R^2) instead of O(J*N*R^2).
       pattern_int <- matrix(as.integer(my$pattern), nrow = nrow(my$pattern),
                              ncol = ncol(my$pattern))
-      my$Xbar <- compute_Xbar_from_sums_cpp(
+      my$Xbar <- compute_Xbar_from_sums_rcpp(
         Vinv, pattern_int, my$raw_sum, as.integer(my$n_k),
         cm, csd, Vinvsuminv)
     }
@@ -330,7 +330,7 @@ set_residual_variance_3d <- function(data, residual_variance,
   Vinvsum_arg <- if (!is.null(Vinvsum)) Vinvsum else matrix(0, R_dim, R_dim)
 
   pattern_int <- matrix(as.integer(my$pattern), nrow = K, ncol = R_dim)
-  svs_inv_3d <- compute_svs_inv_3d_cpp(
+  svs_inv_3d <- compute_svs_inv_3d_rcpp(
     Vinv, pattern_int,
     my$raw_sq_sum, my$raw_sum, as.integer(my$n_k),
     cm, csd, method_int, Xbar_arg, Vinvsum_arg)
@@ -377,46 +377,9 @@ compute_XtR_3d <- function(data, R_mat) {
   # Xbar placeholder for approximate method (C++ needs a cube argument)
   Xbar <- if (!is.null(my$Xbar)) my$Xbar else array(0, c(1, data$R, data$R))
 
-  # C++ fast path
-  return(compute_XtR_3d_cpp(my$X_3d, R_mat, my$Vinv,
+  return(compute_XtR_3d_rcpp(my$X_3d, R_mat, my$Vinv,
                              as.integer(my$pattern_assign),
                              method_int, Xbar))
-}
-
-# R fallback (kept for testing / reference)
-compute_XtR_3d_R <- function(data, R_mat) {
-  my <- data$miss3d
-  Vinv <- my$Vinv
-  N <- nrow(R_mat)
-  R_dim <- data$R
-  J <- data$p
-  pattern_assign <- my$pattern_assign
-
-  # Step 1: Per-pattern batch VinvR (vectorized over observations)
-  VinvR <- matrix(0, N, R_dim)
-  for (k in seq_along(Vinv)) {
-    idx <- which(pattern_assign == k)
-    if (length(idx) == 0) next
-    VinvR[idx, ] <- R_mat[idx, , drop = FALSE] %*% t(Vinv[[k]])
-  }
-
-  # Step 2: Per-outcome cross-product using centered/scaled X_3d
-  if (my$method == "approximate") {
-    res <- t(sapply(seq_len(J), function(j) {
-      colSums(my$X_3d[, j, ] * VinvR)
-    }))
-  } else {
-    # Exact: include Xbar correction
-    colsum_VinvR <- colSums(VinvR)
-    res <- t(sapply(seq_len(J), function(j) {
-      colSums(my$X_3d[, j, ] * VinvR) -
-        as.numeric(crossprod(my$Xbar[j, , ], colsum_VinvR))
-    }))
-  }
-
-  if (R_dim == 1) res <- t(res)
-  if (nrow(res) != J) res <- t(res)
-  return(res)
 }
 
 
@@ -440,34 +403,7 @@ compute_Xb_3d <- function(data, b) {
   # Xbar placeholder for approximate method
   Xbar <- if (!is.null(my$Xbar)) my$Xbar else array(0, c(1, data$R, data$R))
 
-  # C++ fast path
-  return(compute_Xb_3d_cpp(my$X_3d, b, method_int, Xbar))
-}
-
-# R fallback (kept for testing / reference)
-compute_Xb_3d_R <- function(data, b) {
-  my <- data$miss3d
-  if (is.vector(b)) b <- matrix(b, length(b), 1)
-  R_dim <- data$R
-  N <- dim(my$X_3d)[1]
-
-  # Per-outcome: Xb[,r] = X_3d[,,r] %*% b[,r]
-  Xb <- sapply(seq_len(R_dim), function(r) my$X_3d[, , r] %*% b[, r])
-  if (!is.matrix(Xb)) Xb <- matrix(Xb, N, R_dim)
-
-  # Exact: subtract Xbar correction
-  if (my$method == "exact" && !is.null(my$Xbar)) {
-    J <- nrow(b)
-    Xbarb <- Reduce("+", lapply(seq_len(J), function(j) {
-      Xbar_j <- my$Xbar[j, , ]
-      if (!is.matrix(Xbar_j)) Xbar_j <- matrix(Xbar_j, R_dim, R_dim)
-      Xbar_j %*% b[j, ]
-    }))
-    Xb <- Xb - matrix(as.numeric(Xbarb), N, R_dim, byrow = TRUE)
-  }
-
-  if (nrow(Xb) != N) Xb <- t(Xb)
-  return(Xb)
+  return(compute_Xb_3d_rcpp(my$X_3d, b, method_int, Xbar))
 }
 
 
@@ -486,26 +422,8 @@ compute_Xb_3d_R <- function(data, b) {
 compute_VinvR_3d <- function(data, mat) {
   my <- data$miss3d
 
-  # C++ fast path
-  return(compute_VinvR_3d_cpp(mat, my$Vinv,
+  return(compute_VinvR_3d_rcpp(mat, my$Vinv,
                                as.integer(my$pattern_assign)))
-}
-
-# R fallback (kept for testing / reference)
-compute_VinvR_3d_R <- function(data, mat) {
-  my <- data$miss3d
-  Vinv <- my$Vinv
-  N <- nrow(mat)
-  R_dim <- ncol(mat)
-  pattern_assign <- my$pattern_assign
-
-  result <- matrix(0, N, R_dim)
-  for (k in seq_along(Vinv)) {
-    idx <- which(pattern_assign == k)
-    if (length(idx) == 0) next
-    result[idx, ] <- mat[idx, , drop = FALSE] %*% t(Vinv[[k]])
-  }
-  return(result)
 }
 
 
@@ -527,21 +445,9 @@ compute_VinvR_3d_R <- function(data, mat) {
 compute_betahat_3d <- function(data, XtR) {
   svs <- data$svs
 
-  # C++ fast path: needs R x R x J array
+  # Needs R x R x J array
   svs_3d <- matlist2array(svs)
-  return(compute_betahat_3d_cpp(svs_3d, XtR))
-}
-
-# R fallback (kept for testing / reference)
-compute_betahat_3d_R <- function(data, XtR) {
-  J <- data$p
-  R_dim <- data$R
-  svs <- data$svs
-
-  bhat <- t(sapply(seq_len(J), function(j) svs[[j]] %*% XtR[j, ]))
-  bhat[is.nan(bhat)] <- 0
-  if (R_dim == 1) bhat <- t(bhat)
-  return(bhat)
+  return(compute_betahat_3d_rcpp(svs_3d, XtR))
 }
 
 
