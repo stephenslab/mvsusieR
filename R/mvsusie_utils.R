@@ -2,12 +2,6 @@
 #
 # Includes matrix operations, numerical helpers, and lfsr computation functions.
 
-# Report R process memory usage (GB). Uses gc() which is cheap.
-mem_used_gb <- function() {
-  gc_info <- gc(verbose = FALSE, reset = FALSE)
-  sum(gc_info[, "(Mb)"]) / 1024
-}
-
 # ============================================================================
 # Warning deduplication: emit each warning type once, summarize at end.
 #

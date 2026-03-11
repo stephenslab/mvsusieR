@@ -222,12 +222,6 @@ compute_multivariate_elbo_ss <- function(data, model) {
 }
 
 #' @keywords internal
-check_convergence.mv_ss <- function(data, params, model,
-                                     elbo, iter, tracking) {
-  check_convergence.mv_individual(data, params, model, elbo, iter, tracking)
-}
-
-#' @keywords internal
 em_update_prior_variance.mv_ss <- function(data, params, model,
                                              alpha, moments, V_init) {
   em_update_prior_variance.mv_individual(data, params, model,

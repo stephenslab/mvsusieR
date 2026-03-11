@@ -718,84 +718,6 @@ get_objective.mv_individual <- function(data, params, model, ...) {
 # CONVERGENCE
 # =============================================================================
 
-#' Check IBSS convergence.
-#'
-#' Uses the convergence criterion set in params: "PIP" checks max change
-#' in posterior inclusion probabilities, "ELBO" checks the ELBO increment.
-#' PIP convergence is set upfront for approximate/exact missing data methods.
-#' ELBO convergence falls back to PIP when ELBO is NA or infinite.
-#' @keywords internal
-check_convergence.mv_individual <- function(data, params, model,
-                                             elbo, iter, tracking) {
-  if (iter <= 1) {
-    model$converged <- FALSE
-    if (isTRUE(params$verbose)) {
-      elbo_val <- elbo[iter + 1]
-      if (!is.na(elbo_val) && is.finite(elbo_val)) {
-        message(sprintf("iter %3d: ELBO=%.4f [mem: %.2f GB]",
-                        iter, elbo_val, mem_used_gb()))
-      } else {
-        message(sprintf("iter %3d: [mem: %.2f GB]", iter, mem_used_gb()))
-      }
-    }
-    return(model)
-  }
-
-  verbose <- isTRUE(params$verbose)
-
-  # PIP convergence: max change in alpha across all effects
-  use_pip <- identical(params$convergence_method, "pip")
-  pip_diff <- if (!is.null(tracking$convergence$prev_alpha))
-    max(abs(tracking$convergence$prev_alpha - model$alpha)) else NA
-
-  if (use_pip) {
-    if (!is.na(pip_diff)) {
-      model$converged <- (pip_diff < params$tol)
-      if (verbose) {
-        message(sprintf("iter %3d: max|dPIP|=%.2e%s [mem: %.2f GB]",
-                        iter, pip_diff,
-                        if (model$converged) " -- converged" else "",
-                        mem_used_gb()))
-      }
-    } else {
-      model$converged <- FALSE
-    }
-    return(model)
-  }
-
-  # ELBO convergence (default)
-  delta <- elbo[iter + 1] - tracking$convergence$prev_elbo
-  if (is.na(delta) || is.infinite(delta)) {
-    # Fallback to PIP convergence
-    if (!is.na(pip_diff)) {
-      model$converged <- (pip_diff < params$tol)
-    } else {
-      model$converged <- FALSE
-    }
-    if (verbose) {
-      message(sprintf("iter %3d: ELBO=NA, PIP fallback, max|dPIP|=%s [mem: %.2f GB]",
-                      iter,
-                      if (!is.na(pip_diff)) sprintf("%.2e", pip_diff) else "NA",
-                      mem_used_gb()))
-    }
-  } else {
-    # Converge when ELBO stabilizes: small non-negative change.
-    # A large negative delta means the objective dropped, not convergence.
-    if (delta < -params$tol) {
-      warning_message(sprintf("ELBO decreased by %.2e at iteration %d",
-                              -delta, iter))
-    }
-    model$converged <- (delta >= 0 && delta < params$tol)
-    if (verbose) {
-      message(sprintf("iter %3d: ELBO=%.4f, delta=%.2e%s [mem: %.2f GB]",
-                      iter, elbo[iter + 1], delta,
-                      if (model$converged) " -- converged" else "",
-                      mem_used_gb()))
-    }
-  }
-  return(model)
-}
-
 # =============================================================================
 # EM PRIOR VARIANCE UPDATE
 # =============================================================================
@@ -803,12 +725,16 @@ check_convergence.mv_individual <- function(data, params, model,
 #' @keywords internal
 em_update_prior_variance.mv_individual <- function(data, params, model,
                                                      alpha, moments, V_init) {
+  # When V was ~0 last iteration, caches are NULL (loglik + posterior both
+  # returned early). The posterior is all zeros, so the EM M-step gives 0.
+  if (is.null(model$em_cache)) return(0)
+
   # Unified EM update using cached stats from mashr calc_sermix_rcpp.
   # prior_scale_em_update is a (K+1)-vector (trace-based scalar per component),
   # V_structure_rank is a K-vector (non-null components only).
   # SER posterior mixture weights determine the contribution of each component.
 
-  if (!is.null(model$em_cache) && !is.null(model$llik_cache)) {
+  if (!is.null(model$llik_cache)) {
     # Compute SER posterior mixture weights: (K+1)-vector
     pi_full <- c(model$null_weight, model$pi_V * (1 - model$null_weight))
     lbf_mat <- model$llik_cache - model$llik_cache[, 1]  # J x (K+1)
@@ -822,8 +748,12 @@ em_update_prior_variance.mv_individual <- function(data, params, model,
     return(max(0, V_new))
   }
 
-  # Fallback: simple EM using marginalized posteriors (for single-matrix K=1)
-  # Use precomputed alpha_mu2_sum = sum_j alpha[j] * mu2[j,,] from em_cache
+  # Fallback: simple EM using marginalized posteriors (for single-matrix K=1).
+  # Compute V_structure_inv on demand (not always available on eigen path).
+  if (is.null(model$V_structure_inv)) {
+    inv_list <- lapply(model$V_structure, pseudo_inverse)
+    model$V_structure_inv <- matlist2array(lapply(inv_list, `[[`, "inv"))
+  }
   mu2 <- model$em_cache$alpha_mu2_sum
   scalar <- sum(diag(model$V_structure_inv[, , 1] %*% mu2)) /
             model$V_structure_rank[1]

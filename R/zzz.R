@@ -29,6 +29,7 @@ get_var_y <- NULL
 initialize_susie_model <- NULL
 initialize_fitted <- NULL
 warning_message <- NULL
+mem_used_gb <- NULL
 
 .onLoad <- function(libname, pkgname) {
   susie_ns <- asNamespace("susieR")
@@ -46,7 +47,8 @@ warning_message <- NULL
 
   # Cache susieR internal functions
   for (fn in c("get_var_y", "initialize_susie_model",
-               "initialize_fitted", "warning_message")) {
+               "initialize_fitted", "warning_message",
+               "mem_used_gb")) {
     assign(fn, get(fn, envir = susie_ns), envir = pkg_ns)
   }
 
@@ -55,7 +57,6 @@ warning_message <- NULL
     "ibss_initialize",
     "SER_posterior_e_loglik",
     "calculate_posterior_moments",
-    "check_convergence",
     "cleanup_model",
     "compute_kl",
     "compute_residuals",

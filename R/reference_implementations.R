@@ -173,7 +173,10 @@ posterior_precomputed_R <- function(betahat, V_scalar, eigen_cache, pi_V_post,
         }
       }
       em_wt <- if (!is.null(em_var_wt)) em_var_wt[k + 1, ] else w_k
-      tr_term <- V_scalar * sum(inv_factor)
+      # Sum inv_factor only over positive eigenvalues (non-null subspace).
+      # Null-space eigenvalues (d=0) give inv_factor=1, inflating trace by V.
+      d_pos <- d_k > max(d_k) * sqrt(.Machine$double.eps)
+      tr_term <- V_scalar * sum(inv_factor[d_pos])
       em_per_var <- V_scalar^2 * drop(BQ^2 %*% (d_k * inv_factor^2))
       em_update[k + 1] <- sum(em_wt * (tr_term + em_per_var))
     }
@@ -205,7 +208,9 @@ posterior_precomputed_R <- function(betahat, V_scalar, eigen_cache, pi_V_post,
           else
             post_zero[j, r] <- post_zero[j, r] + w_k[j]
         }
-        tr_term <- V_scalar * sum(inv_factor)
+        # Sum inv_factor only over positive eigenvalues (non-null subspace).
+        d_pos <- d_k > max(d_k) * sqrt(.Machine$double.eps)
+        tr_term <- V_scalar * sum(inv_factor[d_pos])
         em_j <- V_scalar^2 * sum(d_k * inv_factor^2 * b_rot^2)
         em_wt_j <- if (!is.null(em_var_wt)) em_var_wt[k + 1, j] else w_k[j]
         em_update[k + 1] <- em_update[k + 1] + em_wt_j * (tr_term + em_j)

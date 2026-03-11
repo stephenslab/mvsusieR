@@ -298,8 +298,12 @@ Rcpp::List posterior_non_common_rcpp(
         }
       }
 
-      // EM update
-      double tr_term = V_scalar * arma::sum(inv_factor);
+      // EM update: sum inv_factor only over positive eigenvalues (non-null
+      // subspace of the prior).  Null-space eigenvalues (d=0) give
+      // inv_factor=1, which would inflate the trace by V per null dimension.
+      arma::vec d_pos = arma::conv_to<arma::vec>::from(
+          d_kj > std::max(d_kj.max() * 1e-8, 0.0));
+      double tr_term = V_scalar * arma::dot(inv_factor, d_pos);
       double em_j = V_scalar * V_scalar *
         arma::dot(d_kj % inv_factor % inv_factor, b_rot % b_rot);
       double em_wt_j = do_em ? em_var_wt(k + 1, j) : w;
@@ -601,8 +605,12 @@ Rcpp::List posterior_common_rcpp(
       }
     }
 
-    // EM statistic
-    double tr_term = V_scalar * arma::sum(inv_factor);
+    // EM statistic: sum inv_factor only over positive eigenvalues (non-null
+    // subspace of the prior).  Null-space eigenvalues (d=0) give inv_factor=1,
+    // which would inflate the trace by V per null dimension.
+    arma::vec d_pos = arma::conv_to<arma::vec>::from(
+        d_k > std::max(d_k.max() * 1e-8, 0.0));
+    double tr_term = V_scalar * arma::dot(inv_factor, d_pos);
     arma::vec em_per_var = V_scalar * V_scalar *
       ((BQ % BQ) * (d_k % inv_factor % inv_factor));
     for (unsigned int j = 0; j < J; j++) {
