@@ -2,10 +2,10 @@
 #
 # Includes matrix operations, numerical helpers, and lfsr computation functions.
 
-# Report R process memory usage (MB). Uses gc() which is cheap.
-mem_used_mb <- function() {
+# Report R process memory usage (GB). Uses gc() which is cheap.
+mem_used_gb <- function() {
   gc_info <- gc(verbose = FALSE, reset = FALSE)
-  sum(gc_info[, "(Mb)"])
+  sum(gc_info[, "(Mb)"]) / 1024
 }
 
 # ============================================================================
@@ -42,8 +42,9 @@ flush_warn_once <- function(verbose = TRUE) {
     for (id in names(.mvsusie_warn_state$counts)) {
       entry <- .mvsusie_warn_state$counts[[id]]
       if (entry$count > 1L) {
-        message(sprintf("Note: \"%s\" occurred %d times total (%d suppressed)",
-                        entry$msg, entry$count, entry$count - 1L))
+        warning_message(sprintf(
+          "\"%s\" occurred %d times total (%d suppressed)",
+          entry$msg, entry$count, entry$count - 1L))
       }
     }
   }
@@ -305,7 +306,7 @@ compute_variable_posterior_weights <- function(prior_variable_weights, llik) {
 #'   filtering by \code{weights_tol}.
 #'
 #' @param include_indices Post-process input prior to only include
-#'   conditions from this indices.
+#'   outcomes at these indices.
 #'
 #' @param \dots other parameters, for mvsusieR:::create_cov_canonical
 #'
@@ -347,7 +348,7 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
       null_weight = null_weight,
       weights_tol = weights_tol,
       top_mixtures = max_mixture_len,
-      include_conditions = include_indices
+      include_outcomes = include_indices
     ))
   }
   if (!missing(R)) {
@@ -374,7 +375,7 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
       null_weight = null_weight,
       weights_tol = weights_tol,
       top_mixtures = max_mixture_len,
-      include_conditions = include_indices
+      include_outcomes = include_indices
     ))
   }
 }
@@ -384,7 +385,7 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
 #' @description This function computes canonical covariance matrices
 #'   to be provided to mash.
 #'
-#' @param R Integer specifying the number of conditions.
+#' @param R Integer specifying the number of outcomes.
 #'
 #' @param singletons \code{TRUE} or \code{FALSE} indicating whether
 #'   the singleton matrices are computed.
@@ -393,7 +394,7 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
 #'   representing the off-diagonal elements of matrices with 1s on the
 #'   diagonal. If 0 is included, the identity matrix will be returned
 #'   which corresponds to assuming effects are independent across
-#'   conditions. IF \code{hetgrid = NULL}, these matrices are not
+#'   outcomes. IF \code{hetgrid = NULL}, these matrices are not
 #'   returned.
 #'
 #' @return A list of canonical covariance matrices.

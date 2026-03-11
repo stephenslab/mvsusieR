@@ -13,7 +13,7 @@ create_mash_prior(
   weights_tol = 1e-10,
   null_tol = 5e-07,
   top_mixtures = 20,
-  include_conditions = NULL
+  include_outcomes = NULL
 )
 }
 \arguments{
@@ -35,7 +35,7 @@ components. If NULL, uniform weights are used.}
 
 \item{top_mixtures}{Keep only the top components by weight. Use -1 for all.}
 
-\item{include_conditions}{Indices of conditions to include (subset prior).}
+\item{include_outcomes}{Indices of outcomes to include (subset prior).}
 }
 \value{
 An S3 object of class \code{mash_prior}.

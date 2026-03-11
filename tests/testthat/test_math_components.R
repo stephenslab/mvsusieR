@@ -175,7 +175,7 @@ test_that("mvsusie_get_lfsr: correct on known inputs", {
 
   lfsr <- mvsusie_get_lfsr(clfsr, alpha)
 
-  # For condition r: lfsr_j = pmax(1e-20, 1 - max_l(alpha_lj * (1 - clfsr_ljr)))
+  # For outcome r: lfsr_j = pmax(1e-20, 1 - max_l(alpha_lj * (1 - clfsr_ljr)))
   # r=1: true_sign = alpha * (1 - clfsr): 0.8*(1-0.01)=0.792, 0.1*(1-0.5)=0.05, 0.1*(1-0.9)=0.01
   #       max per variable: max over L (only L=1): [0.792, 0.05, 0.01]
   #       lfsr = pmax(1e-20, 1 - [0.792, 0.05, 0.01]) = [0.208, 0.95, 0.99]
@@ -209,7 +209,7 @@ test_that("mvsusie_single_effect_lfsr: correct on known inputs", {
 
   se_lfsr <- mvsusie_single_effect_lfsr(clfsr, alpha)
 
-  # For effect l, condition r: se_lfsr[l,r] = pmax(0, sum_j alpha[l,j] * clfsr[l,j,r])
+  # For effect l, outcome r: se_lfsr[l,r] = pmax(0, sum_j alpha[l,j] * clfsr[l,j,r])
   # l=1, r=1: alpha[1,] = c(0.5, 0.3, 0.2), clfsr[1,,1] = c(0.1, 0.3, 0.5)
   #   sum = 0.5*0.1 + 0.3*0.3 + 0.2*0.5 = 0.05 + 0.09 + 0.10 = 0.24
   expected_l1_r1 <- sum(alpha[1, ] * clfsr[1, , 1])
@@ -267,8 +267,8 @@ test_that("create_mash_prior matches MashInitializer (Ulist + grid)", {
                  tolerance = MACH_TOL, check.attributes = FALSE)
   }
 
-  # Compare n_condition and n_component
-  expect_equal(r6_prior$n_condition, s3_prior$n_condition)
+  # Compare n_outcome and n_component
+  expect_equal(r6_prior$n_condition, s3_prior$n_outcome)
   expect_equal(r6_prior$n_component - 1, s3_prior$n_component)  # R6 includes null
 })
 

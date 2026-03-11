@@ -1,6 +1,6 @@
 context("mvsusie_predict")
 
-test_that("predict() gives accurate estimates in 1 condition",{
+test_that("predict() gives accurate estimates in 1 outcome",{
 
   # Simulate a 200 x 100 data set with 1 response.
   set.seed(1)
@@ -36,7 +36,7 @@ test_that("predict() gives accurate estimates in 1 condition",{
   #
 })
 
-test_that("predict() gives accurate estimates in 3 conditions",{
+test_that("predict() gives accurate estimates in 3 outcomes",{
 
   # Simulate a 200 x 100 data set with 3 outcomes.
   set.seed(1)

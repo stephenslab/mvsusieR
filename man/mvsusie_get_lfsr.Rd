@@ -22,5 +22,5 @@ Local false sign rate (lfsr) for variables.
 }
 \details{
 This function returns the lfsr for identifying nonzero
-  effects for each condition.
+  effects for each outcome.
 }

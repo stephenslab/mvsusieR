@@ -2,7 +2,7 @@
 % Please edit documentation in R/missing_y_utils.R
 \name{standardize_3d}
 \alias{standardize_3d}
-\title{Apply per-condition centering and scaling to X_3d and Y.}
+\title{Apply per-outcome centering and scaling to X_3d and Y.}
 \usage{
 standardize_3d(data, center, scale)
 }
@@ -12,13 +12,13 @@ and for exact method, data$miss3d$Vinv must be set).}
 
 \item{center}{Logical: center X and Y.}
 
-\item{scale}{Logical: scale X columns to unit variance per condition.}
+\item{scale}{Logical: scale X columns to unit variance per outcome.}
 }
 \value{
 Modified data object.
 }
 \description{
-For the approximate method, uses simple per-condition column means/SDs.
+For the approximate method, uses simple per-outcome column means/SDs.
 For the exact method, uses V^{-1}-weighted centering (requires Vinv
 to be already computed in data$miss3d$Vinv).
 }

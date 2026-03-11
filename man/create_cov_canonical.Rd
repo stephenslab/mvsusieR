@@ -7,7 +7,7 @@
 create_cov_canonical(R, singletons = TRUE, hetgrid = seq(0, 1, 0.25))
 }
 \arguments{
-\item{R}{Integer specifying the number of conditions.}
+\item{R}{Integer specifying the number of outcomes.}
 
 \item{singletons}{\code{TRUE} or \code{FALSE} indicating whether
 the singleton matrices are computed.}
@@ -16,7 +16,7 @@ the singleton matrices are computed.}
 representing the off-diagonal elements of matrices with 1s on the
 diagonal. If 0 is included, the identity matrix will be returned
 which corresponds to assuming effects are independent across
-conditions. IF \code{hetgrid = NULL}, these matrices are not
+outcomes. IF \code{hetgrid = NULL}, these matrices are not
 returned.}
 }
 \value{

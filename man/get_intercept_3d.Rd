@@ -15,7 +15,7 @@ get_intercept_3d(data, model)
 R-vector of intercepts.
 }
 \description{
-For the approximate method, uses per-condition column means.
+For the approximate method, uses per-outcome column means.
 For the exact method, uses V^{-1}-weighted computation with
 precomputed pattern-level column sums (raw_sum) to avoid
 storing the raw X matrix.

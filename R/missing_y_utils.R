@@ -5,21 +5,21 @@
 #
 # When Y has missing entries (R > 1), we construct an N x J x R array
 # (X_3d) where X[i,,r] = 0 whenever Y[i,r] is missing. This ensures
-# that missing conditions do not contribute to the regression. Each
+# that missing outcomes do not contribute to the regression. Each
 # observation is assigned to a unique missingness pattern k, and
 # per-pattern embedded precision matrices V_i^{-1} are computed by
 # inverting the observed sub-block of V and embedding it in R x R.
 #
 # Two methods are supported:
-#   "approximate" - Per-condition centering. Exact when V is diagonal
-#                   or missingness patterns do not overlap across conditions.
+#   "approximate" - Per-outcome centering. Exact when V is diagonal
+#                   or missingness patterns do not overlap across outcomes.
 #   "exact"       - V^{-1}-weighted centering with full R x R correction.
 #                   Guarantees correct ELBO.
 #
 # Precomputation strategy: K x J summary matrices (raw_sq_sum, raw_sum)
 # are computed once from the raw X, enabling O(K * R^2 * J) svs_inv
 # computation instead of O(N * R^2 * J) per-sample loops (K << N).
-# XtR is computed per-condition using the already-centered X_3d.
+# XtR is computed per-outcome using the already-centered X_3d.
 
 #' @importFrom matrixStats colSds
 NULL
@@ -37,7 +37,7 @@ NULL
 #' @param X N x J raw (uncentered, unscaled) covariate matrix.
 #' @param Y N x R raw response matrix (NAs at missing entries).
 #' @param Y_missing N x R logical matrix (TRUE = missing).
-#' @param R Number of conditions.
+#' @param R Number of outcomes.
 #' @param method Character: "approximate" or "exact".
 #'
 #' @return A list (the miss3d structure) with fields for use
@@ -51,7 +51,7 @@ init_missing_data_3d <- function(X, Y, Y_missing, R, method) {
   Y_non_missing <- !Y_missing
 
   # Extract unique missingness patterns (K x R boolean matrix).
-  # Each row is a unique observed-condition pattern.
+  # Each row is a unique observed-outcome pattern.
   pattern <- unique(Y_non_missing)
   K <- nrow(pattern)
 
@@ -101,8 +101,8 @@ init_missing_data_3d <- function(X, Y, Y_missing, R, method) {
     n_k            = n_k,
     standardized   = FALSE,   # flag: has standardize_3d been called?
     # Fields populated by standardize_3d / set_residual_variance_3d:
-    cm             = NULL,    # J x R per-condition column means
-    csd            = NULL,    # J x R per-condition column SDs
+    cm             = NULL,    # J x R per-outcome column means
+    csd            = NULL,    # J x R per-outcome column SDs
     Vinv           = NULL,    # list of K R x R per-pattern embedded precision
     Vinv_eigen     = NULL,    # list of K eigenvalue vectors
     Xbar           = NULL,    # J x R x R (exact only)
@@ -116,9 +116,9 @@ init_missing_data_3d <- function(X, Y, Y_missing, R, method) {
 # STANDARDIZATION
 # =============================================================================
 
-#' Apply per-condition centering and scaling to X_3d and Y.
+#' Apply per-outcome centering and scaling to X_3d and Y.
 #'
-#' For the approximate method, uses simple per-condition column means/SDs.
+#' For the approximate method, uses simple per-outcome column means/SDs.
 #' For the exact method, uses V^{-1}-weighted centering (requires Vinv
 #' to be already computed in data$miss3d$Vinv).
 #'
@@ -127,7 +127,7 @@ init_missing_data_3d <- function(X, Y, Y_missing, R, method) {
 #' @param data The full data object (must have data$miss3d populated,
 #'   and for exact method, data$miss3d$Vinv must be set).
 #' @param center Logical: center X and Y.
-#' @param scale Logical: scale X columns to unit variance per condition.
+#' @param scale Logical: scale X columns to unit variance per outcome.
 #'
 #' @return Modified data object.
 #'
@@ -139,7 +139,7 @@ standardize_3d <- function(data, center, scale) {
   J <- dim(X_3d)[2]
   R <- dim(X_3d)[3]
 
-  # Per-condition column means (J x R)
+  # Per-outcome column means (J x R)
   if (center) {
     cm <- matrix(0, J, R)
     for (r in seq_len(R)) {
@@ -149,7 +149,7 @@ standardize_3d <- function(data, center, scale) {
     cm <- matrix(0, J, R)
   }
 
-  # Per-condition column SDs (J x R)
+  # Per-outcome column SDs (J x R)
   csd <- matrix(1, J, R)
   for (r in seq_len(R)) {
     if (scale) {
@@ -158,7 +158,7 @@ standardize_3d <- function(data, center, scale) {
     }
     # Center and scale X_3d
     X_3d[, , r] <- t((t(X_3d[, , r]) - cm[, r]) / csd[, r])
-    # Replace NAs with 0 (missing conditions don't contribute)
+    # Replace NAs with 0 (missing outcomes don't contribute)
     X_3d[, , r][is.na(X_3d[, , r])] <- 0
   }
 
@@ -168,7 +168,7 @@ standardize_3d <- function(data, center, scale) {
   if (my$method == "approximate") {
     my$cm <- cm  # store for intercept recovery
     if (center) {
-      # Simple per-condition Y means (observed entries only)
+      # Simple per-outcome Y means (observed entries only)
       if (R == 1) {
         Y_mean <- mean(data$Y[my$Y_non_missing])
       } else {
@@ -305,9 +305,9 @@ set_residual_variance_3d <- function(data, residual_variance,
 
   # --- Step 4: Per-variable svs_inv using precomputed K x J sums ---
   # svs_inv[j] = sum_i diag(x_ij) Vinv_{pattern(i)} diag(x_ij)
-  # where x_ij is the per-condition centered/scaled X_3d.
+  # where x_ij is the per-outcome centered/scaled X_3d.
   #
-  # For pattern k with observed conditions obs_k, expanding the product
+  # For pattern k with observed outcomes obs_k, expanding the product
   # for both r,s in obs_k:
   #   sum_{i in k} x_ij[r] * x_ij[s]
   #     = (1/(csd[j,r]*csd[j,s])) *
@@ -360,9 +360,9 @@ set_residual_variance_3d <- function(data, residual_variance,
 
 #' Compute V^{-1}-weighted X'R for missing data methods.
 #'
-#' Uses per-condition X_3d for the cross-product. First applies
+#' Uses per-outcome X_3d for the cross-product. First applies
 #' per-pattern V_i^{-1} to the residual, then computes the
-#' per-condition cross-products.
+#' per-outcome cross-products.
 #'
 #' @param data The full data object.
 #' @param R_mat N x R residual matrix.
@@ -400,7 +400,7 @@ compute_XtR_3d_R <- function(data, R_mat) {
     VinvR[idx, ] <- R_mat[idx, , drop = FALSE] %*% t(Vinv[[k]])
   }
 
-  # Step 2: Per-condition cross-product using centered/scaled X_3d
+  # Step 2: Per-outcome cross-product using centered/scaled X_3d
   if (my$method == "approximate") {
     res <- t(sapply(seq_len(J), function(j) {
       colSums(my$X_3d[, j, ] * VinvR)
@@ -421,10 +421,10 @@ compute_XtR_3d_R <- function(data, R_mat) {
 
 
 # =============================================================================
-# COMPUTE X*b (per-condition)
+# COMPUTE X*b (per-outcome)
 # =============================================================================
 
-#' Compute per-condition X*b for missing data methods.
+#' Compute per-outcome X*b for missing data methods.
 #'
 #' @param data The full data object.
 #' @param b J x R coefficient matrix.
@@ -451,7 +451,7 @@ compute_Xb_3d_R <- function(data, b) {
   R_dim <- data$R
   N <- dim(my$X_3d)[1]
 
-  # Per-condition: Xb[,r] = X_3d[,,r] %*% b[,r]
+  # Per-outcome: Xb[,r] = X_3d[,,r] %*% b[,r]
   Xb <- sapply(seq_len(R_dim), function(r) my$X_3d[, , r] %*% b[, r])
   if (!is.matrix(Xb)) Xb <- matrix(Xb, N, R_dim)
 
@@ -551,7 +551,7 @@ compute_betahat_3d_R <- function(data, XtR) {
 
 #' Recover intercept on the original Y scale for missing data methods.
 #'
-#' For the approximate method, uses per-condition column means.
+#' For the approximate method, uses per-outcome column means.
 #' For the exact method, uses V^{-1}-weighted computation with
 #' precomputed pattern-level column sums (raw_sum) to avoid
 #' storing the raw X matrix.
@@ -728,12 +728,12 @@ compute_betahat <- function(data, XtR) {
 #
 # @param j Variable index.
 # @param method "approximate" or "exact".
-# @param R_dim Number of conditions.
+# @param R_dim Number of outcomes.
 # @param K Number of unique missing patterns.
 # @param Vinv List of K R x R per-pattern embedded precision matrices.
-# @param obs_r_list List of K integer vectors (observed condition indices).
-# @param cm J x R per-condition column means.
-# @param csd J x R per-condition column SDs.
+# @param obs_r_list List of K integer vectors (observed outcome indices).
+# @param cm J x R per-outcome column means.
+# @param csd J x R per-outcome column SDs.
 # @param raw_sq_sum K x J matrix of squared column sums per pattern.
 # @param raw_sum K x J matrix of column sums per pattern.
 # @param n_k K-vector of pattern counts.

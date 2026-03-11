@@ -9,7 +9,7 @@ mvsusie_plot(
   chr = 1,
   pos = seq(1, length(fit$variable_names)),
   markers = fit$variable_names,
-  conditions = fit$condition_names,
+  outcomes = fit$outcome_names,
   poslim = range(pos),
   lfsr_cutoff = 0.01,
   sentinel_only = TRUE,
@@ -30,7 +30,7 @@ same length as \code{fit$variable_names}.}
 
 \item{markers}{The names of the genetic markers (usually SNPs).}
 
-\item{conditions}{The names of the conditions.}
+\item{outcomes}{The names of the outcomes.}
 
 \item{poslim}{The range of positions to show in the PIP plot.}
 

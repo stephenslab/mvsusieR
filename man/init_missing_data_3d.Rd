@@ -13,7 +13,7 @@ init_missing_data_3d(X, Y, Y_missing, R, method)
 
 \item{Y_missing}{N x R logical matrix (TRUE = missing).}
 
-\item{R}{Number of conditions.}
+\item{R}{Number of outcomes.}
 
 \item{method}{Character: "approximate" or "exact".}
 }

@@ -81,7 +81,7 @@ test_that("Pattern extraction identifies correct patterns from MCAR data", {
 test_that("Pattern extraction: single pattern when all rows have same missingness", {
   N <- 100; R <- 3
   Y_missing <- matrix(FALSE, N, R)
-  Y_missing[, 2] <- TRUE  # condition 2 always missing
+  Y_missing[, 2] <- TRUE  # outcome 2 always missing
 
   miss_info <- mvsusieR:::extract_missing_patterns(Y_missing)
 
@@ -168,18 +168,18 @@ test_that("Pattern-cached imputation matches manual conditional normal formula",
   Vinv <- solve(V)
 
   Y_missing <- matrix(FALSE, N, R)
-  Y_missing[3, 2] <- TRUE    # obs 3: condition 2 missing
-  Y_missing[7, c(1,3)] <- TRUE  # obs 7: conditions 1,3 missing
+  Y_missing[3, 2] <- TRUE    # obs 3: outcome 2 missing
+  Y_missing[7, c(1,3)] <- TRUE  # obs 7: outcomes 1,3 missing
   Y[Y_missing] <- 0
 
-  # Manual imputation for obs 3 (condition 2 missing)
+  # Manual imputation for obs 3 (outcome 2 missing)
   miss3 <- 2; obs3 <- c(1, 3)
   cov_mm_3 <- solve(matrix(Vinv[miss3, miss3], 1, 1))
   Vinv_mo_3 <- matrix(Vinv[miss3, obs3], 1, 2)
   resid3 <- Y[3, obs3] - mu[3, obs3]
   y3_imp <- mu[3, miss3] - as.numeric(cov_mm_3 %*% Vinv_mo_3 %*% resid3)
 
-  # Manual imputation for obs 7 (conditions 1,3 missing)
+  # Manual imputation for obs 7 (outcomes 1,3 missing)
   miss7 <- c(1, 3); obs7 <- 2
   cov_mm_7 <- solve(Vinv[miss7, miss7])
   Vinv_mo_7 <- Vinv[miss7, obs7, drop = FALSE]
@@ -339,7 +339,7 @@ test_that("Single missing entry matches scalar conditional normal formula", {
   Vinv <- solve(V)
 
   Y_missing <- matrix(FALSE, N, R)
-  Y_missing[5, 2] <- TRUE  # only obs 5, condition 2 missing
+  Y_missing[5, 2] <- TRUE  # only obs 5, outcome 2 missing
   Y[Y_missing] <- 0
 
   # Manual scalar conditional normal:
@@ -370,7 +370,7 @@ test_that("All entries missing: imputed value equals mu", {
   Vinv <- solve(V)
 
   Y_missing <- matrix(FALSE, N, R)
-  Y_missing[4, ] <- TRUE  # obs 4: all conditions missing
+  Y_missing[4, ] <- TRUE  # obs 4: all outcomes missing
   Y[Y_missing] <- 0
 
   miss_info <- mvsusieR:::extract_missing_patterns(Y_missing)

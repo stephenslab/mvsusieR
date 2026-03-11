@@ -17,7 +17,7 @@ A list with:
 }
 \description{
 Groups observations by their unique missingness pattern. Each pattern
-is a logical vector of length R indicating which conditions are missing.
+is a logical vector of length R indicating which outcomes are missing.
 Only patterns with at least one missing entry are included.
 }
 \keyword{internal}

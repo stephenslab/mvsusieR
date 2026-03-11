@@ -19,5 +19,5 @@ Local false sign rate (lfsr) for single effects
 }
 \details{
 This function returns the lfsr for identifying nonzero
-  single effects, separately for each condition.
+  single effects, separately for each outcome.
 }

@@ -13,7 +13,7 @@
 #' @param weights_tol Filter out components with weight below this threshold.
 #' @param null_tol Tolerance for detecting zero matrices.
 #' @param top_mixtures Keep only the top components by weight. Use -1 for all.
-#' @param include_conditions Indices of conditions to include (subset prior).
+#' @param include_outcomes Indices of outcomes to include (subset prior).
 #'
 #' @return An S3 object of class \code{mash_prior}.
 #'
@@ -22,7 +22,7 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
                                prior_weights = NULL, null_weight = 0,
                                weights_tol = 1e-10, null_tol = 5e-7,
                                top_mixtures = 20,
-                               include_conditions = NULL) {
+                               include_outcomes = NULL) {
   all_zeros <- vector()
 
   # Build xUlist from Ulist + grid if not provided directly
@@ -51,10 +51,10 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
     }
   }
 
-  # Subset conditions if requested
-  if (!is.null(include_conditions)) {
+  # Subset outcomes if requested
+  if (!is.null(include_outcomes)) {
     for (l in seq_along(xUlist)) {
-      xUlist[[l]] <- xUlist[[l]][include_conditions, include_conditions]
+      xUlist[[l]] <- xUlist[[l]][include_outcomes, include_outcomes]
       if (l > 1) {
         all_zeros[l - 1] <- all(abs(xUlist[[l]]) < null_tol)
       }
@@ -80,7 +80,7 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
     xUlist <- xUlist[c(1, which.comp + 1)]
   }
 
-  # Remove all-zero priors after condition subsetting
+  # Remove all-zero priors after outcome subsetting
   if (length(which(all_zeros)) > 0) {
     which.comp <- which(sapply(
       2:length(xUlist),
@@ -127,7 +127,7 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
     xUlist_3d    = matlist2array(xUlist_nonnull),
     xUlist_inv   = NULL,
     xUlist_rank  = NULL,
-    n_condition  = nrow(xUlist_nonnull[[1]]),
+    n_outcome    = nrow(xUlist_nonnull[[1]]),
     n_component  = K
   ), class = "mash_prior")
 }
@@ -173,7 +173,7 @@ compute_prior_inv.mash_prior <- function(prior) {
 #' @param pi_V K-vector of non-null mixture weights.
 #' @param null_weight Scalar null component weight.
 #' @param V_scalar Scalar to scale the non-null components.
-#' @param R Number of conditions.
+#' @param R Number of outcomes.
 #'
 #' @return List with \code{xUlist_full_3d} (R x R x (K+1)) and
 #'   \code{pi_full} ((K+1)-vector).

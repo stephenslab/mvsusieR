@@ -175,7 +175,7 @@ apply_mvsusie_dimnames <- function(s) {
   L <- nrow(s$alpha)
   J <- ncol(s$alpha)
   vnames <- s$variable_names
-  cnames <- s$condition_names
+  cnames <- s$outcome_names
   lnames <- paste0("l", seq_len(L))
 
   # alpha: L x J with row=effect names, col=variable names  dimnames(s$alpha) <- list(lnames, vnames)
@@ -222,7 +222,7 @@ multivariate_lbf <- function(betahat, S, U) {
 #' @title Local false sign rate (lfsr) for single effects
 #'
 #' @details This function returns the lfsr for identifying nonzero
-#'   single effects, separately for each condition.
+#'   single effects, separately for each outcome.
 #'
 #' @param alpha L x J matrix.
 #'
@@ -255,7 +255,7 @@ mvsusie_single_effect_lfsr <- function(clfsr, alpha) {
 #' @title Local false sign rate (lfsr) for variables.
 #'
 #' @details This function returns the lfsr for identifying nonzero
-#'   effects for each condition.
+#'   effects for each outcome.
 #'
 #' @param alpha L x J matrix.
 #'
@@ -288,50 +288,50 @@ mvsusie_get_lfsr <- function(clfsr, alpha, weighted = TRUE) {
   }
 }
 
-#' @title Condition-specific posterior inclusion probabilities.
+#' @title Outcome-specific posterior inclusion probabilities.
 #'
-#' @description Computes the PIP for each variable in each condition,
+#' @description Computes the PIP for each variable in each outcome,
 #'   accounting for the mixture structure of the prior. A variable is
-#'   considered "included" in condition r if its effect has nonzero
-#'   variance in that condition under the selected mixture component.
+#'   considered "included" in outcome r if its effect has nonzero
+#'   variance in that outcome under the selected mixture component.
 #'
 #' @param m A fitted mvsusie object (output of \code{mvsusie}).
 #' @param prior_obj A mash prior object (output of \code{create_mash_prior}
 #'   or \code{create_mixture_prior}) that was used to fit the model.
 #'
-#' @return J x R matrix of condition-specific PIPs.
+#' @return J x R matrix of outcome-specific PIPs.
 #'
 #' @export
 #'
-mvsusie_get_pip_per_condition <- function(m, prior_obj) {
-  alpha_cond <- mvsusie_get_alpha_per_condition(m, prior_obj)
-  R <- dim(alpha_cond)[3]
+mvsusie_get_pip_per_outcome <- function(m, prior_obj) {
+  alpha_out <- mvsusie_get_alpha_per_outcome(m, prior_obj)
+  R <- dim(alpha_out)[3]
   do.call(cbind, lapply(
     seq_len(R),
-    function(r) apply(alpha_cond[, , r], 2, function(x) 1 - prod(1 - x))
+    function(r) apply(alpha_out[, , r], 2, function(x) 1 - prod(1 - x))
   ))
 }
 
-#' @title Condition-specific alpha (per-effect inclusion weights).
+#' @title Outcome-specific alpha (per-effect inclusion weights).
 #'
 #' @description For each single effect l and variable j, computes the
-#'   probability of having a nonzero effect in each condition r.
+#'   probability of having a nonzero effect in each outcome r.
 #'   This is the sum of mixture_weights over components that have
-#'   nonzero prior variance in condition r, multiplied by alpha.
+#'   nonzero prior variance in outcome r, multiplied by alpha.
 #'
 #' @param m A fitted mvsusie object (output of \code{mvsusie}).
 #' @param prior_obj A mash prior object (output of \code{create_mash_prior}
 #'   or \code{create_mixture_prior}) that was used to fit the model.
 #'
-#' @return L x J x R array of condition-specific alpha values.
+#' @return L x J x R array of outcome-specific alpha values.
 #'
 #' @export
 #'
-mvsusie_get_alpha_per_condition <- function(m, prior_obj) {
-  # Build condition indicator: which components have nonzero variance
-  # in which conditions.
+mvsusie_get_alpha_per_outcome <- function(m, prior_obj) {
+  # Build outcome indicator: which components have nonzero variance
+  # in which outcomes.
   # prior_obj$xUlist contains K non-null prior matrices (R x R each).
-  condition_indicator <- do.call(
+  outcome_indicator <- do.call(
     rbind,
     lapply(
       seq_along(prior_obj$xUlist),
@@ -343,16 +343,16 @@ mvsusie_get_alpha_per_condition <- function(m, prior_obj) {
   # We need the K non-null columns (columns 2:(K+1)).
   L <- nrow(m$alpha)
   J <- ncol(m$alpha)
-  R <- ncol(condition_indicator)
+  R <- ncol(outcome_indicator)
 
-  alpha_cond <- array(0, c(L, J, R))
+  alpha_out <- array(0, c(L, J, R))
   for (r in seq_len(R)) {
-    for (k in seq_len(nrow(condition_indicator))) {
+    for (k in seq_len(nrow(outcome_indicator))) {
       # k-th non-null component = column k+1 in mixture_weights
-      alpha_cond[, , r] <- alpha_cond[, , r] +
-        m$mixture_weights[, , k + 1] * condition_indicator[k, r]
+      alpha_out[, , r] <- alpha_out[, , r] +
+        m$mixture_weights[, , k + 1] * outcome_indicator[k, r]
     }
-    alpha_cond[, , r] <- alpha_cond[, , r] * m$alpha
+    alpha_out[, , r] <- alpha_out[, , r] * m$alpha
   }
-  alpha_cond
+  alpha_out
 }

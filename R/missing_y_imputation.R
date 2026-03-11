@@ -20,7 +20,7 @@ NULL
 #' Extract unique missingness patterns from a boolean missing matrix.
 #'
 #' Groups observations by their unique missingness pattern. Each pattern
-#' is a logical vector of length R indicating which conditions are missing.
+#' is a logical vector of length R indicating which outcomes are missing.
 #' Only patterns with at least one missing entry are included.
 #'
 #' @param Y_missing N x R logical matrix (TRUE = missing).
@@ -71,12 +71,12 @@ extract_missing_patterns <- function(Y_missing) {
 #' @param patterns List of logical vectors from extract_missing_patterns.
 #'
 #' @return List of per-pattern caches, each containing:
-#'   \item{miss}{integer vector of missing condition indices}
-#'   \item{obs}{integer vector of observed condition indices}
+#'   \item{miss}{integer vector of missing outcome indices}
+#'   \item{obs}{integer vector of observed outcome indices}
 #'   \item{Vinv_mo}{|M| x |O| submatrix of Vinv}
 #'   \item{cov_mm}{|M| x |M| matrix: Lambda_{MM}^{-1}}
 #'   \item{neg_ent}{scalar: negative entropy contribution per observation}
-#'   \item{n_miss}{integer: number of missing conditions}
+#'   \item{n_miss}{integer: number of missing outcomes}
 #'
 #' @keywords internal
 precompute_pattern_cache <- function(Vinv, patterns) {
@@ -166,7 +166,7 @@ impute_missing_Y <- function(Y, mu, Vinv, miss_info, pattern_cache,
       correction <- resid_obs %*% t(pc$Vinv_mo) %*% pc$cov_mm
       Y[obs_idx, pc$miss] <- mu[obs_idx, pc$miss, drop = FALSE] - correction
     } else {
-      # All conditions missing: imputed = mu (no observed data to condition on)
+      # All outcomes missing: imputed = mu (no observed data to condition on)
       Y[obs_idx, pc$miss] <- mu[obs_idx, pc$miss, drop = FALSE]
     }
   }

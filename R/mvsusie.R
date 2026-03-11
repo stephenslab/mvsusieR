@@ -699,8 +699,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
 
   verbose <- verbosity > 1
   if (verbose) {
-    message(sprintf("mvsusie: N=%d, J=%d, R=%d, L=%d [mem: %.0f MB]",
-                    nrow(X), ncol(X), R, L, mem_used_mb()))
+    message(sprintf("mvsusie: N=%d, J=%d, R=%d, L=%d [mem: %.2f GB]",
+                    nrow(X), ncol(X), R, L, mem_used_gb()))
   }
 
   # Validate missing_y_method and apply upfront overrides.
@@ -710,7 +710,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   #                   iteration). Discussed in the mvSuSiE paper
   #                   (doi:10.1038/s41588-025-02486-7). Does not guarantee
   #                   monotone ELBO.
-  #   "approximate" - Per-condition centering with per-pattern V_i^{-1}. Exact
+  #   "approximate" - Per-outcome centering with per-pattern V_i^{-1}. Exact
   #                   when V is diagonal or patterns don't overlap.
   #   "exact"       - V^{-1}-weighted centering with full R x R correction.
   #                   Guarantees correct ELBO.
@@ -752,7 +752,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   data <- set_mvsusie_residual_variance(data, residual_variance)
   if (verbose) {
     message("Residual variance set, common_cov=", data$is_common_cov,
-            " [mem: ", round(mem_used_mb()), " MB]")
+            " [mem: ", sprintf("%.2f", mem_used_gb()), " GB]")
   }
 
   # Compute prior inverses for EM (mixture priors)
@@ -763,7 +763,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
 
   if (verbose && is_mash_prior) {
     message("Prior: K=", length(prior_variance$xUlist),
-            " mixture components [mem: ", round(mem_used_mb()), " MB]")
+            " mixture components [mem: ", sprintf("%.2f", mem_used_gb()), " GB]")
   }
 
   # When Y has missing data, use PIP convergence. ELBO is not guaranteed
@@ -818,9 +818,9 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
 
   # Set names
   if (is.null(colnames(Y))) {
-    s$condition_names <- paste0("cond", seq_len(R))
+    s$outcome_names <- paste0("outcome", seq_len(R))
   } else {
-    s$condition_names <- colnames(Y)
+    s$outcome_names <- colnames(Y)
   }
   if (is.null(colnames(X))) {
     s$variable_names <- paste0("var", seq_len(ncol(X)))
@@ -969,9 +969,9 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
 
   # Set names
   if (is.null(colnames(XtY))) {
-    s$condition_names <- paste0("cond", seq_len(R))
+    s$outcome_names <- paste0("outcome", seq_len(R))
   } else {
-    s$condition_names <- colnames(XtY)
+    s$outcome_names <- colnames(XtY)
   }
   if (is.null(colnames(XtX))) {
     s$variable_names <- paste0("var", seq_len(J))

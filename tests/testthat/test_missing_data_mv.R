@@ -435,7 +435,7 @@ test_that("Mixture (mash) prior works with missing data", {
 
 
 # 34. Monotone missingness
-test_that("Monotone missingness: algorithm handles condition-level dropout", {
+test_that("Monotone missingness: algorithm handles outcome-level dropout", {
   skip_on_cran()
   set.seed(340)
   N <- 200; J <- 100; R <- 3; L <- 2
@@ -447,7 +447,7 @@ test_that("Monotone missingness: algorithm handles condition-level dropout", {
   E <- MASS::mvrnorm(N, rep(0, R), V_true)
   Y <- X %*% B + E
 
-  # Monotone: condition 3 entirely missing for 50% of obs
+  # Monotone: outcome 3 entirely missing for 50% of obs
   Y[101:200, 3] <- NA
 
   fit <- mvsusie_core(X, Y, L = 3,
@@ -582,7 +582,7 @@ test_that("Variable names are preserved with missing data", {
                       estimate_prior_variance = TRUE,
                       max_iter = 10, verbosity = 0)
   expect_equal(fit$variable_names, paste0("SNP", seq_len(d$J)))
-  expect_equal(fit$condition_names, paste0("trait", seq_len(d$R)))
+  expect_equal(fit$outcome_names, paste0("trait", seq_len(d$R)))
 })
 
 

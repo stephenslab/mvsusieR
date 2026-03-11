@@ -34,7 +34,7 @@ the list of mixture prior is of length \code{max_mixture_len}. Use
 filtering by \code{weights_tol}.}
 
 \item{include_indices}{Post-process input prior to only include
-conditions from this indices.}
+outcomes at these indices.}
 
 \item{\dots}{other parameters, for mvsusieR:::create_cov_canonical}
 }

@@ -132,14 +132,14 @@ ibss_initialize.mv_individual <- function(data, params) {
     if (verbose) {
       message("Eigendecomposition cache: K=", length(model$V_structure),
               ", common_cov=", data$is_common_cov,
-              " [mem: ", round(mem_used_mb()), " MB]")
+              " [mem: ", sprintf("%.2f", mem_used_gb()), " GB]")
     }
   }
 
   if (verbose) {
     K <- length(model$V_structure)
-    message(sprintf("Model initialized: J=%d, R=%d, L=%d, K=%d [mem: %.0f MB]",
-                    data$p, data$R, params$L, K, mem_used_mb()))
+    message(sprintf("Model initialized: J=%d, R=%d, L=%d, K=%d [mem: %.2f GB]",
+                    data$p, data$R, params$L, K, mem_used_gb()))
   }
 
   # Initial imputation for R>1 missing data (variational EM E-step).
@@ -170,7 +170,7 @@ compute_residuals.mv_individual <- function(data, params, model, l, ...) {
   # This is the variational EM E-step: fill in missing entries using
   # E[Y_miss | Y_obs] = mu_miss - Lambda_{MM}^-1 Lambda_{MO} (Y_obs - mu_obs)
   # where Lambda = V^-1 (precision) and mu = model$Xr (current fitted values).
-  # Skip imputation when using per-condition (3d) missing data methods.
+  # Skip imputation when using per-outcome (3d) missing data methods.
   if (l == 1 && data$any_missing && data$R > 1 &&
       !is.null(data$impute_info) && is.null(data$miss3d)) {
     v_inv <- if (!is.null(model$residual_variance_inv))
@@ -201,7 +201,7 @@ compute_residuals.mv_individual <- function(data, params, model, l, ...) {
   R_mat <- Y - model$Xr + Xb_l  # N x R
 
   # Zero out missing entries only for R=1 (complete-case approach) or
-  # when using per-condition (3d) methods (missing entries should not contribute).
+  # when using per-outcome (3d) methods (missing entries should not contribute).
   # For R>1 with imputation, imputed entries participate fully.
   if (data$any_missing &&
       (is.null(model$Y_imputed) || !is.null(data$miss3d))) {
@@ -589,7 +589,7 @@ SER_posterior_e_loglik.mv_individual <- function(data, params, model, l) {
 
   # E1 = tr(v_inv * (B1'XtR + XtR'B1)) = 2 * tr(v_inv * B1'XtR)
   # (factor of 2 from v_inv symmetry)
-  # For per-condition (3d) methods, use V_i^{-1}-weighted inner product.
+  # For per-outcome (3d) methods, use V_i^{-1}-weighted inner product.
   if (!is.null(data$miss3d)) {
     VinvXb_l <- compute_VinvR_3d(data, Xb_l)
     term1 <- sum(model$raw_residuals * VinvXb_l)
@@ -723,10 +723,10 @@ check_convergence.mv_individual <- function(data, params, model,
     if (!is.na(pip_diff)) {
       model$converged <- (pip_diff < params$tol)
       if (verbose) {
-        message(sprintf("iter %3d: max|dPIP|=%.2e%s [mem: %.0f MB]",
+        message(sprintf("iter %3d: max|dPIP|=%.2e%s [mem: %.2f GB]",
                         iter, pip_diff,
                         if (model$converged) " -- converged" else "",
-                        mem_used_mb()))
+                        mem_used_gb()))
       }
     } else {
       model$converged <- FALSE
@@ -744,18 +744,18 @@ check_convergence.mv_individual <- function(data, params, model,
       model$converged <- FALSE
     }
     if (verbose) {
-      message(sprintf("iter %3d: ELBO=NA, PIP fallback, max|dPIP|=%s [mem: %.0f MB]",
+      message(sprintf("iter %3d: ELBO=NA, PIP fallback, max|dPIP|=%s [mem: %.2f GB]",
                       iter,
                       if (!is.na(pip_diff)) sprintf("%.2e", pip_diff) else "NA",
-                      mem_used_mb()))
+                      mem_used_gb()))
     }
   } else {
     model$converged <- (delta < params$tol)
     if (verbose) {
-      message(sprintf("iter %3d: ELBO=%.4f, delta=%.2e%s [mem: %.0f MB]",
+      message(sprintf("iter %3d: ELBO=%.4f, delta=%.2e%s [mem: %.2f GB]",
                       iter, elbo[iter + 1], delta,
                       if (model$converged) " -- converged" else "",
-                      mem_used_mb()))
+                      mem_used_gb()))
     }
   }
   return(model)
@@ -1036,7 +1036,7 @@ get_scale_factors.mv_individual <- function(data, params, ...) {
 
 #' @keywords internal
 get_intercept.mv_individual <- function(data, params, model, ...) {
-  # Per-condition (3d) missing data methods use their own intercept recovery
+  # Per-outcome (3d) missing data methods use their own intercept recovery
   if (!is.null(data$miss3d)) return(get_intercept_3d(data, model))
 
   b_sum <- compute_posterior_mean_sum_from_model(model)
@@ -1213,7 +1213,7 @@ estimate_residual_variance_mv <- function(data, model) {
 
 # Multivariate ELBO expected log-likelihood (dense)
 compute_multivariate_elbo <- function(data, model) {
-  # Per-condition (3d) missing data methods have their own ELBO
+  # Per-outcome (3d) missing data methods have their own ELBO
   if (!is.null(data$miss3d)) return(compute_elbo_3d(data, model))
 
   # Use full sample size when imputation is active (all obs contribute);

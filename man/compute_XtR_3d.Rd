@@ -15,8 +15,8 @@ compute_XtR_3d(data, R_mat)
 J x R matrix of V^{-1}-weighted cross-products.
 }
 \description{
-Uses per-condition X_3d for the cross-product. First applies
+Uses per-outcome X_3d for the cross-product. First applies
 per-pattern V_i^{-1} to the residual, then computes the
-per-condition cross-products.
+per-outcome cross-products.
 }
 \keyword{internal}

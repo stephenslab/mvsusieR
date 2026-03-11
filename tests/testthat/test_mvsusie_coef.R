@@ -1,6 +1,6 @@
 context("mvsusie_coef")
 
-test_that("coef() gives the right coefficients with 1 condition",{
+test_that("coef() gives the right coefficients with 1 outcome",{
 
   # Simulate a 200 x 100 data set with 1 response.
   set.seed(1)
@@ -32,7 +32,7 @@ test_that("coef() gives the right coefficients with 1 condition",{
   expect_gt(cor(coef(fit),c(-1,b)),0.99)
 })
 
-test_that("coef() gives the right coefficients with 3 conditions",{
+test_that("coef() gives the right coefficients with 3 outcomes",{
 
   # Simulate a 200 x 100 data set with 3 outcomes.
   set.seed(1)

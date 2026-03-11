@@ -13,7 +13,7 @@ build_mashr_prior(V_structure, pi_V, null_weight, V_scalar, R)
 
 \item{V_scalar}{Scalar to scale the non-null components.}
 
-\item{R}{Number of conditions.}
+\item{R}{Number of outcomes.}
 
 \item{V_structure_3d}{R x R x K array of non-null prior components.}
 }

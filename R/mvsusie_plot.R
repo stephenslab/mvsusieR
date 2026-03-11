@@ -14,7 +14,7 @@
 #'
 #' @param markers The names of the genetic markers (usually SNPs).
 #'
-#' @param conditions The names of the conditions.
+#' @param outcomes The names of the outcomes.
 #'
 #' @param poslim The range of positions to show in the PIP plot.
 #'
@@ -73,7 +73,7 @@ mvsusie_plot <-
            chr = 1,
            pos = seq(1, length(fit$variable_names)),
            markers = fit$variable_names,
-           conditions = fit$condition_names,
+           outcomes = fit$outcome_names,
            poslim = range(pos),
            lfsr_cutoff = 0.01,
            sentinel_only = TRUE,
@@ -100,10 +100,10 @@ mvsusie_plot <-
         "\"fit$variable_names\""
       )
     }
-    if (length(conditions) != length(fit$condition_names)) {
+    if (length(outcomes) != length(fit$outcome_names)) {
       stop(
-        "Input \"conditions\" should have same length as ",
-        "\"fit$condition_names\""
+        "Input \"outcomes\" should have same length as ",
+        "\"fit$outcome_names\""
       )
     }
 
@@ -165,7 +165,7 @@ mvsusie_plot <-
     # Create a data frame containing data about the genetic markers
     # (SNPs) in the CSs (trait-specific effects, lfsr's, sentinel
     # SNPs).
-    traits <- conditions
+    traits <- outcomes
     r <- length(traits)
     lmax <- nrow(fit$alpha)
     fit$b1_rescaled <- fit$b1_rescaled[, -1, ]
@@ -179,15 +179,15 @@ mvsusie_plot <-
     effect_dat <-
       data.frame(matrix(
         as.numeric(NA),
-        prod(length(conditions) * length(markers)), 8
+        prod(length(outcomes) * length(markers)), 8
       ))
     names(effect_dat) <- c(
       "trait", "marker", "pos", "effect", "z", "lfsr", "cs",
       "sentinel"
     )
-    effect_dat$trait <- rep(conditions, length(markers))
-    effect_dat$marker <- rep(markers, each = length(conditions))
-    effect_dat$pos <- rep(pos, each = length(conditions))
+    effect_dat$trait <- rep(outcomes, length(markers))
+    effect_dat$marker <- rep(markers, each = length(outcomes))
+    effect_dat$pos <- rep(pos, each = length(outcomes))
     effect_dat$sentinel <- 0
     for (i in 1:L) {
       l <- css[i]

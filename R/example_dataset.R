@@ -9,10 +9,10 @@
 #'
 #' @param p Number of features to simulate.
 #'
-#' @param r Number of conditions to simulate.
+#' @param r Number of outcomes to simulate.
 #'
-#' @param s Number of effect variables per condition if greater than
-#'   1; otherwise, proportion of effect variables per condition if less
+#' @param s Number of effect variables per outcome if greater than
+#'   1; otherwise, proportion of effect variables per outcome if less
 #'   than 1.
 #'
 #' @param center_scale Describe what input argument "center" is for.

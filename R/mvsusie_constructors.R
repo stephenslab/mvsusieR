@@ -46,13 +46,13 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE,
   Y_missing <- is.na(Y)
   Y_has_missing <- any(Y_missing)
 
-  # Determine whether to use the per-condition (3d) missing data path.
+  # Determine whether to use the per-outcome (3d) missing data path.
   # This is active when method is "approximate" or "exact", Y has missing
   # entries, and R > 1.
   use_missing_3d <- missing_y_method %in% c("approximate", "exact") &&
     Y_has_missing && R > 1
 
-  # Initialize per-condition missing data structure BEFORE centering,
+  # Initialize per-outcome missing data structure BEFORE centering,
   # using the raw X and Y. The 3d path handles its own centering/scaling
   # in standardize_3d (called from set_residual_variance_3d).
   missing_y <- NULL
@@ -226,7 +226,7 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
   # Residual correlation matrix for mashr C++
   data$residual_correlation <- cov2cor(residual_variance)
 
-  # Per-condition missing data path: compute per-pattern precision,
+  # Per-outcome missing data path: compute per-pattern precision,
   # standardize X_3d and Y, and compute per-variable svs/svs_inv.
   if (!is.null(data$miss3d)) {
     data <- set_residual_variance_3d(data, residual_variance)

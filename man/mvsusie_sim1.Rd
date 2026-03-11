@@ -18,10 +18,10 @@ mvsusie_sim1(
 
 \item{p}{Number of features to simulate.}
 
-\item{r}{Number of conditions to simulate.}
+\item{r}{Number of outcomes to simulate.}
 
-\item{s}{Number of effect variables per condition if greater than
-1; otherwise, proportion of effect variables per condition if less
+\item{s}{Number of effect variables per outcome if greater than
+1; otherwise, proportion of effect variables per outcome if less
 than 1.}
 
 \item{center_scale}{Describe what input argument "center" is for.}

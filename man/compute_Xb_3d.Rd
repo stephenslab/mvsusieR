@@ -2,7 +2,7 @@
 % Please edit documentation in R/missing_y_utils.R
 \name{compute_Xb_3d}
 \alias{compute_Xb_3d}
-\title{Compute per-condition X*b for missing data methods.}
+\title{Compute per-outcome X*b for missing data methods.}
 \usage{
 compute_Xb_3d(data, b)
 }
@@ -15,6 +15,6 @@ compute_Xb_3d(data, b)
 N x R matrix of fitted values.
 }
 \description{
-Compute per-condition X*b for missing data methods.
+Compute per-outcome X*b for missing data methods.
 }
 \keyword{internal}

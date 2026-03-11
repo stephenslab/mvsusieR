@@ -13,12 +13,12 @@ precompute_pattern_cache(Vinv, patterns)
 }
 \value{
 List of per-pattern caches, each containing:
-  \item{miss}{integer vector of missing condition indices}
-  \item{obs}{integer vector of observed condition indices}
+  \item{miss}{integer vector of missing outcome indices}
+  \item{obs}{integer vector of observed outcome indices}
   \item{Vinv_mo}{|M| x |O| submatrix of Vinv}
   \item{cov_mm}{|M| x |M| matrix: Lambda_{MM}^{-1}}
   \item{neg_ent}{scalar: negative entropy contribution per observation}
-  \item{n_miss}{integer: number of missing conditions}
+  \item{n_miss}{integer: number of missing outcomes}
 }
 \description{
 For each unique pattern, computes:
