@@ -865,8 +865,8 @@ update_mixture_weights <- function(model, method = "mixsqp",
 #'
 #' Removes corresponding entries from V_structure, V_structure_3d,
 #' V_structure_inv, V_structure_rank, pi_V, pi_V_posterior columns,
-#' per_effect_llik columns, and eigen_cache entries. Following mr.mash,
-#' this is typically called after iteration 15 with threshold 1e-8.
+#' per_effect_llik columns, and eigen_cache entries. We check
+#' every 10 iterations with threshold 1e-8.
 #'
 #' @param model Model list containing mixture prior structure.
 #' @param threshold Minimum weight to keep a component.
@@ -1154,7 +1154,7 @@ estimate_residual_variance_mv <- function(data, model) {
 
   V_est <- (E_RtR + bxxb - b1_XtX_b1) / N
 
-  # Add Y_cov for imputation uncertainty (Eq. 52-53 from mr.mash):
+  # Add Y_cov for VEM based imputation uncertainty
   # V = (R'R + var_part_ERSS + Y_cov) / n
   if (!is.null(model$Y_cov)) {
     V_est <- V_est + model$Y_cov / N
@@ -1226,7 +1226,7 @@ compute_multivariate_elbo <- function(data, model) {
 
   result <- loglik - 0.5 * essr
 
-  # ELBO correction for imputation uncertainty (Eq. 84 from mr.mash):
+  # ELBO correction for VEM based imputation uncertainty:
   # ELBO_miss = ELBO_complete - 0.5 * tr(V^-1 Y_cov) - sum_neg_ent
   if (!is.null(model$Y_cov)) {
     result <- result - 0.5 * sum(v_inv * model$Y_cov)

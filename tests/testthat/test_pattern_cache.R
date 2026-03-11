@@ -9,8 +9,6 @@ context("Pattern-based missing data caching")
 # ============================================================================
 # Helper: naive per-observation imputation (no caching)
 # ============================================================================
-# This matches mr.mash's impute_missing_Y_R exactly: loops over all
-# observations, recomputes chol(Vinv_mm) per observation.
 naive_impute_missing_Y <- function(Y, mu, Vinv, Y_missing) {
   N <- nrow(Y)
   R <- ncol(Y)
@@ -157,7 +155,7 @@ test_that("Pattern-cached imputation matches naive per-obs loop", {
 
 
 # ============================================================================
-# 6. Cache vs mr.mash reference (formula verification)
+# 6. Cache vs non-cache reference (formula verification)
 # ============================================================================
 test_that("Pattern-cached imputation matches manual conditional normal formula", {
   set.seed(456)

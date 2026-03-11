@@ -17,7 +17,7 @@ Updated model with pruned components.
 \description{
 Removes corresponding entries from V_structure, V_structure_3d,
 V_structure_inv, V_structure_rank, pi_V, pi_V_posterior columns,
-per_effect_llik columns, and eigen_cache entries. Following mr.mash,
-this is typically called after iteration 15 with threshold 1e-8.
+per_effect_llik columns, and eigen_cache entries. We check
+every 10 iterations with threshold 1e-8.
 }
 \keyword{internal}

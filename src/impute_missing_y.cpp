@@ -3,8 +3,7 @@
 // unique missingness pattern, then applies vectorized imputation to
 // all observations sharing that pattern.
 //
-// Based on mr.mash's imputation algebra (mr_mash_updates.cpp) with
-// improvements: pattern-based grouping avoids redundant O(|M|^3)
+// optimization: pattern-based grouping avoids redundant O(|M|^3)
 // Cholesky per observation.
 
 // [[Rcpp::depends(RcppArmadillo)]]
