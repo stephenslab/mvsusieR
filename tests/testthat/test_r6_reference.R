@@ -994,3 +994,92 @@ test_that("create_mixture_prior rejects invalid fitted_g", {
 # that can diverge in LFSR and mixture weights for borderline components,
 # even when core quantities (alpha, pip, elbo) agree.
 # ============================================================================
+
+# ============================================================================
+# API backward compatibility audit tests
+#
+# These tests verify that the S3 refactored API maintains backward
+# compatibility with the R6 master branch:
+#   - Output object fields that users may access
+#   - Parameter names and defaults
+#   - Function exports
+# ============================================================================
+
+test_that("S3 output has expected core fields", {
+  ensure_r6_loaded()
+  R <- sim3$r
+  s3_prior <- create_mixture_prior(R = R)
+  dev <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
+                 estimate_residual_variance = FALSE,
+                 max_iter = 5, verbosity = 0)
+
+  # Core output fields that must always be present
+  required <- c("alpha", "b1", "b2", "coef", "fitted", "intercept",
+                "pip", "sets", "sigma2", "V", "elbo", "niter",
+                "lbf", "lbf_variable", "KL", "convergence",
+                "outcome_names", "variable_names")
+  missing <- setdiff(required, names(dev))
+  expect_equal(length(missing), 0,
+               info = paste("Missing fields:", paste(missing, collapse = ", ")))
+})
+
+test_that("track_fit produces trace in output", {
+  ensure_r6_loaded()
+  R <- sim3$r
+  s3_prior <- create_mixture_prior(R = R)
+
+  # track_fit = FALSE (default): no trace
+  fit_no <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
+                    estimate_residual_variance = FALSE,
+                    max_iter = 5, verbosity = 0, track_fit = FALSE)
+  expect_null(fit_no$trace)
+
+  # track_fit = TRUE: trace present with per-iteration snapshots
+  fit_yes <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
+                     estimate_residual_variance = FALSE,
+                     max_iter = 5, verbosity = 0, track_fit = TRUE)
+  expect_false(is.null(fit_yes$trace))
+  expect_true(length(fit_yes$trace) > 0)
+  # Each trace entry should have key model fields
+  entry <- fit_yes$trace[[1]]
+  expect_true(all(c("alpha", "V", "sigma2") %in% names(entry)))
+})
+
+test_that("S3 output has outcome_names (replaces R6 condition_names)", {
+  ensure_r6_loaded()
+  R <- sim3$r
+  s3_prior <- create_mixture_prior(R = R)
+  dev <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
+                 estimate_residual_variance = FALSE,
+                 max_iter = 5, verbosity = 0)
+  expect_false(is.null(dev$outcome_names))
+  expect_equal(length(dev$outcome_names), R)
+})
+
+test_that("estimate_residual_variance defaults: TRUE for individual, FALSE for ss", {
+  # Verify by checking the function formals directly
+  mvsusie_formals <- formals(mvsusie)
+  expect_true(mvsusie_formals$estimate_residual_variance)
+
+  mvsusie_ss_formals <- formals(mvsusie_ss)
+  expect_false(mvsusie_ss_formals$estimate_residual_variance)
+})
+
+test_that("create_mixture_prior backward compatibility: R and mixture_prior paths", {
+  ensure_r6_loaded()
+  # R path: R6 and S3 should produce compatible priors
+  r6_prior <- r6_create_mixture_prior(R = 3)
+  s3_prior <- create_mixture_prior(R = 3)
+
+  # Both should have the same number of components
+  expect_equal(s3_prior$n_component,
+               length(r6_prior$prior_variance$xUlist) - 1)  # R6 includes null
+
+  # S3 xUlist should match R6 xUlist (excluding null at position 1)
+  r6_xUlist <- r6_prior$prior_variance$xUlist[-1]
+  for (k in seq_along(r6_xUlist)) {
+    expect_equal(s3_prior$xUlist[[k]], r6_xUlist[[k]],
+                 tolerance = 1e-12,
+                 info = paste("Component", k))
+  }
+})

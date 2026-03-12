@@ -149,6 +149,9 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
     pip              = s$pip
   )
 
+  # Forward track_fit trace if present
+  if (!is.null(s$trace)) out$trace <- s$trace
+
   # Preserve V if estimated.
   # For single-matrix prior (K=1), convert V from scalar multiplier to
   # absolute prior variance: V_abs = V_scalar * V_structure[[1]][1,1].

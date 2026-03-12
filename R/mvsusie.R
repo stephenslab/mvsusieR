@@ -817,12 +817,6 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                            min_abs_corr = min_abs_corr)
   }
 
-  # Store residual variance: use model's updated value if estimated,
-  # otherwise fall back to data's initial value
-  if (!estimate_residual_variance) {
-    s$residual_variance <- data$residual_variance
-  }
-
   # Convert to standard mvsusie output format
   s <- format_mvsusie_output(s, csd = data$csd, cm = data$cm,
                               Y_mean = data$Y_mean,
