@@ -817,8 +817,17 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                            min_abs_corr = min_abs_corr)
   }
 
-  # Convert to standard mvsusie output format
-  s <- format_mvsusie_output(s, csd = data$csd, cm = data$cm,
+  # Convert to standard mvsusie output format.
+  # For missing data 3d path, use per-outcome cm/csd (J x R matrices)
+  # from miss3d instead of the J-vector placeholders in data$cm/data$csd.
+  if (!is.null(data$miss3d)) {
+    out_cm  <- data$miss3d$cm
+    out_csd <- data$miss3d$csd
+  } else {
+    out_cm  <- data$cm
+    out_csd <- data$csd
+  }
+  s <- format_mvsusie_output(s, csd = out_csd, cm = out_cm,
                               Y_mean = data$Y_mean,
                               estimate_prior_variance = estimate_prior_variance,
                               is_ss = FALSE)

@@ -71,33 +71,31 @@ create_mvsusie_data <- function(X, Y, center = TRUE, scale = TRUE,
     n_obs <- N
   }
 
-  # Column means/SDs for centering and scaling (observed rows only when
-  # Y has missing data)
-  cm  <- colMeans(X[obs, , drop = FALSE])
-  csd <- colSds(X[obs, , drop = FALSE], center = cm)
-  csd[csd == 0] <- 1
-
-  # Y column means (for intercept recovery)
-  # For the 3d path, Y centering is deferred to standardize_3d.
-  if (use_missing_3d) {
-    Y_mean <- rep(0, R)  # placeholder; updated by standardize_3d
-  } else if (R == 1) {
-    Y_mean <- mean(Y[obs, 1])
-  } else {
-    Y_mean <- colMeans(Y, na.rm = TRUE)
-  }
-
-  # Center
+  # Center and compute column means/SDs
   if (center) {
+    cm  <- colMeans(X[obs, , drop = FALSE])
+    csd <- colSds(X[obs, , drop = FALSE], center = cm)
     X <- t(t(X) - cm)
+
+    # Y column means (for intercept recovery)
+    if (use_missing_3d) {
+      Y_mean <- rep(0, R)  # placeholder; updated by standardize_3d
+    } else if (R == 1) {
+      Y_mean <- mean(Y[obs, 1])
+    } else {
+      Y_mean <- colMeans(Y, na.rm = TRUE)
+    }
     if (!use_missing_3d) {
-      # Standard path: center Y globally
       Y <- t(t(Y) - Y_mean)
     }
   } else {
     cm <- rep(0, J)
-    if (!use_missing_3d) Y_mean <- rep(0, R)
+    # When not centering, compute SD with center=0:
+    # scaling should use the norm of the raw data, not the centered SD.
+    csd <- colSds(X[obs, , drop = FALSE], center = cm)
+    Y_mean <- rep(0, R)
   }
+  csd[csd == 0] <- 1
 
   # Replace NAs with 0 AFTER centering so missing observations
   # don't contribute to any downstream computations

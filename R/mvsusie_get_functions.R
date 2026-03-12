@@ -51,15 +51,19 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
   }
 
   # ----- coef: rescaled coefficients with intercept row -----
+  # cm and csd can be J-vectors (standard path) or J x R matrices
+  # (missing data 3d path with per-outcome centering/scaling).
+  # colSums(cm * coefs) handles both: J-vector recycles per column,
+  # J x R does element-wise multiplication.
   coefs_original <- b_sum / csd  # J x R
-  intercept_vec <- Y_mean - as.vector(t(cm) %*% coefs_original)
+  intercept_vec <- Y_mean - colSums(cm * coefs_original)
   coef <- rbind(matrix(intercept_vec, 1, R), coefs_original)
 
   # ----- b1_rescaled: per-effect rescaled b1 (L x (J+1) x R) -----
   b1_rescaled <- array(0, c(L, J + 1, R))
   for (l in seq_len(L)) {
     b1_l <- matrix(b1[l, , ], J, R) / csd  # J x R (unscale)
-    intercept_l <- Y_mean - as.vector(t(cm) %*% b1_l)
+    intercept_l <- Y_mean - colSums(cm * b1_l)
     b1_rescaled[l, , ] <- rbind(matrix(intercept_l, 1, R), b1_l)
   }
 
