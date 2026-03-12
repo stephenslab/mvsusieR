@@ -103,25 +103,3 @@ cat(sprintf("Without precompute_cache: %.1f seconds\n", timing_nocache))
 cat(sprintf("Speedup: %.1fx\n", timing_nocache / timing_cache))
 cat("Credible sets:", length(fit$sets$cs), "\n")
 ```
-
-Performance tips
------------------
-
-| Setting | Effect |
-|:--------|:-------|
-| `precompute_cache = TRUE` | Caches eigendecompositions; faster but more memory |
-| `n_thread > 1` | Parallel computation across variables |
-| `estimate_prior_mixture_weights = TRUE` | Prunes unneeded components |
-| `tol = 0.01` | Faster convergence for exploratory analysis |
-
-For production analyses with $R > 50$, we recommend:
-
-1. First fit with `tol = 0.01` for a quick check.
-2. Refine with `tol = 1e-3` for the final results.
-3. Use `precompute_cache = TRUE` and `n_thread` equal to the
-   number of available cores.
-4. Consider learning the prior from a larger set of regions
-   using mashr, then passing the fitted prior to
-   `create_mixture_prior(fitted_g = ...)`. This both improves
-   statistical power and reduces computation by pruning irrelevant
-   prior components.

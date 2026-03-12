@@ -541,22 +541,23 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
 test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
   load_r6_sweep()
 
+  # R6 always forces est_rv=FALSE for missing data; S3 now allows est_rv=TRUE.
+  # So exact S3-vs-R6 comparison is only valid for est_rv=FALSE configs.
+  # est_rv=TRUE configs are tested as S3-only smoke tests below.
   configs <- expand.grid(
     est_pv = c(FALSE, TRUE),
-    est_rv = c(FALSE, TRUE),
     stringsAsFactors = FALSE
   )
 
   with(sim_r3_miss, {
     for (i in seq_len(nrow(configs))) {
       cfg <- configs[i, ]
-      label <- sprintf("R=3 missing matrix est_pv=%s est_rv=%s",
-                        cfg$est_pv, cfg$est_rv)
+      label <- sprintf("R=3 missing matrix est_pv=%s est_rv=FALSE", cfg$est_pv)
 
       fit <- suppressWarnings(
         mvsusie(X, y_missing, L = 10, prior_variance = V,
                 residual_variance = cov(y),
-                estimate_residual_variance = cfg$est_rv,
+                estimate_residual_variance = FALSE,
                 estimate_prior_variance = cfg$est_pv,
                 estimate_prior_method = "EM",
                 missing_y_method = "approximate",
@@ -566,7 +567,7 @@ test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
       ref <- suppressWarnings(
         r6_sweep_mvsusie(X, y_missing, L = 10, prior_variance = V,
                          residual_variance = cov(y),
-                         estimate_residual_variance = cfg$est_rv,
+                         estimate_residual_variance = FALSE,
                          estimate_prior_variance = cfg$est_pv,
                          estimate_prior_method = "EM",
                          missing_y_method = "approximate",
@@ -574,6 +575,24 @@ test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
                          intercept = TRUE, standardize = TRUE, verbosity = 0)
       )
       compare_exact(fit, ref, label)
+    }
+
+    # Smoke test: est_rv=TRUE (S3 only, R6 doesn't support this)
+    for (est_pv in c(FALSE, TRUE)) {
+      label <- sprintf("R=3 missing matrix est_pv=%s est_rv=TRUE (S3 only)",
+                        est_pv)
+      fit <- suppressWarnings(
+        mvsusie(X, y_missing, L = 10, prior_variance = V,
+                residual_variance = cov(y),
+                estimate_residual_variance = TRUE,
+                estimate_prior_variance = est_pv,
+                estimate_prior_method = "EM",
+                missing_y_method = "approximate",
+                max_iter = 10, tol = 0,
+                intercept = TRUE, standardize = TRUE, verbosity = 0)
+      )
+      expect_true(!is.null(fit$alpha), label = label)
+      expect_true(all(is.finite(fit$pip)), label = paste(label, "pip"))
     }
   })
 })

@@ -104,29 +104,3 @@ ggplot(lbf_dat, aes(x = effect, y = lbf, fill = active)) +
   labs(x = "Single effect", y = "Log Bayes factor", fill = "") +
   theme_cowplot(font_size = 12)
 ```
-
-Convergence with different tolerances
---------------------------------------
-
-Tighter convergence tolerance leads to more iterations but more
-accurate results.
-
-```{r convergence-tolerance}
-tols <- c(0.1, 0.01, 1e-3, 1e-4)
-fits_tol <- lapply(tols, function(tol) {
-  mvsusie(X, Y, L = 10, prior_variance = prior,
-          estimate_prior_variance = TRUE,
-          standardize = TRUE, tol = tol, verbosity = 0)
-})
-
-for (i in seq_along(tols)) {
-  cat(sprintf("tol = %.0e: %d iterations, %d CS, ELBO = %.2f\n",
-              tols[i], fits_tol[[i]]$niter,
-              length(fits_tol[[i]]$sets$cs),
-              tail(fits_tol[[i]]$elbo, 1)))
-}
-```
-
-For exploratory analyses, `tol = 0.01` provides a good balance of
-speed and accuracy. For final results, a tighter tolerance
-(`tol = 1e-3` or smaller) is recommended.

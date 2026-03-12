@@ -176,10 +176,12 @@ variance is not standardized, but left as is.}
 \code{estimate_residual_variance = TRUE}, the residual variance is
 estimated at each iteration using \eqn{E_q[R'R] / n}; otherwise it
 is fixed. For multivariate Y the estimate is a full \eqn{r \times r}
-covariance matrix. Forced to \code{FALSE} when Y contains missing
-values and \code{missing_y_method} is not \code{"impute"}. Defaults
-to \code{TRUE} for \code{mvsusie()}, and \code{FALSE} for
-\code{mvsusie_ss()} and \code{mvsusie_rss()}.}
+covariance matrix. Supported for all missing data methods: the
+update formula uses expected sufficient statistics (not the ELBO
+value), and the impute method includes a \code{Y_cov} correction
+for imputation uncertainty. Defaults to \code{TRUE} for
+\code{mvsusie()}, and \code{FALSE} for \code{mvsusie_ss()} and
+\code{mvsusie_rss()}.}
 
 \item{estimate_prior_variance}{When \code{estimate_prior_variance =
 TRUE}, the prior variance is estimated; otherwise it is

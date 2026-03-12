@@ -21,3 +21,4 @@ For each single effect l and variable j, computes the
   This is the sum of mixture_weights over components that have
   nonzero prior variance in outcome r, multiplied by alpha.
 }
+\keyword{internal}

@@ -145,10 +145,10 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   \code{estimate_residual_variance = TRUE}, the residual variance is
 #'   estimated at each iteration using \eqn{E_q[R'R] / n}; otherwise it
 #'   is fixed. For multivariate Y the estimate is a full \eqn{r \times r}
-#'   covariance matrix. Supported for \code{missing_y_method}
-#'   \code{"approximate"} and \code{"exact"} (which compute a valid ELBO),
-#'   but forced to \code{FALSE} for \code{missing_y_method = "impute"}
-#'   where the ELBO is not exact. Defaults to \code{TRUE} for
+#'   covariance matrix. Supported for all missing data methods: the
+#'   update formula uses expected sufficient statistics (not the ELBO
+#'   value), and the impute method includes a \code{Y_cov} correction
+#'   for imputation uncertainty. Defaults to \code{TRUE} for
 #'   \code{mvsusie()}, and \code{FALSE} for \code{mvsusie_ss()} and
 #'   \code{mvsusie_rss()}.
 #'
@@ -757,17 +757,10 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
       missing_y_method <- "approximate"
     }
   }
-  # When using imputation for missing data, ELBO is not exact
-  # (doi:10.1038/s41588-025-02486-7), so we warn if estimate_residual_variance
-  # is TRUE and switch convergence to PIP-based (see below).
-  if (Y_has_missing && R > 1 && missing_y_method == "impute") {
-    if (isTRUE(estimate_residual_variance)) {
-      warning_message("estimate_residual_variance is set to FALSE for ",
-                      "missing_y_method = 'impute' because ELBO is not ",
-                      "exact under imputation.")
-      estimate_residual_variance <- FALSE
-    }
-  }
+  # Note: estimate_residual_variance is allowed for all missing data
+  # methods. The update formula E_q[R'R]/n uses expected sufficient
+  # statistics (not the ELBO value directly), and for the impute method
+  # the Y_cov correction accounts for imputation uncertainty.
 
   # Create data object
   data <- create_mvsusie_data(X, Y, center = intercept, scale = standardize,
