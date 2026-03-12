@@ -332,8 +332,7 @@ mvsusie_get_pip_per_outcome <- function(m, prior_obj = NULL) {
 #'
 #' @return L x J x R array of outcome-specific alpha values.
 #'
-#' @export
-#'
+#' @keywords internal
 mvsusie_get_alpha_per_outcome <- function(m, prior_obj = NULL) {
   # Build outcome indicator: which components have nonzero variance
   # in which outcomes.

@@ -145,10 +145,12 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   \code{estimate_residual_variance = TRUE}, the residual variance is
 #'   estimated at each iteration using \eqn{E_q[R'R] / n}; otherwise it
 #'   is fixed. For multivariate Y the estimate is a full \eqn{r \times r}
-#'   covariance matrix. Forced to \code{FALSE} when Y contains missing
-#'   values and \code{missing_y_method} is not \code{"impute"}. Defaults
-#'   to \code{TRUE} for \code{mvsusie()}, and \code{FALSE} for
-#'   \code{mvsusie_ss()} and \code{mvsusie_rss()}.
+#'   covariance matrix. Supported for \code{missing_y_method}
+#'   \code{"approximate"} and \code{"exact"} (which compute a valid ELBO),
+#'   but forced to \code{FALSE} for \code{missing_y_method = "impute"}
+#'   where the ELBO is not exact. Defaults to \code{TRUE} for
+#'   \code{mvsusie()}, and \code{FALSE} for \code{mvsusie_ss()} and
+#'   \code{mvsusie_rss()}.
 #'
 #' @param estimate_prior_variance When \code{estimate_prior_variance =
 #'   TRUE}, the prior variance is estimated; otherwise it is
@@ -743,22 +745,27 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   }
 
   # When Y has missing data (R > 1) and using approximate/exact methods:
-  # 1. Force estimate_residual_variance = FALSE (not supported)
-  # 2. Auto-switch exact -> approximate when V is diagonal (they are equivalent)
-  # Note: impute method supports estimate_residual_variance via Y_cov correction.
+  # - estimate_residual_variance is allowed (ELBO is available for these methods)
+  # - Auto-switch exact -> approximate when V is diagonal (they are equivalent)
   if (Y_has_missing && R > 1 &&
       missing_y_method %in% c("approximate", "exact")) {
-    if (isTRUE(estimate_residual_variance)) {
-      warning_message("estimate_residual_variance is set to FALSE for ",
-                      "missing_y_method = '", missing_y_method, "'.")
-      estimate_residual_variance <- FALSE
-    }
     if (missing_y_method == "exact" && !is.null(residual_variance) &&
         is.matrix(residual_variance) &&
         all(residual_variance[row(residual_variance) != col(residual_variance)] == 0)) {
       warning_message("Switching to approximate method (equivalent to ",
                       "exact for diagonal residual_variance, but faster).")
       missing_y_method <- "approximate"
+    }
+  }
+  # When using imputation for missing data, ELBO is not exact
+  # (doi:10.1038/s41588-025-02486-7), so we warn if estimate_residual_variance
+  # is TRUE and switch convergence to PIP-based (see below).
+  if (Y_has_missing && R > 1 && missing_y_method == "impute") {
+    if (isTRUE(estimate_residual_variance)) {
+      warning_message("estimate_residual_variance is set to FALSE for ",
+                      "missing_y_method = 'impute' because ELBO is not ",
+                      "exact under imputation.")
+      estimate_residual_variance <- FALSE
     }
   }
 
@@ -784,12 +791,13 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
             " mixture components [mem: ", sprintf("%.2f", mem_used_gb()), " GB]")
   }
 
-  # When Y has missing data, use PIP convergence. ELBO is not guaranteed
-  # to be monotone for any of the missing data methods: the impute method
-  # (doi:10.1038/s41588-025-02486-7) uses variational approximations that
-  # don't guarantee monotone ELBO, and the approximate method's centering
-  # can also break monotonicity.
-  convergence_method <- if (Y_has_missing && R > 1) "pip" else "elbo"
+  # Convergence method: use ELBO by default, but switch to PIP-based
+
+  # convergence for the imputation missing data method where ELBO is
+  # not exact (doi:10.1038/s41588-025-02486-7). The approximate and exact
+  # methods compute a valid ELBO so ELBO convergence is appropriate.
+  convergence_method <- if (Y_has_missing && R > 1 &&
+                            missing_y_method == "impute") "pip" else "elbo"
 
   # Fit model
   s <- mvsusie_workhorse(data, L = L, prior_variance = prior_variance,
