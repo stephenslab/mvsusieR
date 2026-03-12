@@ -257,148 +257,10 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
 }
 
 # ============================================================================
-# R=1 matrix prior (scalar prior_variance)
+# R=1/R=3 matrix prior and R=3 mash K=1 basic tests
+# (moved to test_numerical_sweep.R which covers all est_pv × est_rv ×
+#  method × intercept combinations comprehensively)
 # ============================================================================
-
-test_that("R=1, matrix prior, fixed variance matches R6", {
-  ensure_r6_loaded()
-  with(sim1, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V[1, 1],
-                   residual_variance = as.numeric(var(y)),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = L, prior_variance = V[1, 1],
-                      residual_variance = as.numeric(var(y)),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    # V not compared: R=1 scalar prior uses V_scalar = prior_var in S3
-    # but R6 output V can differ in representation
-    expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
-  })
-})
-
-test_that("R=1, matrix prior, EM (10 iter) matches R6 at tight tol", {
-  # Per-iteration math is identical (verified in test_math_components.R).
-  # Limit to 10 iterations to stay before check_null_threshold warmup
-  # divergence in R6.
-  ensure_r6_loaded()
-  with(sim1, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V[1, 1],
-                   residual_variance = as.numeric(var(y)),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = TRUE,
-                   estimate_prior_method = "EM",
-                   max_iter = 10,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = L, prior_variance = V[1, 1],
-                      residual_variance = as.numeric(var(y)),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = TRUE,
-                      estimate_prior_method = "EM",
-                      max_iter = 10,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
-  })
-})
-
-# ============================================================================
-# R=3 matrix prior
-# ============================================================================
-
-test_that("R=3, matrix prior, fixed variance matches R6", {
-  ensure_r6_loaded()
-  with(sim3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    # Fixed V: both S3 and R6 output V_scalar = 1.0 (no conversion)
-    expect_ref_equal(fit, ref, tol = tol_tight,
-                     check_elbo = TRUE, check_V = TRUE)
-  })
-})
-
-test_that("R=3, matrix prior, EM (10 iter) matches R6 at tight tol", {
-  ensure_r6_loaded()
-  with(sim3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = TRUE,
-                   estimate_prior_method = "EM",
-                   max_iter = 10,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = TRUE,
-                      estimate_prior_method = "EM",
-                      max_iter = 10,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_ref_equal(fit, ref, tol = tol_tight,
-                     check_elbo = TRUE, check_V = "effective")
-  })
-})
-
-# ============================================================================
-# R=3 mash / mixture prior
-# ============================================================================
-
-test_that("R=3, mash prior K=1, fixed variance matches R6", {
-  ensure_r6_loaded()
-  with(sim3, {
-    s3_prior <- create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
-    r6_prior <- r6_MashInitializer(Ulist = list(V), grid = 1, null_weight = 0)
-    fit <- mvsusie(X, y, L = L, prior_variance = s3_prior,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE,
-                      precompute_cache = TRUE, verbosity = 0)
-    expect_ref_equal(fit, ref, tol = tol_tight,
-                     check_elbo = TRUE, check_V = FALSE)
-  })
-})
-
-test_that("R=3, mash prior K=1, EM (10 iter) matches R6 at tight tol", {
-  ensure_r6_loaded()
-  with(sim3, {
-    s3_prior <- create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
-    r6_prior <- r6_MashInitializer(Ulist = list(V), grid = 1, null_weight = 0)
-    fit <- mvsusie(X, y, L = L, prior_variance = s3_prior,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = TRUE,
-                   estimate_prior_method = "EM",
-                   max_iter = 10,
-                   intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = TRUE,
-                      estimate_prior_method = "EM",
-                      max_iter = 10,
-                      intercept = TRUE, standardize = TRUE,
-                      precompute_cache = TRUE, verbosity = 0)
-    expect_ref_equal(fit, ref, tol = tol_tight,
-                     check_elbo = TRUE, check_V = FALSE)
-  })
-})
 
 test_that("R=3, create_mixture_prior K=1, EM (10 iter) matches R6 at tight tol", {
   ensure_r6_loaded()
@@ -528,29 +390,6 @@ test_that("R=1, missing data, EM (10 iter) matches R6 at tight tol", {
 })
 
 # ============================================================================
-# Residual variance estimation
-# ============================================================================
-
-test_that("R=3, matrix prior, estimate residual variance matches R6", {
-  ensure_r6_loaded()
-  with(sim3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = TRUE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = TRUE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_ref_equal(fit, ref, tol = tol_tight, check_V = FALSE)
-    expect_equal(fit$sigma2, ref$sigma2,
-                 tolerance = tol_tight, check.attributes = FALSE)
-  })
-})
-
-# ============================================================================
 # Center/scale options
 # ============================================================================
 
@@ -568,28 +407,6 @@ test_that("R=3, no centering, no standardization matches R6", {
                       estimate_prior_variance = FALSE,
                       intercept = FALSE, standardize = FALSE, verbosity = 0)
     expect_ref_equal(fit, ref, tol = tol_tight, check_V = FALSE)
-  })
-})
-
-# ============================================================================
-# L=1 single effect
-# ============================================================================
-
-test_that("R=3, L=1, matrix prior matches R6", {
-  ensure_r6_loaded()
-  with(sim3, {
-    fit <- mvsusie(X, y, L = 1, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6_mvsusie(X, y, L = 1, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    # Fixed V: both S3 and R6 output V_scalar = 1.0
-    expect_ref_equal(fit, ref, tol = tol_tight, check_V = TRUE)
   })
 })
 
