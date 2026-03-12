@@ -12,7 +12,7 @@ create_mash_prior(
   null_weight = 0,
   weights_tol = 1e-10,
   null_tol = 5e-07,
-  top_mixtures = 20,
+  top_mixtures = -1,
   include_outcomes = NULL
 )
 }

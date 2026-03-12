@@ -1,0 +1,127 @@
+---
+title: Scaling mvSuSiE to many traits
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Scaling mvSuSiE to many traits}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette discusses strategies for running mvSuSiE with a large
+number of traits ($R = 100$). With many traits, computation time
+and memory usage become important considerations.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(ggplot2)
+library(cowplot)
+```
+
+Key considerations for large R
+-------------------------------
+
+When the number of traits $R$ is large (e.g., $R > 50$):
+
+1. **Prior specification**: A canonical or data-driven mixture prior
+   is recommended. For very large $R$, the number of canonical prior
+   matrices grows, so data-driven priors from mashr that select only
+   the relevant components are preferred.
+
+2. **Precompute cache**: Setting `precompute_cache = TRUE` (default)
+   caches eigendecompositions of the prior covariance matrices,
+   providing substantial speedups for large $R$. The trade-off is
+   increased memory usage.
+
+3. **Residual variance estimation**: When $N < R$, the sample
+   covariance of $Y$ is singular. In this case, regularization
+   methods such as the `flashier` package can be used to estimate
+   a low-rank plus diagonal residual covariance.
+
+4. **C++ acceleration**: The core computations are implemented in C++
+   for efficiency. Multi-threading is available via the `n_thread`
+   argument.
+
+Example: R = 100
+-----------------
+
+The following code shows how to set up and run an analysis with 100
+traits. Due to the computational cost, we show the code but load
+pre-computed results.
+
+```{r large-r-setup, eval=FALSE}
+library(susieR)
+library(simxQTL)
+
+# Use realistic genotypes
+data(N3finemapping)
+X <- N3finemapping$X  # 574 x 1001
+n <- nrow(X); p <- ncol(X); r <- 100
+
+# Simulate 100 traits with shared causal variants
+set.seed(42)
+B <- sim_beta(G = X, ncausal = 4, ntrait = r,
+              shared_pattern = "shared")
+sim <- sim_multi_traits(G = X, B = B, h2g = 0.3,
+                        residual_corr = diag(r))
+Y <- sim$Y
+
+# Canonical prior
+prior <- create_mixture_prior(R = r)
+
+# Fit with precompute_cache and timing
+t0 <- proc.time()
+fit <- mvsusie(X, Y, L = 10,
+               prior_variance = prior,
+               estimate_prior_variance = TRUE,
+               precompute_cache = TRUE,
+               standardize = TRUE,
+               tol = 0.01, n_thread = 4)
+timing_cache <- (proc.time() - t0)[["elapsed"]]
+
+# Fit without precompute_cache for comparison
+t0 <- proc.time()
+fit_nocache <- mvsusie(X, Y, L = 10,
+                       prior_variance = prior,
+                       estimate_prior_variance = TRUE,
+                       precompute_cache = FALSE,
+                       standardize = TRUE,
+                       tol = 0.01, n_thread = 4)
+timing_nocache <- (proc.time() - t0)[["elapsed"]]
+```
+
+```{r load-results, eval=FALSE}
+# Pre-computed results (not run during pkgdown build)
+cat(sprintf("With precompute_cache: %.1f seconds\n", timing_cache))
+cat(sprintf("Without precompute_cache: %.1f seconds\n", timing_nocache))
+cat(sprintf("Speedup: %.1fx\n", timing_nocache / timing_cache))
+cat("Credible sets:", length(fit$sets$cs), "\n")
+```
+
+Performance tips
+-----------------
+
+| Setting | Effect |
+|:--------|:-------|
+| `precompute_cache = TRUE` | Caches eigendecompositions; faster but more memory |
+| `n_thread > 1` | Parallel computation across variables |
+| `estimate_prior_mixture_weights = TRUE` | Prunes unneeded components |
+| `tol = 0.01` | Faster convergence for exploratory analysis |
+
+For production analyses with $R > 50$, we recommend:
+
+1. First fit with `tol = 0.01` for a quick check.
+2. Refine with `tol = 1e-3` for the final results.
+3. Use `precompute_cache = TRUE` and `n_thread` equal to the
+   number of available cores.
+4. Consider learning the prior from a larger set of regions
+   using mashr, then passing the fitted prior to
+   `create_mixture_prior(fitted_g = ...)`. This both improves
+   statistical power and reduces computation by pruning irrelevant
+   prior components.

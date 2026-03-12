@@ -1,6 +1,6 @@
 ---
 title: Introduction to mvSuSiE for multi-trait fine-mapping
-author: Yuxin Zou, Gao Wang, Peter Carbonetto and Matthew Stephens
+author: Gao Wang
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >

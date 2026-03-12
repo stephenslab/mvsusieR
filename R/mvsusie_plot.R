@@ -46,7 +46,8 @@
 #' @importFrom stats quantile
 #' @importFrom stats median
 #' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 aes
+#' @importFrom rlang .data
 #' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 xlim
 #' @importFrom ggplot2 scale_x_discrete
@@ -239,15 +240,15 @@ mvsusie_plot <-
     effect_dat <- effect_dat[rows, ]
 
     # Create the PIP plot.
-    pip_plot <- ggplot(pdat, aes_string(x = "pos", y = "pip")) +
+    pip_plot <- ggplot(pdat, aes(x = .data$pos, y = .data$pip)) +
       geom_point(color = "darkblue", shape = 20, size = 1.25) +
       geom_point(
         shape = 1, size = 1.25, stroke = 1.25, data = pdat_cs,
-        mapping = aes_string(x = "pos", y = "pip", color = "cs")
+        mapping = aes(x = .data$pos, y = .data$pip, color = .data$cs)
       ) +
       geom_text_repel(
         data = pdat_sentinel,
-        mapping = aes_string(x = "pos", y = "pip", label = "marker_cs"),
+        mapping = aes(x = .data$pos, y = .data$pip, label = .data$marker_cs),
         size = 2.2, segment.size = 0.35, max.overlaps = Inf,
         min.segment.length = 0
       ) +
@@ -270,9 +271,9 @@ mvsusie_plot <-
       levels(effect_dat$effect_sign) <- c("-1", "+1")
       effect_plot <- ggplot(
         effect_dat,
-        aes_string(
-          x = "marker_cs", y = "trait", fill = "effect_sign",
-          size = "effect_size"
+        aes(
+          x = .data$marker_cs, y = .data$trait, fill = .data$effect_sign,
+          size = .data$effect_size
         )
       ) +
         geom_point(shape = 21, stroke = 0.5, color = "white") +
@@ -298,7 +299,7 @@ mvsusie_plot <-
         theme(
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
           panel.grid = element_line(
-            color = "lightgray", size = 0.3,
+            color = "lightgray", linewidth = 0.3,
             linetype = "dotted"
           )
         )
@@ -309,7 +310,7 @@ mvsusie_plot <-
         effect_dat$one <- 1
         p_cs <- ggplot(
           effect_dat,
-          aes_string(x = "marker_cs", y = "one", color = "cs")
+          aes(x = .data$marker_cs, y = .data$one, color = .data$cs)
         ) +
           geom_point(shape = 20, size = 2.5) +
           scale_x_discrete(drop = FALSE) +
@@ -339,9 +340,9 @@ mvsusie_plot <-
       levels(effect_dat$z_sign) <- c("-1", "+1")
       z_plot <- ggplot(
         effect_dat,
-        aes_string(
-          x = "marker", y = "trait", fill = "z_sign",
-          size = "z_size"
+        aes(
+          x = .data$marker, y = .data$trait, fill = .data$z_sign,
+          size = .data$z_size
         )
       ) +
         geom_point(shape = 21, stroke = 0.5, color = "white") +
@@ -368,7 +369,7 @@ mvsusie_plot <-
         theme(
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
           panel.grid = element_line(
-            color = "lightgray", size = 0.3,
+            color = "lightgray", linewidth = 0.3,
             linetype = "dotted"
           )
         )

@@ -1,0 +1,164 @@
+---
+title: Prediction with mvSuSiE
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Prediction with mvSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette demonstrates how to extract coefficient estimates and
+make predictions from a fitted mvSuSiE model using the standard R
+`coef()` and `predict()` methods.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(susieR)
+library(ggplot2)
+library(cowplot)
+set.seed(1)
+```
+
+Simulate data and split into training and test sets
+----------------------------------------------------
+
+We simulate multi-trait data using realistic genotypes and split the
+samples into training (80%) and test (20%) sets.
+
+```{r simulate-data}
+data(N3finemapping)
+X <- N3finemapping$X
+n <- nrow(X)
+p <- ncol(X)
+r <- 10
+
+# Simulate sparse effects: 4 causal SNPs affecting all traits
+causal <- sort(sample(p, 4))
+B <- matrix(0, p, r)
+for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
+Y <- X %*% B + matrix(rnorm(n * r), n, r)
+cat(sprintf("Data: %d samples, %d SNPs, %d traits\n", n, p, r))
+cat("Causal SNPs:", causal, "\n")
+```
+
+```{r train-test-split}
+train_idx <- sample(n, round(0.8 * n))
+test_idx <- setdiff(seq_len(n), train_idx)
+X_train <- X[train_idx, ]
+Y_train <- Y[train_idx, ]
+X_test <- X[test_idx, ]
+Y_test <- Y[test_idx, ]
+cat(sprintf("Training: %d samples, Test: %d samples\n",
+            length(train_idx), length(test_idx)))
+```
+
+Fit the model
+-------------
+
+```{r fit-model}
+prior <- create_mixture_prior(R = r)
+fit <- mvsusie(X_train, Y_train, L = 10,
+               prior_variance = prior,
+               estimate_prior_variance = TRUE,
+               standardize = TRUE, tol = 0.01)
+cat("Credible sets:", length(fit$sets$cs), "\n")
+```
+
+Extracting coefficients
+-----------------------
+
+The `coef()` method returns a $(J+1) \times R$ matrix. The first
+row is the intercept; the remaining $J$ rows are the regression
+coefficients.
+
+```{r coef-extract}
+beta_hat <- coef(fit)
+cat(sprintf("Coefficient matrix: %d x %d (including intercept)\n",
+            nrow(beta_hat), ncol(beta_hat)))
+cat("Intercept:", round(beta_hat[1, ], 3), "\n")
+```
+
+We can compare the estimated coefficients to the true values.
+
+```{r coef-compare, fig.height=3, fig.width=3.5}
+beta_est <- beta_hat[-1, ]  # Remove intercept row
+pdat <- data.frame(true = as.vector(B),
+                   estimated = as.vector(beta_est))
+ggplot(pdat, aes(x = true, y = estimated)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.3) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "True coefficient", y = "Estimated coefficient") +
+  theme_cowplot(font_size = 12)
+```
+
+In-sample prediction
+--------------------
+
+Calling `predict()` without a new data matrix returns the fitted
+values from the training data.
+
+```{r in-sample}
+Y_fitted <- predict(fit)
+cat(sprintf("Fitted values: %d x %d\n", nrow(Y_fitted), ncol(Y_fitted)))
+rmse_train <- sqrt(mean((Y_train - Y_fitted)^2))
+cat(sprintf("In-sample RMSE: %.4f\n", rmse_train))
+```
+
+Out-of-sample prediction
+-------------------------
+
+To predict on new data, pass the test genotype matrix via the
+`newx` argument.
+
+```{r out-of-sample}
+Y_pred <- predict(fit, newx = X_test)
+cat(sprintf("Predictions: %d x %d\n", nrow(Y_pred), ncol(Y_pred)))
+rmse_test <- sqrt(mean((Y_test - Y_pred)^2))
+cat(sprintf("Out-of-sample RMSE: %.4f\n", rmse_test))
+```
+
+We can also compute per-trait RMSE to see which traits are predicted
+better than others.
+
+```{r per-trait-rmse}
+rmse_per_trait <- sapply(seq_len(r), function(i)
+  sqrt(mean((Y_test[, i] - Y_pred[, i])^2)))
+names(rmse_per_trait) <- paste0("trait", seq_len(r))
+round(rmse_per_trait, 4)
+```
+
+```{r prediction-plot, fig.height=3, fig.width=7}
+# Show predictions for first two traits
+pdat <- data.frame(
+  observed = c(Y_test[, 1], Y_test[, 2]),
+  predicted = c(Y_pred[, 1], Y_pred[, 2]),
+  trait = rep(c("Trait 1", "Trait 2"), each = nrow(Y_test))
+)
+ggplot(pdat, aes(x = observed, y = predicted)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~trait) +
+  labs(x = "Observed", y = "Predicted") +
+  theme_cowplot(font_size = 12)
+```
+
+Prediction with univariate response
+------------------------------------
+
+The `predict()` and `coef()` methods also work for single-trait
+models fitted with `mvsusie()`.
+
+```{r univariate-prediction}
+Y1 <- Y_train[, 1]
+fit1 <- mvsusie(X_train, Y1, L = 10, standardize = TRUE, tol = 0.01)
+Y1_pred <- predict(fit1, newx = X_test)
+cat(sprintf("Single-trait test RMSE: %.4f\n",
+            sqrt(mean((Y_test[, 1] - Y1_pred)^2))))
+```

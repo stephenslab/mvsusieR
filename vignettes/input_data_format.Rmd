@@ -1,0 +1,195 @@
+---
+title: Input data formats for mvSuSiE
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Input data formats for mvSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+mvSuSiE provides three interfaces for fitting multivariate
+Sum of Single Effects models, depending on the type of data available:
+
+1. `mvsusie()` --- individual-level data (genotype matrix $X$ and
+   phenotype matrix $Y$).
+
+2. `mvsusie_ss()` --- sufficient statistics ($X^TX$, $X^TY$, $Y^TY$
+   and the sample size $N$).
+
+3. `mvsusie_rss()` --- summary statistics (*z*-scores and an LD
+   matrix, or effect estimates and standard errors. Sample size $N$ is optional 
+   and is fixed for all traits).
+
+This vignette demonstrates all three interfaces on the same data set
+and verifies that they produce equivalent results.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+Load the packages and set the seed for reproducibility.
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(susieR)
+library(ggplot2)
+library(cowplot)
+set.seed(1)
+```
+
+Simulate data
+-------------
+
+We use realistic genotypes from the `susieR` package and simulate a
+phenotype matrix with $R = 10$ traits. Four SNPs are chosen as causal,
+each with effects drawn independently across traits.
+
+```{r simulate-data}
+data(N3finemapping)
+X <- N3finemapping$X
+n <- nrow(X)
+p <- ncol(X)
+r <- 10
+cat(sprintf("Genotype matrix: %d samples x %d SNPs\n", n, p))
+
+causal <- sort(sample(p, 4))
+B <- matrix(0, p, r)
+for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
+Y <- X %*% B + matrix(rnorm(n * r), n, r)
+cat(sprintf("Phenotype matrix: %d samples x %d traits\n", n, r))
+cat("Causal SNPs:", causal, "\n")
+```
+
+Set up a prior and residual variance. We use the canonical
+mixture prior (which combines singleton and shared-effect covariance
+matrices) and fix the residual variance to the identity (the true
+value in this simulation).
+
+```{r setup-prior}
+prior <- create_mixture_prior(R = r)
+resid_var <- diag(r)
+```
+
+Interface 1: Individual-level data
+-----------------------------------
+
+The most straightforward interface takes the raw genotype matrix $X$
+($N \times J$) and phenotype matrix $Y$ ($N \times R$).
+
+```{r fit-mvsusie}
+fit <- mvsusie(X, Y, L = 10,
+               prior_variance = prior,
+               residual_variance = resid_var,
+               estimate_residual_variance = FALSE,
+               estimate_prior_variance = TRUE,
+               standardize = TRUE,
+               tol = 0.01)
+```
+
+The output is an S3 object of class `"mvsusie"` containing posterior
+inclusion probabilities (PIPs), credible sets, and effect estimates.
+
+```{r mvsusie-results}
+cat("Credible sets found:", length(fit$sets$cs), "\n")
+cat("PIP range:", round(range(fit$pip), 4), "\n")
+fit$sets$cs
+```
+
+Interface 2: Sufficient statistics
+-----------------------------------
+
+When individual-level data are not available but cross-products can be
+shared, `mvsusie_ss()` accepts the sufficient statistics $X^TX$,
+$X^TY$, $Y^TY$ and the sample size $N$. The columns of $X$ and $Y$
+must be centered to have mean zero before computing these
+cross-products.
+
+```{r compute-suff-stats}
+X_colmeans <- colMeans(X)
+Y_colmeans <- colMeans(Y)
+Xc <- scale(X, center = TRUE, scale = FALSE)
+Yc <- scale(Y, center = TRUE, scale = FALSE)
+XtX <- crossprod(Xc)
+XtY <- crossprod(Xc, Yc)
+YtY <- crossprod(Yc)
+```
+
+Now fit using the sufficient statistics. Note: we also pass
+`X_colmeans` and `Y_colmeans` so that the intercept can be recovered.
+
+```{r fit-mvsusie-ss}
+fit_ss <- mvsusie_ss(XtX, XtY, YtY, N = n, L = 10,
+                     X_colmeans = X_colmeans,
+                     Y_colmeans = Y_colmeans,
+                     prior_variance = prior,
+                     residual_variance = resid_var,
+                     estimate_residual_variance = FALSE,
+                     estimate_prior_variance = TRUE,
+                     standardize = TRUE,
+                     tol = 0.01)
+```
+
+Interface 3: Summary statistics (RSS)
+--------------------------------------
+
+In many genetic studies, only univariate association *z*-scores and
+a linkage disequilibrium (LD) matrix are available. `mvsusie_rss()`
+accepts a $J \times R$ matrix of *z*-scores and a $J \times J$
+LD matrix.
+
+```{r compute-summary-stats}
+Z <- calc_z(X, Y, center = TRUE, scale = TRUE)
+LD <- cor(X)
+cat(sprintf("Z-score matrix: %d SNPs x %d traits\n", nrow(Z), ncol(Z)))
+```
+
+Fit the model using summary statistics. Providing the sample size `N`
+is highly recommended for accurate results.
+
+```{r fit-mvsusie-rss}
+fit_rss <- mvsusie_rss(Z, LD, N = n, L = 10,
+                       prior_variance = prior,
+                       residual_variance = resid_var,
+                       estimate_residual_variance = FALSE,
+                       estimate_prior_variance = TRUE,
+                       tol = 0.01)
+```
+
+Verifying agreement across interfaces
+--------------------------------------
+
+When the LD matrix and *z*-scores are computed from the same
+individual-level data, all three interfaces should produce
+(near-)identical results.
+
+```{r compare-results}
+cat("mvsusie vs mvsusie_ss:\n")
+cat("  max |PIP diff|:", max(abs(fit$pip - fit_ss$pip)), "\n")
+cat("  PIP correlation:", cor(fit$pip, fit_ss$pip), "\n\n")
+
+cat("mvsusie vs mvsusie_rss:\n")
+cat("  max |PIP diff|:", max(abs(fit$pip - fit_rss$pip)), "\n")
+cat("  PIP correlation:", cor(fit$pip, fit_rss$pip), "\n")
+```
+
+The individual-level and sufficient statistics interfaces agree to
+machine precision. The RSS interface shows slightly larger differences
+due to the *z*-score approximation, but the results remain nearly
+identical.
+
+```{r compare-plot, fig.height=3, fig.width=7}
+pdat <- data.frame(
+  pip_raw = rep(fit$pip, 2),
+  pip_other = c(fit_ss$pip, fit_rss$pip),
+  interface = rep(c("mvsusie_ss", "mvsusie_rss"), each = p)
+)
+ggplot(pdat, aes(x = pip_raw, y = pip_other)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~interface) +
+  labs(x = "PIP (mvsusie)", y = "PIP (other interface)") +
+  theme_cowplot(font_size = 12)
+```

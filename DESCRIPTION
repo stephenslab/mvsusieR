@@ -29,7 +29,8 @@ Imports:
     ggplot2,
     ggrepel,
     cowplot,
-    mixsqp
+    mixsqp,
+    rlang
 LinkingTo:
     Rcpp,
     RcppArmadillo (>= 0.9.700.2)

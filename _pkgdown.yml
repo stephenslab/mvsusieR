@@ -76,20 +76,29 @@ navbar:
 #    contents:
 #      - has_concept("utilities")
 
-# Optional: Organize articles/vignettes
 articles:
   - title: "Getting Started"
     navbar: ~
     contents:
       - ends_with("_intro")
-  #- title: "Examples"
-  #  desc: "Example analyses and use cases"
-  #  contents:
-  #    - starts_with("example")
-  #- title: "Advanced Topics"
-  #  desc: "Advanced usage and methodology"
-  #  contents:
-  #    - matches("advanced|technical")
+      - input_data_format
+      - prediction
+  - title: "Advanced Users"
+    desc: "Detailed tutorials for customizing and scaling mvSuSiE analyses."
+    contents:
+      - prior_specification
+      - visualization_and_interpretation
+      - linkage_vs_pleiotropy
+      - missing_data
+      - large_scale_analysis
+  - title: "Methods Developers"
+    desc: "Algorithm internals and verification for methods developers."
+    contents:
+      - univariate_multivariate_agreement
+      - elbo_and_convergence
+  - title: "News"
+    contents:
+      - announcements
 
 # Optional: Footer customization
 footer:

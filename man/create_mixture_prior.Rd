@@ -10,20 +10,22 @@ create_mixture_prior(
   null_weight = NULL,
   weights_tol = 1e-10,
   max_mixture_len = -1,
+  grid = NULL,
+  fitted_g = NULL,
   include_indices = NULL,
   ...
 )
 }
 \arguments{
-\item{mixture_prior}{a list of (weights = vector(), matrices =
-list()) where matrices is a list of prior matrices and have same
-length as weights.}
+\item{mixture_prior}{A list of \code{(weights = vector(), matrices =
+list())} where matrices is a list of prior covariance matrices.}
 
-\item{R}{number of traits}
+\item{R}{Number of outcomes. Generates canonical covariance matrices
+via \code{create_cov_canonical(R)}.}
 
-\item{null_weight}{whether or not to add a weight for null in
-single effect models. By default it takes the null weight from
-fitted_g if available. Use \code{null_weight = 0} to override this.}
+\item{null_weight}{Weight for the null component in single effect
+models. For \code{fitted_g}, defaults to the mash-estimated null
+weight. Use \code{null_weight = 0} to override.}
 
 \item{weights_tol}{Filter out mixture components with weights
 smaller than \code{weights_tol}.}
@@ -33,21 +35,45 @@ the list of mixture prior is of length \code{max_mixture_len}. Use
 \code{max_mixture_len = -1} to include all input weights after
 filtering by \code{weights_tol}.}
 
+\item{grid}{Numeric vector of scaling factors for the canonical
+covariance matrices (used only with \code{R}). When provided, each
+canonical matrix is scaled by each grid value, producing
+\code{length(Ulist) * length(grid)} mixture components. When
+\code{NULL} (default), unscaled canonical matrices are used directly.}
+
+\item{fitted_g}{The \code{fitted_g} element from \code{mashr::mash()}
+output. Must contain \code{Ulist}, \code{grid}, \code{pi}, and
+\code{usepointmass}. The estimated mixture weights are used directly.}
+
 \item{include_indices}{Post-process input prior to only include
 outcomes at these indices.}
 
-\item{\dots}{other parameters, for mvsusieR:::create_cov_canonical}
+\item{\dots}{Other parameters passed to
+\code{mvsusieR:::create_cov_canonical} (e.g., \code{singletons},
+\code{hetgrid}).}
 }
 \value{
-mash prior object for use with mvsusie() function
+A \code{mash_prior} object for use with \code{mvsusie()}.
 }
 \description{
-Create mash prior object.
-}
-\details{
-Add details here.
+Constructs a mixture prior for use with \code{mvsusie()}.
+  Accepts one of three input types:
+  \itemize{
+    \item \code{fitted_g}: Output from \code{mashr::mash()}, which
+      provides data-driven mixture weights and covariance matrices.
+      This is the recommended approach for large R.
+    \item \code{mixture_prior}: A list with \code{matrices} (list of
+      covariance matrices) and optional \code{weights}.
+    \item \code{R}: Number of outcomes, to auto-generate canonical
+      covariance matrices (singletons + shared effects).
+  }
 }
 \examples{
-# Add examples here.
+# Canonical prior for R=3 outcomes:
+prior <- create_mixture_prior(R = 3)
+
+# Data-driven prior from mashr (recommended for large R):
+# m <- mashr::mash(data, Ulist = c(U.ed, U.c))
+# prior <- create_mixture_prior(fitted_g = m$fitted_g)
 
 }

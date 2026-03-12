@@ -1,0 +1,135 @@
+---
+title: Distinguishing linkage from pleiotropy
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Distinguishing linkage from pleiotropy}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+A key advantage of multi-trait fine-mapping is the ability to
+distinguish between *pleiotropy* (one SNP affecting multiple traits)
+and *linkage* (different correlated SNPs each affecting different
+traits). When two correlated SNPs have distinct trait-specific
+effects, mvSuSiE can separate them into different credible sets.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(susieR)
+library(ggplot2)
+library(cowplot)
+set.seed(1)
+```
+
+Simulation setup
+-----------------
+
+We use realistic genotypes and select two correlated SNPs
+(approximately 70% correlation) as causal variants. Each causal
+SNP affects a different subset of traits.
+
+```{r simulate-data}
+data(N3finemapping)
+X <- N3finemapping$X
+n <- nrow(X); p <- ncol(X); r <- 10
+
+# Find a pair of SNPs with ~70% correlation
+R_mat <- cor(X)
+pairs <- which(abs(R_mat) > 0.65 & abs(R_mat) < 0.75 &
+               upper.tri(R_mat), arr.ind = TRUE)
+snp1 <- pairs[1, 1]
+snp2 <- pairs[1, 2]
+cat(sprintf("Causal SNPs: %d and %d (correlation: %.3f)\n",
+            snp1, snp2, R_mat[snp1, snp2]))
+```
+
+SNP 1 affects traits 1--5, SNP 2 affects traits 6--10. This
+creates a linkage scenario: two correlated variants with
+non-overlapping effects.
+
+```{r create-effects}
+B <- matrix(0, p, r)
+B[snp1, 1:5] <- rnorm(5, 0, 1)    # SNP 1 -> traits 1-5
+B[snp2, 6:10] <- rnorm(5, 0, 1)   # SNP 2 -> traits 6-10
+Y <- X %*% B + matrix(rnorm(n * r), n, r)
+```
+
+Fitting mvSuSiE with a mixture prior
+--------------------------------------
+
+A mixture prior with block-diagonal structure is well-suited for
+detecting distinct effect patterns. The canonical prior generated
+by `create_mixture_prior()` includes both shared and singleton
+patterns.
+
+```{r fit-model}
+prior <- create_mixture_prior(R = r)
+fit <- mvsusie(X, Y, L = 10,
+               prior_variance = prior,
+               estimate_prior_variance = TRUE,
+               standardize = TRUE, tol = 0.01)
+```
+
+Credible sets and separation
+-----------------------------
+
+```{r credible-sets}
+cat("Number of credible sets:", length(fit$sets$cs), "\n\n")
+for (cs_name in names(fit$sets$cs)) {
+  cs_vars <- fit$sets$cs[[cs_name]]
+  has_snp1 <- snp1 %in% cs_vars
+  has_snp2 <- snp2 %in% cs_vars
+  cat(sprintf("%s: %d SNPs, contains SNP%d=%s SNP%d=%s\n",
+              cs_name, length(cs_vars),
+              snp1, has_snp1, snp2, has_snp2))
+}
+```
+
+If the two causal SNPs appear in *different* credible sets, mvSuSiE
+has successfully distinguished linkage from pleiotropy.
+
+Trait-specific effects
+-----------------------
+
+```{r effect-plot, fig.height=3.5, fig.width=3.5}
+out <- mvsusie_plot(fit, add_cs = TRUE, lfsr_cutoff = 0.05)
+out$effect_plot
+```
+
+The effect plot should show that the credible sets have distinct
+trait-specific patterns, confirming the separation of the two
+linked signals.
+
+Comparison with univariate analysis
+-------------------------------------
+
+A univariate (single-trait) analysis cannot distinguish which
+SNP is causal for which trait when the SNPs are correlated.
+
+```{r univariate-comparison}
+# Fit per-trait susie and check if causal SNPs are in CS
+for (t in c(1, 6)) {
+  fit_uv <- susie(X, Y[, t], L = 10, standardize = TRUE)
+  if (length(fit_uv$sets$cs) > 0) {
+    cs1 <- fit_uv$sets$cs[[1]]
+    cat(sprintf("Trait %d CS: %d SNPs, contains SNP%d=%s, SNP%d=%s\n",
+                t, length(cs1),
+                snp1, snp1 %in% cs1,
+                snp2, snp2 %in% cs1))
+  } else {
+    cat(sprintf("Trait %d: no CS found\n", t))
+  }
+}
+```
+
+In the univariate analysis, the credible sets for different traits
+may each contain *both* correlated SNPs, providing no resolution.
+The multivariate analysis can separate them by leveraging the
+distinct trait patterns.

@@ -1,0 +1,166 @@
+---
+title: Univariate-multivariate agreement
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Univariate-multivariate agreement}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette verifies that the multivariate mvSuSiE model reduces
+correctly to independent univariate SuSiE models under a diagonal
+prior, and that the MASH prior reduces to univariate when $R = 1$.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(susieR)
+library(ggplot2)
+library(cowplot)
+set.seed(1)
+```
+
+Diagonal prior reduces to independent univariate
+--------------------------------------------------
+
+When the prior covariance is diagonal ($U = \text{diag}(\sigma_1^2,
+\ldots, \sigma_R^2)$) and the residual covariance is also diagonal,
+the multivariate regression decomposes into $R$ independent univariate
+regressions. We verify this by fitting mvSuSiE with a diagonal prior
+and comparing to $R$ separate SuSiE fits.
+
+```{r simulate-data}
+data(N3finemapping, package = "susieR")
+X <- N3finemapping$X
+n <- nrow(X); p <- ncol(X); r <- 10
+
+# Simulate independent traits
+B <- matrix(0, p, r)
+causal <- sort(sample(p, 3))
+for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
+Y <- X %*% B + matrix(rnorm(n * r), n, r)
+```
+
+```{r fit-multivariate-diagonal}
+# Diagonal prior: independent across traits
+U_diag <- 0.2 * diag(r)
+prior_diag <- create_mixture_prior(
+  list(matrices = list(U_diag), weights = 1)
+)
+
+# Multivariate fit
+fit_mv <- mvsusie(X, Y, L = 10,
+                  prior_variance = prior_diag,
+                  residual_variance = diag(r),
+                  estimate_residual_variance = FALSE,
+                  estimate_prior_variance = FALSE,
+                  standardize = TRUE,
+                  max_iter = 100, tol = 1e-4, verbosity = 0)
+```
+
+```{r fit-univariate}
+# R independent univariate fits
+fits_uv <- lapply(seq_len(r), function(i) {
+  susie(X, Y[, i], L = 10,
+        scaled_prior_variance = 0.2,
+        residual_variance = 1,
+        estimate_residual_variance = FALSE,
+        estimate_prior_variance = FALSE,
+        standardize = TRUE,
+        max_iter = 100, tol = 1e-4)
+})
+```
+
+Compare the posterior inclusion probabilities:
+
+```{r compare-diagonal, fig.height=3.5, fig.width=7}
+pip_uv <- sapply(fits_uv, function(f) f$pip)  # p x r
+pip_mv <- do.call(cbind, lapply(seq_len(r), function(i) {
+  1 - apply(1 - fit_mv$alpha * fit_mv$b1[, , i] /
+              (fit_mv$b1[, , i] + 1e-20), 2, prod)
+}))
+
+# Use overall PIP for a simpler comparison
+pip_uv_overall <- 1 - apply(1 - pip_uv, 1, prod)
+pip_mv_overall <- fit_mv$pip
+
+pdat <- data.frame(univariate = pip_uv_overall,
+                   multivariate = pip_mv_overall)
+ggplot(pdat, aes(x = univariate, y = multivariate)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "PIP (R independent susie)",
+       y = "PIP (mvsusie with diagonal prior)") +
+  theme_cowplot(font_size = 12)
+```
+
+```{r diagonal-agreement}
+cat("max |PIP difference|:", max(abs(pip_uv_overall - pip_mv_overall)), "\n")
+cat("PIP correlation:", cor(pip_uv_overall, pip_mv_overall), "\n")
+```
+
+MASH prior reduces to univariate when R = 1
+---------------------------------------------
+
+When there is only one outcome ($R = 1$), the multivariate model
+should give the same result as univariate SuSiE.
+
+```{r r1-comparison}
+Y1 <- Y[, 1]
+
+# Univariate susie
+fit_susie <- susie(X, Y1, L = 10,
+                   scaled_prior_variance = 0.2,
+                   estimate_prior_variance = TRUE,
+                   standardize = TRUE,
+                   max_iter = 100, tol = 1e-4)
+
+# Multivariate mvsusie with R=1
+fit_mv1 <- mvsusie(X, Y1, L = 10,
+                   prior_variance = 0.2,
+                   estimate_prior_variance = TRUE,
+                   standardize = TRUE,
+                   max_iter = 100, tol = 1e-4, verbosity = 0)
+
+cat("susie CS:", length(fit_susie$sets$cs), "\n")
+cat("mvsusie (R=1) CS:", length(fit_mv1$sets$cs), "\n")
+cat("max |PIP diff|:", max(abs(fit_susie$pip - fit_mv1$pip)), "\n")
+```
+
+```{r r1-plot, fig.height=3, fig.width=3.5}
+pdat <- data.frame(susie = fit_susie$pip, mvsusie = fit_mv1$pip)
+ggplot(pdat, aes(x = susie, y = mvsusie)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "PIP (susie)", y = "PIP (mvsusie, R=1)") +
+  theme_cowplot(font_size = 12)
+```
+
+Single-effect regression agreement
+------------------------------------
+
+At the core of both SuSiE and mvSuSiE is the single-effect
+regression (SER) step. When $R = 1$, mvSuSiE's SER should
+give the same Bayes factors and posterior weights as SuSiE's.
+
+```{r ser-comparison}
+# Compare Bayes factors from the first single effect
+cat("susie lbf (first effect):", round(fit_susie$lbf[1], 4), "\n")
+cat("mvsusie lbf (first effect):", round(fit_mv1$lbf[1], 4), "\n")
+
+# Compare alpha (posterior weights)
+alpha_susie <- fit_susie$alpha[1, ]
+alpha_mv <- fit_mv1$alpha[1, ]
+cat("max |alpha diff| (first effect):",
+    max(abs(alpha_susie - alpha_mv)), "\n")
+```
+
+These results confirm that the multivariate implementation correctly
+reduces to the univariate case, providing confidence in the more
+general multivariate computations.

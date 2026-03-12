@@ -303,14 +303,14 @@ mvsusie_get_lfsr <- function(clfsr, alpha, weighted = TRUE) {
 #'   variance in that outcome under the selected mixture component.
 #'
 #' @param m A fitted mvsusie object (output of \code{mvsusie}).
-#' @param prior_obj A mash prior object (output of \code{create_mash_prior}
-#'   or \code{create_mixture_prior}) that was used to fit the model.
+#' @param prior_obj Optional mash prior object. If not provided, the
+#'   active prior matrices are taken from \code{m$V_structure}.
 #'
 #' @return J x R matrix of outcome-specific PIPs.
 #'
 #' @export
 #'
-mvsusie_get_pip_per_outcome <- function(m, prior_obj) {
+mvsusie_get_pip_per_outcome <- function(m, prior_obj = NULL) {
   alpha_out <- mvsusie_get_alpha_per_outcome(m, prior_obj)
   R <- dim(alpha_out)[3]
   do.call(cbind, lapply(
@@ -327,22 +327,35 @@ mvsusie_get_pip_per_outcome <- function(m, prior_obj) {
 #'   nonzero prior variance in outcome r, multiplied by alpha.
 #'
 #' @param m A fitted mvsusie object (output of \code{mvsusie}).
-#' @param prior_obj A mash prior object (output of \code{create_mash_prior}
-#'   or \code{create_mixture_prior}) that was used to fit the model.
+#' @param prior_obj Optional mash prior object. If not provided, the
+#'   active prior matrices are taken from \code{m$V_structure}.
 #'
 #' @return L x J x R array of outcome-specific alpha values.
 #'
 #' @export
 #'
-mvsusie_get_alpha_per_outcome <- function(m, prior_obj) {
+mvsusie_get_alpha_per_outcome <- function(m, prior_obj = NULL) {
   # Build outcome indicator: which components have nonzero variance
   # in which outcomes.
-  # prior_obj$xUlist contains K non-null prior matrices (R x R each).
+  #
+  # Use m$V_structure (the *active* prior matrices after estimation/pruning)
+  # rather than prior_obj$xUlist, because the model may have pruned
+
+  # components and m$mixture_weights matches V_structure, not the
+  # original prior.
+  active_matrices <- m$V_structure
+  if (is.null(active_matrices) && !is.null(prior_obj)) {
+    active_matrices <- prior_obj$xUlist
+  }
+  if (is.null(active_matrices)) {
+    stop("Cannot determine active prior matrices. ",
+         "The model must have V_structure or a prior_obj must be provided.")
+  }
   outcome_indicator <- do.call(
     rbind,
     lapply(
-      seq_along(prior_obj$xUlist),
-      function(i) as.integer(diag(prior_obj$xUlist[[i]]) != 0)
+      seq_along(active_matrices),
+      function(i) as.integer(diag(active_matrices[[i]]) != 0)
     )
   )  # K x R
 

@@ -1,0 +1,191 @@
+---
+title: Interpreting and visualizing mvSuSiE results
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Interpreting and visualizing mvSuSiE results}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette demonstrates how to interpret the output of a fitted
+mvSuSiE model, including credible sets, posterior inclusion
+probabilities (PIPs), effect estimates, and local false sign rates
+(LFSR). We also show the built-in visualization functions.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(ggplot2)
+library(cowplot)
+set.seed(1)
+```
+
+We use the built-in `simdata` data set, which contains realistic
+genotypes and simulated phenotypes for 20 traits with three causal
+SNPs.
+
+```{r fit-model}
+data(simdata)
+X <- simdata$raw$X
+Y <- simdata$raw$Y
+cat(sprintf("Data: %d samples, %d SNPs, %d traits\n",
+            nrow(X), ncol(X), ncol(Y)))
+
+prior <- create_mixture_prior(list(matrices = simdata$par$U,
+                                   weights = simdata$par$w),
+                              null_weight = 0)
+fit <- mvsusie(X, Y, standardize = TRUE,
+               prior_variance = prior,
+               residual_variance = simdata$par$V,
+               estimate_prior_variance = TRUE,
+               tol = 0.01)
+```
+
+Credible sets
+-------------
+
+mvSuSiE identifies causal SNPs through 95% credible sets (CSs).
+Each CS is a set of variables that, with 95% posterior probability,
+contains the causal variant for one of the single effects.
+
+```{r credible-sets}
+cat("Number of credible sets:", length(fit$sets$cs), "\n\n")
+fit$sets$cs
+```
+
+CS purity measures the minimum absolute correlation between any pair
+of SNPs in the CS. High purity (close to 1) means the CS cannot be
+further refined because the remaining SNPs are tightly correlated.
+
+```{r cs-purity}
+fit$sets$purity
+```
+
+Posterior inclusion probabilities
+----------------------------------
+
+The PIP for each SNP gives the posterior probability of being causal
+(included in at least one single effect).
+
+```{r pip}
+cat("PIP range:", round(range(fit$pip), 6), "\n")
+cat("SNPs with PIP > 0.5:", sum(fit$pip > 0.5), "\n")
+```
+
+PIP and effect plots
+--------------------
+
+`mvsusie_plot()` produces two key visualizations: a PIP plot showing
+which SNPs are in credible sets, and an effect plot showing the
+estimated per-trait effects at the sentinel SNPs.
+
+```{r pip-plot, fig.height=2, fig.width=6}
+out <- mvsusie_plot(fit)
+out$pip_plot
+```
+
+The effect plot shows which traits are affected by each causal SNP.
+Point size indicates effect magnitude and color indicates sign
+(red = positive, blue = negative). Only effects with local false
+sign rate (LFSR) below the cutoff (default 0.01) are shown.
+
+```{r effect-plot, fig.height=3.25, fig.width=2.5}
+out_cs <- mvsusie_plot(fit, add_cs = TRUE)
+out_cs$effect_plot
+```
+
+The first CS identifies a SNP affecting most traits, while the third
+CS identifies a SNP affecting only one trait.
+
+Local false sign rate
+---------------------
+
+The LFSR for a variable-trait pair gives the posterior probability that
+the estimated sign of the effect is wrong. Small LFSR values indicate
+confident effect identification. LFSR can be thought of as an
+alternative to a *p*-value, but is typically slightly more conservative.
+
+```{r lfsr}
+cat("LFSR matrix dimensions:", dim(fit$lfsr), "\n")
+cat("(rows = SNPs, columns = traits)\n\n")
+
+# Show LFSR for SNPs in credible sets
+for (cs_name in names(fit$sets$cs)) {
+  sentinel <- fit$sets$cs[[cs_name]][which.max(
+    fit$pip[fit$sets$cs[[cs_name]]])]
+  n_sig <- sum(fit$lfsr[sentinel, ] < 0.01)
+  cat(sprintf("%s sentinel (SNP %d): %d traits with LFSR < 0.01\n",
+              cs_name, sentinel, n_sig))
+}
+```
+
+Single-effect LFSR gives the LFSR for each single effect (credible
+set) across traits:
+
+```{r single-effect-lfsr}
+cat("Single-effect LFSR dimensions:", dim(fit$single_effect_lfsr), "\n")
+cat("(rows = effects, columns = traits)\n")
+```
+
+Outcome-specific PIPs
+---------------------
+
+The overall PIP tells us whether a SNP affects *any* trait. The
+outcome-specific PIP tells us the probability that a SNP affects
+a *specific* trait. This is computed from the mixture weights and
+prior structure.
+
+```{r per-outcome-pip}
+pip_po <- mvsusie_get_pip_per_outcome(fit)
+cat("Per-outcome PIP matrix:", dim(pip_po), "\n")
+```
+
+```{r per-outcome-pip-plot, fig.height=3, fig.width=5}
+# Compare overall PIP vs outcome-specific PIP for a few traits
+traits_to_show <- c(1, 5, 10, 15)
+pdat <- do.call(rbind, lapply(traits_to_show, function(t) {
+  data.frame(overall_pip = fit$pip,
+             outcome_pip = pip_po[, t],
+             trait = paste0("Trait ", t))
+}))
+ggplot(pdat, aes(x = overall_pip, y = outcome_pip)) +
+  geom_point(shape = 20, size = 1, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~trait) +
+  labs(x = "Overall PIP", y = "Outcome-specific PIP") +
+  theme_cowplot(font_size = 10)
+```
+
+Per-effect coefficient estimates
+---------------------------------
+
+The `b1_rescaled` array contains the posterior mean effect estimates
+for each single effect on the original scale. This is an $L \times
+(J+1) \times R$ array (the first column is the intercept).
+
+```{r effect-estimates, fig.height=2.5, fig.width=3.5}
+l <- 1
+sentinel <- fit$sets$cs$L1[which.max(fit$pip[fit$sets$cs$L1])]
+pdat <- data.frame(
+  true = simdata$Btrue[sentinel, ],
+  estimated = fit$b1_rescaled[l, sentinel + 1, ],
+  lfsr = fit$single_effect_lfsr[l, ]
+)
+ggplot(pdat, aes(x = true, y = estimated,
+                 color = log10(lfsr))) +
+  geom_point(shape = 20, size = 2.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  scale_color_gradient2(low = "lightskyblue", mid = "gold",
+                        high = "orangered", midpoint = -40) +
+  labs(x = "True coefficient", y = "mvSuSiE estimate") +
+  theme_cowplot(font_size = 12)
+```
+
+The mvSuSiE estimates align well with the true coefficients, and
+traits with significant effects (small LFSR) are correctly identified.

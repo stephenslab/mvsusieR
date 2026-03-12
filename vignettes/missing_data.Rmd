@@ -1,0 +1,203 @@
+---
+title: Handling missing data in mvSuSiE
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Handling missing data in mvSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+mvSuSiE can handle missing values in the phenotype matrix $Y$. This
+is useful in two common scenarios:
+
+1. **Random missing data** (MCAR): individual measurements are
+   randomly missing across samples and traits.
+
+2. **Block missing data**: entire traits are unobserved for subsets
+   of samples. This arises naturally in cross-population or
+   cross-ancestry analyses where different cohorts measure different
+   traits.
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(susieR)
+library(ggplot2)
+library(cowplot)
+set.seed(1)
+```
+
+Simulate complete data
+-----------------------
+
+```{r simulate-data}
+data(N3finemapping)
+X <- N3finemapping$X
+n <- nrow(X); p <- ncol(X); r <- 10
+
+causal <- sort(sample(p, 4))
+B <- matrix(0, p, r)
+for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
+Y_complete <- X %*% B + matrix(rnorm(n * r), n, r)
+cat(sprintf("Complete data: %d x %d x %d (N x J x R)\n", n, p, r))
+```
+
+Fit the model on complete data for reference.
+
+```{r fit-complete}
+prior <- create_mixture_prior(R = r)
+fit_complete <- mvsusie(X, Y_complete, L = 10,
+                        prior_variance = prior,
+                        estimate_prior_variance = TRUE,
+                        standardize = TRUE, tol = 0.01,
+                        verbosity = 0)
+cat("Complete data: CS =", length(fit_complete$sets$cs), "\n")
+```
+
+Random missing data (MCAR)
+---------------------------
+
+We introduce missing values completely at random at three rates:
+5%, 20%, and 50%.
+
+```{r random-missing}
+insert_random_na <- function(Y, frac) {
+  Y_miss <- Y
+  n_miss <- round(frac * length(Y))
+  idx <- sample(length(Y), n_miss)
+  Y_miss[idx] <- NA
+  Y_miss
+}
+
+Y_miss_05 <- insert_random_na(Y_complete, 0.05)
+Y_miss_20 <- insert_random_na(Y_complete, 0.20)
+Y_miss_50 <- insert_random_na(Y_complete, 0.50)
+cat("Missing values: 5% =", sum(is.na(Y_miss_05)),
+    ", 20% =", sum(is.na(Y_miss_20)),
+    ", 50% =", sum(is.na(Y_miss_50)), "\n")
+```
+
+```{r fit-random-missing}
+fit_05 <- mvsusie(X, Y_miss_05, L = 10, prior_variance = prior,
+                  estimate_prior_variance = TRUE,
+                  standardize = TRUE, tol = 0.01, verbosity = 0)
+fit_20 <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
+                  estimate_prior_variance = TRUE,
+                  standardize = TRUE, tol = 0.01, verbosity = 0)
+fit_50 <- mvsusie(X, Y_miss_50, L = 10, prior_variance = prior,
+                  estimate_prior_variance = TRUE,
+                  standardize = TRUE, tol = 0.01, verbosity = 0)
+cat("5% missing: CS =", length(fit_05$sets$cs), "\n")
+cat("20% missing: CS =", length(fit_20$sets$cs), "\n")
+cat("50% missing: CS =", length(fit_50$sets$cs), "\n")
+```
+
+```{r compare-random, fig.height=3, fig.width=7}
+pdat <- data.frame(
+  complete = rep(fit_complete$pip, 3),
+  missing = c(fit_05$pip, fit_20$pip, fit_50$pip),
+  frac = rep(c("5% missing", "20% missing", "50% missing"), each = p)
+)
+ggplot(pdat, aes(x = complete, y = missing)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~frac) +
+  labs(x = "PIP (complete data)", y = "PIP (missing data)") +
+  theme_cowplot(font_size = 10)
+```
+
+With moderate amounts of missing data (up to 20%), the results are
+very similar to the complete data analysis. Even at 50% missing,
+the strongest signals are preserved.
+
+Block missing data (cross-population scenario)
+------------------------------------------------
+
+In a cross-population analysis, different cohorts may measure
+different subsets of traits. We simulate this by making the first
+5 traits missing for half the samples, and the last 5 traits missing
+for the other half. This mimics two cohorts that each measure 5 of
+10 traits, plus 5 shared traits are available.
+
+Actually, a cleaner block-missing pattern: traits 1--5 are observed
+only in the first half of samples, traits 6--10 only in the second
+half. No trait is observed in all samples.
+
+```{r block-missing}
+Y_block <- Y_complete
+half <- n %/% 2
+# First half of samples: traits 6-10 are missing
+Y_block[1:half, 6:10] <- NA
+# Second half of samples: traits 1-5 are missing
+Y_block[(half + 1):n, 1:5] <- NA
+cat("Block missing pattern:\n")
+cat("  Samples 1-", half, ": traits 1-5 observed, 6-10 missing\n")
+cat("  Samples", half + 1, "-", n, ": traits 6-10 observed, 1-5 missing\n")
+cat("  Total missing:", sum(is.na(Y_block)), "/", length(Y_block),
+    sprintf("(%.0f%%)\n", 100 * mean(is.na(Y_block))))
+```
+
+```{r fit-block}
+fit_block <- mvsusie(X, Y_block, L = 10,
+                     prior_variance = prior,
+                     estimate_prior_variance = TRUE,
+                     standardize = TRUE, tol = 0.01,
+                     verbosity = 0)
+cat("Block missing: CS =", length(fit_block$sets$cs), "\n")
+```
+
+```{r compare-block, fig.height=3, fig.width=4}
+pdat <- data.frame(complete = fit_complete$pip,
+                   block = fit_block$pip)
+ggplot(pdat, aes(x = complete, y = block)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "PIP (complete data)", y = "PIP (block missing)") +
+  theme_cowplot(font_size = 12)
+```
+
+mvSuSiE can borrow information across the observed portions to
+identify causal signals even when no single sample has all traits
+observed. Note that the prior does not model realistic
+cross-population assumptions (such as different effect sizes across
+ancestries), but the method works given a reasonable prior structure.
+
+Missing data methods
+--------------------
+
+mvSuSiE provides three methods for handling missing data, controlled
+by the `missing_y_method` argument:
+
+- `"approximate"` (default): per-outcome centering with per-pattern
+  residual variance correction. Fast and accurate when the residual
+  covariance is approximately diagonal.
+
+- `"exact"`: uses full residual covariance correction. Guarantees
+  correct ELBO but slower.
+
+- `"impute"`: variational imputation that iteratively estimates
+  missing values. Does not guarantee monotone ELBO.
+
+```{r missing-methods}
+fit_approx <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
+                      estimate_prior_variance = TRUE,
+                      missing_y_method = "approximate",
+                      standardize = TRUE, tol = 0.01, verbosity = 0)
+fit_exact <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
+                     estimate_prior_variance = TRUE,
+                     missing_y_method = "exact",
+                     standardize = TRUE, tol = 0.01, verbosity = 0)
+
+cat("Approximate method: CS =", length(fit_approx$sets$cs), "\n")
+cat("Exact method: CS =", length(fit_exact$sets$cs), "\n")
+cat("PIP correlation:", cor(fit_approx$pip, fit_exact$pip), "\n")
+```
+
+For most applications, the default `"approximate"` method provides
+a good balance of speed and accuracy.
