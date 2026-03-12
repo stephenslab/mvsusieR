@@ -50,7 +50,7 @@ navbar:
     news:
       icon: fa fa-newspaper
       text: News
-      href: news/index.html
+      href: articles/announcements.html
       aria-label: Package news
     github:
       icon: fab fa-github
@@ -81,13 +81,13 @@ articles:
     navbar: ~
     contents:
       - ends_with("_intro")
+      - visualization_and_interpretation
       - input_data_format
       - prediction
   - title: "Advanced Users"
     desc: "Detailed tutorials for customizing and scaling mvSuSiE analyses."
     contents:
       - prior_specification
-      - visualization_and_interpretation
       - linkage_vs_pleiotropy
       - missing_data
       - large_scale_analysis
@@ -96,7 +96,8 @@ articles:
     contents:
       - univariate_multivariate_agreement
       - elbo_and_convergence
-  - title: "News"
+  - title: "Package Information"
+    navbar: ~
     contents:
       - announcements
 

@@ -1,17 +1,18 @@
 ---
-title: Univariate-multivariate agreement
+title: Engineering verification
 author: Gao Wang
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Univariate-multivariate agreement}
+  %\VignetteIndexEntry{Engineering verification}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-This vignette verifies that the multivariate mvSuSiE model reduces
-correctly to independent univariate SuSiE models under a diagonal
-prior, and that the MASH prior reduces to univariate when $R = 1$.
+This vignette verifies the internal consistency of the mvSuSiE
+implementation through two engineering checks: (1) the multivariate
+model reduces to univariate SuSiE when $R = 1$, and (2) the mixture
+prior code path agrees with the single-matrix code path when $K = 1$.
 
 ```{r knitr-opts, include=FALSE}
 knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
@@ -26,90 +27,21 @@ library(cowplot)
 set.seed(1)
 ```
 
-Diagonal prior reduces to independent univariate
---------------------------------------------------
-
-When the prior covariance is diagonal ($U = \text{diag}(\sigma_1^2,
-\ldots, \sigma_R^2)$) and the residual covariance is also diagonal,
-the multivariate regression decomposes into $R$ independent univariate
-regressions. We verify this by fitting mvSuSiE with a diagonal prior
-and comparing to $R$ separate SuSiE fits.
-
 ```{r simulate-data}
 data(N3finemapping, package = "susieR")
 X <- N3finemapping$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
-# Simulate independent traits
 B <- matrix(0, p, r)
 causal <- sort(sample(p, 3))
 for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
 Y <- X %*% B + matrix(rnorm(n * r), n, r)
 ```
 
-```{r fit-multivariate-diagonal}
-# Diagonal prior: independent across traits
-U_diag <- 0.2 * diag(r)
-prior_diag <- create_mixture_prior(
-  list(matrices = list(U_diag), weights = 1)
-)
-
-# Multivariate fit
-fit_mv <- mvsusie(X, Y, L = 10,
-                  prior_variance = prior_diag,
-                  residual_variance = diag(r),
-                  estimate_residual_variance = FALSE,
-                  estimate_prior_variance = FALSE,
-                  standardize = TRUE,
-                  max_iter = 100, tol = 1e-4, verbosity = 0)
-```
-
-```{r fit-univariate}
-# R independent univariate fits
-fits_uv <- lapply(seq_len(r), function(i) {
-  susie(X, Y[, i], L = 10,
-        scaled_prior_variance = 0.2,
-        residual_variance = 1,
-        estimate_residual_variance = FALSE,
-        estimate_prior_variance = FALSE,
-        standardize = TRUE,
-        max_iter = 100, tol = 1e-4)
-})
-```
-
-Compare the posterior inclusion probabilities:
-
-```{r compare-diagonal, fig.height=3.5, fig.width=7}
-pip_uv <- sapply(fits_uv, function(f) f$pip)  # p x r
-pip_mv <- do.call(cbind, lapply(seq_len(r), function(i) {
-  1 - apply(1 - fit_mv$alpha * fit_mv$b1[, , i] /
-              (fit_mv$b1[, , i] + 1e-20), 2, prod)
-}))
-
-# Use overall PIP for a simpler comparison
-pip_uv_overall <- 1 - apply(1 - pip_uv, 1, prod)
-pip_mv_overall <- fit_mv$pip
-
-pdat <- data.frame(univariate = pip_uv_overall,
-                   multivariate = pip_mv_overall)
-ggplot(pdat, aes(x = univariate, y = multivariate)) +
-  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
-  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
-  labs(x = "PIP (R independent susie)",
-       y = "PIP (mvsusie with diagonal prior)") +
-  theme_cowplot(font_size = 12)
-```
-
-```{r diagonal-agreement}
-cat("max |PIP difference|:", max(abs(pip_uv_overall - pip_mv_overall)), "\n")
-cat("PIP correlation:", cor(pip_uv_overall, pip_mv_overall), "\n")
-```
-
-MASH prior reduces to univariate when R = 1
----------------------------------------------
-
+## R = 1 reduces to univariate SuSiE
 When there is only one outcome ($R = 1$), the multivariate model
-should give the same result as univariate SuSiE.
+should give the same result as univariate SuSiE. This verifies that
+the multivariate code path correctly handles the scalar case.
 
 ```{r r1-comparison}
 Y1 <- Y[, 1]
@@ -142,9 +74,9 @@ ggplot(pdat, aes(x = susie, y = mvsusie)) +
   theme_cowplot(font_size = 12)
 ```
 
-Single-effect regression agreement
-------------------------------------
+The PIPs agree at machine precision, confirming the $R = 1$ reduction.
 
+## Single-effect regression agreement
 At the core of both SuSiE and mvSuSiE is the single-effect
 regression (SER) step. When $R = 1$, mvSuSiE's SER should
 give the same Bayes factors and posterior weights as SuSiE's.
@@ -161,6 +93,53 @@ cat("max |alpha diff| (first effect):",
     max(abs(alpha_susie - alpha_mv)), "\n")
 ```
 
-These results confirm that the multivariate implementation correctly
-reduces to the univariate case, providing confidence in the more
-general multivariate computations.
+## Mixture prior (K > 1) vs single matrix prior (K = 1)
+mvSuSiE supports two code paths for the prior: a single $R \times R$
+covariance matrix, and a mixture of $K$ matrices (the "mash" prior).
+When $K = 1$, the mixture prior should give the same result as
+passing a single matrix directly. This verifies that the mixture
+machinery does not introduce any discrepancies.
+
+```{r mixture-vs-single}
+U <- 0.2 * diag(r)
+
+# Single matrix prior (K=1 code path)
+fit_single <- mvsusie(X, Y, L = 10,
+                      prior_variance = U,
+                      residual_variance = diag(r),
+                      estimate_residual_variance = FALSE,
+                      estimate_prior_variance = TRUE,
+                      standardize = TRUE,
+                      max_iter = 100, tol = 1e-4, verbosity = 0)
+
+# Mixture prior with K=1 (mash code path)
+prior_k1 <- create_mixture_prior(
+  list(matrices = list(U), weights = 1)
+)
+fit_mixture <- mvsusie(X, Y, L = 10,
+                       prior_variance = prior_k1,
+                       residual_variance = diag(r),
+                       estimate_residual_variance = FALSE,
+                       estimate_prior_variance = TRUE,
+                       standardize = TRUE,
+                       max_iter = 100, tol = 1e-4, verbosity = 0)
+
+cat("Single matrix CS:", length(fit_single$sets$cs), "\n")
+cat("Mixture (K=1) CS:", length(fit_mixture$sets$cs), "\n")
+cat("max |PIP diff|:", max(abs(fit_single$pip - fit_mixture$pip)), "\n")
+```
+
+```{r mixture-vs-single-plot, fig.height=3, fig.width=3.5}
+pdat <- data.frame(single = fit_single$pip,
+                   mixture = fit_mixture$pip)
+ggplot(pdat, aes(x = single, y = mixture)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "PIP (single matrix prior)",
+       y = "PIP (mixture prior, K=1)") +
+  theme_cowplot(font_size = 12)
+```
+
+These engineering checks confirm that the single-matrix and
+mixture-prior code paths agree, and that the multivariate
+implementation correctly reduces to the univariate case.

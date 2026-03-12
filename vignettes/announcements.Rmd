@@ -14,25 +14,19 @@ knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
                       fig.align = "center",dpi = 120)
 ```
 
-Architecture: S3 implementation
--------------------------------
-
+## Architecture: S3 implementation
 mvsusieR has been re-implemented using R's S3 object system, replacing
 the previous R6-based architecture (in production during 2019--2025). 
 The S3 implementation provides the same functionality with a cleaner, more maintainable codebase
 with core algorithmatic implementation shared with [`susieR`](https://github.com/stephenslab/susieR),
 making it a required dependency for this package.
 
-Rcpp/C++ acceleration
------------------
-
+## Rcpp/C++ acceleration
 Performance-critical operations are
 implemented in C++ via Rcpp/RcppArmadillo to
 provide substantial speedups.
 
-Precompute cache
------------------
-
+## Precompute cache
 The `precompute_cache` option (previously named
 `precompute_covariances`) now additionally caches 
 eigendecompositions and other intermediate quantities to 
@@ -43,9 +37,7 @@ recommended. If memory is a concern with very large numbers of
 mixture components, you may set it to `FALSE` at the cost of
 slower computation.
 
-References
-----------
-
+## References
 - Y. Zou, P. Carbonetto, D. Xie, G. Wang & M. Stephens (2026).
   *Fine-mapping across multiple traits with summary statistics.*
   Nature Genetics. <https://doi.org/10.1038/s41588-025-02486-7>

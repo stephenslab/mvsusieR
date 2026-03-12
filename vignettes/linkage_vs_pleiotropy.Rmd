@@ -13,7 +13,8 @@ A key advantage of multi-trait fine-mapping is the ability to
 distinguish between *pleiotropy* (one SNP affecting multiple traits)
 and *linkage* (different correlated SNPs each affecting different
 traits). When two correlated SNPs have distinct trait-specific
-effects, mvSuSiE can separate them into different credible sets.
+effects, mvSuSiE can separate them into different credible sets,
+resolving *LD-induced pleiotropy*.
 
 ```{r knitr-opts, include=FALSE}
 knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
@@ -28,21 +29,23 @@ library(cowplot)
 set.seed(1)
 ```
 
-Simulation setup
------------------
-
-We use realistic genotypes and select two correlated SNPs
-(approximately 70% correlation) as causal variants. Each causal
-SNP affects a different subset of traits.
+## LD-induced pleiotropy: the problem
+Consider two causal SNPs that are in *negative* LD. SNP 1 increases
+traits 1--5, and SNP 2 increases traits 6--10. Because of the
+negative LD, the marginal z-scores show associations in *all 10
+traits* for *both* SNPs---positive for the traits they truly
+affect and negative for the other traits (due to the LD partner's
+effect). This creates the appearance of broad pleiotropy when in
+reality each SNP is trait-specific.
 
 ```{r simulate-data}
 data(N3finemapping)
 X <- N3finemapping$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
-# Find a pair of SNPs with ~70% correlation
+# Find a pair of SNPs with strong negative LD (~-0.7)
 R_mat <- cor(X)
-pairs <- which(abs(R_mat) > 0.65 & abs(R_mat) < 0.75 &
+pairs <- which(R_mat < -0.6 & R_mat > -0.8 &
                upper.tri(R_mat), arr.ind = TRUE)
 snp1 <- pairs[1, 1]
 snp2 <- pairs[1, 2]
@@ -50,24 +53,51 @@ cat(sprintf("Causal SNPs: %d and %d (correlation: %.3f)\n",
             snp1, snp2, R_mat[snp1, snp2]))
 ```
 
-SNP 1 affects traits 1--5, SNP 2 affects traits 6--10. This
-creates a linkage scenario: two correlated variants with
-non-overlapping effects.
+Each causal SNP has *positive* effects on its own 5 traits:
 
 ```{r create-effects}
 B <- matrix(0, p, r)
-B[snp1, 1:5] <- rnorm(5, 0, 1)    # SNP 1 -> traits 1-5
-B[snp2, 6:10] <- rnorm(5, 0, 1)   # SNP 2 -> traits 6-10
+effect_size <- 1.5
+B[snp1, 1:5] <- abs(rnorm(5, effect_size, 0.2))   # SNP 1 -> traits 1-5
+B[snp2, 6:10] <- abs(rnorm(5, effect_size, 0.2))   # SNP 2 -> traits 6-10
 Y <- X %*% B + matrix(rnorm(n * r), n, r)
+
+cat("True effects of SNP", snp1, "(traits 1-5):",
+    round(B[snp1, 1:5], 2), "\n")
+cat("True effects of SNP", snp2, "(traits 6-10):",
+    round(B[snp2, 6:10], 2), "\n")
 ```
 
-Fitting mvSuSiE with a mixture prior
---------------------------------------
+The marginal z-scores show associations in all 10 traits for both
+SNPs, due to the negative LD confounding:
 
-A mixture prior with block-diagonal structure is well-suited for
-detecting distinct effect patterns. The canonical prior generated
-by `create_mixture_prior()` includes both shared and singleton
-patterns.
+```{r marginal-z-scores, fig.height=3, fig.width=6}
+Z <- calc_z(X, Y, center = TRUE, scale = TRUE)
+z_dat <- data.frame(
+  trait = rep(paste0("T", 1:r), 2),
+  zscore = c(Z[snp1, ], Z[snp2, ]),
+  snp = rep(c(paste("SNP", snp1), paste("SNP", snp2)), each = r)
+)
+z_dat$trait <- factor(z_dat$trait, levels = paste0("T", 1:r))
+
+ggplot(z_dat, aes(x = trait, y = zscore, fill = snp)) +
+  geom_col(position = "dodge") +
+  geom_hline(yintercept = 0) +
+  scale_fill_manual(values = c("royalblue", "firebrick")) +
+  labs(x = "Trait", y = "Z-score", fill = "") +
+  theme_cowplot(font_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Both SNPs show z-scores in all 10 traits. Without multi-trait
+fine-mapping, one might conclude that both SNPs are broadly
+pleiotropic. But the *sign pattern*---positive in 5 traits and
+negative in the other 5---is a hallmark of LD-induced pleiotropy.
+
+## Resolving with mvSuSiE
+mvSuSiE with a mixture prior can separate the two linked signals
+into different credible sets, each with its own trait-specific
+effect pattern.
 
 ```{r fit-model}
 prior <- create_mixture_prior(R = r)
@@ -76,9 +106,6 @@ fit <- mvsusie(X, Y, L = 10,
                estimate_prior_variance = TRUE,
                standardize = TRUE, tol = 0.01)
 ```
-
-Credible sets and separation
------------------------------
 
 ```{r credible-sets}
 cat("Number of credible sets:", length(fit$sets$cs), "\n\n")
@@ -92,29 +119,25 @@ for (cs_name in names(fit$sets$cs)) {
 }
 ```
 
-If the two causal SNPs appear in *different* credible sets, mvSuSiE
-has successfully distinguished linkage from pleiotropy.
-
-Trait-specific effects
------------------------
-
 ```{r effect-plot, fig.height=3.5, fig.width=3.5}
 out <- mvsusie_plot(fit, add_cs = TRUE, lfsr_cutoff = 0.05)
 out$effect_plot
 ```
 
-The effect plot should show that the credible sets have distinct
-trait-specific patterns, confirming the separation of the two
-linked signals.
+The effect plot shows that each credible set has effects in only
+5 traits---exactly matching the true simulation. mvSuSiE has
+correctly resolved the LD-induced pleiotropy into two
+trait-specific signals.
 
-Comparison with univariate analysis
--------------------------------------
+```{r pip-plot, fig.height=2, fig.width=6}
+out$pip_plot
+```
 
+## Comparison with univariate analysis
 A univariate (single-trait) analysis cannot distinguish which
 SNP is causal for which trait when the SNPs are correlated.
 
 ```{r univariate-comparison}
-# Fit per-trait susie and check if causal SNPs are in CS
 for (t in c(1, 6)) {
   fit_uv <- susie(X, Y[, t], L = 10, standardize = TRUE)
   if (length(fit_uv$sets$cs) > 0) {
@@ -131,5 +154,5 @@ for (t in c(1, 6)) {
 
 In the univariate analysis, the credible sets for different traits
 may each contain *both* correlated SNPs, providing no resolution.
-The multivariate analysis can separate them by leveraging the
-distinct trait patterns.
+The multivariate analysis leverages the distinct trait patterns to
+separate the two linked signals.

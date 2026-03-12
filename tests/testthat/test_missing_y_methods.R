@@ -119,17 +119,19 @@ test_that("missing_y_method is ignored for R=1", {
   expect_equal(fit1$alpha, fit2$alpha)
 })
 
-test_that("approximate/exact silently force estimate_residual_variance = FALSE", {
+test_that("approximate/exact allow estimate_residual_variance = TRUE", {
   sim <- simulate_multivariate(n = 40, p = 20, r = 2, y_missing = 0.2)
-  expect_message(
-    fit <- mvsusie(sim$X, sim$y_missing, L = 3,
-                   prior_variance = sim$V,
-                   missing_y_method = "approximate",
-                   estimate_residual_variance = TRUE,
-                   max_iter = 3, verbosity = 1),
-    "estimate_residual_variance"
+  # est_rv=TRUE is now allowed for approximate/exact methods
+  # (the update formula uses expected sufficient statistics, not ELBO)
+  fit <- suppressWarnings(
+    mvsusie(sim$X, sim$y_missing, L = 3,
+            prior_variance = sim$V,
+            missing_y_method = "approximate",
+            estimate_residual_variance = TRUE,
+            max_iter = 3, verbosity = 0)
   )
   expect_true(!is.null(fit$alpha))
+  expect_true(all(is.finite(fit$pip)))
 })
 
 test_that("approximate equals exact when residual variance is diagonal", {

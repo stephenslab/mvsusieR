@@ -45,9 +45,7 @@ dim(X)
 dim(Y)
 ```
 
-Specify the prior
------------------
-
+## Specify the prior
 Some care should be taken to choose the prior for your mvSuSiE
 analysis. To simplify the example we have defined the prior for you:
 
@@ -65,9 +63,7 @@ of the candidate fine-mapping regions. This data-driven approach is
 quite similar to the approach used in [mashr][mashr], and we recommend
 looking through the vignettes in the mashr package for further guidance.
 
-Fit the mvSuSiE model
----------------------
-
+## Fit the mvSuSiE model
 Now that we have set up the prior, we are ready to run mvsusie:
 
 ```{r run-mvsusie}
@@ -87,9 +83,7 @@ The "tol" parameter tells the IBSS model fitting algorithm when to stop
 iterating; for a final analysis, you may want to set a more stringent
 tolerance (a number closer to zero).
 
-Identifying the causal SNPs: Credible Sets 
-------------------------------------------
-
+## Identifying the causal SNPs: Credible Sets 
 By default, the "mvsusie" function fits a model with L = 10 single
 effects. mvSuSiE is generally robust to misspecification of L so long
 as L is chosen to be larger than the true number of effects. mvSuSiE
@@ -128,70 +122,23 @@ This is all summarized visually in a "PIP plot":
 mvsusie_plot(fit)$pip_plot
 ```
 
-Determining which traits are affected
--------------------------------------
-
-In a multi-trait analysis, we are not just interested in identifying
-the causal SNPs, but also _which traits_ are affected by these causal
-SNPs.
-
-Let's take the first CS as an example. This is an example of a causal
-SNP that affects most traits:
-
-```{r, fig.height=2.5, fig.width=3.5}
-l <- 1
-i <- 335
-pdat <- data.frame(bhat = simdata$Btrue[i,],
-                   coef = fit$b1_rescaled[l,i+1,],
-                   lfsr = fit$single_effect_lfsr[l,])
-ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
-  geom_point(shape = 20,size = 2.5) +
-  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
-  scale_color_gradient2(low = "lightskyblue",mid = "gold",high = "orangered",
-                        midpoint = -40) +
-  labs(x = "true coef",y = "mvsusie estimate") +
-  theme_cowplot(font_size = 12)
-```
-
-Indeed, the effects of this causal SNP are significant---*i.e.,* small
-local false sign rates---for most of the 20 traits. (A local false
-sign rate can be thought of as an alternative to a *p*-value, but is
-typically slightly more conservative than a *p*-value.)
-
-Also, it is reassuring that the mvsusie estimates of the coefficients
-align well with the coefficients used to simulate the data.
-
-By contrast, the causal SNP identified by the third CS only affects
-one trait, and the affected trait was correctly identified by mvsusie:
-
-```{r, fig.height=2.5, fig.width=3.5}
-l <- 3
-i <- 493
-pdat <- data.frame(bhat = simdata$Btrue[i,],
-                   coef = fit$b1_rescaled[l,i+1,],
-                   lfsr = fit$single_effect_lfsr[l,])
-ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
-  geom_point(shape = 20,size = 2.5) +
-  scale_color_gradient2(low = "lightskyblue",mid = "gold",high = "orangered",
-                        midpoint = -3) +
-  labs(x = "true coef",y = "mvsusie estimate") +
-  theme_cowplot(font_size = 12)
-```
-
-Notice that the lfsr is very small for the first trait (<1e-6) whereas
-the lfsrs for the rest of the traits are all close to 1.
-
-The information about which traits are affected by the causal SNP is
-summarized in the "effect plot":
+## Which traits are affected?
+The "effect plot" summarizes which traits are affected by each
+causal SNP. Point size indicates effect magnitude and color
+indicates sign. Only effects with small local false sign rate
+(LFSR) are shown.
 
 ```{r effect-plot, fig.height=3.25, fig.width=2.5}
 out <- mvsusie_plot(fit,add_cs = TRUE)
 out$effect_plot
 ```
 
-mvSuSiE with summary data: mvSuSiE-RSS
---------------------------------------
+For more details on interpreting mvSuSiE output---including
+credible sets, LFSR, outcome-specific PIPs, and per-effect
+coefficient estimates---see the [Interpreting and visualizing
+mvSuSiE results](visualization_and_interpretation.html) vignette.
 
+## mvSuSiE with summary data: mvSuSiE-RSS
 mvsusieR also provides a "summary data" interface, building on the
 ideas developed in the [susie-rss paper][susie-rss]. Different
 combinations of summary statistics are accepted, but here we will
@@ -247,9 +194,7 @@ ggplot(pdat,aes(x = b1,y = b1_rss)) +
 Of course, the result is not always expected to be the same---for
 example, when the LD is estimated from an external reference panel.
 
-Estimating the residual variance
---------------------------------
-
+## Estimating the residual variance
 In the above examples, we set the residual variance to the value that
 was used to simulated the data. In practice of course we will not have
 access to this so we will have to estimate the residual variance somehow.

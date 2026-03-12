@@ -47,9 +47,7 @@ fit <- mvsusie(X, Y, standardize = TRUE,
                tol = 0.01)
 ```
 
-Credible sets
--------------
-
+## Credible sets
 mvSuSiE identifies causal SNPs through 95% credible sets (CSs).
 Each CS is a set of variables that, with 95% posterior probability,
 contains the causal variant for one of the single effects.
@@ -67,9 +65,7 @@ further refined because the remaining SNPs are tightly correlated.
 fit$sets$purity
 ```
 
-Posterior inclusion probabilities
-----------------------------------
-
+## Posterior inclusion probabilities
 The PIP for each SNP gives the posterior probability of being causal
 (included in at least one single effect).
 
@@ -78,9 +74,7 @@ cat("PIP range:", round(range(fit$pip), 6), "\n")
 cat("SNPs with PIP > 0.5:", sum(fit$pip > 0.5), "\n")
 ```
 
-PIP and effect plots
---------------------
-
+## PIP and effect plots
 `mvsusie_plot()` produces two key visualizations: a PIP plot showing
 which SNPs are in credible sets, and an effect plot showing the
 estimated per-trait effects at the sentinel SNPs.
@@ -103,9 +97,7 @@ out_cs$effect_plot
 The first CS identifies a SNP affecting most traits, while the third
 CS identifies a SNP affecting only one trait.
 
-Local false sign rate
----------------------
-
+## Local false sign rate
 The LFSR for a variable-trait pair gives the posterior probability that
 the estimated sign of the effect is wrong. Small LFSR values indicate
 confident effect identification. LFSR can be thought of as an
@@ -133,9 +125,7 @@ cat("Single-effect LFSR dimensions:", dim(fit$single_effect_lfsr), "\n")
 cat("(rows = effects, columns = traits)\n")
 ```
 
-Outcome-specific PIPs
----------------------
-
+## Outcome-specific PIPs
 The overall PIP tells us whether a SNP affects *any* trait. The
 outcome-specific PIP tells us the probability that a SNP affects
 a *specific* trait. This is computed from the mixture weights and
@@ -162,9 +152,7 @@ ggplot(pdat, aes(x = overall_pip, y = outcome_pip)) +
   theme_cowplot(font_size = 10)
 ```
 
-Per-effect coefficient estimates
----------------------------------
-
+## Per-effect coefficient estimates
 The `b1_rescaled` array contains the posterior mean effect estimates
 for each single effect on the original scale. This is an $L \times
 (J+1) \times R$ array (the first column is the intercept).

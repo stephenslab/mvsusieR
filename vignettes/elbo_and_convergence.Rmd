@@ -10,8 +10,8 @@ vignette: >
 ---
 
 This vignette covers the evidence lower bound (ELBO) used by mvSuSiE
-for model fitting and convergence monitoring, and the automatic
-pruning of unnecessary single effects via log Bayes factors.
+for model fitting and convergence monitoring, and compares the EM and
+optim algorithms for prior variance estimation.
 
 ```{r knitr-opts, include=FALSE}
 knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
@@ -37,9 +37,7 @@ for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
 Y <- X %*% B + matrix(rnorm(n * r), n, r)
 ```
 
-ELBO and convergence
---------------------
-
+## ELBO and convergence
 mvSuSiE uses the Iterative Bayesian Stepwise Selection (IBSS)
 algorithm to maximize the evidence lower bound (ELBO). The ELBO
 is a lower bound on the log marginal likelihood and should increase
@@ -71,9 +69,7 @@ The ELBO increases monotonically, confirming correct convergence.
 The `tol` parameter controls the convergence threshold: the
 algorithm stops when the relative change in ELBO is less than `tol`.
 
-Effect pruning via log Bayes factors
--------------------------------------
-
+## Effect pruning via log Bayes factors
 mvSuSiE fits a model with $L$ single effects. Effects that do not
 contribute to the model have small or negative log Bayes factors
 (LBF) and are automatically pruned when `estimate_prior_variance =
@@ -89,10 +85,6 @@ for (l in seq_along(fit$lbf)) {
 }
 ```
 
-Effects with large positive LBF contribute strong evidence for a
-signal. Effects with near-zero or negative LBF are pruned (their
-prior variance $V$ is estimated to be essentially zero).
-
 ```{r lbf-plot, fig.height=2.5, fig.width=4}
 lbf_dat <- data.frame(effect = seq_along(fit$lbf),
                        lbf = fit$lbf,
@@ -104,3 +96,78 @@ ggplot(lbf_dat, aes(x = effect, y = lbf, fill = active)) +
   labs(x = "Single effect", y = "Log Bayes factor", fill = "") +
   theme_cowplot(font_size = 12)
 ```
+
+## EM vs optim for prior variance estimation
+mvSuSiE provides two algorithms for estimating the prior variance
+scaling factor: `"EM"` (expectation-maximization) and `"optim"`
+(Brent optimizer). The optim method typically converges in fewer
+iterations because it directly maximizes the ELBO with respect to
+the prior scaling factor at each step.
+
+```{r em-vs-optim}
+fit_em <- mvsusie(X, Y, L = 10,
+                  prior_variance = prior,
+                  estimate_prior_variance = TRUE,
+                  estimate_prior_method = "EM",
+                  standardize = TRUE, tol = 1e-4, verbosity = 0)
+
+fit_optim <- mvsusie(X, Y, L = 10,
+                     prior_variance = prior,
+                     estimate_prior_variance = TRUE,
+                     estimate_prior_method = "optim",
+                     standardize = TRUE, tol = 1e-4, verbosity = 0)
+
+cat("EM: ", length(fit_em$elbo), "iterations, final ELBO =",
+    tail(fit_em$elbo, 1), "\n")
+cat("optim:", length(fit_optim$elbo), "iterations, final ELBO =",
+    tail(fit_optim$elbo, 1), "\n")
+```
+
+```{r convergence-comparison, fig.height=3, fig.width=5}
+max_iter <- max(length(fit_em$elbo), length(fit_optim$elbo))
+pdat <- data.frame(
+  iter = c(seq_along(fit_em$elbo), seq_along(fit_optim$elbo)),
+  elbo = c(fit_em$elbo, fit_optim$elbo),
+  method = c(rep("EM", length(fit_em$elbo)),
+             rep("optim", length(fit_optim$elbo)))
+)
+ggplot(pdat, aes(x = iter, y = elbo, color = method)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("EM" = "royalblue", "optim" = "firebrick")) +
+  labs(x = "Iteration", y = "ELBO", color = "Method") +
+  theme_cowplot(font_size = 12)
+```
+
+The optim method reaches a similar (or higher) ELBO in fewer
+iterations. Both methods should converge to the same solution,
+but the optim method can be faster for models with many mixture
+components where the EM update is slow to converge.
+
+## Estimating mixture prior weights
+When using a mixture prior ($K > 1$), mvSuSiE can optionally
+update the mixture component weights during fitting via the
+`estimate_prior_mixture_weights` parameter.
+
+```{r mixture-weights}
+fit_fixed_w <- mvsusie(X, Y, L = 10,
+                       prior_variance = prior,
+                       estimate_prior_variance = TRUE,
+                       estimate_prior_mixture_weights = FALSE,
+                       standardize = TRUE, tol = 1e-4, verbosity = 0)
+
+fit_est_w <- mvsusie(X, Y, L = 10,
+                     prior_variance = prior,
+                     estimate_prior_variance = TRUE,
+                     estimate_prior_mixture_weights = TRUE,
+                     standardize = TRUE, tol = 1e-4, verbosity = 0)
+
+cat("Fixed weights:", length(fit_fixed_w$elbo), "iterations, ELBO =",
+    tail(fit_fixed_w$elbo, 1), "\n")
+cat("Estimated weights:", length(fit_est_w$elbo), "iterations, ELBO =",
+    tail(fit_est_w$elbo, 1), "\n")
+```
+
+A higher ELBO indicates a better fit to the data. Comparing the
+ELBO between configurations helps decide which algorithm settings
+are most appropriate for a given analysis.

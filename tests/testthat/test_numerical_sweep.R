@@ -544,21 +544,15 @@ test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
   # R6 always forces est_rv=FALSE for missing data; S3 now allows est_rv=TRUE.
   # So exact S3-vs-R6 comparison is only valid for est_rv=FALSE configs.
   # est_rv=TRUE configs are tested as S3-only smoke tests below.
-  configs <- expand.grid(
-    est_pv = c(FALSE, TRUE),
-    stringsAsFactors = FALSE
-  )
-
   with(sim_r3_miss, {
-    for (i in seq_len(nrow(configs))) {
-      cfg <- configs[i, ]
-      label <- sprintf("R=3 missing matrix est_pv=%s est_rv=FALSE", cfg$est_pv)
+    for (est_pv in c(FALSE, TRUE)) {
+      label <- sprintf("R=3 missing matrix est_pv=%s est_rv=FALSE", est_pv)
 
       fit <- suppressWarnings(
         mvsusie(X, y_missing, L = 10, prior_variance = V,
                 residual_variance = cov(y),
                 estimate_residual_variance = FALSE,
-                estimate_prior_variance = cfg$est_pv,
+                estimate_prior_variance = est_pv,
                 estimate_prior_method = "EM",
                 missing_y_method = "approximate",
                 max_iter = 10, tol = 0,
@@ -568,7 +562,7 @@ test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
         r6_sweep_mvsusie(X, y_missing, L = 10, prior_variance = V,
                          residual_variance = cov(y),
                          estimate_residual_variance = FALSE,
-                         estimate_prior_variance = cfg$est_pv,
+                         estimate_prior_variance = est_pv,
                          estimate_prior_method = "EM",
                          missing_y_method = "approximate",
                          max_iter = 10, tol = 0,
