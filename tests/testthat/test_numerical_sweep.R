@@ -268,9 +268,9 @@ test_that("EXACT: R=3 matrix prior, EM, all est_pv × est_rv × intercept", {
 # Mash K=1 — all est_pv × est_rv × precompute × intercept combos
 #
 # K=1 mash reduces to a single MVN computation, identical to matrix prior.
-# Exception: est_rv=TRUE + precomp=TRUE + est_pv=FALSE diverges because
-# the precomputed cache recomputation differs (eigendecomp vs Cholesky).
-# That case is excluded here and flagged as a potential bug.
+# R6 precompute has a bug when est_rv=TRUE + est_pv=FALSE: the cache goes
+# stale when sigma2 changes. S3 correctly refreshes the cache. For those
+# configs, R6 reference uses precompute=FALSE (confirmed correct).
 # --------------------------------------------------------------------------
 
 test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept", {
@@ -283,9 +283,6 @@ test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept"
     intercept = c(TRUE, FALSE),
     stringsAsFactors = FALSE
   )
-  # Exclude the known divergent case: precomputed cache goes stale
-  # when sigma2 changes and est_pv=FALSE (R6 doesn't disable precomp)
-  configs <- configs[!(configs$est_rv & configs$precompute & !configs$est_pv), ]
 
   with(sim_r3, {
     s3_prior <- create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
@@ -306,6 +303,11 @@ test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept"
                 intercept = cfg$intercept, standardize = TRUE,
                 precompute_cache = cfg$precompute, verbosity = 0)
       )
+      # R6 precompute is buggy when est_rv=TRUE + est_pv=FALSE:
+      # the eigendecomp cache goes stale. Use R6 precompute=FALSE
+      # as the correct reference for those configs.
+      r6_precomp <- cfg$precompute
+      if (cfg$est_rv && !cfg$est_pv) r6_precomp <- FALSE
       ref <- suppressWarnings(
         r6_sweep_mvsusie(X, y, L = 10, prior_variance = r6_prior,
                          residual_variance = cov(y),
@@ -314,7 +316,7 @@ test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept"
                          estimate_prior_method = "EM",
                          max_iter = 10,
                          intercept = cfg$intercept, standardize = TRUE,
-                         precompute_cache = cfg$precompute, verbosity = 0)
+                         precompute_cache = r6_precomp, verbosity = 0)
       )
       compare_exact(fit, ref, label)
     }
@@ -381,8 +383,6 @@ test_that("EXACT: R=3 sufficient statistics, mash K=1, all est_pv × est_rv × p
     precompute = c(TRUE, FALSE),
     stringsAsFactors = FALSE
   )
-  # Exclude precompute cache bug: same as DenseData mash K=1 exclusion
-  configs <- configs[!(configs$est_rv & configs$precompute & !configs$est_pv), ]
 
   with(sim_r3, {
     X_centered <- scale(X, center = TRUE, scale = FALSE)
@@ -408,6 +408,9 @@ test_that("EXACT: R=3 sufficient statistics, mash K=1, all est_pv × est_rv × p
                         estimate_prior_method = "EM",
                         max_iter = 10,
                         precompute_cache = cfg$precompute, verbosity = 0)
+      # R6 precompute is buggy when est_rv=TRUE + est_pv=FALSE
+      r6_precomp <- cfg$precompute
+      if (cfg$est_rv && !cfg$est_pv) r6_precomp <- FALSE
       ref <- r6_sweep_mvsusie_ss(XtX = XtX, XtY = XtY, YtY = YtY, N = N,
                                  L = 10, prior_variance = r6_prior,
                                  residual_variance = cov(y_centered),
@@ -415,7 +418,7 @@ test_that("EXACT: R=3 sufficient statistics, mash K=1, all est_pv × est_rv × p
                                  estimate_prior_variance = cfg$est_pv,
                                  estimate_prior_method = "EM",
                                  max_iter = 10,
-                                 precompute_cache = cfg$precompute,
+                                 precompute_cache = r6_precomp,
                                  verbosity = 0)
       compare_exact(fit, ref, label)
     }
@@ -466,9 +469,13 @@ test_that("EXACT: L=1 matrix prior EM, all est_pv × est_rv", {
 # S3 eigendecomp vs R6 mashr Cholesky compute the same mathematical
 # quantities. Differences indicate bugs, not algorithm mismatch.
 #
-# Note: R6 does not have estimate_prior_mixture_weights parameter (it
-# never updates mixture weights). S3 defaults to TRUE. For apple-to-apple
+# R6 does not have estimate_prior_mixture_weights parameter (it never
+# updates mixture weights). S3 defaults to TRUE. For apple-to-apple
 # comparison, S3 must pass estimate_prior_mixture_weights = FALSE.
+#
+# R6 precompute has a bug when est_rv=TRUE + est_pv=FALSE (stale cache).
+# S3 correctly refreshes the cache. R6 reference uses precompute=FALSE
+# for those configs.
 # --------------------------------------------------------------------------
 
 test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × intercept", {
@@ -481,10 +488,6 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
     intercept = c(TRUE, FALSE),
     stringsAsFactors = FALSE
   )
-  # Exclude precompute cache bug: when sigma2 changes (est_rv=TRUE)
-  # but prior isn't re-estimated (est_pv=FALSE), precomputed eigendecomp
-  # goes stale. Same bug as mash K=1 exclusion.
-  configs <- configs[!(configs$est_rv & configs$precompute & !configs$est_pv), ]
 
   with(sim_r3, {
     U1 <- V
@@ -508,6 +511,9 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
                 intercept = cfg$intercept, standardize = TRUE,
                 precompute_cache = cfg$precompute, verbosity = 0)
       )
+      # R6 precompute is buggy when est_rv=TRUE + est_pv=FALSE
+      r6_precomp <- cfg$precompute
+      if (cfg$est_rv && !cfg$est_pv) r6_precomp <- FALSE
       ref <- suppressWarnings(
         r6_sweep_mvsusie(X, y, L = 10, prior_variance = r6_prior,
                          residual_variance = cov(y),
@@ -516,7 +522,7 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
                          estimate_prior_method = "EM",
                          max_iter = 10,
                          intercept = cfg$intercept, standardize = TRUE,
-                         precompute_cache = cfg$precompute, verbosity = 0)
+                         precompute_cache = r6_precomp, verbosity = 0)
       )
       compare_exact(fit, ref, label)
     }
