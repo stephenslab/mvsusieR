@@ -76,7 +76,6 @@ mem_used_gb <- NULL
     "initialize_susie_model",
     "loglik",
     "neg_loglik",
-    "track_ibss_fit",
     "trim_null_effects",
     "update_derived_quantities",
     "update_fitted_values",

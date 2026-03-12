@@ -909,43 +909,6 @@ prune_mixture_components <- function(model, threshold = 1e-8) {
 }
 
 # =============================================================================
-# TRACKING
-# =============================================================================
-
-#' @keywords internal
-track_ibss_fit.mv_individual <- function(data, params, model,
-                                          tracking, iter, elbo, ...) {
-  # Same as default behavior
-  if (iter == 1) {
-    tracking$convergence <- list(
-      prev_elbo  = -Inf,
-      prev_alpha = model$alpha,
-      prev_pip_diff = NULL
-    )
-  } else {
-    pip_diff <- max(abs(tracking$convergence$prev_alpha - model$alpha))
-    tracking$convergence$prev_elbo  <- elbo[iter]
-    tracking$convergence$prev_alpha <- model$alpha
-    tracking$convergence$prev_pip_diff <- pip_diff
-  }
-
-  if (isTRUE(params$track_fit)) {
-    tracking[[iter]] <- list(
-      alpha  = model$alpha,
-      niter  = iter,
-      V      = model$V,
-      sigma2 = model$sigma2,
-      mu     = model$mu,
-      mu2_cache = model$mu2_cache,
-      KL     = model$KL,
-      lbf    = model$lbf,
-      elbo   = elbo[iter + 1]
-    )
-  }
-  return(tracking)
-}
-
-# =============================================================================
 # PRIOR VALIDATION
 # =============================================================================
 
