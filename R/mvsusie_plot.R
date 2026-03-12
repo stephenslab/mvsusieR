@@ -66,6 +66,8 @@
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom cowplot theme_cowplot
 #' @importFrom cowplot plot_grid
+#' @importFrom cowplot background_grid
+#' @importFrom cowplot panel_border
 #'
 #' @export
 #'
@@ -84,7 +86,7 @@ mvsusie_plot <-
            cs_colors = c(
              "#1f78b4", "#33a02c", "#e31a1c", "#ff7f00",
              "#6a3d9a", "#b15928", "#a6cee3", "#b2df8a", "#fb9a99",
-             "#fdbf6f", "#cab2d6", "#ffff99", "gray", "cyan"
+             "#fdbf6f", "#cab2d6", "#e6ab02", "gray", "#66c2a5"
            )) {
     if (!inherits(fit, "mvsusie")) {
       stop(
@@ -117,9 +119,6 @@ mvsusie_plot <-
     )
 
     # Add the CS assignments to the data frame.
-    #
-    # POSSIBLE BUG: What if no identified CS?
-    #
     css <- names(fit$sets$cs)
     for (i in css) {
       j <- fit$sets$cs[[i]]
@@ -148,9 +147,27 @@ mvsusie_plot <-
     css <- css[order(cs_pos)]
     pdat_cs$cs <- factor(pdat_cs$cs, levels = css)
 
+    # Handle case when no CS is identified.
+    if (L == 0) {
+      pip_plot <- ggplot(pdat, aes(x = .data$pos, y = .data$pip)) +
+        geom_point(color = "darkblue", shape = 20, size = 1.25) +
+        xlim(poslim[1], poslim[2]) +
+        labs(
+          x = sprintf("chromosome %d position (Mb)", chr),
+          y = "PIP"
+        ) +
+        theme_cowplot(font_size = 9)
+      return(list(
+        pip_plot = pip_plot,
+        effect_plot = NULL,
+        z_plot = NULL,
+        effects = NULL
+      ))
+    }
+
     # Add key CS statistics to the legend (size, purity).
     cs_size <- sapply(fit$sets$cs[css], length)
-    for (i in 1:L) {
+    for (i in seq_len(L)) {
       j <- css[i]
       if (cs_size[i] == 1) {
         levels(pdat_cs$cs)[i] <- sprintf("%s (1 SNP)", j)
@@ -190,7 +207,7 @@ mvsusie_plot <-
     effect_dat$marker <- rep(markers, each = length(outcomes))
     effect_dat$pos <- rep(pos, each = length(outcomes))
     effect_dat$sentinel <- 0
-    for (i in 1:L) {
+    for (i in seq_len(L)) {
       l <- css[i]
       j <- fit$sets$cs[[l]]
       b <- fit$b1_rescaled[l, j, ]
@@ -296,12 +313,11 @@ mvsusie_plot <-
           ))
         ) +
         theme_cowplot(font_size = 9) +
+        background_grid(major = "xy", minor = "none",
+                        size.major = 0.3, colour.major = "grey85") +
+        panel_border(colour = "grey70") +
         theme(
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-          panel.grid = element_line(
-            color = "lightgray", linewidth = 0.3,
-            linetype = "dotted"
-          )
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
         )
 
       # If requested, add colored dots to the top of the plot showing CS
@@ -366,12 +382,11 @@ mvsusie_plot <-
           ))
         ) +
         theme_cowplot(font_size = 9) +
+        background_grid(major = "xy", minor = "none",
+                        size.major = 0.3, colour.major = "grey85") +
+        panel_border(colour = "grey70") +
         theme(
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-          panel.grid = element_line(
-            color = "lightgray", linewidth = 0.3,
-            linetype = "dotted"
-          )
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
         )
       if (add_cs) {
         z_plot <- plot_grid(p_cs, z_plot,

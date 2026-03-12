@@ -4,13 +4,13 @@
 \alias{mvsusie_get_alpha_per_outcome}
 \title{Outcome-specific alpha (per-effect inclusion weights).}
 \usage{
-mvsusie_get_alpha_per_outcome(m, prior_obj)
+mvsusie_get_alpha_per_outcome(m, prior_obj = NULL)
 }
 \arguments{
 \item{m}{A fitted mvsusie object (output of \code{mvsusie}).}
 
-\item{prior_obj}{A mash prior object (output of \code{create_mash_prior}
-or \code{create_mixture_prior}) that was used to fit the model.}
+\item{prior_obj}{Optional mash prior object. If not provided, the
+active prior matrices are taken from \code{m$V_structure}.}
 }
 \value{
 L x J x R array of outcome-specific alpha values.

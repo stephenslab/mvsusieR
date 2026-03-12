@@ -4,13 +4,13 @@
 \alias{mvsusie_get_pip_per_outcome}
 \title{Outcome-specific posterior inclusion probabilities.}
 \usage{
-mvsusie_get_pip_per_outcome(m, prior_obj)
+mvsusie_get_pip_per_outcome(m, prior_obj = NULL)
 }
 \arguments{
 \item{m}{A fitted mvsusie object (output of \code{mvsusie}).}
 
-\item{prior_obj}{A mash prior object (output of \code{create_mash_prior}
-or \code{create_mixture_prior}) that was used to fit the model.}
+\item{prior_obj}{Optional mash prior object. If not provided, the
+active prior matrices are taken from \code{m$V_structure}.}
 }
 \value{
 J x R matrix of outcome-specific PIPs.
