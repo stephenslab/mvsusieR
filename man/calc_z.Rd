@@ -8,19 +8,15 @@
 calc_z(X, Y, center = FALSE, scale = FALSE)
 }
 \arguments{
-\item{X}{N by J matrix of covariates.}
+\item{X}{n by p matrix of regressors.}
 
-\item{Y}{Vector of length N, or N by R matrix of response
-variables.}
+\item{center}{If \code{center = TRUE}, center X, y and Z.}
 
-\item{center}{If \code{center = TRUE}, center X and Y.}
-
-\item{scale}{If \code{scale = TRUE}, scale X and Y.}
+\item{scale}{If \code{scale = TRUE}, scale X, y and Z.}
 }
 \value{
 A matrix of z-scores.
 }
 \description{
-Computes the z-scores (t-statistics) for association
-  between Y and each column of X.
+Re-exported from \code{\link[susieR]{calc_z}}.
 }

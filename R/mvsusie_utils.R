@@ -229,34 +229,15 @@ is_numeric_matrix <- function(X, name) {
 #' @title Computes the z-scores (t-statistics) for association
 #'   between Y and each column of X.
 #'
-#' @param X N by J matrix of covariates.
+#' @description Re-exported from \code{\link[susieR]{calc_z}}.
 #'
-#' @param Y Vector of length N, or N by R matrix of response
-#'   variables.
-#'
-#' @param center If \code{center = TRUE}, center X and Y.
-#' 
-#' @param scale If \code{scale = TRUE}, scale X and Y.
+#' @inheritParams susieR::calc_z
 #'
 #' @return A matrix of z-scores.
-#' 
-#' @importFrom susieR univariate_regression
 #'
+#' @importFrom susieR calc_z
 #' @export
-#' 
-calc_z = function (X, Y, center = FALSE, scale = FALSE) {
-  univariate_z = function(X,Y,center,scale) {
-    out = univariate_regression(X,Y,center = center,scale = scale)
-    return(out$betahat/out$sebetahat)
-  }
-  if (is.null(dim(Y)))
-    return(univariate_z(X,Y,center,scale))
-  else
-    return(do.call(cbind,lapply(1:ncol(Y),
-                                function(i) univariate_z(X,Y[,i],
-                                                         center = center,
-                                                         scale = scale))))
-}
+calc_z <- susieR::calc_z
 
 # Weighted log-sum-exp (softmax).
 #

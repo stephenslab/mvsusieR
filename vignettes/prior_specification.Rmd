@@ -192,21 +192,5 @@ cat("(Higher ELBO is better)\n")
 
 The weight estimation method can be set via `mixture_weight_method`:
 `"mixsqp"` (default, uses the mixsqp package for fast optimization)
-or `"EM"`.
-
-Summary
--------
-
-| Approach | When to use |
-|:---------|:------------|
-| `0.2 * diag(var(Y))` | Quick start; independent trait assumption |
-| `create_mixture_prior(R)` | General purpose; no external data needed |
-| `create_mixture_prior(fitted_g)` | Best results; requires mashr pre-analysis |
-
-Key options:
-
-- `estimate_prior_variance = TRUE`: estimate overall signal strength
-  (recommended)
-- `estimate_prior_method`: `"optim"` (default) or `"EM"`
-- `estimate_prior_mixture_weights = TRUE`: estimate component
-  weights (recommended for mixture priors)
+or `"EM"`. The former might be slower per iteration but the latter 
+might take longer to converge.
