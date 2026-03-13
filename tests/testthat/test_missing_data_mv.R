@@ -3,7 +3,6 @@
 # Tests: imputation formula correctness, ELBO corrections, V update,
 # utility functions, R=1 path preservation, and R>1 end-to-end integration.
 
-context("Missing data variational imputation")
 
 # ============================================================================
 # Helper: generate multivariate SuSiE data with missing entries

@@ -4,7 +4,6 @@
 # impute_missing_Y (R version), impute_missing_Y_rcpp (C++ version),
 # and consistency between the two implementations.
 
-context("Pattern-based missing data caching")
 
 # ============================================================================
 # Helper: naive per-observation imputation (no caching)

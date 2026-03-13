@@ -1,5 +1,3 @@
-context("Test uniroot prior variance estimation")
-
 # =============================================================================
 # Univariate (R=1): uniroot vs optim should give similar results
 # =============================================================================

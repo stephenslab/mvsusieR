@@ -12,13 +12,13 @@ vignette: >
 mvSuSiE provides three interfaces for fitting multivariate
 Sum of Single Effects models, depending on the type of data available:
 
-1. `mvsusie()` --- individual-level data (genotype matrix $X$ and
+1. `mvsusie()`: individual-level data (genotype matrix $X$ and
    phenotype matrix $Y$).
 
-2. `mvsusie_ss()` --- sufficient statistics ($X^TX$, $X^TY$, $Y^TY$
+2. `mvsusie_ss()`: sufficient statistics ($X^TX$, $X^TY$, $Y^TY$
    and the sample size $N$).
 
-3. `mvsusie_rss()` --- summary statistics (*z*-scores and an LD
+3. `mvsusie_rss()`: summary statistics (*z*-scores and an LD
    matrix, or effect estimates and standard errors. Sample size $N$ is optional 
    and is fixed for all traits).
 
@@ -41,6 +41,7 @@ set.seed(1)
 ```
 
 ## Simulate data
+
 We use realistic genotypes from the `susieR` package and simulate a
 phenotype matrix with $R = 10$ traits. Four SNPs are chosen as causal,
 each with effects drawn independently across traits.
@@ -72,6 +73,7 @@ resid_var <- diag(r)
 ```
 
 ## Interface 1: Individual-level data
+
 The most straightforward interface takes the raw genotype matrix $X$
 ($N \times J$) and phenotype matrix $Y$ ($N \times R$).
 
@@ -95,6 +97,7 @@ fit$sets$cs
 ```
 
 ## Interface 2: Sufficient statistics
+
 When individual-level data are not available but cross-products can be
 shared, `mvsusie_ss()` accepts the sufficient statistics $X^TX$,
 $X^TY$, $Y^TY$ and the sample size $N$. The columns of $X$ and $Y$
@@ -127,6 +130,7 @@ fit_ss <- mvsusie_ss(XtX, XtY, YtY, N = n, L = 10,
 ```
 
 ## Interface 3: Summary statistics (RSS)
+
 In many genetic studies, only univariate association *z*-scores and
 a linkage disequilibrium (LD) matrix are available. `mvsusie_rss()`
 accepts a $J \times R$ matrix of *z*-scores and a $J \times J$
@@ -151,6 +155,7 @@ fit_rss <- mvsusie_rss(Z, LD, N = n, L = 10,
 ```
 
 ## Verifying agreement across interfaces
+
 When the LD matrix and *z*-scores are computed from the same
 individual-level data, all three interfaces should produce
 (near-)identical results.

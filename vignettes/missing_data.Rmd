@@ -34,6 +34,7 @@ set.seed(1)
 ```
 
 ## Simulate complete data
+
 ```{r simulate-data}
 data(N3finemapping)
 X <- N3finemapping$X
@@ -59,6 +60,7 @@ cat("Complete data: CS =", length(fit_complete$sets$cs), "\n")
 ```
 
 ## Random missing data (MCAR)
+
 We introduce missing values completely at random at three rates:
 5%, 20%, and 50%.
 
@@ -108,20 +110,18 @@ ggplot(pdat, aes(x = complete, y = missing)) +
   theme_cowplot(font_size = 10)
 ```
 
-With moderate amounts of missing data (up to 20%), the results are
+With moderate amounts of missing data, the results are
 very similar to the complete data analysis. Even at 50% missing,
 the strongest signals are preserved.
 
 ## Block missing data (cross-population scenario)
+
 In a cross-population analysis, different cohorts may measure
 different subsets of traits. We simulate this by making the first
-5 traits missing for half the samples, and the last 5 traits missing
-for the other half. This mimics two cohorts that each measure 5 of
-10 traits, plus 5 shared traits are available.
-
-Actually, a cleaner block-missing pattern: traits 1--5 are observed
-only in the first half of samples, traits 6--10 only in the second
-half. No trait is observed in all samples.
+5 traits observed
+only in the first half of samples, and the last 5 traits only in the second
+half.
+ This mimics two cohorts each measuring the same 5 traits.
 
 ```{r block-missing}
 Y_block <- Y_complete
@@ -163,6 +163,7 @@ cross-population assumptions (such as different effect sizes across
 ancestries), but the method works given a reasonable prior structure.
 
 ## Missing data methods
+
 mvSuSiE provides three methods for handling missing data, controlled
 by the `missing_y_method` argument:
 

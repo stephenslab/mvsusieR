@@ -653,7 +653,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
 #' @importFrom stats sd var cov cov2cor
 #' @importFrom susieR susie_get_cs
 #'
-#' @export
+#' @keywords internal
 #'
 mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        residual_variance = NULL, prior_weights = NULL,
@@ -864,7 +864,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
 #' @importFrom stats cov2cor
 #' @importFrom susieR susie_get_cs
 #'
-#' @export
+#' @keywords internal
 #'
 mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   X_colmeans = NULL, Y_colmeans = NULL,

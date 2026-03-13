@@ -1,5 +1,3 @@
-context("Test SuSiE regression")
-
 # NOTE: Tests comparing R6 SuSiE/SingleEffectModel/BayesianSimpleRegression
 # against susieR have been removed because R6 classes have been deleted.
 # Those tests are superseded by test_r1_susieR_identity.R which compares
@@ -135,4 +133,23 @@ test_that("customized initialization interface (RSS)", with(simulate_multivariat
   null_weight = 0.2
   m_init = create_mixture_prior(R = ncol(y),null_weight = null_weight, max_mixture_len=-1)
   expect_equal(m_init$null_weight, null_weight)
+}))
+
+# ---- Tests merged from test_estimate_residual.R ----
+
+test_that("estimated residual variance: matrix prior vs mash_prior agree", with(simulate_multivariate(r = 1), {
+  # Compare S3 matrix prior vs S3 mash_prior (both go through S3 path)
+  null_weight = 0
+  mash_init = create_mash_prior(Ulist = list(V), grid = 1, null_weight = null_weight)
+  CA_s3 = mvsusie(X, y, L = L, prior_variance = V,
+                  residual_variance = cov(y),
+                  estimate_residual_variance = T,
+                  estimate_prior_variance = FALSE,
+                  )
+  DA = mvsusie(X, y, L = L, prior_variance = mash_init,
+               residual_variance = cov(y),
+               estimate_residual_variance = T,
+               estimate_prior_variance = FALSE,
+               )
+  expect_susie_equal(CA_s3, DA, F, T)
 }))

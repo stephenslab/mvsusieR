@@ -26,6 +26,7 @@ set.seed(1)
 ```
 
 ## Simulate data and split into training and test sets
+
 We simulate multi-trait data using realistic genotypes and split the
 samples into training (80%) and test (20%) sets.
 
@@ -57,6 +58,7 @@ cat(sprintf("Training: %d samples, Test: %d samples\n",
 ```
 
 ## Fit mvSuSiE and extract coefficients
+
 We fit mvSuSiE using a canonical mixture prior. This is the simplest
 approach and requires no additional setup.
 
@@ -91,6 +93,7 @@ ggplot(pdat, aes(x = true, y = estimated)) +
 ```
 
 ## In-sample and out-of-sample prediction
+
 Calling `predict()` without a new data matrix returns the fitted
 values from the training data. To predict on new data, pass the
 test genotype matrix via the `newx` argument.
@@ -133,6 +136,7 @@ results
 ```
 
 ## Using a data-driven prior for prediction
+
 A data-driven prior learned via [mashr][mashr] can potentially
 improve predictions by better capturing the true effect-sharing
 patterns across traits. See the

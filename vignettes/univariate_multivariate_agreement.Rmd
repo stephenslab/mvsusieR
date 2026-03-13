@@ -39,6 +39,7 @@ Y <- X %*% B + matrix(rnorm(n * r), n, r)
 ```
 
 ## R = 1 reduces to univariate SuSiE
+
 When there is only one outcome ($R = 1$), the multivariate model
 should give the same result as univariate SuSiE. This verifies that
 the multivariate code path correctly handles the scalar case.
@@ -77,6 +78,7 @@ ggplot(pdat, aes(x = susie, y = mvsusie)) +
 The PIPs agree at machine precision, confirming the $R = 1$ reduction.
 
 ## Single-effect regression agreement
+
 At the core of both SuSiE and mvSuSiE is the single-effect
 regression (SER) step. When $R = 1$, mvSuSiE's SER should
 give the same Bayes factors and posterior weights as SuSiE's.
@@ -94,6 +96,7 @@ cat("max |alpha diff| (first effect):",
 ```
 
 ## Mixture prior (K > 1) vs single matrix prior (K = 1)
+
 mvSuSiE supports two code paths for the prior: a single $R \times R$
 covariance matrix, and a mixture of $K$ matrices (the "mash" prior).
 When $K = 1$, the mixture prior should give the same result as
@@ -139,7 +142,3 @@ ggplot(pdat, aes(x = single, y = mixture)) +
        y = "PIP (mixture prior, K=1)") +
   theme_cowplot(font_size = 12)
 ```
-
-These engineering checks confirm that the single-matrix and
-mixture-prior code paths agree, and that the multivariate
-implementation correctly reduces to the univariate case.

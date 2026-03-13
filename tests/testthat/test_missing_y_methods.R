@@ -1,5 +1,3 @@
-context("Test approximate and exact missing data methods")
-
 # =============================================================================
 # Integration tests: mvsusie with approximate/exact methods
 # =============================================================================

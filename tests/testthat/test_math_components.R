@@ -9,15 +9,15 @@
 #  1. Standalone functions: multivariate_regression, multivariate_lbf,
 #     compute_softmax, mvsusie_get_lfsr, mvsusie_single_effect_lfsr
 #  2. Mash prior construction: create_mash_prior vs MashInitializer
-#  3. Full end-to-end: ALL output fields (alpha, lbf, b1, b2, coef,
-#     fitted, pip, lfsr, single_effect_lfsr, mixture_weights, sigma2,
-#     V, niter, KL, elbo)
-#  4. Special case: mixture K=1 no-null = single matrix prior
-#  5. SS path = individual path (on equivalent data)
-#  6. Workhorse defaults sanity
+#  3. Special case: mixture K=1 no-null = single matrix prior
+#  4. SS path = individual path (on equivalent data)
+#  5. Workhorse defaults sanity
+#  6. Edge cases
+#
+# Full end-to-end S3-vs-R6 comparison across parameter sweeps is in
+# test_numerical_sweep.R.
 # ============================================================================
 
-context("Component-level math verification (zero tolerance)")
 
 # --------------------------------------------------------------------------
 # Setup: load R6 reference from master (reusing test_r6_reference.R infra)
@@ -286,10 +286,8 @@ test_that("create_mash_prior K=1: matches single matrix", {
 })
 
 # ============================================================================
-# Section 3: Full end-to-end comparison (ALL output fields)
+# Helper: compare ALL output fields between two mvsusie fits
 # ============================================================================
-
-# Helper: compare ALL output fields between S3 and R6 fits
 #
 # NOTE on V: R6 stores V as the prior_variance_scalar (starts at 1 for fixed
 # prior, may change with EM/optim estimation). S3 stores V = V_scalar * max_diag
@@ -377,234 +375,9 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
   }
 }
 
-# ---- R=1, matrix prior, fixed everything ----
-test_that("R=1 matrix prior: ALL output fields match R6 (fixed V, fixed sigma2)", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r1, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V[1, 1],
-                   residual_variance = as.numeric(var(y)),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = V[1, 1],
-                      residual_variance = as.numeric(var(y)),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R1_matrix_fixed")
-  })
-})
-
-# ---- R=3, matrix prior, fixed everything ----
-test_that("R=3 matrix prior: ALL output fields match R6 (fixed V, fixed sigma2)", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_matrix_fixed")
-  })
-})
-
-# ---- R=3, matrix prior, estimate residual variance ----
-test_that("R=3 matrix prior: ALL fields match R6 (estimate sigma2)", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = TRUE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = TRUE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_matrix_est_sigma2")
-  })
-})
-
-# ---- R=3, matrix prior, no intercept, no standardize ----
-test_that("R=3 no intercept/standardize: ALL fields match R6", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = FALSE, standardize = FALSE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = FALSE, standardize = FALSE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_no_intercept_no_std")
-  })
-})
-
-# ---- R=3, L=1 single effect ----
-test_that("R=3 L=1: ALL fields match R6", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    fit <- mvsusie(X, y, L = 1, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = 1, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_L1")
-  })
-})
-
-# ---- R=3, mash prior K=1, fixed ----
-test_that("R=3 mash K=1 fixed: ALL fields match R6", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    s3_prior <- create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
-    r6_prior <- r6$MashInitializer$new(Ulist = list(V), grid = 1, null_weight = 0)
-    fit <- mvsusie(X, y, L = L, prior_variance = s3_prior,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE,
-                      precompute_covariances = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_mash_K1_fixed")
-  })
-})
-
-# ---- R=3, mash prior K=1, EM prior estimation ----
-test_that("R=3 mash K=1 EM: ALL fields match R6", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    s3_prior <- create_mash_prior(Ulist = list(V), grid = 1, null_weight = 0)
-    r6_prior <- r6$MashInitializer$new(Ulist = list(V), grid = 1, null_weight = 0)
-    fit <- mvsusie(X, y, L = L, prior_variance = s3_prior,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = TRUE,
-                   estimate_prior_method = "EM",
-                   intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = TRUE,
-                      estimate_prior_method = "EM",
-                      intercept = TRUE, standardize = TRUE,
-                      precompute_covariances = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_mash_K1_EM")
-  })
-})
-
-# ---- R=3, multi-component mash prior ----
-test_that("R=3 mash multi-component: ALL fields match R6", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    U1 <- V
-    U2 <- diag(3)
-    s3_prior <- create_mash_prior(Ulist = list(U1, U2),
-                                   grid = c(0.5, 1.0), null_weight = 0.1)
-    r6_prior <- r6$MashInitializer$new(Ulist = list(U1, U2),
-                                        grid = c(0.5, 1.0), null_weight = 0.1)
-    fit <- mvsusie(X, y, L = L, prior_variance = s3_prior,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = FALSE,
-                   estimate_prior_mixture_weights = FALSE,
-                   intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE,
-                      precompute_covariances = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_mash_multi_fixed")
-  })
-})
-
-# ---- R=3, matrix prior, EM prior estimation ----
-test_that("R=3 matrix EM: ALL fields match R6", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = TRUE,
-                   estimate_prior_method = "EM",
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = TRUE,
-                      estimate_prior_method = "EM",
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    expect_all_fields_equal(fit, ref, tol = MACH_TOL,
-                            label = "R3_matrix_EM")
-  })
-})
-
-# ---- R=3, matrix prior, optim estimation ----
-test_that("R=3 matrix optim: ALL fields match R6", {
-  skip_if_no_r6()
-  r6 <- load_r6_env()
-  with(sim_r3, {
-    fit <- mvsusie(X, y, L = L, prior_variance = V,
-                   residual_variance = cov(y),
-                   estimate_residual_variance = FALSE,
-                   estimate_prior_variance = TRUE,
-                   estimate_prior_method = "optim",
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
-    ref <- r6$mvsusie(X, y, L = L, prior_variance = V,
-                      residual_variance = cov(y),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = TRUE,
-                      estimate_prior_method = "optim",
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
-    # Optim: Brent optimizer convergence noise (~3e-8 in V_scalar)
-    # cascades to ~6e-8 in derived quantities (lbf_variable).
-    # Use 1e-7 tolerance (MACH_TOL ~ 1.5e-8 is too tight for optim output).
-    expect_all_fields_equal(fit, ref, tol = 1e-7,
-                            label = "R3_matrix_optim")
-  })
-})
-
 # ============================================================================
-# Section 4: Special case --mixture K=1 no-null = single matrix prior
+# Section 3: Special case -- K=1 no-null = single matrix prior
+# (R=1 mash K=1 S3-vs-R6 check also lives here)
 # ============================================================================
 
 test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fixed)", {
@@ -725,7 +498,7 @@ test_that("R=1 mash K=1: S3 matches R6 at machine precision", {
 })
 
 # ============================================================================
-# Section 5: Sufficient statistics path = individual path
+# Section 4: Sufficient statistics path = individual path
 # ============================================================================
 #
 # IMPORTANT: mvsusie_ss expects PRE-CENTERED inputs (as documented in
@@ -799,7 +572,7 @@ test_that("mvsusie_ss = mvsusie at machine precision (R=1, centered inputs)", {
 })
 
 # ============================================================================
-# Section 6: Workhorse defaults sanity
+# Section 5: Workhorse defaults sanity
 # ============================================================================
 
 test_that("mvsusie_workhorse defaults match R6 master reference values", {
@@ -836,7 +609,7 @@ test_that("mvsusie_workhorse internal params have correct defaults", {
 })
 
 # ============================================================================
-# Section 7: Edge cases
+# Section 6: Edge cases
 # ============================================================================
 
 test_that("R=1 J=1 edge case doesn't crash", {

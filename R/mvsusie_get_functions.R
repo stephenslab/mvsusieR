@@ -185,27 +185,57 @@ apply_mvsusie_dimnames <- function(s) {
   cnames <- s$outcome_names
   lnames <- paste0("l", seq_len(L))
 
-  # alpha: L x J with row=effect names, col=variable names  dimnames(s$alpha) <- list(lnames, vnames)
+  # alpha: L x J
+  dimnames(s$alpha) <- list(lnames, vnames)
 
-  # lbf_variable: no dimnames  dimnames(s$lbf_variable) <- NULL
+  # lbf_variable: L x J
+  if (!is.null(s$lbf_variable))
+    dimnames(s$lbf_variable) <- list(lnames, vnames)
 
-  # lbf: no names  names(s$lbf) <- NULL
+  # lbf: L-vector
+  if (!is.null(s$lbf))
+    names(s$lbf) <- lnames
+
+  # pip: J-vector
+  if (!is.null(s$pip))
+    names(s$pip) <- vnames
+
+  # sigma2: R x R matrix
+  if (!is.null(s$sigma2) && is.matrix(s$sigma2))
+    dimnames(s$sigma2) <- list(cnames, cnames)
+
+  # V_structure: list of R x R matrices
+  if (!is.null(s$V_structure) && is.list(s$V_structure)) {
+    for (k in seq_along(s$V_structure)) {
+      if (is.matrix(s$V_structure[[k]]))
+        dimnames(s$V_structure[[k]]) <- list(cnames, cnames)
+    }
+  }
 
   R <- length(cnames)
   if (R > 1) {
-    # b1, b2: no dimnames    dimnames(s$b1) <- NULL
-    dimnames(s$b2) <- NULL
+    # b1, b2: L x J x R arrays
+    if (!is.null(s$b1) && length(dim(s$b1)) == 3)
+      dimnames(s$b1) <- list(lnames, vnames, cnames)
+    if (!is.null(s$b2) && length(dim(s$b2)) == 3)
+      dimnames(s$b2) <- list(lnames, vnames, cnames)
+
+    # lfsr: J x R matrix
+    if (!is.null(s$lfsr) && is.matrix(s$lfsr))
+      dimnames(s$lfsr) <- list(vnames, cnames)
+
+    # single_effect_lfsr: L x R matrix
+    if (!is.null(s$single_effect_lfsr) && is.matrix(s$single_effect_lfsr))
+      dimnames(s$single_effect_lfsr) <- list(lnames, cnames)
 
     # coef: (J+1) x R
-    coef_rownames <- c("(Intercept)", vnames)
-    dimnames(s$coef) <- list(coef_rownames, cnames)
+    dimnames(s$coef) <- list(c("(Intercept)", vnames), cnames)
 
     # fitted: N x R or J x R
-    if (!is.null(dim(s$fitted)) && ncol(s$fitted) == R) {
+    if (!is.null(dim(s$fitted)) && ncol(s$fitted) == R)
       colnames(s$fitted) <- cnames
-    }
   } else {
-    # R=1: b1 is L x J, coef is J+1 vector
+    # R=1: coef is J+1 vector
     names(s$coef) <- c("(Intercept)", vnames)
   }
 

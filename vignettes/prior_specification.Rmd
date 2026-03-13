@@ -27,6 +27,7 @@ set.seed(1)
 ```
 
 ## Simulate data
+
 We use realistic genotypes and simulate 10 correlated traits with
 4 causal SNPs.
 
@@ -43,6 +44,7 @@ cat(sprintf("Data: %d samples, %d SNPs, %d traits\n", n, p, r))
 ```
 
 ## Approach 1: Fixed diagonal prior
+
 The simplest prior for getting started is a diagonal matrix scaled
 to represent the expected heritability per trait. Setting
 $U = 0.2 \times \text{diag}(\text{var}(Y))$ corresponds to
@@ -67,6 +69,7 @@ cat("Credible sets:", length(fit_diag$sets$cs), "\n")
 ```
 
 ## Approach 2: Canonical mixture prior
+
 A more flexible approach uses `create_mixture_prior(R = r)` which
 automatically generates a set of canonical covariance matrices. These
 include singleton matrices (effect in one trait only) and shared
@@ -86,6 +89,7 @@ cat("Credible sets:", length(fit_canon$sets$cs), "\n")
 ```
 
 ## Approach 3: Data-driven prior from mashr
+
 For large-scale studies with many candidate regions, the recommended
 approach is to learn the prior from the data using
 [mashr](https://github.com/stephenslab/mashr). The idea is to fit
@@ -118,6 +122,7 @@ cat("Credible sets:", length(fit_mash$sets$cs), "\n")
 ```
 
 ## Comparing priors
+
 ```{r compare-priors, fig.height=3, fig.width=7}
 pdat <- data.frame(
   pip = c(fit_diag$pip, fit_canon$pip, fit_mash$pip),
@@ -134,10 +139,12 @@ ggplot(pdat, aes(x = pos, y = pip)) +
   theme_cowplot(font_size = 10)
 ```
 
-All three priors identify the causal variants (red dashed lines), but
-the mixture priors can provide better trait-specific resolution.
+All three priors identify the causal variants (red dashed lines) for this trivial example, but
+in practice the mixture priors can provide better trait-specific resolution, as shown in 
+[Zou et al (2026)](https://www.nature.com/articles/s41588-025-02486-7).
 
 ## Prior variance estimation
+
 The `estimate_prior_variance` option (default `TRUE`) allows mvSuSiE
 to estimate a scalar multiplier for the prior. This effectively
 adapts the overall signal strength. The `estimate_prior_method`
@@ -155,6 +162,7 @@ cat("PIP correlation (EM vs optim):", cor(fit_em$pip, fit_canon$pip), "\n")
 ```
 
 ## Mixture weight estimation
+
 When using a mixture prior, the `estimate_prior_mixture_weights`
 option (default `TRUE`) allows the relative weights of the mixture
 components to be estimated from the data. This is useful for

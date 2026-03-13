@@ -30,6 +30,7 @@ set.seed(1)
 ```
 
 ## LD-induced pleiotropy: the problem
+
 Consider two causal SNPs that are in *negative* LD. SNP 1 increases
 traits 1--5, and SNP 2 increases traits 6--10. Because of the
 negative LD, the marginal z-scores show associations in *all 10
@@ -95,6 +96,7 @@ pleiotropic. But the *sign pattern*---positive in 5 traits and
 negative in the other 5---is a hallmark of LD-induced pleiotropy.
 
 ## Resolving with mvSuSiE
+
 mvSuSiE with a mixture prior can separate the two linked signals
 into different credible sets, each with its own trait-specific
 effect pattern.
@@ -134,6 +136,7 @@ out$pip_plot
 ```
 
 ## Comparison with univariate analysis
+
 A univariate (single-trait) analysis cannot distinguish which
 SNP is causal for which trait when the SNPs are correlated.
 

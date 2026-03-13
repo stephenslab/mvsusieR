@@ -31,7 +31,6 @@
 #     - optim method (Brent optimizer convergence noise)
 # ============================================================================
 
-context("S3 vs R6 numerical sweep")
 
 # --------------------------------------------------------------------------
 # Setup: load R6 reference from master

@@ -417,3 +417,4 @@ Z <- calc_z(X, Y)
 res <- mvsusie_rss(Z, R, N = n, L = 10, prior_variance = prior)
 
 }
+\keyword{internal}

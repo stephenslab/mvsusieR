@@ -21,13 +21,29 @@ library(rprojroot)
 .mvsusie_ref_source_path <- NULL
 
 # Get reference package source (download once, cache path)
+#
+# In testthat 3e parallel mode, each worker runs helper_*.R independently
+# but tempdir() differs across workers. We use a fixed path inside the git
+# repo (.git/mvsusieR_r6_ref) so that setup.R can pre-create the worktree
+# once in the main process and all workers find the same checkout.
 get_mvsusie_reference_source <- function() {
   if (!is.null(.mvsusie_ref_source_path) &&
       dir.exists(.mvsusie_ref_source_path)) {
     return(.mvsusie_ref_source_path)
   }
 
-  ref_source <- file.path(tempdir(), "mvsusieR_reference_source")
+  # Determine repo root for the fixed path
+  repo_dir <- tryCatch({
+    gcd <- system2("git", c("rev-parse", "--git-common-dir"),
+                   stdout = TRUE, stderr = FALSE)
+    normalizePath(file.path(gcd, ".."))
+  }, error = function(e) NULL)
+
+  if (!is.null(repo_dir)) {
+    ref_source <- file.path(repo_dir, ".git", "mvsusieR_r6_ref")
+  } else {
+    ref_source <- file.path(tempdir(), "mvsusieR_r6_ref")
+  }
 
   if (!dir.exists(ref_source)) {
     message("Downloading reference mvsusieR source from GitHub...")

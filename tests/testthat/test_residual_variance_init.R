@@ -1,5 +1,3 @@
-context("Test residual variance initialization")
-
 # =============================================================================
 # Individual data: NULL residual_variance defaults
 # =============================================================================

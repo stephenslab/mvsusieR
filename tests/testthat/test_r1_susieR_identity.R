@@ -20,7 +20,6 @@
 # added once that feature is properly implemented for mvsusie.
 # =============================================================================
 
-context("R=1 mvsusie S3 vs susieR identity")
 
 # Helper: run mvsusie_core with R=1 and compare against susieR::susie
 compare_r1_fits <- function(fit_susie, fit_mv, tol = 1e-4,
@@ -46,12 +45,12 @@ compare_r1_fits <- function(fit_susie, fit_mv, tol = 1e-4,
 
   # KL divergence (length L)
   if (!any(is.na(fit_susie$KL)) && !any(is.na(fit_mv$KL)))
-    expect_equal(fit_susie$KL, fit_mv$KL,
+    expect_equal(unname(fit_susie$KL), unname(fit_mv$KL),
                  tolerance = tol, info = info("KL"))
 
   # lbf (length L)
   if (!any(is.na(fit_susie$lbf)) && !any(is.na(fit_mv$lbf)))
-    expect_equal(fit_susie$lbf, fit_mv$lbf,
+    expect_equal(unname(fit_susie$lbf), unname(fit_mv$lbf),
                  tolerance = tol, info = info("lbf"))
 
   # lbf_variable (L x J)

@@ -25,6 +25,7 @@ library(cowplot)
 ```
 
 ## Key considerations for large R
+
 When the number of traits $R$ is large (e.g., $R > 50$):
 
 1. **Prior specification**: A canonical or data-driven mixture prior
@@ -47,6 +48,7 @@ When the number of traits $R$ is large (e.g., $R > 50$):
    argument.
 
 ## Example: R = 100
+
 The following code shows how to set up and run an analysis with 100
 traits. Due to the computational cost, we show the code but do not
 execute it during the vignette build.
@@ -86,9 +88,3 @@ SNPs, $R = 100$ traits, and 105 canonical prior components completed
 in approximately **62 seconds** (5 IBSS iterations) with
 `precompute_cache = TRUE`. The fitted model object uses approximately
 41 MB of memory.
-
-Without `precompute_cache`, the same analysis takes approximately
-67 seconds---a modest difference in this case because the canonical
-prior matrices share structure that limits the cache benefit. The
-speedup from `precompute_cache` is more pronounced with data-driven
-priors that have diverse covariance structures.

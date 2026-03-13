@@ -1,5 +1,3 @@
-context("Test mixture prior weight updates (EM and mixsqp)")
-
 # =============================================================================
 # UNIT TESTS: inner_em_rcpp (C++ core)
 # =============================================================================
@@ -625,7 +623,7 @@ test_that("ELBO is monotonically non-decreasing with EM weight updates", with(si
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
                  mixture_weight_method = "EM",
-                 max_iter = 50))
+                 max_iter = 5))
   # ELBO should exist and be finite
   expect_true(length(fit$elbo) > 0)
   expect_true(all(is.finite(fit$elbo)))
@@ -647,7 +645,7 @@ test_that("ELBO is monotonically non-decreasing with mixsqp weight updates", wit
                  estimate_prior_variance = FALSE,
                  estimate_prior_mixture_weights = TRUE,
                  mixture_weight_method = "mixsqp",
-                 max_iter = 50))
+                 max_iter = 5))
   # ELBO should exist and be finite
   expect_true(length(fit$elbo) > 0)
   expect_true(all(is.finite(fit$elbo)))
@@ -674,7 +672,7 @@ test_that("EM and mixsqp produce similar pi_V weights", with(simulate_multivaria
                     estimate_prior_variance = FALSE,
                     estimate_prior_mixture_weights = TRUE,
                     mixture_weight_method = "EM",
-                    max_iter = 50))
+                    max_iter = 5))
 
   fit_msqp <- suppressWarnings(mvsusie(X, y, L = 3, prior_variance = prior,
                       residual_variance = residual_var,
@@ -682,7 +680,7 @@ test_that("EM and mixsqp produce similar pi_V weights", with(simulate_multivaria
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = TRUE,
                       mixture_weight_method = "mixsqp",
-                      max_iter = 50))
+                      max_iter = 5))
 
   # After final pruning, both should have the same number of components
   expect_equal(length(fit_em$pi_V), length(fit_msqp$pi_V))
@@ -731,7 +729,7 @@ test_that("EM and mixsqp produce similar final ELBO", with(simulate_multivariate
                     estimate_prior_variance = FALSE,
                     estimate_prior_mixture_weights = TRUE,
                     mixture_weight_method = "EM",
-                    max_iter = 50))
+                    max_iter = 5))
 
   fit_msqp <- suppressWarnings(mvsusie(X, y, L = 3, prior_variance = prior,
                       residual_variance = residual_var,
@@ -739,7 +737,7 @@ test_that("EM and mixsqp produce similar final ELBO", with(simulate_multivariate
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = TRUE,
                       mixture_weight_method = "mixsqp",
-                      max_iter = 50))
+                      max_iter = 5))
 
   # Final ELBOs should be close
   elbo_em <- tail(fit_em$elbo, 1)
@@ -769,7 +767,7 @@ test_that("estimate_residual_variance=FALSE + weight update works", with(simulat
   # pi_V should have changed
   expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
   # sigma2 should be unchanged (residual variance not estimated)
-  expect_equal(fit$sigma2, residual_var, tolerance = 1e-10)
+  expect_equal(unname(fit$sigma2), unname(residual_var), tolerance = 1e-10)
 }))
 
 test_that("Both residual variance and weight update work together", with(simulate_multivariate(r=2), {

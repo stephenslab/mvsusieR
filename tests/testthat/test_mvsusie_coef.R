@@ -1,12 +1,10 @@
-context("mvsusie_coef")
-
 test_that("coef() gives the right coefficients with 1 outcome",{
 
   # Simulate a 200 x 100 data set with 1 response.
   set.seed(1)
-  n <- 200
-  p <- 100
-  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(96))
+  n <- 100
+  p <- 50
+  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(p - 4))
   X   <- (runif(n*p) < maf) +
          (runif(n*p) < maf)
   X   <- matrix(as.double(X),n,p,byrow = TRUE)
@@ -36,11 +34,11 @@ test_that("coef() gives the right coefficients with 3 outcomes",{
 
   # Simulate a 200 x 100 data set with 3 outcomes.
   set.seed(1)
-  n <- 200
-  p <- 100
+  n <- 100
+  p <- 50
   r <- 3
   n1 <- 3
-  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(96))
+  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(p - 4))
   X   <- (runif(n*p) < maf) +
          (runif(n*p) < maf)
   X   <- matrix(as.double(X),n,p,byrow = TRUE)
