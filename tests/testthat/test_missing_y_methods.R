@@ -10,7 +10,7 @@ test_that("approximate method runs and converges with 20% MCAR", {
                  estimate_prior_variance = TRUE,
                  estimate_residual_variance = FALSE,
                  residual_variance = cov(sim$y),
-                 max_iter = 10, tol = 1e-3, verbosity = 0)
+                 max_iter = 10, tol = 1e-3, verbose = FALSE)
   expect_true(!is.null(fit$alpha))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
   expect_true(max(fit$pip) > 0.1)
@@ -24,7 +24,7 @@ test_that("exact method runs and converges with 20% MCAR", {
                  estimate_prior_variance = TRUE,
                  estimate_residual_variance = FALSE,
                  residual_variance = cov(sim$y),
-                 max_iter = 10, tol = 1e-3, verbosity = 0)
+                 max_iter = 10, tol = 1e-3, verbose = FALSE)
   expect_true(!is.null(fit$alpha))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
   expect_true(max(fit$pip) > 0.1)
@@ -39,14 +39,14 @@ test_that("approximate method equals standard when no data is missing", {
                           estimate_prior_variance = FALSE,
                           estimate_residual_variance = FALSE,
                           residual_variance = V,
-                          max_iter = 5, verbosity = 0)
+                          max_iter = 5, verbose = FALSE)
   fit_approx <- mvsusie(sim$X, sim$y, L = 5,
                          prior_variance = sim$V,
                          missing_y_method = "approximate",
                          estimate_prior_variance = FALSE,
                          estimate_residual_variance = FALSE,
                          residual_variance = V,
-                         max_iter = 5, verbosity = 0)
+                         max_iter = 5, verbose = FALSE)
   expect_equal(fit_standard$alpha, fit_approx$alpha)
   expect_equal(fit_standard$pip, fit_approx$pip)
 })
@@ -60,14 +60,14 @@ test_that("approximate and impute PIPs are correlated with 20% MCAR", {
                          estimate_prior_variance = TRUE,
                          estimate_residual_variance = FALSE,
                          residual_variance = V,
-                         max_iter = 10, tol = 1e-3, verbosity = 0)
+                         max_iter = 10, tol = 1e-3, verbose = FALSE)
   fit_approx <- mvsusie(sim$X, sim$y_missing, L = 5,
                           prior_variance = sim$V,
                           missing_y_method = "approximate",
                           estimate_prior_variance = TRUE,
                           estimate_residual_variance = FALSE,
                           residual_variance = V,
-                          max_iter = 10, tol = 1e-3, verbosity = 0)
+                          max_iter = 10, tol = 1e-3, verbose = FALSE)
   pip_cor <- cor(fit_impute$pip, fit_approx$pip)
   expect_true(pip_cor > 0.5)
 })
@@ -80,7 +80,7 @@ test_that("exact method has monotonically non-decreasing ELBO", {
                  estimate_prior_variance = FALSE,
                  estimate_residual_variance = FALSE,
                  residual_variance = cov(sim$y),
-                 max_iter = 10, tol = 1e-3, verbosity = 0)
+                 max_iter = 10, tol = 1e-3, verbose = FALSE)
   elbo <- fit$elbo[!is.na(fit$elbo)]
   if (length(elbo) > 1) {
     diffs <- diff(elbo)
@@ -100,7 +100,7 @@ test_that("approximate correctly identifies null effects in pure noise", {
                  estimate_prior_variance = TRUE,
                  estimate_residual_variance = FALSE,
                  residual_variance = diag(r),
-                 max_iter = 10, tol = 1e-3, verbosity = 0)
+                 max_iter = 10, tol = 1e-3, verbose = FALSE)
   expect_true(all(fit$V < 1.0))
 })
 
@@ -109,11 +109,11 @@ test_that("missing_y_method is ignored for R=1", {
   fit1 <- mvsusie(sim$X, sim$y, L = 5,
                   missing_y_method = "approximate",
                   estimate_prior_variance = FALSE,
-                  max_iter = 3, verbosity = 0)
+                  max_iter = 3, verbose = FALSE)
   fit2 <- mvsusie(sim$X, sim$y, L = 5,
                   missing_y_method = "impute",
                   estimate_prior_variance = FALSE,
-                  max_iter = 3, verbosity = 0)
+                  max_iter = 3, verbose = FALSE)
   expect_equal(fit1$alpha, fit2$alpha)
 })
 
@@ -126,7 +126,7 @@ test_that("approximate/exact allow estimate_residual_variance = TRUE", {
             prior_variance = sim$V,
             missing_y_method = "approximate",
             estimate_residual_variance = TRUE,
-            max_iter = 3, verbosity = 0)
+            max_iter = 3, verbose = FALSE)
   )
   expect_true(!is.null(fit$alpha))
   expect_true(all(is.finite(fit$pip)))
@@ -141,14 +141,14 @@ test_that("approximate equals exact when residual variance is diagonal", {
                          estimate_prior_variance = FALSE,
                          estimate_residual_variance = FALSE,
                          residual_variance = V_diag,
-                         max_iter = 5, verbosity = 0)
+                         max_iter = 5, verbose = FALSE)
   fit_exact <- mvsusie(sim$X, sim$y_missing, L = 5,
                         prior_variance = sim$V,
                         missing_y_method = "exact",
                         estimate_prior_variance = FALSE,
                         estimate_residual_variance = FALSE,
                         residual_variance = V_diag,
-                        max_iter = 5, verbosity = 0)
+                        max_iter = 5, verbose = FALSE)
   expect_equal(fit_approx$alpha, fit_exact$alpha, tolerance = 0.1)
   expect_equal(fit_approx$pip, fit_exact$pip, tolerance = 0.1)
 })
@@ -162,7 +162,7 @@ test_that("approximate converges for R=3 with mixture prior", {
                  estimate_prior_variance = TRUE,
                  estimate_residual_variance = FALSE,
                  residual_variance = cov(sim$y),
-                 max_iter = 10, tol = 1e-3, verbosity = 0)
+                 max_iter = 10, tol = 1e-3, verbose = FALSE)
   expect_true(!is.null(fit$pip))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })
@@ -183,7 +183,7 @@ test_that("approximate method handles non-overlapping sample groups", {
                  estimate_prior_variance = TRUE,
                  estimate_residual_variance = FALSE,
                  residual_variance = V,
-                 max_iter = 10, tol = 1e-3, verbosity = 0)
+                 max_iter = 10, tol = 1e-3, verbose = FALSE)
   expect_true(!is.null(fit$pip))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })

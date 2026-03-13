@@ -30,7 +30,7 @@ reset_warn_once <- function() {
 }
 
 # Report suppressed warning counts and reset (call at end of fitting).
-# Set verbose = FALSE to suppress the summary messages (verbosity = 0).
+# Set verbose = FALSE to suppress the summary messages.
 flush_warn_once <- function(verbose = TRUE) {
   if (verbose) {
     for (id in names(.mvsusie_warn_state$counts)) {

@@ -9,13 +9,13 @@ test_that("uniroot gives similar results to optim for R=1 individual data", {
                        estimate_prior_method = "optim",
                        estimate_residual_variance = FALSE,
                        prior_tol = 1e-15,
-                       max_iter = 20, tol = 1e-3, verbosity = 0)
+                       max_iter = 20, tol = 1e-3, verbose = FALSE)
   fit_uniroot <- mvsusie(sim$X, sim$y, L = 5,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "uniroot",
                           estimate_residual_variance = FALSE,
                           prior_tol = 1e-15,
-                          max_iter = 20, tol = 1e-3, verbosity = 0)
+                          max_iter = 20, tol = 1e-3, verbose = FALSE)
   # Effects with signal should have similar V (null effects may differ
   # between optim and uniroot due to null-check threshold sensitivity)
   active <- which(fit_optim$V > 1)
@@ -36,14 +36,14 @@ test_that("uniroot gives similar results to optim for R>1 matrix prior", {
                        estimate_prior_method = "optim",
                        estimate_residual_variance = FALSE,
                        prior_tol = 1e-15,
-                       max_iter = 20, tol = 1e-3, verbosity = 0)
+                       max_iter = 20, tol = 1e-3, verbose = FALSE)
   fit_uniroot <- mvsusie(sim$X, sim$y, L = 5,
                           prior_variance = sim$V,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "uniroot",
                           estimate_residual_variance = FALSE,
                           prior_tol = 1e-15,
-                          max_iter = 20, tol = 1e-3, verbosity = 0)
+                          max_iter = 20, tol = 1e-3, verbose = FALSE)
   # Effects with signal should have similar V (null effects may differ
   # between optim and uniroot due to null-check threshold sensitivity)
   active <- which(fit_optim$V > 1)
@@ -65,14 +65,14 @@ test_that("uniroot gives similar results to optim for mixture prior", {
                        estimate_prior_method = "optim",
                        estimate_residual_variance = FALSE,
                        prior_tol = 1e-15,
-                       max_iter = 20, tol = 1e-3, verbosity = 0)
+                       max_iter = 20, tol = 1e-3, verbose = FALSE)
   fit_uniroot <- mvsusie(sim$X, sim$y, L = 5,
                           prior_variance = mash_init,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "uniroot",
                           estimate_residual_variance = FALSE,
                           prior_tol = 1e-15,
-                          max_iter = 20, tol = 1e-3, verbosity = 0)
+                          max_iter = 20, tol = 1e-3, verbose = FALSE)
   # Effects with signal should have similar V
   active <- which(fit_optim$V > 1)
   expect_equal(fit_uniroot$V[active], fit_optim$V[active], tolerance = 0.5)
@@ -103,7 +103,7 @@ test_that("uniroot gives similar results to optim for sufficient statistics", {
                                   estimate_prior_method = "optim",
                                   estimate_residual_variance = FALSE,
                                   prior_tol = 1e-15,
-                                  max_iter = 20, tol = 1e-3, verbosity = 0)
+                                  max_iter = 20, tol = 1e-3, verbose = FALSE)
   fit_uniroot <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                     X_colmeans = X_colmeans,
                                     Y_colmeans = Y_colmeans,
@@ -112,7 +112,7 @@ test_that("uniroot gives similar results to optim for sufficient statistics", {
                                     estimate_prior_method = "uniroot",
                                     estimate_residual_variance = FALSE,
                                     prior_tol = 1e-15,
-                                    max_iter = 20, tol = 1e-3, verbosity = 0)
+                                    max_iter = 20, tol = 1e-3, verbose = FALSE)
   # V estimates should be close (null effects may differ)
   expect_equal(fit_uniroot$V, fit_optim$V, tolerance = 0.5)
   # Alpha should be similar
@@ -137,14 +137,14 @@ test_that("uniroot gives similar results to optim for RSS", with(simulate_multiv
                            estimate_prior_method = "optim",
                            estimate_residual_variance = FALSE,
                            prior_tol = 1e-15,
-                           max_iter = 20, tol = 1e-3, verbosity = 0)
+                           max_iter = 20, tol = 1e-3, verbose = FALSE)
   fit_uniroot <- mvsusie_rss(z, R_ld, N = n, L = 5,
                               prior_variance = V,
                               estimate_prior_variance = TRUE,
                               estimate_prior_method = "uniroot",
                               estimate_residual_variance = FALSE,
                               prior_tol = 1e-15,
-                              max_iter = 20, tol = 1e-3, verbosity = 0)
+                              max_iter = 20, tol = 1e-3, verbose = FALSE)
   # V estimates should be close
   expect_equal(fit_uniroot$V, fit_optim$V, tolerance = 0.2)
   # Alpha should be similar
@@ -165,7 +165,7 @@ test_that("uniroot correctly identifies null effects", {
                  estimate_prior_variance = TRUE,
                  estimate_prior_method = "uniroot",
                  estimate_residual_variance = FALSE,
-                 max_iter = 20, tol = 1e-3, verbosity = 0)
+                 max_iter = 20, tol = 1e-3, verbose = FALSE)
   # All V should be zero or near-zero (no true effects)
   expect_true(all(fit$V < 0.5))
 })
@@ -182,7 +182,7 @@ test_that("uniroot converges for R=3 with mixture prior", {
                  estimate_prior_variance = TRUE,
                  estimate_prior_method = "uniroot",
                  estimate_residual_variance = FALSE,
-                 max_iter = 30, tol = 1e-3, verbosity = 0)
+                 max_iter = 30, tol = 1e-3, verbose = FALSE)
   # Model should converge
   expect_true(fit$convergence$converged)
   # ELBO should be monotonically non-decreasing (or very close)

@@ -86,6 +86,11 @@ r6_sweep_mvsusie <- function(...) {
     args$precompute_covariances <- args$precompute_cache
     args$precompute_cache <- NULL
   }
+  # R6 master uses verbosity (integer); S3 uses verbose (boolean)
+  if ("verbose" %in% names(args)) {
+    args$verbosity <- if (isTRUE(args$verbose)) 2 else 0
+    args$verbose <- NULL
+  }
   # R6 doesn't have estimate_prior_mixture_weights (never updates weights)
   args$estimate_prior_mixture_weights <- NULL
   # Translate missing_y_method to R6's approximate parameter
@@ -102,6 +107,11 @@ r6_sweep_mvsusie_ss <- function(...) {
   if ("precompute_cache" %in% names(args)) {
     args$precompute_covariances <- args$precompute_cache
     args$precompute_cache <- NULL
+  }
+  # R6 master uses verbosity (integer); S3 uses verbose (boolean)
+  if ("verbose" %in% names(args)) {
+    args$verbosity <- if (isTRUE(args$verbose)) 2 else 0
+    args$verbose <- NULL
   }
   args$estimate_prior_mixture_weights <- NULL
   do.call(r6$mvsusie_suff_stat, args)
@@ -206,7 +216,7 @@ test_that("EXACT: R=1 matrix prior, EM, all est_pv × est_rv × intercept", {
                 estimate_prior_variance = cfg$est_pv,
                 estimate_prior_method = "EM",
                 max_iter = 10,
-                intercept = cfg$intercept, standardize = TRUE, verbosity = 0)
+                intercept = cfg$intercept, standardize = TRUE, verbose = FALSE)
       )
       ref <- suppressWarnings(
         r6_sweep_mvsusie(X, y, L = 10, prior_variance = V[1, 1],
@@ -216,7 +226,7 @@ test_that("EXACT: R=1 matrix prior, EM, all est_pv × est_rv × intercept", {
                          estimate_prior_method = "EM",
                          max_iter = 10,
                          intercept = cfg$intercept, standardize = TRUE,
-                         verbosity = 0)
+                         verbose = FALSE)
       )
       compare_exact(fit, ref, label)
     }
@@ -246,7 +256,7 @@ test_that("EXACT: R=3 matrix prior, EM, all est_pv × est_rv × intercept", {
                 estimate_prior_variance = cfg$est_pv,
                 estimate_prior_method = "EM",
                 max_iter = 10,
-                intercept = cfg$intercept, standardize = TRUE, verbosity = 0)
+                intercept = cfg$intercept, standardize = TRUE, verbose = FALSE)
       )
       ref <- suppressWarnings(
         r6_sweep_mvsusie(X, y, L = 10, prior_variance = V,
@@ -256,7 +266,7 @@ test_that("EXACT: R=3 matrix prior, EM, all est_pv × est_rv × intercept", {
                          estimate_prior_method = "EM",
                          max_iter = 10,
                          intercept = cfg$intercept, standardize = TRUE,
-                         verbosity = 0)
+                         verbose = FALSE)
       )
       compare_exact(fit, ref, label)
     }
@@ -300,7 +310,7 @@ test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept"
                 estimate_prior_method = "EM",
                 max_iter = 10,
                 intercept = cfg$intercept, standardize = TRUE,
-                precompute_cache = cfg$precompute, verbosity = 0)
+                precompute_cache = cfg$precompute, verbose = FALSE)
       )
       # R6 precompute is buggy when est_rv=TRUE + est_pv=FALSE:
       # the eigendecomp cache goes stale. Use R6 precompute=FALSE
@@ -315,7 +325,7 @@ test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept"
                          estimate_prior_method = "EM",
                          max_iter = 10,
                          intercept = cfg$intercept, standardize = TRUE,
-                         precompute_cache = r6_precomp, verbosity = 0)
+                         precompute_cache = r6_precomp, verbose = FALSE)
       )
       compare_exact(fit, ref, label)
     }
@@ -355,7 +365,7 @@ test_that("EXACT: R=3 sufficient statistics, matrix prior, all est_pv × est_rv"
                         estimate_prior_variance = cfg$est_pv,
                         estimate_prior_method = "EM",
                         max_iter = 10,
-                        verbosity = 0)
+                        verbose = FALSE)
       ref <- r6_sweep_mvsusie_ss(XtX = XtX, XtY = XtY, YtY = YtY, N = N,
                                  L = 10, prior_variance = V,
                                  residual_variance = cov(y_centered),
@@ -363,7 +373,7 @@ test_that("EXACT: R=3 sufficient statistics, matrix prior, all est_pv × est_rv"
                                  estimate_prior_variance = cfg$est_pv,
                                  estimate_prior_method = "EM",
                                  max_iter = 10,
-                                 verbosity = 0)
+                                 verbose = FALSE)
       compare_exact(fit, ref, label)
     }
   })
@@ -406,7 +416,7 @@ test_that("EXACT: R=3 sufficient statistics, mash K=1, all est_pv × est_rv × p
                         estimate_prior_variance = cfg$est_pv,
                         estimate_prior_method = "EM",
                         max_iter = 10,
-                        precompute_cache = cfg$precompute, verbosity = 0)
+                        precompute_cache = cfg$precompute, verbose = FALSE)
       # R6 precompute is buggy when est_rv=TRUE + est_pv=FALSE
       r6_precomp <- cfg$precompute
       if (cfg$est_rv && !cfg$est_pv) r6_precomp <- FALSE
@@ -418,7 +428,7 @@ test_that("EXACT: R=3 sufficient statistics, mash K=1, all est_pv × est_rv × p
                                  estimate_prior_method = "EM",
                                  max_iter = 10,
                                  precompute_cache = r6_precomp,
-                                 verbosity = 0)
+                                 verbose = FALSE)
       compare_exact(fit, ref, label)
     }
   })
@@ -449,14 +459,14 @@ test_that("EXACT: L=1 matrix prior EM, all est_pv × est_rv", {
                      estimate_prior_variance = cfg$est_pv,
                      estimate_prior_method = "EM",
                      max_iter = 10,
-                     intercept = TRUE, standardize = TRUE, verbosity = 0)
+                     intercept = TRUE, standardize = TRUE, verbose = FALSE)
       ref <- r6_sweep_mvsusie(X, y, L = 1, prior_variance = V,
                               residual_variance = cov(y),
                               estimate_residual_variance = cfg$est_rv,
                               estimate_prior_variance = cfg$est_pv,
                               estimate_prior_method = "EM",
                               max_iter = 10,
-                              intercept = TRUE, standardize = TRUE, verbosity = 0)
+                              intercept = TRUE, standardize = TRUE, verbose = FALSE)
       compare_exact(fit, ref, label)
     }
   })
@@ -508,7 +518,7 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
                 estimate_prior_mixture_weights = FALSE,
                 max_iter = 10,
                 intercept = cfg$intercept, standardize = TRUE,
-                precompute_cache = cfg$precompute, verbosity = 0)
+                precompute_cache = cfg$precompute, verbose = FALSE)
       )
       # R6 precompute is buggy when est_rv=TRUE + est_pv=FALSE
       r6_precomp <- cfg$precompute
@@ -521,7 +531,7 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
                          estimate_prior_method = "EM",
                          max_iter = 10,
                          intercept = cfg$intercept, standardize = TRUE,
-                         precompute_cache = r6_precomp, verbosity = 0)
+                         precompute_cache = r6_precomp, verbose = FALSE)
       )
       compare_exact(fit, ref, label)
     }
@@ -555,7 +565,7 @@ test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
                 estimate_prior_method = "EM",
                 missing_y_method = "approximate",
                 max_iter = 10, tol = 0,
-                intercept = TRUE, standardize = TRUE, verbosity = 0)
+                intercept = TRUE, standardize = TRUE, verbose = FALSE)
       )
       ref <- suppressWarnings(
         r6_sweep_mvsusie(X, y_missing, L = 10, prior_variance = V,
@@ -565,7 +575,7 @@ test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
                          estimate_prior_method = "EM",
                          missing_y_method = "approximate",
                          max_iter = 10, tol = 0,
-                         intercept = TRUE, standardize = TRUE, verbosity = 0)
+                         intercept = TRUE, standardize = TRUE, verbose = FALSE)
       )
       compare_exact(fit, ref, label)
     }
@@ -582,7 +592,7 @@ test_that("EXACT: missing data, matrix prior, all est_pv × est_rv", {
                 estimate_prior_method = "EM",
                 missing_y_method = "approximate",
                 max_iter = 10, tol = 0,
-                intercept = TRUE, standardize = TRUE, verbosity = 0)
+                intercept = TRUE, standardize = TRUE, verbose = FALSE)
       )
       expect_true(!is.null(fit$alpha), label = label)
       expect_true(all(is.finite(fit$pip)), label = paste(label, "pip"))
@@ -627,7 +637,7 @@ test_that("SMOKE: mash grid, all est_pv × est_rv × precompute", {
                 estimate_prior_method = "EM",
                 max_iter = 10,
                 intercept = TRUE, standardize = TRUE,
-                precompute_cache = cfg$precompute, verbosity = 0)
+                precompute_cache = cfg$precompute, verbose = FALSE)
       ))
       check_sane_output(fit, label)
     }
@@ -660,7 +670,7 @@ test_that("SMOKE: optim method, matrix prior", {
               estimate_prior_variance = TRUE,
               estimate_prior_method = "optim",
               max_iter = 10,
-              intercept = TRUE, standardize = TRUE, verbosity = 0)
+              intercept = TRUE, standardize = TRUE, verbose = FALSE)
     ))
     check_sane_output(fit, label)
   }

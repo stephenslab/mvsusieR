@@ -183,7 +183,7 @@ test_that("ELBO with no missing data equals standard ELBO", {
                       prior_variance = 0.2 * diag(d$R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
-                      max_iter = 5, verbosity = 0)
+                      max_iter = 5, verbose = FALSE)
   # ELBO should be finite and reasonable
   elbo <- fit$elbo
   expect_true(all(is.finite(elbo)))
@@ -205,7 +205,7 @@ test_that("V estimation includes Y_cov term when imputation is active", {
                       estimate_residual_variance = TRUE,
                       estimate_prior_variance = FALSE,
                       missing_y_method = "impute",
-                      max_iter = 10, verbosity = 0)
+                      max_iter = 10, verbose = FALSE)
   # V should be a PD matrix
   expect_true(is.matrix(fit$sigma2))
   evals <- eigen(fit$sigma2, symmetric = TRUE, only.values = TRUE)$values
@@ -223,7 +223,7 @@ test_that("Residual variance stays PD throughout iterations with missing data", 
                       estimate_residual_variance = TRUE,
                       estimate_prior_variance = FALSE,
                       missing_y_method = "impute",
-                      max_iter = 20, verbosity = 0)
+                      max_iter = 20, verbose = FALSE)
   V <- fit$sigma2
   expect_true(is.matrix(V))
   evals <- eigen(V, symmetric = TRUE, only.values = TRUE)$values
@@ -316,7 +316,7 @@ test_that("R=1 with missing data uses complete-case (zero-fill), not imputation"
                       prior_variance = matrix(0.2, 1, 1),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 50, verbosity = 0)
+                      max_iter = 50, verbose = FALSE)
   expect_true(!is.null(fit$alpha))
   expect_equal(ncol(fit$alpha), J)
 })
@@ -336,7 +336,7 @@ test_that("R=1 ELBO is finite with missing data", {
                       prior_variance = matrix(0.2, 1, 1),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 20, verbosity = 0)
+                      max_iter = 20, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
 })
 
@@ -357,7 +357,7 @@ test_that("No missing data: imputation code produces identical results", {
                       residual_variance = V0,
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 30, verbosity = 0)
+                      max_iter = 30, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(!is.null(fit$pip))
 })
@@ -372,7 +372,7 @@ test_that("Low missingness (5% MCAR): fit succeeds and PIPs are reasonable", {
                       prior_variance = 0.2 * diag(d$R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 50, verbosity = 0)
+                      max_iter = 50, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 
@@ -392,7 +392,7 @@ test_that("Medium missingness (20% MCAR): algorithm converges", {
                       prior_variance = 0.2 * diag(d$R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 50, verbosity = 0)
+                      max_iter = 50, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })
@@ -407,7 +407,7 @@ test_that("High missingness (50% MCAR): algorithm converges without errors", {
                       prior_variance = 0.2 * diag(d$R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 30, verbosity = 0)
+                      max_iter = 30, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })
@@ -427,7 +427,7 @@ test_that("Mixture (mash) prior works with missing data", {
                       prior_variance = prior,
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 30, verbosity = 0)
+                      max_iter = 30, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })
@@ -453,7 +453,7 @@ test_that("Monotone missingness: algorithm handles outcome-level dropout", {
                       prior_variance = 0.2 * diag(R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 30, verbosity = 0)
+                      max_iter = 30, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })
@@ -469,7 +469,7 @@ test_that("ELBO is finite across iterations with missing data (impute method)", 
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
                       missing_y_method = "impute",
-                      max_iter = 50, verbosity = 0)
+                      max_iter = 50, verbose = FALSE)
   elbo <- fit$elbo
   # ELBO should be finite throughout
   expect_true(all(is.finite(elbo)),
@@ -487,7 +487,7 @@ test_that("V estimation converges with missing data", {
                       estimate_residual_variance = TRUE,
                       estimate_prior_variance = TRUE,
                       missing_y_method = "impute",
-                      max_iter = 30, verbosity = 0)
+                      max_iter = 30, verbose = FALSE)
   V <- fit$sigma2
   expect_true(is.matrix(V))
   expect_equal(dim(V), c(d$R, d$R))
@@ -507,7 +507,7 @@ test_that("Fixed V: algorithm converges with missing data", {
                       residual_variance = V_fixed,
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 30, verbosity = 0)
+                      max_iter = 30, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
 })
 
@@ -521,7 +521,7 @@ test_that("Output has all standard fields with missing data", {
                       prior_variance = 0.2 * diag(d$R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 20, verbosity = 0)
+                      max_iter = 20, verbose = FALSE)
 
   # Check essential output fields
   expect_true(!is.null(fit$pip))
@@ -559,7 +559,7 @@ test_that("Intercept is approximately correct with missing data", {
                       prior_variance = 0.01 * diag(R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
-                      max_iter = 20, verbosity = 0)
+                      max_iter = 20, verbose = FALSE)
 
   # Intercept should be close to true values
   # (not exact due to missing data and finite sample)
@@ -579,7 +579,7 @@ test_that("Variable names are preserved with missing data", {
                       prior_variance = 0.2 * diag(d$R),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
-                      max_iter = 10, verbosity = 0)
+                      max_iter = 10, verbose = FALSE)
   expect_equal(fit$variable_names, paste0("SNP", seq_len(d$J)))
   expect_equal(fit$outcome_names, paste0("trait", seq_len(d$R)))
 })
@@ -599,7 +599,7 @@ test_that("Precomputed covariances work with missing data", {
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
                       precompute_cache = TRUE,
-                      max_iter = 20, verbosity = 0)
+                      max_iter = 20, verbose = FALSE)
   expect_true(all(is.finite(fit$elbo)))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1))
 })
@@ -617,7 +617,7 @@ test_that("Both EM and optim work with missing data", {
                              estimate_residual_variance = FALSE,
                              estimate_prior_variance = TRUE,
                              estimate_prior_method = "optim",
-                             max_iter = 15, verbosity = 0)
+                             max_iter = 15, verbose = FALSE)
   expect_true(all(is.finite(fit_optim$elbo)))
 
   # EM
@@ -626,6 +626,6 @@ test_that("Both EM and optim work with missing data", {
                           estimate_residual_variance = FALSE,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "EM",
-                          max_iter = 15, verbosity = 0)
+                          max_iter = 15, verbose = FALSE)
   expect_true(all(is.finite(fit_em$elbo)))
 })

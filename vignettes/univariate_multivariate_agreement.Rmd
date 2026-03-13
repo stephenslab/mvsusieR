@@ -28,8 +28,8 @@ set.seed(1)
 ```
 
 ```{r simulate-data}
-data(N3finemapping, package = "susieR")
-X <- N3finemapping$X
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
 B <- matrix(0, p, r)
@@ -59,7 +59,7 @@ fit_mv1 <- mvsusie(X, Y1, L = 10,
                    prior_variance = 0.2,
                    estimate_prior_variance = TRUE,
                    standardize = TRUE,
-                   max_iter = 100, tol = 1e-4, verbosity = 0)
+                   max_iter = 100, tol = 1e-4, verbose = FALSE)
 
 cat("susie CS:", length(fit_susie$sets$cs), "\n")
 cat("mvsusie (R=1) CS:", length(fit_mv1$sets$cs), "\n")
@@ -113,7 +113,7 @@ fit_single <- mvsusie(X, Y, L = 10,
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
                       standardize = TRUE,
-                      max_iter = 100, tol = 1e-4, verbosity = 0)
+                      max_iter = 100, tol = 1e-4, verbose = FALSE)
 
 # Mixture prior with K=1 (mash code path)
 prior_k1 <- create_mixture_prior(
@@ -125,7 +125,7 @@ fit_mixture <- mvsusie(X, Y, L = 10,
                        estimate_residual_variance = FALSE,
                        estimate_prior_variance = TRUE,
                        standardize = TRUE,
-                       max_iter = 100, tol = 1e-4, verbosity = 0)
+                       max_iter = 100, tol = 1e-4, verbose = FALSE)
 
 cat("Single matrix CS:", length(fit_single$sets$cs), "\n")
 cat("Mixture (K=1) CS:", length(fit_mixture$sets$cs), "\n")

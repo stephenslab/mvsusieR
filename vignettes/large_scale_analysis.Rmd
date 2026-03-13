@@ -9,9 +9,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This vignette discusses strategies for running mvSuSiE with a large
-number of traits ($R = 100$). With many traits, computation time
-and memory usage become important considerations.
+This vignette demonstrates running mvSuSiE with a large number of
+traits ($R = 100$) and provides benchmark timings for typical
+configurations.
 
 ```{r knitr-opts, include=FALSE}
 knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
@@ -49,16 +49,9 @@ When the number of traits $R$ is large (e.g., $R > 50$):
 
 ## Example: R = 100
 
-The following code shows how to set up and run an analysis with 100
-traits. Due to the computational cost, we show the code but do not
-execute it during the vignette build.
-
-```{r large-r-setup, eval=FALSE}
-library(susieR)
-
-# Use realistic genotypes
-data(N3finemapping)
-X <- N3finemapping$X  # 574 x 1001
+```{r large-r-setup}
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X); p <- ncol(X); r <- 100
 
 # Simulate 100 traits with shared causal variants
@@ -67,24 +60,48 @@ B <- matrix(0, p, r)
 causal <- sort(sample(p, 4))
 for (j in causal) B[j, ] <- rnorm(r, 0, 0.3)
 Y <- X %*% B + matrix(rnorm(n * r), n, r)
+cat(sprintf("Data: %d samples, %d SNPs, %d traits\n", n, p, r))
+cat("Causal SNPs:", causal, "\n")
 
 # Canonical prior (105 components for R=100)
 prior <- create_mixture_prior(R = r)
+cat("Prior components:", prior$n_component, "\n")
+```
 
-# Fit with precompute_cache and timing
+```{r large-r-fit}
 t0 <- proc.time()
 fit <- mvsusie(X, Y, L = 10,
                prior_variance = prior,
                estimate_prior_variance = TRUE,
-               precompute_cache = TRUE,
-               standardize = TRUE,
-               tol = 0.01, n_thread = 4)
+               standardize = TRUE)
 timing <- (proc.time() - t0)[["elapsed"]]
+cat(sprintf("Elapsed time: %.1f seconds\n", timing))
+cat(sprintf("IBSS iterations: %d\n", length(fit$elbo)))
+cat(sprintf("Credible sets: %d\n", length(fit$sets$cs)))
 ```
 
-**Benchmark results.** On an AMD Ryzen 5 7600X (6-core, 12 threads)
-with 64 GB RAM, the above analysis with $N = 574$ samples, $J = 1001$
-SNPs, $R = 100$ traits, and 105 canonical prior components completed
-in approximately **62 seconds** (5 IBSS iterations) with
-`precompute_cache = TRUE`. The fitted model object uses approximately
-41 MB of memory.
+```{r large-r-results}
+# Check which causal SNPs are captured
+for (cs_name in names(fit$sets$cs)) {
+  cs_vars <- fit$sets$cs[[cs_name]]
+  captured <- intersect(cs_vars, causal)
+  cat(sprintf("%s: %d SNPs, captures causal %s\n",
+              cs_name, length(cs_vars),
+              if (length(captured) > 0) paste(captured, collapse = ", ")
+              else "none"))
+}
+n_fp <- sum(fit$pip > 0.9) - sum(fit$pip[causal] > 0.9)
+cat(sprintf("False discoveries (PIP > 0.9): %d\n", max(0, n_fp)))
+cat(sprintf("Model object size: %.1f MB\n",
+            object.size(fit) / 1e6))
+```
+
+```{r large-r-pip, fig.height=2, fig.width=6}
+pdat <- data.frame(pos = seq_len(p), pip = fit$pip)
+ggplot(pdat, aes(x = pos, y = pip)) +
+  geom_point(shape = 20, size = 1, color = "royalblue", alpha = 0.5) +
+  geom_vline(xintercept = causal, linetype = "dashed",
+             color = "red", alpha = 0.5) +
+  labs(x = "SNP position", y = "PIP") +
+  theme_cowplot(font_size = 12)
+```

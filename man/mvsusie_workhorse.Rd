@@ -20,7 +20,7 @@ mvsusie_workhorse(
   tol = 0.001,
   prior_tol = 1e-09,
   track_fit = FALSE,
-  verbosity = 2,
+  verbose = TRUE,
   coverage = 0.95,
   min_abs_corr = 0.5,
   precompute_covariances = FALSE,
@@ -53,7 +53,7 @@ mvsusie_workhorse(
 
 \item{track_fit}{Logical.}
 
-\item{verbosity}{Verbosity level.}
+\item{verbose}{Logical; if \code{TRUE}, print progress messages.}
 
 \item{coverage}{CS coverage.}
 

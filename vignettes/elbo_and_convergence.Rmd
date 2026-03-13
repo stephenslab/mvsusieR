@@ -27,8 +27,8 @@ set.seed(1)
 ```
 
 ```{r simulate-data}
-data(N3finemapping, package = "susieR")
-X <- N3finemapping$X
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
 causal <- sort(sample(p, 3))
@@ -50,7 +50,7 @@ fit <- mvsusie(X, Y, L = 10,
                prior_variance = prior,
                estimate_prior_variance = TRUE,
                standardize = TRUE, tol = 1e-4,
-               verbosity = 0)
+               verbose = FALSE)
 ```
 
 ```{r elbo-plot, fig.height=2.5, fig.width=4}
@@ -112,13 +112,13 @@ fit_em <- mvsusie(X, Y, L = 10,
                   prior_variance = prior,
                   estimate_prior_variance = TRUE,
                   estimate_prior_method = "EM",
-                  standardize = TRUE, tol = 1e-4, verbosity = 0)
+                  standardize = TRUE, tol = 1e-4, verbose = FALSE)
 
 fit_optim <- mvsusie(X, Y, L = 10,
                      prior_variance = prior,
                      estimate_prior_variance = TRUE,
                      estimate_prior_method = "optim",
-                     standardize = TRUE, tol = 1e-4, verbosity = 0)
+                     standardize = TRUE, tol = 1e-4, verbose = FALSE)
 
 cat("EM: ", length(fit_em$elbo), "iterations, final ELBO =",
     tail(fit_em$elbo, 1), "\n")
@@ -158,13 +158,13 @@ fit_fixed_w <- mvsusie(X, Y, L = 10,
                        prior_variance = prior,
                        estimate_prior_variance = TRUE,
                        estimate_prior_mixture_weights = FALSE,
-                       standardize = TRUE, tol = 1e-4, verbosity = 0)
+                       standardize = TRUE, tol = 1e-4, verbose = FALSE)
 
 fit_est_w <- mvsusie(X, Y, L = 10,
                      prior_variance = prior,
                      estimate_prior_variance = TRUE,
                      estimate_prior_mixture_weights = TRUE,
-                     standardize = TRUE, tol = 1e-4, verbosity = 0)
+                     standardize = TRUE, tol = 1e-4, verbose = FALSE)
 
 cat("Fixed weights:", length(fit_fixed_w$elbo), "iterations, ELBO =",
     tail(fit_fixed_w$elbo, 1), "\n")

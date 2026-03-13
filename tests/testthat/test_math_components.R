@@ -391,14 +391,14 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fix
                         estimate_residual_variance = FALSE,
                         estimate_prior_variance = FALSE,
                         intercept = TRUE, standardize = TRUE,
-                        precompute_cache = TRUE, verbosity = 0)
+                        precompute_cache = TRUE, verbose = FALSE)
 
     # Run with matrix prior
     fit_matrix <- mvsusie(X, y, L = L, prior_variance = V,
                           residual_variance = cov(y),
                           estimate_residual_variance = FALSE,
                           estimate_prior_variance = FALSE,
-                          intercept = TRUE, standardize = TRUE, verbosity = 0)
+                          intercept = TRUE, standardize = TRUE, verbose = FALSE)
 
     # Core posterior quantities must match
     expect_equal(fit_mash$alpha, fit_matrix$alpha,
@@ -441,14 +441,14 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, opt
                         estimate_prior_method = "optim",
                         max_iter = 20,
                         intercept = TRUE, standardize = TRUE,
-                        precompute_cache = FALSE, verbosity = 0)
+                        precompute_cache = FALSE, verbose = FALSE)
     fit_matrix <- mvsusie(X, y, L = L, prior_variance = V,
                           residual_variance = cov(y),
                           estimate_residual_variance = FALSE,
                           estimate_prior_variance = TRUE,
                           estimate_prior_method = "optim",
                           max_iter = 20,
-                          intercept = TRUE, standardize = TRUE, verbosity = 0)
+                          intercept = TRUE, standardize = TRUE, verbose = FALSE)
     # Optimizer convergence noise (~1e-7) is expected between the two
     # code paths (mashr C++ vs multivariate_lbf).
     optim_tol <- 1e-7
@@ -485,7 +485,7 @@ test_that("R=1 mash K=1: S3 matches R6 at machine precision", {
                         estimate_residual_variance = FALSE,
                         estimate_prior_variance = FALSE,
                         intercept = TRUE, standardize = TRUE,
-                        precompute_cache = TRUE, verbosity = 0)
+                        precompute_cache = TRUE, verbose = FALSE)
     ref_mash <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
                             residual_variance = cov(y),
                             estimate_residual_variance = FALSE,
@@ -516,7 +516,7 @@ test_that("mvsusie_ss = mvsusie at machine precision (R=3, centered inputs)", {
                        residual_variance = cov(y),
                        estimate_residual_variance = FALSE,
                        estimate_prior_variance = FALSE,
-                       intercept = TRUE, standardize = TRUE, verbosity = 0)
+                       intercept = TRUE, standardize = TRUE, verbose = FALSE)
 
     # Compute sufficient statistics from CENTERED data (correct convention)
     n <- nrow(X)
@@ -534,7 +534,7 @@ test_that("mvsusie_ss = mvsusie at machine precision (R=3, centered inputs)", {
                                  estimate_residual_variance = FALSE,
                                  estimate_prior_variance = FALSE,
                                  standardize = TRUE,
-                                 verbosity = 0)
+                                 verbose = FALSE)
 
     expect_all_fields_equal(fit_ss, fit_ind, tol = MACH_TOL,
                             label = "R3_SS_vs_ind")
@@ -547,7 +547,7 @@ test_that("mvsusie_ss = mvsusie at machine precision (R=1, centered inputs)", {
                        residual_variance = as.numeric(var(y)),
                        estimate_residual_variance = FALSE,
                        estimate_prior_variance = FALSE,
-                       intercept = TRUE, standardize = TRUE, verbosity = 0)
+                       intercept = TRUE, standardize = TRUE, verbose = FALSE)
 
     n <- nrow(X)
     X_c <- scale(X, center = TRUE, scale = FALSE)
@@ -564,7 +564,7 @@ test_that("mvsusie_ss = mvsusie at machine precision (R=1, centered inputs)", {
                                  estimate_residual_variance = FALSE,
                                  estimate_prior_variance = FALSE,
                                  standardize = TRUE,
-                                 verbosity = 0)
+                                 verbose = FALSE)
 
     expect_all_fields_equal(fit_ss, fit_ind, tol = MACH_TOL,
                             label = "R1_SS_vs_ind")
@@ -584,7 +584,7 @@ test_that("mvsusie_workhorse defaults match R6 master reference values", {
   expect_equal(eval(args$max_iter), 100)
   expect_equal(eval(args$tol), 1e-3)
   expect_equal(eval(args$prior_tol), 1e-9)
-  expect_equal(eval(args$verbosity), 2)
+  expect_equal(eval(args$verbose), TRUE)
   expect_equal(eval(args$coverage), 0.95)
   expect_equal(eval(args$min_abs_corr), 0.5)
   expect_equal(eval(args$n_thread), 1)
@@ -599,7 +599,7 @@ test_that("mvsusie_workhorse internal params have correct defaults", {
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
                    intercept = TRUE, standardize = TRUE,
-                   max_iter = 2, verbosity = 0)
+                   max_iter = 2, verbose = FALSE)
     expect_s3_class(fit, "mvsusie")
     expect_true(!is.null(fit$alpha))
     expect_true(!is.null(fit$coef))
@@ -621,7 +621,7 @@ test_that("R=1 J=1 edge case doesn't crash", {
             residual_variance = 1,
             estimate_residual_variance = FALSE,
             estimate_prior_variance = FALSE,
-            max_iter = 5, verbosity = 0),
+            max_iter = 5, verbose = FALSE),
     error = function(e) NULL
   )
   if (!is.null(fit)) {
@@ -637,7 +637,7 @@ test_that("L > p: L is automatically reduced to p", {
                  residual_variance = 1,
                  estimate_residual_variance = FALSE,
                  estimate_prior_variance = FALSE,
-                 max_iter = 5, verbosity = 0)
+                 max_iter = 5, verbose = FALSE)
   expect_s3_class(fit, "mvsusie")
   # L should be <= p = 5
   expect_true(nrow(fit$alpha) <= 5)

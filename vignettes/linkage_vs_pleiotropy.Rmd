@@ -26,7 +26,7 @@ library(mvsusieR)
 library(susieR)
 library(ggplot2)
 library(cowplot)
-set.seed(1)
+set.seed(2)
 ```
 
 ## LD-induced pleiotropy: the problem
@@ -40,8 +40,8 @@ effect). This creates the appearance of broad pleiotropy when in
 reality each SNP is trait-specific.
 
 ```{r simulate-data}
-data(N3finemapping)
-X <- N3finemapping$X
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
 # Find a pair of SNPs with strong negative LD (~-0.7)
@@ -106,7 +106,7 @@ prior <- create_mixture_prior(R = r)
 fit <- mvsusie(X, Y, L = 10,
                prior_variance = prior,
                estimate_prior_variance = TRUE,
-               standardize = TRUE, tol = 0.01)
+               standardize = TRUE)
 ```
 
 ```{r credible-sets}
@@ -119,6 +119,10 @@ for (cs_name in names(fit$sets$cs)) {
               cs_name, length(cs_vars),
               snp1, has_snp1, snp2, has_snp2))
 }
+# Check false discovery rate
+n_fp <- sum(fit$pip > 0.9) - sum(fit$pip[c(snp1, snp2)] > 0.9)
+cat(sprintf("\nFalse discoveries (PIP > 0.9 at non-causal SNPs): %d\n",
+            max(0, n_fp)))
 ```
 
 ```{r effect-plot, fig.height=3.5, fig.width=3.5}
@@ -127,8 +131,7 @@ out$effect_plot
 ```
 
 The effect plot shows that each credible set has effects in only
-5 traits---exactly matching the true simulation. mvSuSiE has
-correctly resolved the LD-induced pleiotropy into two
+a subset of traits, resolving the apparent broad pleiotropy into
 trait-specific signals.
 
 ```{r pip-plot, fig.height=2, fig.width=6}
@@ -159,3 +162,35 @@ In the univariate analysis, the credible sets for different traits
 may each contain *both* correlated SNPs, providing no resolution.
 The multivariate analysis leverages the distinct trait patterns to
 separate the two linked signals.
+
+## The challenge of weak LD contrast
+
+When the LD between the two causal SNPs is weaker (closer to zero),
+separation becomes harder because the marginal associations overlap
+less. Similarly, when effects are smaller relative to noise, both
+univariate and multivariate methods lose power.
+
+```{r weak-effects}
+# Weaker effects make separation harder
+B_weak <- matrix(0, p, r)
+B_weak[snp1, 1:5] <- abs(rnorm(5, 0.5, 0.1))
+B_weak[snp2, 6:10] <- abs(rnorm(5, 0.5, 0.1))
+Y_weak <- X %*% B_weak + matrix(rnorm(n * r), n, r)
+fit_weak <- mvsusie(X, Y_weak, L = 10,
+                    prior_variance = prior,
+                    estimate_prior_variance = TRUE,
+                    standardize = TRUE)
+cat("Weak effects: CS =", length(fit_weak$sets$cs), "\n")
+for (cs_name in names(fit_weak$sets$cs)) {
+  cs_vars <- fit_weak$sets$cs[[cs_name]]
+  cat(sprintf("  %s: %d SNPs, contains SNP%d=%s SNP%d=%s\n",
+              cs_name, length(cs_vars),
+              snp1, snp1 %in% cs_vars,
+              snp2, snp2 %in% cs_vars))
+}
+```
+
+With weaker effects, mvSuSiE may find fewer credible sets or may
+not fully resolve the two signals into separate CSs. This
+illustrates the inherent difficulty of fine-mapping when the
+signal-to-noise ratio is low.

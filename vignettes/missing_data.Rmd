@@ -36,8 +36,8 @@ set.seed(1)
 ## Simulate complete data
 
 ```{r simulate-data}
-data(N3finemapping)
-X <- N3finemapping$X
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
 causal <- sort(sample(p, 4))
@@ -45,6 +45,7 @@ B <- matrix(0, p, r)
 for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
 Y_complete <- X %*% B + matrix(rnorm(n * r), n, r)
 cat(sprintf("Complete data: %d x %d x %d (N x J x R)\n", n, p, r))
+cat("True causal SNPs:", causal, "\n")
 ```
 
 Fit the model on complete data for reference.
@@ -54,9 +55,24 @@ prior <- create_mixture_prior(R = r)
 fit_complete <- mvsusie(X, Y_complete, L = 10,
                         prior_variance = prior,
                         estimate_prior_variance = TRUE,
-                        standardize = TRUE, tol = 0.01,
-                        verbosity = 0)
+                        standardize = TRUE)
 cat("Complete data: CS =", length(fit_complete$sets$cs), "\n")
+```
+
+Check which causal SNPs are captured by the credible sets:
+
+```{r check-truth-complete}
+for (cs_name in names(fit_complete$sets$cs)) {
+  cs_vars <- fit_complete$sets$cs[[cs_name]]
+  captured <- intersect(cs_vars, causal)
+  cat(sprintf("%s: %d SNPs, captures causal %s\n",
+              cs_name, length(cs_vars),
+              if (length(captured) > 0) paste(captured, collapse = ", ")
+              else "none"))
+}
+n_false_pos <- sum(fit_complete$pip > 0.9) - sum(fit_complete$pip[causal] > 0.9)
+cat(sprintf("False discoveries (PIP > 0.9 at non-causal SNPs): %d\n",
+            max(0, n_false_pos)))
 ```
 
 ## Random missing data (MCAR)
@@ -84,16 +100,31 @@ cat("Missing values: 5% =", sum(is.na(Y_miss_05)),
 ```{r fit-random-missing}
 fit_05 <- mvsusie(X, Y_miss_05, L = 10, prior_variance = prior,
                   estimate_prior_variance = TRUE,
-                  standardize = TRUE, tol = 0.01, verbosity = 0)
+                  standardize = TRUE)
 fit_20 <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
                   estimate_prior_variance = TRUE,
-                  standardize = TRUE, tol = 0.01, verbosity = 0)
+                  standardize = TRUE)
 fit_50 <- mvsusie(X, Y_miss_50, L = 10, prior_variance = prior,
                   estimate_prior_variance = TRUE,
-                  standardize = TRUE, tol = 0.01, verbosity = 0)
+                  standardize = TRUE)
 cat("5% missing: CS =", length(fit_05$sets$cs), "\n")
 cat("20% missing: CS =", length(fit_20$sets$cs), "\n")
 cat("50% missing: CS =", length(fit_50$sets$cs), "\n")
+```
+
+Compare the credible sets to the truth for each missing rate:
+
+```{r check-truth-missing}
+check_fdr <- function(fit, causal, label) {
+  n_fp <- sum(fit$pip > 0.9) - sum(fit$pip[causal] > 0.9)
+  n_causal_found <- sum(fit$pip[causal] > 0.5)
+  cat(sprintf("%s: %d/%d causal found (PIP > 0.5), %d false discoveries (PIP > 0.9)\n",
+              label, n_causal_found, length(causal), max(0, n_fp)))
+}
+check_fdr(fit_complete, causal, "Complete")
+check_fdr(fit_05, causal, "5% missing")
+check_fdr(fit_20, causal, "20% missing")
+check_fdr(fit_50, causal, "50% missing")
 ```
 
 ```{r compare-random, fig.height=3, fig.width=7}
@@ -118,10 +149,9 @@ the strongest signals are preserved.
 
 In a cross-population analysis, different cohorts may measure
 different subsets of traits. We simulate this by making the first
-5 traits observed
-only in the first half of samples, and the last 5 traits only in the second
-half.
- This mimics two cohorts each measuring the same 5 traits.
+5 traits observed only in the first half of samples, and the last
+5 traits only in the second half. This mimics two cohorts each
+measuring 5 traits.
 
 ```{r block-missing}
 Y_block <- Y_complete
@@ -141,9 +171,9 @@ cat("  Total missing:", sum(is.na(Y_block)), "/", length(Y_block),
 fit_block <- mvsusie(X, Y_block, L = 10,
                      prior_variance = prior,
                      estimate_prior_variance = TRUE,
-                     standardize = TRUE, tol = 0.01,
-                     verbosity = 0)
+                     standardize = TRUE)
 cat("Block missing: CS =", length(fit_block$sets$cs), "\n")
+check_fdr(fit_block, causal, "Block missing")
 ```
 
 ```{r compare-block, fig.height=3, fig.width=4}
@@ -181,15 +211,45 @@ by the `missing_y_method` argument:
 fit_approx <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
                       estimate_prior_variance = TRUE,
                       missing_y_method = "approximate",
-                      standardize = TRUE, tol = 0.01, verbosity = 0)
+                      standardize = TRUE)
 fit_exact <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
                      estimate_prior_variance = TRUE,
                      missing_y_method = "exact",
-                     standardize = TRUE, tol = 0.01, verbosity = 0)
+                     standardize = TRUE)
+fit_impute <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
+                      estimate_prior_variance = TRUE,
+                      missing_y_method = "impute",
+                      standardize = TRUE)
 
 cat("Approximate method: CS =", length(fit_approx$sets$cs), "\n")
 cat("Exact method: CS =", length(fit_exact$sets$cs), "\n")
-cat("PIP correlation:", cor(fit_approx$pip, fit_exact$pip), "\n")
+cat("Impute method: CS =", length(fit_impute$sets$cs), "\n")
+cat("\nPIP correlations with complete data:\n")
+cat("  Approximate:", round(cor(fit_approx$pip, fit_complete$pip), 4), "\n")
+cat("  Exact:", round(cor(fit_exact$pip, fit_complete$pip), 4), "\n")
+cat("  Impute:", round(cor(fit_impute$pip, fit_complete$pip), 4), "\n")
+```
+
+```{r compare-methods, fig.height=3, fig.width=7}
+pdat <- data.frame(
+  complete = rep(fit_complete$pip, 3),
+  missing = c(fit_approx$pip, fit_exact$pip, fit_impute$pip),
+  method = rep(c("approximate", "exact", "impute"), each = p)
+)
+ggplot(pdat, aes(x = complete, y = missing)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~method) +
+  labs(x = "PIP (complete data)", y = "PIP (20% missing)") +
+  theme_cowplot(font_size = 10)
+```
+
+Compare false discovery rates across methods:
+
+```{r fdr-methods}
+check_fdr(fit_approx, causal, "Approximate")
+check_fdr(fit_exact, causal, "Exact")
+check_fdr(fit_impute, causal, "Impute")
 ```
 
 For most applications, the default `"approximate"` method provides

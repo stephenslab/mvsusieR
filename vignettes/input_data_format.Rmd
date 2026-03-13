@@ -42,13 +42,13 @@ set.seed(1)
 
 ## Simulate data
 
-We use realistic genotypes from the `susieR` package and simulate a
-phenotype matrix with $R = 10$ traits. Four SNPs are chosen as causal,
-each with effects drawn independently across traits.
+We use realistic genotypes and simulate a phenotype matrix with
+$R = 10$ traits. Four SNPs are chosen as causal, each with effects
+drawn independently across traits.
 
 ```{r simulate-data}
-data(N3finemapping)
-X <- N3finemapping$X
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X)
 p <- ncol(X)
 r <- 10
@@ -84,7 +84,7 @@ fit <- mvsusie(X, Y, L = 10,
                estimate_residual_variance = FALSE,
                estimate_prior_variance = TRUE,
                standardize = TRUE,
-               tol = 0.01)
+)
 ```
 
 The output is an S3 object of class `"mvsusie"` containing posterior
@@ -126,7 +126,7 @@ fit_ss <- mvsusie_ss(XtX, XtY, YtY, N = n, L = 10,
                      estimate_residual_variance = FALSE,
                      estimate_prior_variance = TRUE,
                      standardize = TRUE,
-                     tol = 0.01)
+      )
 ```
 
 ## Interface 3: Summary statistics (RSS)
@@ -151,7 +151,7 @@ fit_rss <- mvsusie_rss(Z, LD, N = n, L = 10,
                        residual_variance = resid_var,
                        estimate_residual_variance = FALSE,
                        estimate_prior_variance = TRUE,
-                       tol = 0.01)
+        )
 ```
 
 ## Verifying agreement across interfaces

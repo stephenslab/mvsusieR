@@ -20,12 +20,12 @@ test_that("R=1 individual vs SS agree with default residual_variance", with(simu
   fit_ind <- mvsusie(X, y, L = L, prior_variance = prior_var,
                      intercept = TRUE, standardize = TRUE,
                      estimate_residual_variance = FALSE,
-                     estimate_prior_variance = FALSE, verbosity = 0)
+                     estimate_prior_variance = FALSE, verbose = FALSE)
   fit_ss <- mvsusie_ss(XtX, XtY, YtY, n, L = L,
                        X_colmeans = X_colmeans, Y_colmeans = Y_colmeans,
                        prior_variance = prior_var, standardize = TRUE,
                        estimate_residual_variance = FALSE,
-                       estimate_prior_variance = FALSE, verbosity = 0)
+                       estimate_prior_variance = FALSE, verbose = FALSE)
   expect_equal(fit_ind$alpha, fit_ss$alpha)
   expect_equal(fit_ind$elbo, fit_ss$elbo)
   expect_equal(fit_ind$b1, fit_ss$b1)
@@ -45,12 +45,12 @@ test_that("R>1 individual vs SS agree with default residual_variance", with(simu
   fit_ind <- mvsusie(X, y, L = L, prior_variance = V,
                      intercept = TRUE, standardize = TRUE,
                      estimate_residual_variance = FALSE,
-                     estimate_prior_variance = FALSE, verbosity = 0)
+                     estimate_prior_variance = FALSE, verbose = FALSE)
   fit_ss <- mvsusie_ss(XtX, XtY, YtY, n, L = L,
                        X_colmeans = X_colmeans, Y_colmeans = Y_colmeans,
                        prior_variance = V, standardize = TRUE,
                        estimate_residual_variance = FALSE,
-                       estimate_prior_variance = FALSE, verbosity = 0)
+                       estimate_prior_variance = FALSE, verbose = FALSE)
   expect_equal(fit_ind$alpha, fit_ss$alpha)
   expect_equal(fit_ind$elbo, fit_ss$elbo)
   expect_equal(fit_ind$b1, fit_ss$b1)
@@ -72,14 +72,14 @@ test_that("R>1 individual vs SS agree with optim and default residual_variance",
                      estimate_residual_variance = FALSE,
                      estimate_prior_variance = TRUE,
                      estimate_prior_method = "optim",
-                     max_iter = 20, verbosity = 0)
+                     max_iter = 20, verbose = FALSE)
   fit_ss <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                        X_colmeans = X_colmeans, Y_colmeans = Y_colmeans,
                        prior_variance = V, standardize = TRUE,
                        estimate_residual_variance = FALSE,
                        estimate_prior_variance = TRUE,
                        estimate_prior_method = "optim",
-                       max_iter = 20, verbosity = 0)
+                       max_iter = 20, verbose = FALSE)
   expect_equal(fit_ind$alpha, fit_ss$alpha)
   expect_equal(fit_ind$elbo, fit_ss$elbo)
   expect_equal(fit_ind$b1, fit_ss$b1)
@@ -267,7 +267,7 @@ test_that("mvsusie converges with monotonic ELBO (dense)", {
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
-    tol = 1e-6, verbosity = 0)
+    tol = 1e-6, verbose = FALSE)
   expect_true(all(diff(fit$elbo) >= -1e-6))
 
   fit2 <- mvsusie_core(X, matrix(y, ncol = 1), L = L,
@@ -276,7 +276,7 @@ test_that("mvsusie converges with monotonic ELBO (dense)", {
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "optim",
-    tol = 1e-6, verbosity = 0)
+    tol = 1e-6, verbose = FALSE)
   expect_true(all(diff(fit2$elbo) >= -1e-6))
 })
 
@@ -297,7 +297,7 @@ test_that("mvsusie converges with monotonic ELBO (suff stat)", {
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
-    tol = 1e-6, verbosity = 0)
+    tol = 1e-6, verbose = FALSE)
   expect_true(all(diff(fit$elbo) >= -1e-6))
 
   fit2 <- mvsusie_ss_core(XtX = XtX, XtY = Xty, YtY = yty, N = n, L = L,
@@ -305,7 +305,7 @@ test_that("mvsusie converges with monotonic ELBO (suff stat)", {
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "optim",
-    tol = 1e-6, verbosity = 0)
+    tol = 1e-6, verbose = FALSE)
   expect_true(all(diff(fit2$elbo) >= -1e-6))
 })
 

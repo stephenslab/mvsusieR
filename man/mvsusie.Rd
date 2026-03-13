@@ -33,7 +33,7 @@ mvsusie(
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
-  verbosity = 2,
+  verbose = TRUE,
   track_fit = FALSE
 )
 
@@ -75,7 +75,7 @@ mvsusie_ss(
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
-  verbosity = 2,
+  verbose = TRUE,
   track_fit = FALSE
 )
 
@@ -104,7 +104,7 @@ mvsusie_core(
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
-  verbosity = 2,
+  verbose = TRUE,
   track_fit = FALSE
 )
 
@@ -134,7 +134,7 @@ mvsusie_ss_core(
   n_thread = 1,
   max_iter = 100,
   tol = 0.001,
-  verbosity = 2,
+  verbose = TRUE,
   track_fit = FALSE
 )
 }
@@ -244,10 +244,8 @@ computation (only applicable when a mixture prior is used).}
 \item{tol}{The model fitting will terminate when the increase in
 ELBOs between two successive iterations is less than \code{tol}.}
 
-\item{verbosity}{Set \code{verbosity = 0} for no messages;
-\code{verbosity = 1} for a progress bar; and \code{verbosity = 2}
-for more detailed information about the algorithm's progress at the
-end of each iteration.}
+\item{verbose}{If \code{TRUE}, print progress messages during model
+fitting. Default is \code{TRUE}.}
 
 \item{track_fit}{Add attribute \code{trace} to the return value
 which records the algorithm's progress at each iteration.}

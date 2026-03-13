@@ -32,8 +32,8 @@ We use realistic genotypes and simulate 10 correlated traits with
 4 causal SNPs.
 
 ```{r simulate-data}
-data(N3finemapping)
-X <- N3finemapping$X
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
 causal <- sort(sample(p, 4))
@@ -64,7 +64,7 @@ cat("Number of components:", prior_diag$n_component, "\n")
 fit_diag <- mvsusie(X, Y, L = 10,
                     prior_variance = prior_diag,
                     estimate_prior_variance = TRUE,
-                    standardize = TRUE, tol = 0.01)
+                    standardize = TRUE)
 cat("Credible sets:", length(fit_diag$sets$cs), "\n")
 ```
 
@@ -84,7 +84,7 @@ cat("Components:", prior_canon$n_component, "\n")
 fit_canon <- mvsusie(X, Y, L = 10,
                      prior_variance = prior_canon,
                      estimate_prior_variance = TRUE,
-                     standardize = TRUE, tol = 0.01)
+                     standardize = TRUE)
 cat("Credible sets:", length(fit_canon$sets$cs), "\n")
 ```
 
@@ -117,7 +117,7 @@ cat("Components from mashr:", prior_mash$n_component, "\n")
 fit_mash <- mvsusie(X, Y, L = 10,
                     prior_variance = prior_mash,
                     estimate_prior_variance = TRUE,
-                    standardize = TRUE, tol = 0.01)
+                    standardize = TRUE)
 cat("Credible sets:", length(fit_mash$sets$cs), "\n")
 ```
 
@@ -155,7 +155,7 @@ fit_em <- mvsusie(X, Y, L = 10,
                   prior_variance = prior_canon,
                   estimate_prior_variance = TRUE,
                   estimate_prior_method = "EM",
-                  standardize = TRUE, tol = 0.01, verbosity = 0)
+                  standardize = TRUE)
 cat("EM: CS =", length(fit_em$sets$cs), "\n")
 cat("optim: CS =", length(fit_canon$sets$cs), "\n")
 cat("PIP correlation (EM vs optim):", cor(fit_em$pip, fit_canon$pip), "\n")
@@ -173,12 +173,12 @@ fit_fixed_w <- mvsusie(X, Y, L = 10,
                        prior_variance = prior_canon,
                        estimate_prior_variance = TRUE,
                        estimate_prior_mixture_weights = FALSE,
-                       standardize = TRUE, tol = 0.01, verbosity = 0)
+                       standardize = TRUE, verbose = FALSE)
 fit_est_w <- mvsusie(X, Y, L = 10,
                      prior_variance = prior_canon,
                      estimate_prior_variance = TRUE,
                      estimate_prior_mixture_weights = TRUE,
-                     standardize = TRUE, tol = 0.01, verbosity = 0)
+                     standardize = TRUE, verbose = FALSE)
 cat("Fixed weights ELBO:", tail(fit_fixed_w$elbo, 1), "\n")
 cat("Estimated weights ELBO:", tail(fit_est_w$elbo, 1), "\n")
 cat("(Higher ELBO is better)\n")

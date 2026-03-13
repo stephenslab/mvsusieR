@@ -43,8 +43,7 @@ prior <- create_mixture_prior(list(matrices = simdata$par$U,
 fit <- mvsusie(X, Y, standardize = TRUE,
                prior_variance = prior,
                residual_variance = simdata$par$V,
-               estimate_prior_variance = TRUE,
-               tol = 0.01)
+               estimate_prior_variance = TRUE)
 ```
 
 ## Credible sets

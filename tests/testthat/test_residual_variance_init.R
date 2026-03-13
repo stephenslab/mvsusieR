@@ -8,7 +8,7 @@ test_that("default residual_variance for R=1 individual data uses var(Y)", {
   X <- matrix(rnorm(n * p), n, p)
   y <- rnorm(n)
   # Fit with default (NULL) residual_variance
-  fit <- mvsusie(X, y, L = 2, max_iter = 2, verbosity = 0)
+  fit <- mvsusie(X, y, L = 2, max_iter = 2, verbose = FALSE)
   # The residual variance should be close to var(y) (modulo centering)
   expect_true(!is.null(fit$sigma2))
   expect_true(is.numeric(fit$sigma2))
@@ -18,7 +18,7 @@ test_that("default residual_variance for R>1 individual data uses cov(Y)", {
   sim <- simulate_multivariate(n = 50, p = 30, r = 2)
   # Fit with default (NULL) residual_variance, must provide prior for R>1
   fit <- mvsusie(sim$X, sim$y, L = 2, prior_variance = sim$V,
-                 max_iter = 2, verbosity = 0)
+                 max_iter = 2, verbose = FALSE)
   # The residual variance should be a 2x2 matrix
   expect_true(is.matrix(fit$sigma2))
   expect_equal(nrow(fit$sigma2), 2)
@@ -33,7 +33,7 @@ test_that("default residual_variance for R>1 with missing data uses flash/cov fa
   sim <- simulate_multivariate(n = 50, p = 30, r = 2, y_missing = 0.1)
   # Fit with default (NULL) residual_variance and missing data
   fit <- mvsusie(sim$X, sim$y_missing, L = 2, prior_variance = sim$V,
-                 max_iter = 2, verbosity = 0)
+                 max_iter = 2, verbose = FALSE)
   # Should still produce a valid 2x2 positive definite matrix
   expect_true(is.matrix(fit$sigma2))
   expect_equal(nrow(fit$sigma2), 2)
@@ -56,7 +56,7 @@ test_that("default residual_variance for R=1 SS data uses YtY/(N-1)", {
   XtY <- crossprod(Xc, yc)
   YtY <- crossprod(yc)
   # Fit with default (NULL) residual_variance
-  fit <- mvsusie_ss(XtX, XtY, YtY, n, L = 2, max_iter = 2, verbosity = 0)
+  fit <- mvsusie_ss(XtX, XtY, YtY, n, L = 2, max_iter = 2, verbose = FALSE)
   expect_true(!is.null(fit$sigma2))
   expect_true(is.numeric(fit$sigma2))
 })
@@ -71,7 +71,7 @@ test_that("default residual_variance for R>1 SS data uses cov2cor(YtY)", {
   # Fit with default (NULL) residual_variance, must provide prior for R>1
   fit <- mvsusie_ss(XtX, XtY, YtY, nrow(sim$X), L = 2,
                     prior_variance = sim$V,
-                    max_iter = 2, verbosity = 0)
+                    max_iter = 2, verbose = FALSE)
   # Should be a 2x2 matrix
   expect_true(is.matrix(fit$sigma2))
   expect_equal(nrow(fit$sigma2), 2)
@@ -93,7 +93,7 @@ test_that("default residual_variance for R=1 RSS data works", {
   R_ld <- cor(sim$X)
   # Fit with default (NULL) residual_variance
   fit <- mvsusie_rss(z, R_ld, N = nrow(sim$X), L = 2, max_iter = 2,
-                     verbosity = 0)
+                     verbose = FALSE)
   expect_true(!is.null(fit$sigma2))
 })
 
@@ -107,7 +107,7 @@ test_that("default residual_variance for R>1 RSS data works", {
   # Fit with default (NULL) residual_variance, must provide prior for R>1
   fit <- mvsusie_rss(z, R_ld, N = nrow(sim$X), L = 2,
                      prior_variance = sim$V,
-                     max_iter = 2, verbosity = 0)
+                     max_iter = 2, verbose = FALSE)
   expect_true(is.matrix(fit$sigma2))
   expect_equal(nrow(fit$sigma2), 2)
 })

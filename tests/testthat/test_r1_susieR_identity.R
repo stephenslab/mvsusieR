@@ -107,7 +107,7 @@ test_that("R=1: fixed prior, fixed residual", {
     residual_variance = matrix(1, 1, 1),
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
-    verbosity = 0)
+    verbose = FALSE)
 
   compare_r1_fits(fit_susie, fit_mv,
                   label = "fixed prior fixed residual")
@@ -136,7 +136,7 @@ test_that("R=1: estimated prior (optim), fixed residual", {
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "optim",
-    verbosity = 0)
+    verbose = FALSE)
 
   compare_r1_fits(fit_susie, fit_mv,
                   check_prior = TRUE,
@@ -166,7 +166,7 @@ test_that("R=1: estimated prior (EM), fixed residual", {
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "EM",
-    verbosity = 0)
+    verbose = FALSE)
 
   compare_r1_fits(fit_susie, fit_mv,
                   check_prior = TRUE,
@@ -202,7 +202,7 @@ test_that("R=1: sufficient statistics path matches susieR::susie_ss", {
     prior_variance = V,
     estimate_residual_variance = FALSE,
     estimate_prior_variance = FALSE,
-    verbosity = 0)
+    verbose = FALSE)
 
   # Compare key fields
   expect_equal(fit_ss$alpha, unname(fit_mv$alpha),
@@ -249,7 +249,7 @@ test_that("R=1: suff stat with estimated prior (EM), fixed residual", {
     estimate_residual_variance = FALSE,
     estimate_prior_variance = TRUE,
     estimate_prior_method = "EM",
-    verbosity = 0)
+    verbose = FALSE)
 
   expect_equal(fit_ss$alpha, unname(fit_mv$alpha),
                tolerance = 1e-4, info = "ss EM alpha")

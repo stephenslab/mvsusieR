@@ -31,8 +31,8 @@ We simulate multi-trait data using realistic genotypes and split the
 samples into training (80%) and test (20%) sets.
 
 ```{r simulate-data}
-data(N3finemapping)
-X <- N3finemapping$X
+data(simdata)
+X <- simdata$raw$X
 n <- nrow(X)
 p <- ncol(X)
 r <- 10
@@ -67,7 +67,7 @@ prior <- create_mixture_prior(R = r)
 fit <- mvsusie(X_train, Y_train, L = 10,
                prior_variance = prior,
                estimate_prior_variance = TRUE,
-               standardize = TRUE, tol = 0.01)
+               standardize = TRUE)
 cat("Credible sets:", length(fit$sets$cs), "\n")
 ```
 
@@ -158,7 +158,7 @@ prior_dd <- create_mixture_prior(fitted_g = m_fit$fitted_g)
 fit_dd <- mvsusie(X_train, Y_train, L = 10,
                   prior_variance = prior_dd,
                   estimate_prior_variance = TRUE,
-                  standardize = TRUE, tol = 0.01)
+                  standardize = TRUE)
 ```
 
 ```{r compare-priors, fig.height=3, fig.width=4}

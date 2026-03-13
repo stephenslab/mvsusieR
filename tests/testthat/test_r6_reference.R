@@ -89,6 +89,7 @@ ensure_r6_loaded <- function() {
 # R6 wrapper functions
 # Translates S3 parameter names to R6 equivalents:
 #   precompute_cache -> precompute_covariances (R6 uses old name)
+#   verbose -> verbosity (R6 uses integer verbosity, S3 uses boolean verbose)
 r6_mvsusie <- function(...) {
   r6 <- load_r6_reference()
   args <- list(...)
@@ -96,6 +97,11 @@ r6_mvsusie <- function(...) {
   if ("precompute_cache" %in% names(args)) {
     args$precompute_covariances <- args$precompute_cache
     args$precompute_cache <- NULL
+  }
+  # R6 master uses verbosity (integer); S3 uses verbose (boolean)
+  if ("verbose" %in% names(args)) {
+    args$verbosity <- if (isTRUE(args$verbose)) 2 else 0
+    args$verbose <- NULL
   }
   # R6 master doesn't have estimate_prior_mixture_weights; strip it
   args$estimate_prior_mixture_weights <- NULL
@@ -265,12 +271,12 @@ test_that("R=1, missing data, fixed variance matches R6", {
                    residual_variance = as.numeric(var(y)),
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
+                   intercept = TRUE, standardize = TRUE, verbose = FALSE)
     ref <- r6_mvsusie(X, y_missing, L = L, prior_variance = V[1, 1],
                       residual_variance = as.numeric(var(y)),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
+                      intercept = TRUE, standardize = TRUE, verbose = FALSE)
     # Core math fields match at tight tolerance; fitted differs for
     # missing observations (convention: R6 zeros missing rows).
     # Compare math fields individually, skip fitted for missing data.
@@ -303,14 +309,14 @@ test_that("R=1, missing data, EM (10 iter) matches R6 at tight tol", {
                    estimate_prior_variance = TRUE,
                    estimate_prior_method = "EM",
                    max_iter = 10,
-                   intercept = TRUE, standardize = TRUE, verbosity = 0)
+                   intercept = TRUE, standardize = TRUE, verbose = FALSE)
     ref <- r6_mvsusie(X, y_missing, L = L, prior_variance = V[1, 1],
                       residual_variance = as.numeric(var(y)),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = TRUE,
                       estimate_prior_method = "EM",
                       max_iter = 10,
-                      intercept = TRUE, standardize = TRUE, verbosity = 0)
+                      intercept = TRUE, standardize = TRUE, verbose = FALSE)
     # Compare math fields; fitted only for observed rows (convention differs
     # for missing observations: R6 zeros them, S3 doesn't).
     expect_equal(fit$alpha, ref$alpha, tolerance = tol_tight,
@@ -385,14 +391,14 @@ test_that("R=3, fitted_g prior, fixed variance matches R6", {
                    estimate_prior_variance = FALSE,
                    estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbosity = 0)
+                   precompute_cache = TRUE, verbose = FALSE)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = FALSE,
                       intercept = TRUE, standardize = TRUE,
-                      precompute_cache = TRUE, verbosity = 0)
+                      precompute_cache = TRUE, verbose = FALSE)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
   })
 })
@@ -411,7 +417,7 @@ test_that("R=3, fitted_g prior, EM (10 iter) matches R6", {
                    estimate_prior_mixture_weights = FALSE,
                    max_iter = 10,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_cache = FALSE, verbosity = 0)
+                   precompute_cache = FALSE, verbose = FALSE)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
@@ -420,7 +426,7 @@ test_that("R=3, fitted_g prior, EM (10 iter) matches R6", {
                       estimate_prior_mixture_weights = FALSE,
                       max_iter = 10,
                       intercept = TRUE, standardize = TRUE,
-                      precompute_cache = FALSE, verbosity = 0)
+                      precompute_cache = FALSE, verbose = FALSE)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
   })
 })
@@ -438,14 +444,14 @@ test_that("R=3, fitted_g prior, null_weight override matches R6", {
                    estimate_prior_variance = FALSE,
                    estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbosity = 0)
+                   precompute_cache = TRUE, verbose = FALSE)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = FALSE,
                       intercept = TRUE, standardize = TRUE,
-                      precompute_cache = TRUE, verbosity = 0)
+                      precompute_cache = TRUE, verbose = FALSE)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
   })
 })
@@ -540,7 +546,7 @@ test_that("S3 output has expected core fields", {
   s3_prior <- create_mixture_prior(R = R)
   dev <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
                  estimate_residual_variance = FALSE,
-                 max_iter = 5, verbosity = 0)
+                 max_iter = 5, verbose = FALSE)
 
   # Core output fields that must always be present
   required <- c("alpha", "b1", "b2", "coef", "fitted", "intercept",
@@ -560,13 +566,13 @@ test_that("track_fit produces trace in output", {
   # track_fit = FALSE (default): no trace
   fit_no <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
                     estimate_residual_variance = FALSE,
-                    max_iter = 5, verbosity = 0, track_fit = FALSE)
+                    max_iter = 5, verbose = FALSE, track_fit = FALSE)
   expect_null(fit_no$trace)
 
   # track_fit = TRUE: trace present with per-iteration snapshots
   fit_yes <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
                      estimate_residual_variance = FALSE,
-                     max_iter = 5, verbosity = 0, track_fit = TRUE)
+                     max_iter = 5, verbose = FALSE, track_fit = TRUE)
   expect_false(is.null(fit_yes$trace))
   expect_true(length(fit_yes$trace) > 0)
   # Each trace entry should have key model fields
@@ -580,7 +586,7 @@ test_that("S3 output has outcome_names (replaces R6 condition_names)", {
   s3_prior <- create_mixture_prior(R = R)
   dev <- mvsusie(sim3$X, sim3$y, L = sim3$L, prior_variance = s3_prior,
                  estimate_residual_variance = FALSE,
-                 max_iter = 5, verbosity = 0)
+                 max_iter = 5, verbose = FALSE)
   expect_false(is.null(dev$outcome_names))
   expect_equal(length(dev$outcome_names), R)
 })

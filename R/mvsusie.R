@@ -12,7 +12,7 @@
 #' @param tol Convergence tolerance.
 #' @param prior_tol Tolerance for trimming null effects.
 #' @param track_fit Logical.
-#' @param verbosity Verbosity level.
+#' @param verbose Logical; if \code{TRUE}, print progress messages.
 #' @param coverage CS coverage.
 #' @param min_abs_corr Minimum absolute correlation for CS.
 #'
@@ -32,7 +32,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
                                tol = 1e-3,
                                prior_tol = 1e-9,
                                track_fit = FALSE,
-                               verbosity = 2,
+                               verbose = TRUE,
                                coverage = 0.95,
                                min_abs_corr = 0.5,
                                precompute_covariances = FALSE,
@@ -70,7 +70,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     prior_tol                = prior_tol,
     max_iter                 = max_iter,
     tol                      = tol,
-    verbose                  = (verbosity > 1),
+    verbose                  = isTRUE(verbose),
     track_fit                = track_fit,
     coverage                 = coverage,
     min_abs_corr             = min_abs_corr,
@@ -213,10 +213,8 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' @param tol The model fitting will terminate when the increase in
 #'   ELBOs between two successive iterations is less than \code{tol}.
 #'
-#' @param verbosity Set \code{verbosity = 0} for no messages;
-#'   \code{verbosity = 1} for a progress bar; and \code{verbosity = 2}
-#'   for more detailed information about the algorithm's progress at the
-#'   end of each iteration.
+#' @param verbose If \code{TRUE}, print progress messages during model
+#'   fitting. Default is \code{TRUE}.
 #'
 #' @param track_fit Add attribute \code{trace} to the return value
 #'   which records the algorithm's progress at each iteration.
@@ -352,7 +350,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     coverage = 0.95, min_abs_corr = 0.5,
                     compute_univariate_zscore = FALSE,
                     precompute_cache = TRUE, n_thread = 1,
-                    max_iter = 100, tol = 1e-3, verbosity = 2,
+                    max_iter = 100, tol = 1e-3, verbose = TRUE,
                     track_fit = FALSE) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
@@ -381,7 +379,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              precompute_cache = precompute_cache,
              n_thread = n_thread,
              max_iter = max_iter, tol = tol,
-             verbosity = verbosity, track_fit = track_fit)
+             verbose = verbose, track_fit = track_fit)
 }
 
 #' @rdname mvsusie
@@ -613,7 +611,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                               check_null_threshold = 0, prior_tol = 1e-9,
                               precompute_cache = TRUE, model_init = NULL,
                               coverage = 0.95, min_abs_corr = 0.5, n_thread = 1,
-                              max_iter = 100, tol = 1e-3, verbosity = 2,
+                              max_iter = 100, tol = 1e-3, verbose = TRUE,
                               track_fit = FALSE) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
@@ -645,7 +643,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                        precompute_cache = precompute_cache,
                        n_thread = n_thread,
                        max_iter = max_iter, tol = tol,
-                       verbosity = verbosity, track_fit = track_fit)
+                       verbose = verbose, track_fit = track_fit)
 }
 
 #' @rdname mvsusie
@@ -670,10 +668,11 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        compute_univariate_zscore = FALSE,
                        precompute_cache = TRUE,
                        n_thread = 1,
-                       max_iter = 100, tol = 1e-3, verbosity = 2,
+                       max_iter = 100, tol = 1e-3, verbose = TRUE,
                        track_fit = FALSE) {
   start_time <- proc.time()
   reset_warn_once()
+  verbose <- isTRUE(verbose)
 
   # Validate inputs
   if (is.null(dim(Y))) {
@@ -717,7 +716,6 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
     prior_variance <- matrix(prior_variance, 1, 1)
   }
 
-  verbose <- verbosity > 1
   if (verbose) {
     message(sprintf("mvsusie: N=%d, J=%d, R=%d, L=%d [mem: %.2f GB]",
                     nrow(X), ncol(X), R, L, mem_used_gb()))
@@ -828,7 +826,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
       max_iter = max_iter, tol = tol,
       prior_tol = prior_tol,
       track_fit = track_fit,
-      verbosity = verbosity,
+      verbose = verbose,
       coverage = coverage,
       min_abs_corr = min_abs_corr,
       precompute_covariances = precompute_cache,
@@ -851,7 +849,6 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
       model_init <- model
       model_init$V_structure <- NULL
       wh_args$model_init <- model_init
-      wh_args$verbosity <- 0  # quiet after first iteration
       s_new <- do.call(mvsusie_workhorse, c(list(data = data), wh_args))
       s_new$sigma2 <- sigma2_new
 
@@ -878,7 +875,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                             max_iter = max_iter, tol = tol,
                             prior_tol = prior_tol,
                             track_fit = track_fit,
-                            verbosity = verbosity,
+                            verbose = verbose,
                             coverage = coverage,
                             min_abs_corr = min_abs_corr,
                             precompute_covariances = precompute_cache,
@@ -928,7 +925,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   s <- apply_mvsusie_dimnames(s)
 
   s$walltime <- proc.time() - start_time
-  flush_warn_once(verbose = verbosity > 1)
+  flush_warn_once(verbose = verbose)
   return(s)
 }
 
@@ -956,7 +953,7 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   coverage = 0.95, min_abs_corr = 0.5,
                                   precompute_cache = TRUE,
                                   n_thread = 1,
-                                  max_iter = 100, tol = 1e-3, verbosity = 2,
+                                  max_iter = 100, tol = 1e-3, verbose = TRUE,
                                   track_fit = FALSE) {
   start_time <- proc.time()
   reset_warn_once()
@@ -1033,7 +1030,7 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                           max_iter = max_iter, tol = tol,
                           prior_tol = prior_tol,
                           track_fit = track_fit,
-                          verbosity = verbosity,
+                          verbose = verbose,
                           coverage = coverage,
                           min_abs_corr = min_abs_corr,
                           precompute_covariances = precompute_cache,
@@ -1079,6 +1076,6 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
   s <- apply_mvsusie_dimnames(s)
 
   s$walltime <- proc.time() - start_time
-  flush_warn_once(verbose = verbosity > 1)
+  flush_warn_once(verbose = verbose)
   return(s)
 }

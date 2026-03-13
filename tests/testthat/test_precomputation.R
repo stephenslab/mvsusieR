@@ -243,13 +243,13 @@ test_that("E2E: precompute=TRUE matches FALSE for individual data, fixed V", {
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = sim$V,
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
   expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
@@ -276,14 +276,14 @@ test_that("E2E: precompute=TRUE matches FALSE for individual data, optim V", {
                      estimate_prior_method = "optim",
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = sim$V,
                      estimate_prior_variance = TRUE,
                      estimate_prior_method = "optim",
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 0.05)
   expect_equal(fit_yes$V, fit_no$V, tolerance = 0.05)
@@ -298,14 +298,14 @@ test_that("E2E: precompute=TRUE matches FALSE for individual data, EM V", {
                      estimate_prior_method = "EM",
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = sim$V,
                      estimate_prior_variance = TRUE,
                      estimate_prior_method = "EM",
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 0.05)
   expect_equal(fit_yes$V, fit_no$V, tolerance = 0.05)
@@ -320,14 +320,14 @@ test_that("E2E: precompute=TRUE matches FALSE with estimated residual variance",
                      estimate_prior_method = "optim",
                      estimate_residual_variance = TRUE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = sim$V,
                      estimate_prior_variance = TRUE,
                      estimate_prior_method = "optim",
                      estimate_residual_variance = TRUE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 0.05)
   expect_equal(fit_yes$V, fit_no$V, tolerance = 0.05)
@@ -348,13 +348,13 @@ test_that("E2E: precompute=TRUE matches FALSE for mash prior, fixed V", {
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = mash_init,
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
   expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
@@ -374,14 +374,14 @@ test_that("E2E: precompute=TRUE matches FALSE for mash prior with EM", {
                      estimate_prior_method = "EM",
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = mash_init,
                      estimate_prior_variance = TRUE,
                      estimate_prior_method = "EM",
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 0.05)
   expect_equal(fit_yes$V, fit_no$V, tolerance = 0.05)
@@ -410,7 +410,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, fixed V
                                 estimate_prior_variance = FALSE,
                                 estimate_residual_variance = FALSE,
                                 precompute_cache = FALSE,
-                                max_iter = 5, tol = 1e-3, verbosity = 0)
+                                max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                 X_colmeans = X_colmeans,
                                 Y_colmeans = Y_colmeans,
@@ -418,7 +418,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, fixed V
                                 estimate_prior_variance = FALSE,
                                 estimate_residual_variance = FALSE,
                                 precompute_cache = TRUE,
-                                max_iter = 5, tol = 1e-3, verbosity = 0)
+                                max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
   expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
@@ -445,7 +445,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, optim V
                                 estimate_prior_method = "optim",
                                 estimate_residual_variance = FALSE,
                                 precompute_cache = FALSE,
-                                max_iter = 5, tol = 1e-3, verbosity = 0)
+                                max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie_ss(XtX, XtY, YtY, n, L = 5,
                                 X_colmeans = X_colmeans,
                                 Y_colmeans = Y_colmeans,
@@ -454,7 +454,7 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, optim V
                                 estimate_prior_method = "optim",
                                 estimate_residual_variance = FALSE,
                                 precompute_cache = TRUE,
-                                max_iter = 5, tol = 1e-3, verbosity = 0)
+                                max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 0.05)
   expect_equal(fit_yes$V, fit_no$V, tolerance = 0.05)
@@ -471,13 +471,13 @@ test_that("E2E: precompute=TRUE matches FALSE for R=3, fixed V", {
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = sim$V,
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
   expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
@@ -500,13 +500,13 @@ test_that("E2E: precompute=TRUE matches FALSE for R=1, fixed V", {
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = V_mat,
                      estimate_prior_variance = FALSE,
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
   expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
@@ -526,14 +526,14 @@ test_that("E2E: precompute=TRUE matches FALSE with uniroot", {
                      estimate_prior_method = "uniroot",
                      estimate_residual_variance = FALSE,
                      precompute_cache = FALSE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
   fit_yes <- mvsusie(sim$X, sim$y, L = 5,
                      prior_variance = sim$V,
                      estimate_prior_variance = TRUE,
                      estimate_prior_method = "uniroot",
                      estimate_residual_variance = FALSE,
                      precompute_cache = TRUE,
-                     max_iter = 5, tol = 1e-3, verbosity = 0)
+                     max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 0.05)
   expect_equal(fit_yes$V, fit_no$V, tolerance = 0.05)
