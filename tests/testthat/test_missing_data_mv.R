@@ -281,14 +281,14 @@ test_that("invert_via_chol handles PD, singular, and zero matrices", {
 })
 
 
-# 26. compute_cov_flash
-test_that("compute_cov_flash returns PD matrix of correct dimension", {
+# 26. compute_cov_pairwise
+test_that("compute_cov_pairwise returns PD matrix of correct dimension", {
   set.seed(260)
   N <- 100; R <- 3
   Y <- matrix(rnorm(N * R), N, R)
   Y[sample(N * R, 30)] <- NA  # 10% missing
 
-  V <- mvsusieR:::compute_cov_flash(Y)
+  V <- mvsusieR:::compute_cov_pairwise(Y)
   expect_equal(dim(V), c(R, R))
   evals <- eigen(V, symmetric = TRUE, only.values = TRUE)$values
   expect_true(all(evals > 0))

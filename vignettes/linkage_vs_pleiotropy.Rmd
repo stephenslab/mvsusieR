@@ -9,11 +9,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-A key advantage of multi-trait fine-mapping is the ability to
-distinguish between *pleiotropy* (one SNP affecting multiple traits)
+In multi-trait fine-mapping it is possible in principle, though not always in practice,
+to distinguish between *pleiotropy* (one SNP affecting multiple traits)
 and *linkage* (different correlated SNPs each affecting different
 traits). When two correlated SNPs have distinct trait-specific
-effects, mvSuSiE can separate them into different credible sets,
+effects, if the analysis is sufficiently powered, 
+mvSuSiE can separate them into different credible sets,
 resolving *LD-induced pleiotropy*.
 
 ```{r knitr-opts, include=FALSE}
@@ -31,69 +32,88 @@ set.seed(2)
 
 ## LD-induced pleiotropy: the problem
 
-Consider two causal SNPs that are in *negative* LD. SNP 1 increases
-traits 1--5, and SNP 2 increases traits 6--10. Because of the
-negative LD, the marginal z-scores show associations in *all 10
-traits* for *both* SNPs---positive for the traits they truly
-affect and negative for the other traits (due to the LD partner's
-effect). This creates the appearance of broad pleiotropy when in
-reality each SNP is trait-specific.
+Consider two causal SNPs in *negative* LD ($r \approx -0.66$).
+SNP 1 affects traits 1--5 and SNP 2 affects traits 6--10. Because
+of the negative LD, the marginal association statistics show signal
+in *all 10 traits* for *both* SNPs, positive for the traits they
+truly affect and negative for the other traits (due to their "LD buddies"). 
+This creates the appearance of broad pleiotropy
+when in reality each SNP is trait-specific.
 
 ```{r simulate-data}
 data(simdata)
 X <- simdata$raw$X
 n <- nrow(X); p <- ncol(X); r <- 10
 
-# Find a pair of SNPs with strong negative LD (~-0.7)
+# Find a pair of SNPs with strong negative LD
 R_mat <- cor(X)
 pairs <- which(R_mat < -0.6 & R_mat > -0.8 &
                upper.tri(R_mat), arr.ind = TRUE)
 snp1 <- pairs[1, 1]
 snp2 <- pairs[1, 2]
-cat(sprintf("Causal SNPs: %d and %d (correlation: %.3f)\n",
+cat(sprintf("Causal SNPs: %d and %d (LD r = %.3f)\n",
             snp1, snp2, R_mat[snp1, snp2]))
 ```
 
-Each causal SNP has *positive* effects on its own 5 traits:
+We set per-trait PVE (heritability) at $\approx 7\text{--}9\%$,
+consistent with a moderately strong eQTL signal,
 
 ```{r create-effects}
 B <- matrix(0, p, r)
-effect_size <- 1.5
-B[snp1, 1:5] <- abs(rnorm(5, effect_size, 0.2))   # SNP 1 -> traits 1-5
-B[snp2, 6:10] <- abs(rnorm(5, effect_size, 0.2))   # SNP 2 -> traits 6-10
+effect_size <- 2.0
+B[snp1, 1:5] <- effect_size    # SNP 1 -> traits 1-5
+B[snp2, 6:10] <- effect_size   # SNP 2 -> traits 6-10
 Y <- X %*% B + matrix(rnorm(n * r), n, r)
 
-cat("True effects of SNP", snp1, "(traits 1-5):",
-    round(B[snp1, 1:5], 2), "\n")
-cat("True effects of SNP", snp2, "(traits 6-10):",
-    round(B[snp2, 6:10], 2), "\n")
+# Per-trait PVE
+pve <- sapply(1:r, function(t) {
+  var(X %*% B[, t]) / var(Y[, t])
+})
+cat(sprintf("Per-trait PVE range: %.1f%% -- %.1f%%\n",
+            100 * min(pve), 100 * max(pve)))
 ```
 
-The marginal z-scores show associations in all 10 traits for both
-SNPs, due to the negative LD confounding:
+### Marginal associations are misleading
 
-```{r marginal-z-scores, fig.height=3, fig.width=6}
+The marginal z-scores and p-values show associations across almost all
+10 traits for both SNPs, due to the negative LD confounding:
+
+```{r marginal-z-scores, fig.height=3.5, fig.width=7}
 Z <- calc_z(X, Y, center = TRUE, scale = TRUE)
+pval <- 2 * pnorm(-abs(Z))
+
 z_dat <- data.frame(
   trait = rep(paste0("T", 1:r), 2),
   zscore = c(Z[snp1, ], Z[snp2, ]),
+  pval = c(pval[snp1, ], pval[snp2, ]),
   snp = rep(c(paste("SNP", snp1), paste("SNP", snp2)), each = r)
 )
 z_dat$trait <- factor(z_dat$trait, levels = paste0("T", 1:r))
+z_dat$direction <- factor(ifelse(z_dat$zscore > 0, "+1", "-1"),
+                          levels = c("-1", "+1"))
+z_dat$logp <- -log10(z_dat$pval)
 
-ggplot(z_dat, aes(x = trait, y = zscore, fill = snp)) +
-  geom_col(position = "dodge") +
-  geom_hline(yintercept = 0) +
-  scale_fill_manual(values = c("royalblue", "firebrick")) +
-  labs(x = "Trait", y = "Z-score", fill = "") +
-  theme_cowplot(font_size = 12) +
+ggplot(z_dat, aes(x = snp, y = trait, fill = direction, size = logp)) +
+  geom_point(shape = 21, stroke = 0.5, color = "white") +
+  scale_fill_manual(values = c("darkblue", "red"), drop = FALSE) +
+  scale_size(range = c(1, 6),
+             breaks = unname(round(quantile(z_dat$logp,
+                                            seq(0, 1, length.out = 4)), 1))) +
+  labs(x = "", y = "", fill = "direction", size = expression(-log[10](p))) +
+  guides(fill = guide_legend(override.aes = list(size = 2)),
+         size = guide_legend(override.aes = list(shape = 21, fill = "black",
+                                                  color = "white",
+                                                  stroke = 0.5))) +
+  theme_cowplot(font_size = 10) +
+  background_grid(major = "xy", minor = "none",
+                  size.major = 0.3, colour.major = "grey85") +
+  panel_border(colour = "grey70") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-Both SNPs show z-scores in all 10 traits. Without multi-trait
-fine-mapping, one might conclude that both SNPs are broadly
-pleiotropic. But the *sign pattern*---positive in 5 traits and
-negative in the other 5---is a hallmark of LD-induced pleiotropy.
+Both SNPs show significant associations in most of the 10
+traits. All of them have $p<0.05$. Without multi-trait fine-mapping, one might conclude
+that both SNPs are broadly pleiotropic, with positive effects in 5 traits and negative in the other 5.
 
 ## Resolving with mvSuSiE
 
@@ -104,47 +124,96 @@ effect pattern.
 ```{r fit-model}
 prior <- create_mixture_prior(R = r)
 fit <- mvsusie(X, Y, L = 10,
-               prior_variance = prior,
-               estimate_prior_variance = TRUE,
-               standardize = TRUE)
+               prior_variance = prior)
 ```
 
 ```{r credible-sets}
 cat("Number of credible sets:", length(fit$sets$cs), "\n\n")
 for (cs_name in names(fit$sets$cs)) {
   cs_vars <- fit$sets$cs[[cs_name]]
+  l_idx <- as.integer(gsub("L", "", cs_name))
+  sig_traits <- which(fit$single_effect_lfsr[l_idx, ] < 0.01)
   has_snp1 <- snp1 %in% cs_vars
   has_snp2 <- snp2 %in% cs_vars
-  cat(sprintf("%s: %d SNPs, contains SNP%d=%s SNP%d=%s\n",
+  cat(sprintf("%s: %d SNP(s), contains SNP%d=%s SNP%d=%s\n",
               cs_name, length(cs_vars),
               snp1, has_snp1, snp2, has_snp2))
+  cat(sprintf("  Significant traits (lfsr < 0.01): %s\n",
+              paste(sig_traits, collapse = ", ")))
 }
-# Check false discovery rate
-n_fp <- sum(fit$pip > 0.9) - sum(fit$pip[c(snp1, snp2)] > 0.9)
-cat(sprintf("\nFalse discoveries (PIP > 0.9 at non-causal SNPs): %d\n",
-            max(0, n_fp)))
 ```
 
-```{r effect-plot, fig.height=3.5, fig.width=3.5}
-out <- mvsusie_plot(fit, add_cs = TRUE, lfsr_cutoff = 0.05)
-out$effect_plot
-```
-
-The effect plot shows that each credible set has effects in only
-a subset of traits, resolving the apparent broad pleiotropy into
-trait-specific signals.
+Two CS are identified,
 
 ```{r pip-plot, fig.height=2, fig.width=6}
+out <- mvsusie_plot(fit, add_cs = TRUE, lfsr_cutoff = 0.05)
 out$pip_plot
 ```
 
-## Comparison with univariate analysis
+### Effect plot (mvSuSiE)
 
-A univariate (single-trait) analysis cannot distinguish which
-SNP is causal for which trait when the SNPs are correlated.
+The `mvsusie_plot` effect plot shows that each credible set has
+effects in only its 5 causal traits, which looks different from the
+marginal association plots previously shown.
+
+```{r effect-plot, fig.height=3.5, fig.width=5}
+out$effect_plot
+```
+
+### Marginal z-scores for CS variants
+
+For comparison, we plot the marginal z-scores for the same
+variants that appear in the mvSuSiE credible sets.
+
+```{r z-scores-cs, fig.height=3.5, fig.width=5}
+# Extract CS SNPs and their z-scores
+cs_z_dat <- data.frame()
+for (cs_name in names(fit$sets$cs)) {
+  cs_vars <- fit$sets$cs[[cs_name]]
+  for (j in cs_vars) {
+    df <- data.frame(
+      trait = paste0("T", 1:r),
+      zscore = Z[j, ],
+      pval = pval[j, ],
+      snp_cs = paste0("SNP", j, "(", cs_name, ")"),
+      cs = cs_name,
+      stringsAsFactors = FALSE
+    )
+    cs_z_dat <- rbind(cs_z_dat, df)
+  }
+}
+cs_z_dat$trait <- factor(cs_z_dat$trait, levels = paste0("T", 1:r))
+cs_z_dat$direction <- factor(ifelse(cs_z_dat$zscore > 0, "+1", "-1"),
+                             levels = c("-1", "+1"))
+cs_z_dat$logp <- -log10(cs_z_dat$pval)
+
+ggplot(cs_z_dat, aes(x = snp_cs, y = trait,
+                     fill = direction, size = logp)) +
+  geom_point(shape = 21, stroke = 0.5, color = "white") +
+  scale_fill_manual(values = c("darkblue", "red"), drop = FALSE) +
+  scale_size(range = c(1, 6),
+             breaks = unname(round(quantile(cs_z_dat$logp,
+                                            seq(0, 1, length.out = 4)), 1))) +
+  labs(x = "", y = "", fill = "direction",
+       size = expression(-log[10](p)),
+       title = "Marginal z-scores") +
+  guides(fill = guide_legend(override.aes = list(size = 2)),
+         size = guide_legend(override.aes = list(shape = 21, fill = "black",
+                                                  color = "white",
+                                                  stroke = 0.5))) +
+  theme_cowplot(font_size = 10) +
+  background_grid(major = "xy", minor = "none",
+                  size.major = 0.3, colour.major = "grey85") +
+  panel_border(colour = "grey70") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Comparison with univariate fine-mapping
+
+Here we analyze 10 traits seperately using `susie()`:
 
 ```{r univariate-comparison}
-for (t in c(1, 6)) {
+for (t in c(1:10)) {
   fit_uv <- susie(X, Y[, t], L = 10, standardize = TRUE)
   if (length(fit_uv$sets$cs) > 0) {
     cs1 <- fit_uv$sets$cs[[1]]
@@ -158,39 +227,29 @@ for (t in c(1, 6)) {
 }
 ```
 
-In the univariate analysis, the credible sets for different traits
-may each contain *both* correlated SNPs, providing no resolution.
-The multivariate analysis leverages the distinct trait patterns to
-separate the two linked signals.
-
 ## The challenge of weak LD contrast
 
-When the LD between the two causal SNPs is weaker (closer to zero),
-separation becomes harder because the marginal associations overlap
-less. Similarly, when effects are smaller relative to noise, both
-univariate and multivariate methods lose power.
+When the effects are smaller relative to noise, both univariate
+and multivariate methods lose power. With PVE around 2--3%,
+mvSuSiE may find fewer credible sets or may not fully resolve
+the two signals.
 
 ```{r weak-effects}
-# Weaker effects make separation harder
+set.seed(2)
 B_weak <- matrix(0, p, r)
-B_weak[snp1, 1:5] <- abs(rnorm(5, 0.5, 0.1))
-B_weak[snp2, 6:10] <- abs(rnorm(5, 0.5, 0.1))
+B_weak[snp1, 1:5] <- 1.0
+B_weak[snp2, 6:10] <- 1.0
 Y_weak <- X %*% B_weak + matrix(rnorm(n * r), n, r)
-fit_weak <- mvsusie(X, Y_weak, L = 10,
-                    prior_variance = prior,
-                    estimate_prior_variance = TRUE,
-                    standardize = TRUE)
-cat("Weak effects: CS =", length(fit_weak$sets$cs), "\n")
-for (cs_name in names(fit_weak$sets$cs)) {
-  cs_vars <- fit_weak$sets$cs[[cs_name]]
-  cat(sprintf("  %s: %d SNPs, contains SNP%d=%s SNP%d=%s\n",
-              cs_name, length(cs_vars),
-              snp1, snp1 %in% cs_vars,
-              snp2, snp2 %in% cs_vars))
-}
-```
 
-With weaker effects, mvSuSiE may find fewer credible sets or may
-not fully resolve the two signals into separate CSs. This
-illustrates the inherent difficulty of fine-mapping when the
-signal-to-noise ratio is low.
+pve_weak <- sapply(1:r, function(t) {
+  var(X %*% B_weak[, t]) / var(Y_weak[, t])
+})
+cat(sprintf("Per-trait PVE range: %.1f%% -- %.1f%%\n",
+            100 * min(pve_weak), 100 * max(pve_weak)))
+
+fit_weak <- mvsusie(X, Y_weak, L = 10,
+                    prior_variance = prior)
+out <- mvsusie_plot(fit_weak, add_cs = TRUE, lfsr_cutoff = 0.05)
+out$pip_plot
+out$effect_plot
+```

@@ -50,16 +50,12 @@ Y1 <- Y[, 1]
 # Univariate susie
 fit_susie <- susie(X, Y1, L = 10,
                    scaled_prior_variance = 0.2,
-                   estimate_prior_variance = TRUE,
-                   standardize = TRUE,
-                   max_iter = 100, tol = 1e-4)
+                   tol = 1e-4)
 
 # Multivariate mvsusie with R=1
 fit_mv1 <- mvsusie(X, Y1, L = 10,
                    prior_variance = 0.2,
-                   estimate_prior_variance = TRUE,
-                   standardize = TRUE,
-                   max_iter = 100, tol = 1e-4, verbose = FALSE)
+                   tol = 1e-4, verbose = FALSE)
 
 cat("susie CS:", length(fit_susie$sets$cs), "\n")
 cat("mvsusie (R=1) CS:", length(fit_mv1$sets$cs), "\n")
@@ -77,25 +73,7 @@ ggplot(pdat, aes(x = susie, y = mvsusie)) +
 
 The PIPs agree at machine precision, confirming the $R = 1$ reduction.
 
-## Single-effect regression agreement
-
-At the core of both SuSiE and mvSuSiE is the single-effect
-regression (SER) step. When $R = 1$, mvSuSiE's SER should
-give the same Bayes factors and posterior weights as SuSiE's.
-
-```{r ser-comparison}
-# Compare Bayes factors from the first single effect
-cat("susie lbf (first effect):", round(fit_susie$lbf[1], 4), "\n")
-cat("mvsusie lbf (first effect):", round(fit_mv1$lbf[1], 4), "\n")
-
-# Compare alpha (posterior weights)
-alpha_susie <- fit_susie$alpha[1, ]
-alpha_mv <- fit_mv1$alpha[1, ]
-cat("max |alpha diff| (first effect):",
-    max(abs(alpha_susie - alpha_mv)), "\n")
-```
-
-## Mixture prior (K > 1) vs single matrix prior (K = 1)
+## Mixture prior ($K > 1$) vs single matrix prior ($K = 1$)
 
 mvSuSiE supports two code paths for the prior: a single $R \times R$
 covariance matrix, and a mixture of $K$ matrices (the "mash" prior).
@@ -110,9 +88,6 @@ U <- 0.2 * diag(r)
 fit_single <- mvsusie(X, Y, L = 10,
                       prior_variance = U,
                       residual_variance = diag(r),
-                      estimate_residual_variance = FALSE,
-                      estimate_prior_variance = TRUE,
-                      standardize = TRUE,
                       max_iter = 100, tol = 1e-4, verbose = FALSE)
 
 # Mixture prior with K=1 (mash code path)
@@ -122,9 +97,6 @@ prior_k1 <- create_mixture_prior(
 fit_mixture <- mvsusie(X, Y, L = 10,
                        prior_variance = prior_k1,
                        residual_variance = diag(r),
-                       estimate_residual_variance = FALSE,
-                       estimate_prior_variance = TRUE,
-                       standardize = TRUE,
                        max_iter = 100, tol = 1e-4, verbose = FALSE)
 
 cat("Single matrix CS:", length(fit_single$sets$cs), "\n")

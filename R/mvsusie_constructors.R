@@ -188,10 +188,10 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
           residual_variance <- makePD(residual_variance)
         }
       } else {
-        # Missing data: use flash-based covariance (handles NAs internally).
+        # Missing data: pairwise complete covariance (handles NAs).
         Y_with_na <- data$Y
         Y_with_na[data$Y_na] <- NA
-        residual_variance <- compute_cov_flash(Y_with_na)
+        residual_variance <- compute_cov_pairwise(Y_with_na)
       }
     } else {
       residual_variance <- as.numeric(var(data$Y, na.rm = TRUE))

@@ -880,3 +880,90 @@ is_list_common_3d <- function(lst, tol = 1e-10) {
   if (ref_norm == 0) ref_norm <- 1
   all(vapply(lst[-1], function(x) max(abs(x - ref)) / ref_norm < tol, logical(1)))
 }
+
+
+# =============================================================================
+# MISSING PATTERN CLASSIFICATION
+# =============================================================================
+
+#' Classify missingness pattern and warn about method suitability.
+#'
+#' Examines the structure of missing entries in Y and classifies the
+#' pattern as "block", "aligned", or "scattered" (MCAR-like). Issues
+#' warnings when the chosen \code{missing_y_method} may be suboptimal
+#' for the detected pattern.
+#'
+#' Pattern definitions:
+#' \describe{
+#'   \item{block}{Entire outcome blocks are missing for subsets of
+#'     samples. Common in cross-population analyses where different
+#'     cohorts measure different traits.}
+#'   \item{aligned}{The same samples are missing across all outcomes
+#'     (row-level missingness). Missingness does not vary across
+#'     outcomes.}
+#'   \item{scattered}{Entries are missing independently across samples
+#'     and outcomes (MCAR-like). Each outcome uses a different random
+#'     subset of observations.}
+#' }
+#'
+#' @param Y N x R response matrix with NAs at missing entries.
+#' @param missing_y_method Character: the method that will be used.
+#'
+#' @return A list with:
+#'   \describe{
+#'     \item{pattern}{Character: "block", "aligned", or "scattered".}
+#'     \item{missing_frac}{Numeric: fraction of entries that are missing.}
+#'     \item{n_patterns}{Integer: number of unique missingness patterns.}
+#'   }
+#'
+#' @keywords internal
+classify_missing_pattern <- function(Y, missing_y_method) {
+  N <- nrow(Y)
+  R <- ncol(Y)
+  is_obs <- !is.na(Y)
+  missing_frac <- 1 - mean(is_obs)
+
+  # Count unique row-level missingness patterns
+  n_patterns <- length(unique(
+    apply(is.na(Y), 1, function(row) paste(as.integer(row), collapse = ""))
+  ))
+
+  # Check if any trait pairs are never jointly observed.
+  # This is the key condition that makes impute fail: it cannot estimate
+  # cross-trait covariance for traits never observed together.
+  # Works for 2, 3, or K non-overlapping cohorts.
+  joint_obs <- crossprod(is_obs)  # R x R: count of joint observations
+  has_disjoint_traits <- any(joint_obs[lower.tri(joint_obs)] == 0)
+
+  if (has_disjoint_traits) {
+    pattern <- "block"
+  } else if (n_patterns <= max(3, R) && n_patterns < N / 10) {
+    # Few unique patterns relative to N, but all trait pairs jointly observed:
+    # structured but not disjoint (e.g., monotone missing)
+    pattern <- "structured"
+  } else {
+    pattern <- "scattered"
+  }
+
+  # Issue warnings based on pattern vs method
+  if (missing_y_method == "impute") {
+    if (pattern == "block") {
+      # Find which trait pairs are never jointly observed
+      disjoint <- which(joint_obs == 0 & lower.tri(joint_obs), arr.ind = TRUE)
+      n_disjoint <- nrow(disjoint)
+      warning_message(
+        "Missingness is block-structured: ", n_disjoint,
+        " trait pair(s) are never jointly observed. ",
+        "Imputation cannot estimate cross-block covariances and will lose ",
+        "power. Consider using missing_y_method='approximate' or 'exact'.")
+    } else if (pattern == "scattered" && missing_frac > 0.4) {
+      warning_message(
+        "High missing rate (", sprintf("%.0f%%", 100 * missing_frac),
+        ") with scattered pattern. Imputation may be unreliable. ",
+        "Consider using missing_y_method='approximate' instead.")
+    }
+  }
+
+  list(pattern = pattern, missing_frac = missing_frac,
+       n_patterns = n_patterns, has_disjoint_traits = has_disjoint_traits)
+}

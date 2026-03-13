@@ -21,10 +21,10 @@
 #' @keywords internal
 mvsusie_workhorse <- function(data, L, prior_variance,
                                prior_weights = NULL,
-                               estimate_residual_variance = FALSE,
+                               estimate_residual_variance = TRUE,
                                estimate_prior_variance = TRUE,
                                estimate_prior_method = "optim",
-                               estimate_prior_mixture_weights = FALSE,
+                               estimate_prior_mixture_weights = TRUE,
                                mixture_weight_method = "mixsqp",
                                check_null_threshold = 0,
                                convergence_method = "elbo",
@@ -699,7 +699,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   # Scale prior variance when standardizing
   if (standardize && (is.matrix(prior_variance) || is_mash_prior)) {
     sigma <- sapply(seq_len(R), function(i) sd(Y[, i], na.rm = TRUE))
-    n <- sapply(seq_len(R), function(i) length(which(!is.na(Y[, 1]))))
+    n <- sapply(seq_len(R), function(i) length(which(!is.na(Y[, i]))))
     sigma <- sigma / sqrt(n)
     if (estimate_prior_variance) {
       sigma <- sigma / max(sigma)
@@ -740,6 +740,11 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   if (R == 1 || !Y_has_missing) {
     # For R=1 or no missing data, fall back to impute (standard) method
     missing_y_method <- "impute"
+  }
+
+  # Classify missingness pattern and warn if method may be suboptimal
+  if (Y_has_missing && R > 1) {
+    miss_info <- classify_missing_pattern(Y, missing_y_method)
   }
 
   # When Y has missing data (R > 1) and using approximate/exact methods:
@@ -783,12 +788,18 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   }
 
   # Convergence method: use ELBO by default, but switch to PIP-based
-
   # convergence for the imputation missing data method where ELBO is
   # not exact (doi:10.1038/s41588-025-02486-7). The approximate and exact
   # methods compute a valid ELBO so ELBO convergence is appropriate.
-  convergence_method <- if (Y_has_missing && R > 1 &&
-                            missing_y_method == "impute") "pip" else "elbo"
+  if (Y_has_missing && R > 1 && missing_y_method == "impute") {
+    convergence_method <- "pip"
+    warning_message(
+      "Using PIP-based convergence (instead of ELBO) for impute method: ",
+      "the variational imputation does not guarantee a monotone ELBO, ",
+      "so PIP convergence is used as a stable alternative.")
+  } else {
+    convergence_method <- "elbo"
+  }
 
   # Fit model.
   #

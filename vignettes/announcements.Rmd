@@ -30,17 +30,32 @@ Performance-critical operations are
 implemented in C++ via Rcpp/RcppArmadillo to
 provide substantial speedups.
 
-### Precompute cache
+### Changed defaults
 
-The `precompute_cache` option (previously named
-`precompute_covariances`) now additionally caches 
-eigendecompositions and other intermediate quantities to 
-accelerate the IBSS fitting algorithm.
+Users upgrading from 0.1.x (R6) should note the following
+changes to default parameter values:
 
-For most analyses, `precompute_cache = TRUE` (the default) is
-recommended. If memory is a concern with very large numbers of
-mixture components, you may set it to `FALSE` at the cost of
-slower computation.
+- `estimate_residual_variance` now defaults to `TRUE` in
+  `mvsusie()` (was `FALSE`). The residual variance is estimated
+  from the data unless explicitly set. The default remains
+  `FALSE` in `mvsusie_ss()`.
+- `estimate_prior_method` now defaults to `"optim"` (was
+  `"EM"`). The optimization-based method is now faster and more
+  accurate for mixture priors.
+- `estimate_prior_mixture_weights` now defaults to `TRUE`.
+  Mixture prior component weights are re-estimated during
+  fitting via the `"mixsqp"` algorithm by default (can also be `"EM"`).
+- `precompute_cache` now defaults to `TRUE` (was `FALSE`;
+  previously named `precompute_covariances`). Caches
+  eigendecompositions and other intermediate quantities to
+  accelerate the IBSS fitting algorithm. If memory is a concern
+  with very large numbers of mixture components, set to `FALSE`
+  at the cost of slower computation.
+- `missing_y_method` with default to `"approximate"`, replacing the previous
+  `approximate` boolean parameter (also default to `TRUE`).
+- `verbose` replaces the numeric `verbosity` parameter and
+  defaults to `TRUE` (logical).
+- `model_init` replaces `s_init` for model initialization (consistent with current `susieR`).
 
 ## References
 

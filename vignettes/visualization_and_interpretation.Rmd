@@ -40,10 +40,9 @@ cat(sprintf("Data: %d samples, %d SNPs, %d traits\n",
 prior <- create_mixture_prior(list(matrices = simdata$par$U,
                                    weights = simdata$par$w),
                               null_weight = 0)
-fit <- mvsusie(X, Y, standardize = TRUE,
+fit <- mvsusie(X, Y, 
                prior_variance = prior,
-               residual_variance = simdata$par$V,
-               estimate_prior_variance = TRUE)
+               residual_variance = simdata$par$V)
 ```
 
 ## Credible sets
@@ -179,6 +178,3 @@ ggplot(pdat, aes(x = true, y = estimated,
   labs(x = "True coefficient", y = "mvSuSiE estimate") +
   theme_cowplot(font_size = 12)
 ```
-
-The mvSuSiE estimates align well with the true coefficients, and
-traits with significant effects (small LFSR) are correctly identified.

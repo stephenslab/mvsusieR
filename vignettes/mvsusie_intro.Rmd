@@ -10,10 +10,11 @@ vignette: >
 ---
 
 This vignette walks through the steps of a basic mvSuSiE multi-trait
-fine-mapping analysis using individual-level and summary data. For
-detailed interpretation of the output---including credible sets,
+fine-mapping analysis using individual-level and summary data. 
+
+For detailed interpretation of the output including PIP, credible sets,
 LFSR, outcome-specific PIPs, and per-effect coefficient
-estimates---see the [Interpreting and visualizing mvSuSiE
+estimates, see the [Interpreting and visualizing mvSuSiE
 results](visualization_and_interpretation.html) vignette.
 
 ```{r knitr-opts, include=FALSE}
@@ -38,8 +39,8 @@ data(simdata)
 ```
 
 The data consist of an $N \times J$ genotype matrix `X` and an $N
-\times R$ phenotype matrix `Y` where $N$ is the number of samples, $J$
-is the number of SNPs, and $R$ is the number of traits/phenotypes.
+\times R$ phenotype matrix `Y` where $N=574$ is the number of samples, $J=1001$
+is the number of SNPs, and $R=20$ is the number of traits/phenotypes.
 
 ```{r inspect-data}
 X <- simdata$raw$X
@@ -91,12 +92,7 @@ cat("Credible sets:", length(fit$sets$cs), "\n")
 fit$sets$cs
 ```
 
-For more details on interpreting these results---including
-credible sets, LFSR, outcome-specific PIPs, and per-effect
-coefficient estimates---see the [Interpreting and visualizing
-mvSuSiE results](visualization_and_interpretation.html) vignette.
-
-## mvSuSiE with summary data: mvSuSiE-RSS
+## mvSuSiE with summary data
 
 mvsusieR also provides a "summary data" interface, building on the
 ideas developed in the [susie-rss paper][susie-rss]. Different
@@ -136,19 +132,18 @@ used to compute the *z*-scores, both `mvsusie` and `mvsusie_rss`
 should give the same result:
 
 ```{r raw-vs-summary, fig.height=3, fig.width=6}
-pdat <- data.frame(pip     = fit$pip,
-                   pip_rss = fit_rss$pip,
-                   b1      = as.vector(fit$b1),
-                   b1_rss  = as.vector(fit_rss$b1))
-p1 <- ggplot(pdat,aes(x = pip,y = pip_rss)) +
-  geom_point(shape = 20,size = 2,color = "royalblue") +
-  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
-  labs(x = "mvsusie PIP",y = "mvsusie_rss PIP") +
+p1 <- ggplot(data.frame(pip = fit$pip, pip_rss = fit_rss$pip),
+             aes(x = pip, y = pip_rss)) +
+  geom_point(shape = 20, size = 2, color = "royalblue") +
+  geom_abline(intercept = 0, slope = 1, color = "black", linetype = "dotted") +
+  labs(x = "mvsusie PIP", y = "mvsusie_rss PIP") +
   theme_cowplot(font_size = 12)
-p2 <- ggplot(pdat,aes(x = b1,y = b1_rss)) +
-  geom_point(shape = 20,size = 2,color = "royalblue") +
-  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
-  labs(x = "mvsusie coef",y = "mvsusie_rss coef") +
+p2 <- ggplot(data.frame(b1 = as.vector(fit$b1),
+                         b1_rss = as.vector(fit_rss$b1)),
+             aes(x = b1, y = b1_rss)) +
+  geom_point(shape = 20, size = 2, color = "royalblue") +
+  geom_abline(intercept = 0, slope = 1, color = "black", linetype = "dotted") +
+  labs(x = "mvsusie coef", y = "mvsusie_rss coef") +
   theme_cowplot(font_size = 12)
 plot_grid(p1, p2, nrow = 1)
 ```

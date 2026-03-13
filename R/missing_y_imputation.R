@@ -176,59 +176,24 @@ impute_missing_Y <- function(Y, mu, Vinv, miss_info, pattern_cache,
 
 
 # ============================================================================
-# FLASH-BASED COVARIANCE ESTIMATION
+# PAIRWISE COVARIANCE ESTIMATION
 # ============================================================================
 
-#' Estimate residual covariance using flash (flashier) or pairwise fallback.
+#' Estimate residual covariance from data with missing values.
 #'
-#' When Y has missing data, a standard cov(Y) cannot be computed.
-#' Flash provides a de-noised covariance estimate that works with
-#' incomplete data. Falls back to pairwise covariance if flashier
-#' is not installed.
-#'
-#' Adapted from mr.mash (misc.R compute_cov_flash).
+#' Uses pairwise complete observations to estimate the covariance
+#' matrix when Y contains missing entries. For trait pairs that are
+#' never jointly observed (block-structured missingness), the
+#' covariance is set to zero. The result is made positive definite
+#' via \code{makePD}.
 #'
 #' @param Y N x R matrix, may contain NAs.
 #'
 #' @return R x R positive definite covariance matrix.
 #'
 #' @keywords internal
-compute_cov_flash <- function(Y) {
-  R <- ncol(Y)
-  covar <- diag(R)
-
-  if (!requireNamespace("flashier", quietly = TRUE) ||
-      !requireNamespace("ebnm", quietly = TRUE)) {
-    warning("flashier/ebnm not available; using pairwise covariance")
-    covar <- cov(Y, use = "pairwise.complete.obs")
-    covar[is.na(covar)] <- 0
-    return(makePD(covar, 1e-8))
-  }
-
-  tryCatch({
-    fl <- flashier::flash(Y, var_type = 2,
-                          ebnm_fn = c(ebnm::ebnm_normal,
-                                      ebnm::ebnm_normal_scale_mixture),
-                          backfit = TRUE, verbose = 0)
-    if (fl$n_factors == 0) {
-      covar <- diag(fl$residuals_sd^2)
-    } else {
-      fsd <- sapply(fl$L_ghat, "[[", "sd")
-      covar <- diag(fl$residuals_sd^2) + crossprod(t(fl$F_pm) * fsd)
-    }
-  }, error = function(e) {
-    warning("flash failed; using pairwise covariance: ", e$message)
-    covar <<- cov(Y, use = "pairwise.complete.obs")
-    covar[is.na(covar)] <<- 0
-  })
-
-  # Scale to match marginal variances
-  s <- matrixStats::colSds(Y, na.rm = TRUE)
-  if (length(s) > 1) {
-    s <- diag(s)
-  } else {
-    s <- matrix(s, 1, 1)
-  }
-  covar <- s %*% cov2cor(covar) %*% s
-  makePD(covar, 1e-8)
+compute_cov_pairwise <- function(Y) {
+  covar <- cov(Y, use = "pairwise.complete.obs")
+  covar[is.na(covar)] <- 0
+  makePD(covar)
 }

@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This vignette demonstrates running mvSuSiE with a large number of
+This vignette demonstrates running mvSuSiE with a relatively large number of
 traits ($R = 100$) and provides benchmark timings for typical
 configurations.
 
@@ -39,12 +39,15 @@ When the number of traits $R$ is large (e.g., $R > 50$):
    increased memory usage.
 
 3. **Residual variance estimation**: When $N < R$, the sample
-   covariance of $Y$ is singular. In this case, regularization
-   methods such as the `flashier` package can be used to estimate
-   a low-rank plus diagonal residual covariance.
+   covariance of $Y$ is singular. In this case, regularization methods 
+   [such as using `flashier` package](https://github.com/stephenslab/mr.mashr/blob/be538c3856d12a127104058708ba58e0af2da670/R/misc.R#L272) 
+   can be used to estimate a low-rank plus diagonal residual covariance,
+   and specified into mvSuSiE via `residual_variance = ...`. If still left to `NULL`,
+   `mvsusie` uses pairwise complete covariance estimation with a positive
+   definiteness correction as the initial residual covariance.
 
-4. **C++ acceleration**: The core computations are implemented in C++
-   for efficiency. Multi-threading is available via the `n_thread`
+4. **C++ acceleration**: The core computations are implemented in Rcpp
+   for efficiency and is available by default. Multi-threading is available via the `n_thread`
    argument.
 
 ## Example: R = 100
@@ -71,9 +74,7 @@ cat("Prior components:", prior$n_component, "\n")
 ```{r large-r-fit}
 t0 <- proc.time()
 fit <- mvsusie(X, Y, L = 10,
-               prior_variance = prior,
-               estimate_prior_variance = TRUE,
-               standardize = TRUE)
+               prior_variance = prior)
 timing <- (proc.time() - t0)[["elapsed"]]
 cat(sprintf("Elapsed time: %.1f seconds\n", timing))
 cat(sprintf("IBSS iterations: %d\n", length(fit$elbo)))
@@ -90,10 +91,6 @@ for (cs_name in names(fit$sets$cs)) {
               if (length(captured) > 0) paste(captured, collapse = ", ")
               else "none"))
 }
-n_fp <- sum(fit$pip > 0.9) - sum(fit$pip[causal] > 0.9)
-cat(sprintf("False discoveries (PIP > 0.9): %d\n", max(0, n_fp)))
-cat(sprintf("Model object size: %.1f MB\n",
-            object.size(fit) / 1e6))
 ```
 
 ```{r large-r-pip, fig.height=2, fig.width=6}

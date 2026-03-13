@@ -9,9 +9,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The choice of prior on effect sizes is important for mvSuSiE analysis.
-This vignette covers the simplest approach (a fixed diagonal prior)
-and progressively introduces more flexible priors.
+This vignette covers the choice of prior on effect sizes for mvSuSiE analysis from
+simplest naive approach (a fixed diagonal prior) to more flexible priors.
 
 ```{r knitr-opts, include=FALSE}
 knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
@@ -47,8 +46,10 @@ cat(sprintf("Data: %d samples, %d SNPs, %d traits\n", n, p, r))
 
 The simplest prior for getting started is a diagonal matrix scaled
 to represent the expected heritability per trait. Setting
-$U = 0.2 \times \text{diag}(\text{var}(Y))$ corresponds to
-approximately 20% heritability per trait under independent effects.
+$U = 0.2 \times \text{diag}(\text{var}(Y))$ as initial value corresponds to
+approximately 20% heritability per trait under independent effects, assuming $Y$ is standardized. 
+This 20% will be updated by default with `estimate_prior_variance = TRUE` but the 
+prior structure, the $\text{diag}(\text{var}(Y))$ part, will stay the same.
 
 ```{r diagonal-prior}
 Y_var <- apply(Y, 2, var)
@@ -142,24 +143,6 @@ ggplot(pdat, aes(x = pos, y = pip)) +
 All three priors identify the causal variants (red dashed lines) for this trivial example, but
 in practice the mixture priors can provide better trait-specific resolution, as shown in 
 [Zou et al (2026)](https://www.nature.com/articles/s41588-025-02486-7).
-
-## Prior variance estimation
-
-The `estimate_prior_variance` option (default `TRUE`) allows mvSuSiE
-to estimate a scalar multiplier for the prior. This effectively
-adapts the overall signal strength. The `estimate_prior_method`
-controls the optimization method: `"optim"` (default) or `"EM"`.
-
-```{r prior-estimation}
-fit_em <- mvsusie(X, Y, L = 10,
-                  prior_variance = prior_canon,
-                  estimate_prior_variance = TRUE,
-                  estimate_prior_method = "EM",
-                  standardize = TRUE)
-cat("EM: CS =", length(fit_em$sets$cs), "\n")
-cat("optim: CS =", length(fit_canon$sets$cs), "\n")
-cat("PIP correlation (EM vs optim):", cor(fit_em$pip, fit_canon$pip), "\n")
-```
 
 ## Mixture weight estimation
 

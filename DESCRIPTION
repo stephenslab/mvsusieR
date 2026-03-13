@@ -38,8 +38,6 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
-    flashier (>= 1.0.7),
-    ebnm,
     future.apply
 LazyData: true
 LazyDataCompression: xz

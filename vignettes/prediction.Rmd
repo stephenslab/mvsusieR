@@ -65,9 +65,7 @@ approach and requires no additional setup.
 ```{r fit-model}
 prior <- create_mixture_prior(R = r)
 fit <- mvsusie(X_train, Y_train, L = 10,
-               prior_variance = prior,
-               estimate_prior_variance = TRUE,
-               standardize = TRUE)
+               prior_variance = prior)
 cat("Credible sets:", length(fit$sets$cs), "\n")
 ```
 
@@ -156,9 +154,7 @@ prior_dd <- create_mixture_prior(fitted_g = m_fit$fitted_g)
 
 # Fit with data-driven prior
 fit_dd <- mvsusie(X_train, Y_train, L = 10,
-                  prior_variance = prior_dd,
-                  estimate_prior_variance = TRUE,
-                  standardize = TRUE)
+                  prior_variance = prior_dd)
 ```
 
 ```{r compare-priors, fig.height=3, fig.width=4}
@@ -174,7 +170,7 @@ ggplot(pdat, aes(x = canonical, y = data_driven)) +
 ```
 
 In this simple simulation, the canonical and data-driven priors
-give similar prediction accuracy. The data-driven approach is more
+give same prediction accuracy. The data-driven approach is more
 likely to help when the true effect-sharing patterns are complex
 and poorly captured by canonical patterns.
 
