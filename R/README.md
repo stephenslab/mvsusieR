@@ -5,8 +5,7 @@ conventions so the two packages feel like parts of the same codebase.
 
 ## Entry points
 
-- `mvsusie.R` -- `mvsusie()`, `mvsusie_rss()`, `mvsusie_ss()` and
-  their internal workhorse functions `mvsusie_core()`, `mvsusie_ss_core()`.
+- `mvsusie.R` -- `mvsusie()`, `mvsusie_rss()`, `mvsusie_ss()` 
 
 ## Data & constructors
 
@@ -20,22 +19,6 @@ conventions so the two packages feel like parts of the same codebase.
 - `sufficient_stats_methods.R` -- all `.mv_ss` methods.
 - `model_methods.R` -- all `.mvsusie` model accessors.
 
-## Algorithm
-
-- `mvsusie_workhorse.R` -- the IBSS loop (calls `susieR::susie_workhorse`).
-
-## Prior
-
-- `mash_prior.R` -- `create_mash_prior` and prior helpers.
-- `mash.R` -- `create_mixture_prior` (user-facing wrapper).
-
-## Output & prediction
-
-- `mvsusie_get_functions.R` -- `format_mvsusie_output`,
-  `apply_mvsusie_dimnames`, `multivariate_lbf`.
-- `predict.mvsusie.R` -- `coef.mvsusie`, `predict.mvsusie`.
-- `mvsusie_plot.R` -- plotting functions.
-
 ## Utilities
 
 - `mvsusie_utils.R` -- matrix helpers, numerical utilities, benchmarking tools,
@@ -47,4 +30,4 @@ conventions so the two packages feel like parts of the same codebase.
 
 ## Infrastructure
 
-- `zzz.R` -- `.onLoad` for S3 method registration and mashr function caching.
+- `zzz.R` -- `.onLoad` for S3 method registration and susieR / mashr function caching.

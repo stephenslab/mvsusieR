@@ -536,6 +536,12 @@ get_intercept_3d <- function(data, model) {
 #'
 #' @keywords internal
 compute_elbo_3d <- function(data, model) {
+  # Inject updated V-dependent quantities from model (after est_rv update)
+  if (!is.null(model$miss3d_elbo_const))
+    data$miss3d$elbo_const <- model$miss3d_elbo_const
+  if (!is.null(model$miss3d_Vinv))
+    data$miss3d$Vinv <- model$miss3d_Vinv
+
   my <- data$miss3d
   R_dim <- data$R
   L <- nrow(model$alpha)
@@ -567,6 +573,152 @@ compute_elbo_3d <- function(data, model) {
 
   result <- loglik - 0.5 * essr
   return(result)
+}
+
+
+# =============================================================================
+# EM M-STEP: RESIDUAL VARIANCE FOR 3D MISSING DATA
+# =============================================================================
+
+#' Pairwise complete-case residual variance estimator for 3D missing data.
+#'
+#' Estimates V[r,s] using only samples where both outcomes r and s are
+#' observed, analogous to the non-missing estimator but with per-pair
+#' normalization.
+#'
+#' The update is:
+#'   V_new[r,s] = (R_hat'R_hat + correction)[r,s] / N_{rs}
+#'
+#' where:
+#'   R_hat    = Y - X_3d E[B] with R_hat[i,r] = 0 when r is missing
+#'              for sample i.  crossprod(R_hat)[r,s] automatically sums
+#'              only over samples where both r and s are observed.
+#'
+#'   correction = sum_l (bxxb_3d_l - b1_XtX_b1_l),
+#'              the posterior variance correction using per-outcome Gram
+#'              matrix G_j (Hadamard product).  G_j[r,s] also only counts
+#'              samples where both r and s are observed, so the correction
+#'              is on the same scale as R_hat'R_hat.
+#'
+#'   N_{rs}   = number of samples where both outcome r and outcome s are
+#'              observed.  For r = s this equals n_r (the per-outcome count).
+#'
+#' Why pairwise complete-case (not EM with conditional imputation):
+#'   The EM M-step for V with missing data introduces Y_mis as latent and
+#'   imputes via Lambda_k = V[mis,obs] V[obs,obs]^{-1}.  This creates a
+#'   feedback loop: V_old -> Lambda -> inflated R_complete -> V_new > V_old.
+#'   In early IBSS iterations when effects haven't converged, the residuals
+#'   still contain signal, and Lambda-amplified imputation inflates V
+#'   without bound.
+#'
+#'   The pairwise complete-case estimator avoids this by using ONLY
+#'   observed data.  It is a consistent estimator under MCAR and is
+#'   bounded: V_new[r,r] <= Var(Y[,r]) since regression reduces variance.
+#'   It matches the non-missing path (which also uses method-of-moments)
+#'   when there are no missing values.
+#'
+#' @param data The full data object with data$miss3d populated.
+#' @param model The model object with posterior parameters.
+#'
+#' @return R x R estimated residual variance matrix.
+#'
+#' @keywords internal
+estimate_residual_variance_3d <- function(data, model) {
+  my <- data$miss3d
+  R_dim <- data$R
+  N <- dim(my$X_3d)[1]
+  J <- data$p
+  L <- nrow(model$alpha)
+  K <- nrow(my$pattern)
+
+  # ---------------------------------------------------------------
+  # 1. Residuals at posterior mean, zeros at missing entries
+  # ---------------------------------------------------------------
+  b_sum <- compute_posterior_mean_sum_from_model(model)
+  Xb <- compute_Xb_3d(data, b_sum)
+  R_mat <- data$Y - Xb
+  R_mat[!my$Y_non_missing] <- 0
+
+  # ---------------------------------------------------------------
+  # 2. Observed-data cross-product
+  # ---------------------------------------------------------------
+  # crossprod(R_mat)[r,s] = sum_i R_mat[i,r] * R_mat[i,s].
+  # Since R_mat[i,r] = 0 when outcome r is missing for sample i,
+  # this automatically sums only over samples where BOTH r and s
+  # are observed.
+  E_RtR <- crossprod(R_mat)
+
+  # ---------------------------------------------------------------
+  # 4. Posterior correction: E_q[B'X_3d'X_3d B] - E[B]'X_3d'X_3d E[B]
+  # ---------------------------------------------------------------
+  # model$bxxb uses scalar d[j] = N-1 which is WRONG for 3D path.
+  # The correct formula uses the per-outcome Gram matrix G_j:
+  #
+  #   E_q[(X_3d b_l)' (X_3d b_l)]_{r,s}
+  #     = sum_j alpha_lj * G_j[r,s] * E[beta_lr * beta_ls | gamma=j]
+  #     = sum_j alpha_lj * G_j[r,s] * mu2_lj[r,s]
+  #
+  # This is a Hadamard (element-wise) product of G_j and mu2.
+  # G_j[r,s] = sum_{i: obs r AND s} X_3d[i,j,r] * X_3d[i,j,s],
+  # computed from per-pattern summary statistics.
+  #
+  # Since the full R x R posterior second moment mu2_lj is not stored
+  # (reduced memory mode), we use:
+  #   mu2_lj[r,s] = mu_lj[r] * mu_lj[s]  for r != s  (exact for diagonal post_cov)
+  #   mu2_lj[r,r] = mu2_diag[j,r]         for r = s   (exact)
+  #
+  # Note: the correction only has non-zero contributions for observed
+  # entries (X_3d = 0 for missing), so it naturally respects the
+  # missingness structure.
+  cm  <- my$cm
+  csd <- my$csd
+
+  # Pre-extract posterior means and diagonal second moments into cubes
+  # for the C++ function (L x J x R arrays).
+  mu_cube <- model$mu  # L x J x R (already a 3D array)
+  if (length(dim(mu_cube)) != 3)
+    mu_cube <- array(mu_cube, dim = c(L, J, R_dim))
+  mu2_diag_cube <- array(0, dim = c(L, J, R_dim))
+  for (l in seq_len(L))
+    mu2_diag_cube[l, , ] <- model$mu2_cache[[l]]$mu2_diag
+
+  # Compute total bxxb via C++ (Hadamard product of G_j with mu2,
+  # summed over all L effects and J variables).
+  pattern_int <- matrix(as.integer(my$pattern), nrow = K, ncol = R_dim)
+  total_bxxb <- compute_bxxb_correction_3d_rcpp(
+    model$alpha, mu_cube, mu2_diag_cube,
+    pattern_int, my$raw_sq_sum, my$raw_sum, as.integer(my$n_k),
+    cm, csd)
+
+  # Subtract (X_3d E[b_l])' (X_3d E[b_l]) for each effect (BLAS-efficient)
+  b1_XtX_b1_total <- matrix(0, R_dim, R_dim)
+  for (l in seq_len(L)) {
+    mu_l <- mu_cube[l, , , drop = TRUE]
+    if (!is.matrix(mu_l)) mu_l <- matrix(mu_l, ncol = R_dim)
+    B1_l <- model$alpha[l, ] * mu_l
+    if (!is.matrix(B1_l)) B1_l <- matrix(B1_l, ncol = R_dim)
+    XB1_l <- compute_Xb_3d(data, B1_l)
+    b1_XtX_b1_total <- b1_XtX_b1_total + crossprod(XB1_l)
+  }
+
+  correction <- total_bxxb - b1_XtX_b1_total
+
+  # ---------------------------------------------------------------
+  # 5. Pairwise complete-case estimator: V_new[r,s] = numerator / N_{rs}
+  # ---------------------------------------------------------------
+  # N_rs[r,s] = number of samples where both outcome r and s are observed.
+  # Uses the same observation indicator that made R_mat entries zero.
+  N_rs <- crossprod(my$Y_non_missing * 1.0)  # R x R
+  N_rs[N_rs == 0] <- 1  # avoid division by zero (no shared observations)
+
+  V_new <- (E_RtR + correction) / N_rs
+  V_new <- (V_new + t(V_new)) / 2
+
+  # Enforce positive-definiteness (pairwise estimates can be indefinite
+  # when missingness patterns are severely unbalanced)
+  V_new <- makePD(V_new, 1e-10)
+
+  return(V_new)
 }
 
 

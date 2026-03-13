@@ -792,25 +792,99 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   convergence_method <- if (Y_has_missing && R > 1 &&
                             missing_y_method == "impute") "pip" else "elbo"
 
-  # Fit model
-  s <- mvsusie_workhorse(data, L = L, prior_variance = prior_variance,
-                          prior_weights = prior_weights,
-                          estimate_residual_variance = estimate_residual_variance,
-                          estimate_prior_variance = estimate_prior_variance,
-                          estimate_prior_method = estimate_prior_method,
-                          estimate_prior_mixture_weights = estimate_prior_mixture_weights,
-                          mixture_weight_method = mixture_weight_method,
-                          check_null_threshold = check_null_threshold,
-                          convergence_method = convergence_method,
-                          max_iter = max_iter, tol = tol,
-                          prior_tol = prior_tol,
-                          track_fit = track_fit,
-                          verbosity = verbosity,
-                          coverage = coverage,
-                          min_abs_corr = min_abs_corr,
-                          precompute_covariances = precompute_cache,
-                          n_thread = n_thread,
-                          model_init = model_init)
+  # Fit model.
+  #
+  # For 3D missing data with estimate_residual_variance, we use block
+  # coordinate ascent over two parameter blocks:
+  #   Block A: (alpha, mu, prior_variance) — optimized by IBSS with fixed sigma2
+  #   Block B: sigma2 (residual variance) — closed-form pairwise estimator
+  #
+  # Why not update sigma2 within the IBSS loop (as for non-missing data)?
+  # In the 3D missing-data path, each missingness pattern k has its own
+  # GLS covariance svs_k = V[obs_k, obs_k] / G_j[obs_k, obs_k].  When
+  # sigma2 (=V) changes, svs_k changes NON-UNIFORMLY across patterns and
+  # variables.  This heterogeneous perturbation destabilizes the prior
+  # variance optimizer within the same IBSS iteration, causing wild ELBO
+  # oscillations.  In contrast, the non-missing path has svs = V / d[j],
+  # a UNIFORM scalar scaling that the optimizer handles smoothly.
+  #
+  # Block coordinate ascent avoids this by keeping sigma2 fixed during
+  # each IBSS run, guaranteeing monotone ELBO.  Sigma2 is then updated
+  # from the fully converged posterior, ensuring stable convergence.
+  use_outer_rv_loop <- estimate_residual_variance && !is.null(data$miss3d)
+
+  if (use_outer_rv_loop) {
+    # Build workhorse argument list (fixed sigma2: est_rv = FALSE)
+    wh_args <- list(
+      L = L, prior_variance = prior_variance,
+      prior_weights = prior_weights,
+      estimate_residual_variance = FALSE,
+      estimate_prior_variance = estimate_prior_variance,
+      estimate_prior_method = estimate_prior_method,
+      estimate_prior_mixture_weights = estimate_prior_mixture_weights,
+      mixture_weight_method = mixture_weight_method,
+      check_null_threshold = check_null_threshold,
+      convergence_method = convergence_method,
+      max_iter = max_iter, tol = tol,
+      prior_tol = prior_tol,
+      track_fit = track_fit,
+      verbosity = verbosity,
+      coverage = coverage,
+      min_abs_corr = min_abs_corr,
+      precompute_covariances = precompute_cache,
+      n_thread = n_thread,
+      model_init = model_init)
+
+    # Initial fit with fixed sigma2 (Block A, first pass)
+    s <- do.call(mvsusie_workhorse, c(list(data = data), wh_args))
+
+    # Block coordinate step: update sigma2 (Block B), then re-fit (Block A)
+    sigma2_block_step <- function(model, data, iter) {
+      # Block B: update sigma2 from converged posterior
+      sigma2_new <- estimate_residual_variance_3d(data, model)
+      data <- set_residual_variance_3d(data, sigma2_new)
+      data$residual_variance <- sigma2_new
+
+      # Block A: re-fit with new sigma2, warm-started.
+      # Strip V_structure because cleanup_model may have pruned mixture
+      # components, making it incompatible with the original prior.
+      model_init <- model
+      model_init$V_structure <- NULL
+      wh_args$model_init <- model_init
+      wh_args$verbosity <- 0  # quiet after first iteration
+      s_new <- do.call(mvsusie_workhorse, c(list(data = data), wh_args))
+      s_new$sigma2 <- sigma2_new
+
+      list(model = s_new, data = data,
+           log_msg = sprintf("sigma2=[%s]",
+                             paste(round(diag(sigma2_new), 3), collapse = ", ")))
+    }
+
+    s <- block_coordinate_ascent(s, data, sigma2_block_step,
+                                  max_iter = 100, tol = tol,
+                                  verbose = verbose)
+
+  } else {
+    # Standard path: sigma2 updated within IBSS loop
+    s <- mvsusie_workhorse(data, L = L, prior_variance = prior_variance,
+                            prior_weights = prior_weights,
+                            estimate_residual_variance = estimate_residual_variance,
+                            estimate_prior_variance = estimate_prior_variance,
+                            estimate_prior_method = estimate_prior_method,
+                            estimate_prior_mixture_weights = estimate_prior_mixture_weights,
+                            mixture_weight_method = mixture_weight_method,
+                            check_null_threshold = check_null_threshold,
+                            convergence_method = convergence_method,
+                            max_iter = max_iter, tol = tol,
+                            prior_tol = prior_tol,
+                            track_fit = track_fit,
+                            verbosity = verbosity,
+                            coverage = coverage,
+                            min_abs_corr = min_abs_corr,
+                            precompute_covariances = precompute_cache,
+                            n_thread = n_thread,
+                            model_init = model_init)
+  }
 
   # Compute CSs using original X
   if (!is.null(coverage) && !is.null(min_abs_corr)) {

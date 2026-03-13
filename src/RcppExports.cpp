@@ -237,6 +237,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// compute_bxxb_correction_3d_rcpp
+arma::mat compute_bxxb_correction_3d_rcpp(const arma::mat& alpha, const arma::cube& mu, const arma::cube& mu2_diag, const arma::imat& pattern, const arma::mat& raw_sq_sum, const arma::mat& raw_sum, const arma::ivec& n_k, const arma::mat& cm, const arma::mat& csd);
+RcppExport SEXP _mvsusieR_compute_bxxb_correction_3d_rcpp(SEXP alphaSEXP, SEXP muSEXP, SEXP mu2_diagSEXP, SEXP patternSEXP, SEXP raw_sq_sumSEXP, SEXP raw_sumSEXP, SEXP n_kSEXP, SEXP cmSEXP, SEXP csdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type mu2_diag(mu2_diagSEXP);
+    Rcpp::traits::input_parameter< const arma::imat& >::type pattern(patternSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type raw_sq_sum(raw_sq_sumSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type raw_sum(raw_sumSEXP);
+    Rcpp::traits::input_parameter< const arma::ivec& >::type n_k(n_kSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type cm(cmSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type csd(csdSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_bxxb_correction_3d_rcpp(alpha, mu, mu2_diag, pattern, raw_sq_sum, raw_sum, n_k, cm, csd));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_mvsusieR_precompute_eigen_cache_non_common_rcpp", (DL_FUNC) &_mvsusieR_precompute_eigen_cache_non_common_rcpp, 2},
@@ -254,6 +273,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mvsusieR_compute_svs_inv_3d_rcpp", (DL_FUNC) &_mvsusieR_compute_svs_inv_3d_rcpp, 10},
     {"_mvsusieR_compute_vbxxb_rcpp", (DL_FUNC) &_mvsusieR_compute_vbxxb_rcpp, 4},
     {"_mvsusieR_compute_Xbar_from_sums_rcpp", (DL_FUNC) &_mvsusieR_compute_Xbar_from_sums_rcpp, 7},
+    {"_mvsusieR_compute_bxxb_correction_3d_rcpp", (DL_FUNC) &_mvsusieR_compute_bxxb_correction_3d_rcpp, 9},
     {NULL, NULL, 0}
 };
 

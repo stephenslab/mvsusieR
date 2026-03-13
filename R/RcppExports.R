@@ -61,3 +61,7 @@ compute_Xbar_from_sums_rcpp <- function(Vinv_list, pattern, raw_sum, n_k, cm, cs
     .Call('_mvsusieR_compute_Xbar_from_sums_rcpp', PACKAGE = 'mvsusieR', Vinv_list, pattern, raw_sum, n_k, cm, csd, Vinvsuminv)
 }
 
+compute_bxxb_correction_3d_rcpp <- function(alpha, mu, mu2_diag, pattern, raw_sq_sum, raw_sum, n_k, cm, csd) {
+    .Call('_mvsusieR_compute_bxxb_correction_3d_rcpp', PACKAGE = 'mvsusieR', alpha, mu, mu2_diag, pattern, raw_sq_sum, raw_sum, n_k, cm, csd)
+}
+

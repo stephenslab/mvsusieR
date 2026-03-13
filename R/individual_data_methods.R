@@ -208,6 +208,11 @@ compute_residuals.mv_individual <- function(data, params, model, l, ...) {
     R_mat[data$Y_na] <- 0
   }
 
+  # Inject updated Vinv into local data copy (R copy-on-modify) so that
+  # compute_XtR_3d sees the current precision matrices after est_rv update.
+  if (!is.null(model$miss3d_Vinv))
+    data$miss3d$Vinv <- model$miss3d_Vinv
+
   # X'R for SER computation
   XtR <- compute_XtR(data, R_mat)  # J x R
 
@@ -223,6 +228,11 @@ compute_residuals.mv_individual <- function(data, params, model, l, ...) {
 
 #' @keywords internal
 compute_ser_statistics.mv_individual <- function(data, params, model, l, ...) {
+  # Inject updated svs into local data copy so that compute_betahat_3d
+  # sees the current GLS covariances after residual variance update.
+  if (!is.null(model$svs) && !is.null(data$miss3d))
+    data$svs <- model$svs
+
   # betahat_j: GLS estimate (svs %*% XtR for 3d, or XtR/d for standard)
   betahat <- compute_betahat(data, model$residuals)
 
@@ -651,7 +661,12 @@ update_variance_components.mv_individual <- function(data, params, model, ...) {
 
 #' @keywords internal
 update_model_variance.mv_individual <- function(data, params, model) {
-  # Update residual variance if requested
+  # Update residual variance if requested.
+  #
+  # NOTE: For the 3D missing-data path (data$miss3d != NULL), sigma2 is
+  # estimated via an OUTER loop in mvsusie_core, not here.  The outer loop
+  # passes estimate_residual_variance=FALSE to the inner IBSS, so this
+  # branch is only reached for the non-missing and imputation paths.
   if (isTRUE(params$estimate_residual_variance)) {
     model$sigma2 <- estimate_residual_variance_mv(data, model)
 
@@ -659,8 +674,22 @@ update_model_variance.mv_individual <- function(data, params, model) {
     # These override the data's precomputed values during SER computation.
     model$residual_variance_inv <- invert_via_chol(model$sigma2)$inv
     model$residual_correlation <- cov2cor(model$sigma2)
-    # For common-cov, store single copy to save O(J*R^2) memory
-    if (data$is_common_cov) {
+
+    if (!is.null(data$miss3d)) {
+      # 3D missing-data path: recompute ALL V-dependent quantities via
+      # set_residual_variance_3d (Vinv, elbo_const, svs, svs_inv).
+      # Store results in model; inject into data at each call site.
+      # (Retained for future use; currently the outer loop in mvsusie_core
+      # handles sigma2 updates for 3D data instead of this code path.)
+      updated <- set_residual_variance_3d(data, model$sigma2,
+                                          center = FALSE, scale = FALSE)
+      model$miss3d_Vinv       <- updated$miss3d$Vinv
+      model$miss3d_elbo_const <- updated$miss3d$elbo_const
+      model$svs               <- updated$svs
+      model$svs_inv           <- updated$svs_inv
+      model$is_common_cov     <- updated$is_common_cov
+    } else if (data$is_common_cov) {
+      # For common-cov, store single copy to save O(J*R^2) memory
       svs_one <- model$sigma2 / data$d[1]
       svs_one[is.nan(svs_one) | is.infinite(svs_one)] <- 1e6
       model$svs <- list(svs_one)
@@ -679,7 +708,9 @@ update_model_variance.mv_individual <- function(data, params, model) {
     # Recompute eigendecomposition cache if precomputation is active
     if (!is.null(model$eigen_cache))
       model$eigen_cache <- precompute_eigen_cache(
-        model$svs, model$V_structure, data$is_common_cov)
+        model$svs, model$V_structure,
+        if (!is.null(model$is_common_cov)) model$is_common_cov
+        else data$is_common_cov)
   }
 
   # Update mixture prior weights and prune near-zero components
@@ -1083,6 +1114,10 @@ compute_posterior_mean_sum_from_model <- function(model) {
 # where B1_l = E_q[b_l] (J x R, rows = alpha_lj * mu_lj).
 # NOTE: B1_l' X'X B1_l uses the FULL X'X, not just the diagonal.
 estimate_residual_variance_mv <- function(data, model) {
+  # 3D missing-data path: use per-outcome X_3d and conditional imputation
+  if (!is.null(data$miss3d))
+    return(estimate_residual_variance_3d(data, model))
+
   b_sum <- compute_posterior_mean_sum_from_model(model)
   Xb <- data$X %*% b_sum
 
