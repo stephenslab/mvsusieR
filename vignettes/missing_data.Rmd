@@ -247,9 +247,8 @@ by the `missing_y_method` argument:
   residual variance correction. Fast and accurate; designed for the
   block-structured missingness common in multi-population analyses.
 
-- `"exact"`: uses full residual covariance correction. Produces
-  nearly identical results to `"approximate"` (typical PIP
-  differences $< 10^{-4}$) at higher computational cost.
+- `"exact"`: uses full residual covariance correction to account for intercepts. Produces
+  similiar results to `"approximate"` at higher computational cost.
 
 - `"impute"`: variational imputation that iteratively estimates
   missing values. Works well for scattered (MCAR) missing data
