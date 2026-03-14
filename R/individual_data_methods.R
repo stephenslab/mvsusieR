@@ -465,8 +465,9 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   alpha_l <- model$alpha[l, ]
   svs_inv <- if (!is.null(model$svs_inv)) model$svs_inv else data$svs_inv
   v_inv   <- get_v_inv(data, model)
+  gram_xtx <- if (!is.null(data$miss3d)) data$miss3d$gram_xtx else NULL
   reduce_params <- list(alpha = alpha_l, d = data$d, svs_inv = svs_inv,
-                        v_inv = v_inv)
+                        v_inv = v_inv, gram_xtx = gram_xtx)
 
   # === FAST PATH: eigendecomposition precomputation ===
   if (!is.null(model$eigen_cache)) {
@@ -487,11 +488,12 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
                                   BQ_cache = model$BQ_cache)
     model$BQ_cache <- NULL  # free memory after use
 
-    model$mu[l, , ] <- post$post_mean
+    model$mu[l, , ] <- post$mu
     # Store reduced statistics (no J x R x R array)
     model$mu2_cache[[l]] <- list(
       bxxb = post$bxxb, vbxxb = post$vbxxb,
-      alpha_mu2_sum = post$alpha_mu2_sum, mu2_diag = post$mu2_diag
+      alpha_mu2_sum = post$alpha_mu2_sum,
+      mu2_diag = post$mu2_diag
     )
     model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
 
@@ -556,17 +558,25 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   model$mu[l, , ] <- post$post_mean  # J x R
 
   # Compute reduced statistics from post_cov (R x R x J) + post_mean
-  # instead of storing full J x R x R mu2 array
-  bxxb          <- matrix(0, R, R)
-  alpha_mu2_sum <- matrix(0, R, R)
-  vbxxb         <- 0
-  mu2_diag      <- matrix(0, J, R)
+  # instead of storing full J x R x R mu2 array.
+  # When gram_xtx is available, bxxb uses per-outcome Gram weighting
+  # instead of scalar d[j] (correct for 3D missing-data path).
+  bxxb            <- matrix(0, R, R)
+  alpha_mu2_sum   <- matrix(0, R, R)
+  vbxxb           <- 0
+  mu2_diag <- matrix(0, J, R)
   for (j in seq_len(J)) {
     mu2_j <- post$post_cov[, , j] + tcrossprod(post$post_mean[j, ])
     a_j <- alpha_l[j]
-    bxxb          <- bxxb + data$d[j] * a_j * mu2_j
-    alpha_mu2_sum <- alpha_mu2_sum + a_j * mu2_j
-    vbxxb         <- vbxxb + a_j * sum(svs_inv[[min(j, length(svs_inv))]] * mu2_j)
+    if (!is.null(gram_xtx)) {
+      G_j <- gram_xtx[j, , ]
+      if (!is.matrix(G_j)) dim(G_j) <- c(R, R)
+      bxxb <- bxxb + a_j * (G_j * mu2_j)
+    } else {
+      bxxb <- bxxb + data$d[j] * a_j * mu2_j
+    }
+    alpha_mu2_sum   <- alpha_mu2_sum + a_j * mu2_j
+    vbxxb           <- vbxxb + a_j * sum(svs_inv[[min(j, length(svs_inv))]] * mu2_j)
     mu2_diag[j, ] <- diag(mu2_j)
   }
   model$mu2_cache[[l]] <- list(

@@ -10,7 +10,7 @@
 //   precompute_eigen_cache_non_common_rcpp  - batch eigendecomposition
 //   loglik_non_common_rcpp                  - K*J log-likelihood
 //   posterior_non_common_rcpp               - K*J posterior moments
-//   accumulate_post_mean2_common_rcpp       - common-cov J-loop helper
+//   accumulate_mu2_common_rcpp              - common-cov J-loop helper
 //
 // Each has a corresponding R implementation in R/mvsusie_utils.R.
 
@@ -214,7 +214,7 @@ arma::mat loglik_non_common_rcpp(
 // pi_V_post:   J x (K+1) posterior mixture weights
 // em_var_wt:   (K+1) x J matrix (or 0x0 if EM not needed)
 //
-// Returns list(post_mean, post_mean2, post_neg, post_zero,
+// Returns list(mu, mu2, post_neg, post_zero,
 //              prior_scale_em_update)
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
@@ -230,7 +230,7 @@ Rcpp::List posterior_non_common_rcpp(
   int K = components.size();
   bool do_em = (em_var_wt.n_rows > 0);
 
-  arma::mat post_mean(J, R, fill::zeros);
+  arma::mat mu(J, R, fill::zeros);
   // Use R x R x J internally for efficient slice access
   arma::cube pm2_internal(R, R, J, fill::zeros);
   arma::mat post_neg(J, R, fill::zeros);
@@ -278,7 +278,7 @@ Rcpp::List posterior_non_common_rcpp(
       arma::vec m_j = G_j * (shrink % b_rot);
 
       // Accumulate posterior mean
-      post_mean.row(j) += w * m_j.t();
+      mu.row(j) += w * m_j.t();
 
       // Accumulate posterior second moment: C_k + m_j m_j'
       arma::mat update = w * (C_k + m_j * m_j.t());
@@ -312,18 +312,18 @@ Rcpp::List posterior_non_common_rcpp(
   }
 
   // Convert pm2 from R x R x J to J x R x R for R
-  arma::cube post_mean2(J, R, R);
+  arma::cube mu2(J, R, R);
   for (unsigned int j = 0; j < J; j++) {
     for (unsigned int r1 = 0; r1 < R; r1++) {
       for (unsigned int r2 = 0; r2 < R; r2++) {
-        post_mean2(j, r1, r2) = pm2_internal(r1, r2, j);
+        mu2(j, r1, r2) = pm2_internal(r1, r2, j);
       }
     }
   }
 
   return Rcpp::List::create(
-    Rcpp::Named("post_mean") = post_mean,
-    Rcpp::Named("post_mean2") = post_mean2,
+    Rcpp::Named("mu") = mu,
+    Rcpp::Named("mu2") = mu2,
     Rcpp::Named("post_neg") = post_neg,
     Rcpp::Named("post_zero") = post_zero,
     Rcpp::Named("prior_scale_em_update") = em_update
@@ -332,21 +332,21 @@ Rcpp::List posterior_non_common_rcpp(
 
 
 // ---------------------------------------------------------------------------
-// 4. accumulate_post_mean2_common_rcpp
+// 4. accumulate_mu2_common_rcpp
 //
 // Helper for the common-cov path: replaces the R-level J-loop for
-// accumulating post_mean2.
+// accumulating mu2 (posterior second moment).
 //
-// post_mean2: J x R x R array (current values, modified in place)
-// M_k:       J x R matrix of posterior means for component k
-// C_k:       R x R posterior covariance (same for all j in common-cov)
-// w_k:       J-vector of mixture weights for component k
+// mu2:  J x R x R array (current values, modified in place)
+// M_k:  J x R matrix of posterior means for component k
+// C_k:  R x R posterior covariance (same for all j in common-cov)
+// w_k:  J-vector of mixture weights for component k
 //
 // Returns updated J x R x R array.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::cube accumulate_post_mean2_common_rcpp(
-    arma::cube post_mean2,
+arma::cube accumulate_mu2_common_rcpp(
+    arma::cube mu2,
     const arma::mat& M_k,
     const arma::mat& C_k,
     const arma::vec& w_k) {
@@ -359,12 +359,12 @@ arma::cube accumulate_post_mean2_common_rcpp(
     arma::mat update = w_k(j) * (C_k + m * m.t());
     for (unsigned int r1 = 0; r1 < R; r1++) {
       for (unsigned int r2 = 0; r2 < R; r2++) {
-        post_mean2(j, r1, r2) += update(r1, r2);
+        mu2(j, r1, r2) += update(r1, r2);
       }
     }
   }
 
-  return post_mean2;
+  return mu2;
 }
 
 
@@ -456,13 +456,13 @@ Rcpp::List loglik_common_rcpp(
 // pi_V_post:    J x (K+1) posterior mixture weights
 // em_var_wt:    (K+1) x J matrix (or 0x0 if EM not needed)
 // BQ_cache:     list of K J x R matrices (or empty list to compute fresh)
-// do_reduce:    if true, compute bxxb/alpha_mu2_sum/mu2_diag instead of post_mean2
+// do_reduce:    if true, compute bxxb/alpha_mu2_sum/mu2_diag instead of mu2
 // alpha:        J-vector (only used if do_reduce)
 // d_var:        J-vector of d values (only used if do_reduce)
 // v_inv:        R x R matrix (only used if do_reduce, for vbxxb)
 //
-// Returns list(post_mean, post_neg, post_zero, prior_scale_em_update,
-//              and either post_mean2 or reduced stats)
+// Returns list(mu, post_neg, post_zero, prior_scale_em_update,
+//              and either mu2 or reduced stats)
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
 Rcpp::List posterior_common_rcpp(
@@ -483,7 +483,7 @@ Rcpp::List posterior_common_rcpp(
   bool do_em = (em_var_wt.n_rows > 0);
   bool has_BQ_cache = (BQ_cache_list.size() == K);
 
-  arma::mat post_mean(J, R, arma::fill::zeros);
+  arma::mat mu(J, R, arma::fill::zeros);
   arma::mat post_neg(J, R, arma::fill::zeros);
   arma::mat post_zero(J, R);
   arma::vec em_update(K + 1, arma::fill::zeros);
@@ -498,7 +498,7 @@ Rcpp::List posterior_common_rcpp(
   arma::mat alpha_mu2_sum(R, R, arma::fill::zeros);
   arma::mat mu2_diag(J, R, arma::fill::zeros);
 
-  // Full post_mean2 (only if !do_reduce)
+  // Full mu2 (only if !do_reduce)
   arma::cube pm2_internal;
   if (!do_reduce)
     pm2_internal = arma::cube(R, R, J, arma::fill::zeros);
@@ -544,7 +544,7 @@ Rcpp::List posterior_common_rcpp(
     // Accumulate weighted posterior mean
     for (unsigned int j = 0; j < J; j++) {
       double w = pi_V_post(j, k + 1);
-      post_mean.row(j) += w * M_k.row(j);
+      mu.row(j) += w * M_k.row(j);
     }
 
     if (do_reduce) {
@@ -579,7 +579,7 @@ Rcpp::List posterior_common_rcpp(
         }
       }
     } else {
-      // Full post_mean2
+      // Full mu2
       for (unsigned int j = 0; j < J; j++) {
         double w = pi_V_post(j, k + 1);
         arma::vec m = M_k.row(j).t();
@@ -620,7 +620,7 @@ Rcpp::List posterior_common_rcpp(
   }
 
   Rcpp::List result = Rcpp::List::create(
-    Rcpp::Named("post_mean") = post_mean,
+    Rcpp::Named("mu") = mu,
     Rcpp::Named("post_neg") = post_neg,
     Rcpp::Named("post_zero") = post_zero,
     Rcpp::Named("prior_scale_em_update") = em_update
@@ -634,12 +634,12 @@ Rcpp::List posterior_common_rcpp(
     result["mu2_diag"] = mu2_diag;
   } else {
     // Convert pm2 from R x R x J to J x R x R for R
-    arma::cube post_mean2(J, R, R);
+    arma::cube mu2(J, R, R);
     for (unsigned int j = 0; j < J; j++)
       for (unsigned int r1 = 0; r1 < R; r1++)
         for (unsigned int r2 = 0; r2 < R; r2++)
-          post_mean2(j, r1, r2) = pm2_internal(r1, r2, j);
-    result["post_mean2"] = post_mean2;
+          mu2(j, r1, r2) = pm2_internal(r1, r2, j);
+    result["mu2"] = mu2;
   }
 
   return result;

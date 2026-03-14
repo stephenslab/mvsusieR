@@ -436,8 +436,8 @@ compare_eigen_caches <- function(cache_cpp, cache_r, K, J, tol = 1e-10) {
 
 compare_posterior <- function(post_cpp, post_r, tol_mean = 1e-8,
                                tol_neg = 1e-6) {
-  expect_equal(post_cpp$post_mean, post_r$post_mean, tolerance = tol_mean)
-  expect_equal(post_cpp$post_mean2, post_r$post_mean2, tolerance = tol_mean)
+  expect_equal(post_cpp$mu, post_r$mu, tolerance = tol_mean)
+  expect_equal(post_cpp$mu2, post_r$mu2, tolerance = tol_mean)
   expect_equal(post_cpp$post_neg, post_r$post_neg, tolerance = tol_neg)
   expect_equal(post_cpp$post_zero, post_r$post_zero, tolerance = 1e-10)
   expect_equal(as.numeric(post_cpp$prior_scale_em_update),
@@ -521,24 +521,24 @@ test_that("C++ posterior_non_common matches R across parameter regimes", {
 })
 
 # =============================================================================
-# C++ vs R: accumulate_post_mean2_common
+# C++ vs R: accumulate_mu2_common
 # =============================================================================
 
-test_that("C++ accumulate_post_mean2_common matches R loop", {
+test_that("C++ accumulate_mu2_common matches R loop", {
   for (R in c(2, 4)) {
     set.seed(900 + R)
     J <- 30
-    post_mean2 <- array(rnorm(J * R * R), c(J, R, R))
+    mu2 <- array(rnorm(J * R * R), c(J, R, R))
     M_k <- matrix(rnorm(J * R), J, R)
     C_k <- crossprod(matrix(rnorm(R * R), R, R)) / R
     w_k <- runif(J)
 
-    pm2_r <- post_mean2
+    pm2_r <- mu2
     for (j in seq_len(J)) {
       pm2_r[j, , ] <- pm2_r[j, , ] + w_k[j] * (C_k + tcrossprod(M_k[j, ]))
     }
-    pm2_cpp <- mvsusieR:::accumulate_post_mean2_common_rcpp(
-      post_mean2, M_k, C_k, w_k)
+    pm2_cpp <- mvsusieR:::accumulate_mu2_common_rcpp(
+      mu2, M_k, C_k, w_k)
     expect_equal(pm2_cpp, pm2_r, tolerance = 1e-10,
                  info = paste("R =", R))
   }

@@ -13,6 +13,7 @@
 //   compute_betahat_3d_rcpp - batch matrix-vector: betahat[j] = svs[j] * XtR[j]
 //   compute_svs_inv_3d_rcpp - assemble J svs_inv matrices from precomputed sums
 //   compute_vbxxb_rcpp      - sum_j alpha_j tr(svs_inv_j * mu2_j) scalar
+//   precompute_gram_xtx_rcpp - per-outcome Gram matrix J x R x R for 3D path
 
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
@@ -461,23 +462,22 @@ arma::cube compute_Xbar_from_sums_rcpp(
 
 
 // ---------------------------------------------------------------------------
-// 8. compute_bxxb_correction_3d_rcpp
+// 8. precompute_gram_xtx_rcpp
 //
-// Computes the bxxb posterior correction for residual variance estimation
-// in the 3D missing-data path.  This is the first term of the posterior
-// correction: E_q[(X_3d b_l)' (X_3d b_l)] summed over all L effects.
+// Precomputes the per-outcome Gram matrix for the 3D missing-data path:
+//   gram_xtx[j,r,s] = sum_k cross_rs(k,j,r,s)
 //
-// For each effect l and variable j with alpha_lj > threshold:
-//   G_j[r,s] = sum_k cross_rs(k,j,r,s)    (per-outcome Gram matrix)
-//   bxxb += alpha_lj * (G_j . mu_outer_lj) (Hadamard product)
-//   bxxb[r,r] += alpha_lj * G_j[r,r] * post_var_lj[r]  (diagonal correction)
+// where cross_rs is the centered/scaled cross-product of column j for
+// outcomes r and s, restricted to samples observing both outcomes:
+//   cross_rs(k,j,r,s) = (sum_sq[k,j] - (cm[j,r]+cm[j,s])*sum[k,j]
+//                         + n_k[k]*cm[j,r]*cm[j,s]) / (csd[j,r]*csd[j,s])
 //
-// where cross_rs uses the same formula as compute_svs_inv_3d_rcpp, and
-// post_var_lj[r] = mu2_diag[l,j,r] - mu[l,j,r]^2.
+// This replaces the per-variable scalar d[j] used in the non-missing path.
+// When there is no missingness, gram_xtx[j,r,s] = d[j] for all (r,s).
 //
-// alpha:       L x J
-// mu:          L x J x R  (posterior means)
-// mu2_diag:    L x J x R  (diagonal posterior second moments)
+// Computed once during data setup; used during posterior reduction to
+// compute the correct bxxb via Hadamard product with E[bb'].
+//
 // pattern:     K x R  (0/1 missingness patterns)
 // raw_sq_sum:  K x J
 // raw_sum:     K x J
@@ -485,14 +485,10 @@ arma::cube compute_Xbar_from_sums_rcpp(
 // cm:          J x R  (per-outcome column means)
 // csd:         J x R  (per-outcome column SDs)
 //
-// Returns R x R matrix: total bxxb summed over all L effects.
-// The caller subtracts the b1_XtX_b1 terms in R.
+// Returns J x R x R cube.
 // ---------------------------------------------------------------------------
 // [[Rcpp::export]]
-arma::mat compute_bxxb_correction_3d_rcpp(
-    const arma::mat& alpha,
-    const arma::cube& mu,
-    const arma::cube& mu2_diag,
+arma::cube precompute_gram_xtx_rcpp(
     const arma::imat& pattern,
     const arma::mat& raw_sq_sum,
     const arma::mat& raw_sum,
@@ -500,10 +496,9 @@ arma::mat compute_bxxb_correction_3d_rcpp(
     const arma::mat& cm,
     const arma::mat& csd) {
 
-  unsigned int L = alpha.n_rows;
-  unsigned int J = alpha.n_cols;
   unsigned int K = pattern.n_rows;
   unsigned int R = pattern.n_cols;
+  unsigned int J = raw_sq_sum.n_cols;
 
   // Cache per-pattern observed indices
   std::vector<std::vector<unsigned int>> obs_r_list(K);
@@ -513,56 +508,28 @@ arma::mat compute_bxxb_correction_3d_rcpp(
     }
   }
 
-  arma::mat total_bxxb(R, R, arma::fill::zeros);
+  arma::cube gram(J, R, R, arma::fill::zeros);
 
-  for (unsigned int l = 0; l < L; l++) {
-    arma::mat bxxb_l(R, R, arma::fill::zeros);
+  for (unsigned int j = 0; j < J; j++) {
+    for (unsigned int k = 0; k < K; k++) {
+      const auto& obs_r = obs_r_list[k];
+      unsigned int n_obs = obs_r.size();
+      if (n_obs == 0) continue;
 
-    for (unsigned int j = 0; j < J; j++) {
-      if (alpha(l, j) < 1e-10) continue;
-
-      // Compute G_j: per-outcome Gram matrix from pattern summary stats
-      arma::mat G_j(R, R, arma::fill::zeros);
-      for (unsigned int k = 0; k < K; k++) {
-        const auto& obs_r = obs_r_list[k];
-        unsigned int n_obs = obs_r.size();
-        if (n_obs == 0) continue;
-
-        for (unsigned int ri = 0; ri < n_obs; ri++) {
-          unsigned int r = obs_r[ri];
-          for (unsigned int si = ri; si < n_obs; si++) {
-            unsigned int s = obs_r[si];
-            double cross_rs = (raw_sq_sum(k, j) -
-              (cm(j, r) + cm(j, s)) * raw_sum(k, j) +
-              n_k(k) * cm(j, r) * cm(j, s)) /
-              (csd(j, r) * csd(j, s));
-            G_j(r, s) += cross_rs;
-            if (r != s) G_j(s, r) += cross_rs;
-          }
+      for (unsigned int ri = 0; ri < n_obs; ri++) {
+        unsigned int r = obs_r[ri];
+        for (unsigned int si = ri; si < n_obs; si++) {
+          unsigned int s = obs_r[si];
+          double cross_rs = (raw_sq_sum(k, j) -
+            (cm(j, r) + cm(j, s)) * raw_sum(k, j) +
+            n_k(k) * cm(j, r) * cm(j, s)) /
+            (csd(j, r) * csd(j, s));
+          gram(j, r, s) += cross_rs;
+          if (r != s) gram(j, s, r) += cross_rs;
         }
-      }
-
-      // Hadamard product: G_j . (mu_lj * mu_lj')
-      // Plus diagonal correction for exact second moment
-      double a_lj = alpha(l, j);
-      for (unsigned int r = 0; r < R; r++) {
-        for (unsigned int s = r; s < R; s++) {
-          double mu_prod = mu(l, j, r) * mu(l, j, s);
-          double val = a_lj * G_j(r, s) * mu_prod;
-          bxxb_l(r, s) += val;
-          if (r != s) bxxb_l(s, r) += val;
-        }
-        // Diagonal: replace mu^2 with exact mu2_diag
-        // We already added a_lj * G_j(r,r) * mu(l,j,r)^2 above,
-        // now add the posterior variance part:
-        //   a_lj * G_j(r,r) * (mu2_diag(l,j,r) - mu(l,j,r)^2)
-        double post_var_r = mu2_diag(l, j, r) - mu(l, j, r) * mu(l, j, r);
-        bxxb_l(r, r) += a_lj * G_j(r, r) * post_var_r;
       }
     }
-
-    total_bxxb += bxxb_l;
   }
 
-  return total_bxxb;
+  return gram;
 }

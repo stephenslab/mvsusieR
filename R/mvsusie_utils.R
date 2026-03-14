@@ -661,11 +661,13 @@ loglik_precomputed <- function(betahat, V_scalar, eigen_cache,
 #   for EM update (from compute_variable_posterior_weights). NULL if EM
 #   not needed.
 #
-# @param reduce_params If non-NULL, a list(alpha, d, v_inv) for computing
-#   reduced statistics (bxxb, vbxxb, alpha_mu2_sum, mu2_diag) instead of
-#   the full J x R x R post_mean2 array.  Saves O(J*R^2) memory.
-# @return list with post_mean, post_neg, post_zero, prior_scale_em_update,
-#   and either post_mean2 (when reduce_params is NULL) or reduced statistics.
+# @param reduce_params If non-NULL, a list(alpha, d, svs_inv, v_inv,
+#   gram_xtx) for computing reduced statistics (bxxb, vbxxb,
+#   alpha_mu2_sum, mu2_diag) instead of the full J x R x R mu2 array.
+#   When gram_xtx is non-NULL, bxxb uses the per-outcome Gram matrix
+#   (3D missing-data path).
+# @return list with mu, post_neg, post_zero, prior_scale_em_update,
+#   and either mu2 (when reduce_params is NULL) or reduced statistics.
 posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
                                   em_var_wt = NULL, reduce_params = NULL,
                                   BQ_cache = NULL) {
@@ -675,9 +677,9 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
     result <- posterior_non_common_rcpp(betahat, V_scalar,
                                        eigen_cache$components,
                                        pi_V_post, em_wt)
-    # Reduce if requested (post_mean2 was allocated in C++; compute stats, free it)
+    # Reduce if requested (mu2 was allocated in C++; compute stats, free it)
     if (!is.null(reduce_params)) {
-      result <- reduce_post_mean2(result, reduce_params)
+      result <- reduce_mu2(result, reduce_params)
     }
     return(result)
   }
@@ -687,7 +689,17 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
   BQ_list <- if (!is.null(BQ_cache)) BQ_cache else list()
   do_reduce <- !is.null(reduce_params)
 
-  if (do_reduce) {
+  if (do_reduce && !is.null(reduce_params$gram_xtx)) {
+    # When gram_xtx is present, the C++ inline reduction uses scalar d[j]
+    # which is wrong for the 3D path. Get full mu2 from C++ and reduce
+    # in R with the correct G-weighted bxxb.
+    result <- posterior_common_rcpp(betahat, V_scalar,
+                                    eigen_cache$components,
+                                    pi_V_post, em_wt_mat, BQ_list,
+                                    FALSE, numeric(0),
+                                    numeric(0), matrix(0, 0, 0))
+    reduce_mu2(result, reduce_params)
+  } else if (do_reduce) {
     posterior_common_rcpp(betahat, V_scalar,
                           eigen_cache$components,
                           pi_V_post, em_wt_mat, BQ_list,
@@ -702,15 +714,20 @@ posterior_precomputed <- function(betahat, V_scalar, eigen_cache, pi_V_post,
   }
 }
 
-# Reduce a full J x R x R post_mean2 to summary statistics.
+# Reduce a full J x R x R mu2 array to summary statistics.
 # Used for non-common-cov path where C++ builds the full array.
-reduce_post_mean2 <- function(post_result, reduce_params) {
-  alpha   <- reduce_params$alpha
-  d_var   <- reduce_params$d
-  svs_inv <- reduce_params$svs_inv  # list of J (or 1 for common-cov) R x R matrices
-  pm2     <- post_result$post_mean2
-  J       <- length(alpha)
-  R       <- ncol(post_result$post_mean)
+#
+# When gram_xtx (J x R x R) is provided via reduce_params, bxxb is computed
+# using the per-outcome Gram matrix (Hadamard product) instead of scalar d[j].
+# This gives the correct bxxb for the 3D missing-data path.
+reduce_mu2 <- function(post_result, reduce_params) {
+  alpha    <- reduce_params$alpha
+  d_var    <- reduce_params$d
+  svs_inv  <- reduce_params$svs_inv  # list of J (or 1) R x R matrices
+  gram_xtx <- reduce_params$gram_xtx # J x R x R or NULL
+  pm2      <- post_result$mu2
+  J        <- length(alpha)
+  R        <- ncol(post_result$mu)
 
   bxxb          <- matrix(0, R, R)
   alpha_mu2_sum <- matrix(0, R, R)
@@ -721,13 +738,19 @@ reduce_post_mean2 <- function(post_result, reduce_params) {
     mu2_j <- pm2[j, , ]
     if (!is.matrix(mu2_j)) dim(mu2_j) <- c(R, R)
     a_j <- alpha[j]
-    bxxb          <- bxxb + d_var[j] * a_j * mu2_j
+    if (!is.null(gram_xtx)) {
+      G_j <- gram_xtx[j, , ]
+      if (!is.matrix(G_j)) dim(G_j) <- c(R, R)
+      bxxb <- bxxb + a_j * (G_j * mu2_j)          # Hadamard with Gram
+    } else {
+      bxxb <- bxxb + d_var[j] * a_j * mu2_j        # scalar d weighting
+    }
     alpha_mu2_sum <- alpha_mu2_sum + a_j * mu2_j
     vbxxb         <- vbxxb + a_j * sum(svs_inv[[min(j, length(svs_inv))]] * mu2_j)
     mu2_diag[j, ] <- diag(mu2_j)
   }
 
-  post_result$post_mean2    <- NULL   # free J x R x R
+  post_result$mu2           <- NULL   # free J x R x R
   post_result$bxxb          <- bxxb
   post_result$vbxxb         <- vbxxb
   post_result$alpha_mu2_sum <- alpha_mu2_sum

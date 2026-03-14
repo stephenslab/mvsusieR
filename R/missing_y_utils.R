@@ -290,6 +290,15 @@ set_residual_variance_3d <- function(data, residual_variance,
   if (!my$standardized) {
     data <- standardize_3d(data, center, scale)
     my <- data$miss3d  # re-read after standardize_3d modified it
+
+    # Precompute per-outcome Gram matrix (once, after standardization).
+    # gram_xtx[j,r,s] = sum_k cross_rs(k,j,r,s) replaces the scalar d[j]
+    # for the 3D path, accounting for which samples observe both r and s.
+    pattern_int_std <- matrix(as.integer(my$pattern), nrow = K, ncol = R_dim)
+    my$gram_xtx <- precompute_gram_xtx_rcpp(
+      pattern_int_std, my$raw_sq_sum, my$raw_sum,
+      as.integer(my$n_k), my$cm, my$csd)
+    data$miss3d <- my
   }
 
   # --- Step 3: ELBO normalization constant ---
@@ -626,10 +635,7 @@ compute_elbo_3d <- function(data, model) {
 estimate_residual_variance_3d <- function(data, model) {
   my <- data$miss3d
   R_dim <- data$R
-  N <- dim(my$X_3d)[1]
-  J <- data$p
   L <- nrow(model$alpha)
-  K <- nrow(my$pattern)
 
   # ---------------------------------------------------------------
   # 1. Residuals at posterior mean, zeros at missing entries
@@ -649,51 +655,17 @@ estimate_residual_variance_3d <- function(data, model) {
   E_RtR <- crossprod(R_mat)
 
   # ---------------------------------------------------------------
-  # 4. Posterior correction: E_q[B'X_3d'X_3d B] - E[B]'X_3d'X_3d E[B]
+  # 3. Posterior correction: E_q[B'X_3d'X_3d B] - E[B]'X_3d'X_3d E[B]
   # ---------------------------------------------------------------
-  # model$bxxb uses scalar d[j] = N-1 which is WRONG for 3D path.
-  # The correct formula uses the per-outcome Gram matrix G_j:
-  #
-  #   E_q[(X_3d b_l)' (X_3d b_l)]_{r,s}
-  #     = sum_j alpha_lj * G_j[r,s] * E[beta_lr * beta_ls | gamma=j]
-  #     = sum_j alpha_lj * G_j[r,s] * mu2_lj[r,s]
-  #
-  # This is a Hadamard (element-wise) product of G_j and mu2.
-  # G_j[r,s] = sum_{i: obs r AND s} X_3d[i,j,r] * X_3d[i,j,s],
-  # computed from per-pattern summary statistics.
-  #
-  # Since the full R x R posterior second moment mu2_lj is not stored
-  # (reduced memory mode), we use:
-  #   mu2_lj[r,s] = mu_lj[r] * mu_lj[s]  for r != s  (exact for diagonal post_cov)
-  #   mu2_lj[r,r] = mu2_diag[j,r]         for r = s   (exact)
-  #
-  # Note: the correction only has non-zero contributions for observed
-  # entries (X_3d = 0 for missing), so it naturally respects the
-  # missingness structure.
-  cm  <- my$cm
-  csd <- my$csd
+  # bxxb is computed during posterior reduction using gram_xtx (the
+  # per-outcome Gram matrix), which correctly handles the missingness
+  # structure via Hadamard product with the full E[bb'].
+  total_bxxb <- Reduce("+", model$bxxb)
 
-  # Pre-extract posterior means and diagonal second moments into cubes
-  # for the C++ function (L x J x R arrays).
-  mu_cube <- model$mu  # L x J x R (already a 3D array)
-  if (length(dim(mu_cube)) != 3)
-    mu_cube <- array(mu_cube, dim = c(L, J, R_dim))
-  mu2_diag_cube <- array(0, dim = c(L, J, R_dim))
-  for (l in seq_len(L))
-    mu2_diag_cube[l, , ] <- model$mu2_cache[[l]]$mu2_diag
-
-  # Compute total bxxb via C++ (Hadamard product of G_j with mu2,
-  # summed over all L effects and J variables).
-  pattern_int <- matrix(as.integer(my$pattern), nrow = K, ncol = R_dim)
-  total_bxxb <- compute_bxxb_correction_3d_rcpp(
-    model$alpha, mu_cube, mu2_diag_cube,
-    pattern_int, my$raw_sq_sum, my$raw_sum, as.integer(my$n_k),
-    cm, csd)
-
-  # Subtract (X_3d E[b_l])' (X_3d E[b_l]) for each effect (BLAS-efficient)
+  # Subtract (X_3d E[b_l])' (X_3d E[b_l]) for each effect
   b1_XtX_b1_total <- matrix(0, R_dim, R_dim)
   for (l in seq_len(L)) {
-    mu_l <- mu_cube[l, , , drop = TRUE]
+    mu_l <- model$mu[l, , , drop = TRUE]
     if (!is.matrix(mu_l)) mu_l <- matrix(mu_l, ncol = R_dim)
     B1_l <- model$alpha[l, ] * mu_l
     if (!is.matrix(B1_l)) B1_l <- matrix(B1_l, ncol = R_dim)
@@ -704,7 +676,7 @@ estimate_residual_variance_3d <- function(data, model) {
   correction <- total_bxxb - b1_XtX_b1_total
 
   # ---------------------------------------------------------------
-  # 5. Pairwise complete-case estimator: V_new[r,s] = numerator / N_{rs}
+  # 4. Pairwise complete-case estimator: V_new[r,s] = numerator / N_{rs}
   # ---------------------------------------------------------------
   # N_rs[r,s] = number of samples where both outcome r and s are observed.
   # Uses the same observation indicator that made R_mat entries zero.

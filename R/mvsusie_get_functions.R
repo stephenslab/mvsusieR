@@ -35,7 +35,8 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
   # ----- b2: alpha-weighted diag of second moment (L x J x R) -----
   b2 <- array(0, c(L, J, R))
   for (l in seq_len(L)) {
-    # mu2_cache[[l]]$mu2_diag is J x R (diagonal of E[b^2])
+    # mu2_diag is J x R: diag(E[bb']), the diagonal of the posterior
+    # second moment matrix per variable
     cache_l <- s$mu2_cache[[l]]
     if (!is.null(cache_l) && !is.null(cache_l$mu2_diag)) {
       b2[l, , ] <- s$alpha[l, ] * cache_l$mu2_diag

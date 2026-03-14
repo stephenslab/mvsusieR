@@ -133,8 +133,8 @@ posterior_precomputed_R <- function(betahat, V_scalar, eigen_cache, pi_V_post,
   R <- ncol(betahat)
   K <- length(eigen_cache$components)
 
-  post_mean  <- matrix(0, J, R)
-  post_mean2 <- array(0, c(J, R, R))
+  mu         <- matrix(0, J, R)
+  mu2        <- array(0, c(J, R, R))
   post_neg   <- matrix(0, J, R)
   post_zero  <- matrix(0, J, R)
   em_update  <- numeric(K + 1)
@@ -157,9 +157,9 @@ posterior_precomputed_R <- function(betahat, V_scalar, eigen_cache, pi_V_post,
       BQ <- betahat %*% Q_k
       BQ_shrunk <- t(t(BQ) * shrink)
       M_k <- BQ_shrunk %*% t(G_k)
-      post_mean <- post_mean + w_k * M_k
+      mu <- mu + w_k * M_k
       for (j in seq_len(J)) {
-        post_mean2[j, , ] <- post_mean2[j, , ] +
+        mu2[j, , ] <- mu2[j, , ] +
           w_k[j] * (C_k + tcrossprod(M_k[j, ]))
       }
       diag_Ck <- diag(C_k)
@@ -195,8 +195,8 @@ posterior_precomputed_R <- function(betahat, V_scalar, eigen_cache, pi_V_post,
         C_k <- (C_k + t(C_k)) / 2
         b_rot <- crossprod(Q_j, betahat[j, ])
         m_j <- drop(G_j %*% (shrink * b_rot))
-        post_mean[j, ] <- post_mean[j, ] + w_k[j] * m_j
-        post_mean2[j, , ] <- post_mean2[j, , ] +
+        mu[j, ] <- mu[j, ] + w_k[j] * m_j
+        mu2[j, , ] <- mu2[j, , ] +
           w_k[j] * (C_k + tcrossprod(m_j))
         diag_Ck <- diag(C_k)
         diag_Ck[diag_Ck < sqrt(.Machine$double.eps) * max(diag_Ck)] <- 0
@@ -219,8 +219,8 @@ posterior_precomputed_R <- function(betahat, V_scalar, eigen_cache, pi_V_post,
   }
 
   list(
-    post_mean  = post_mean,
-    post_mean2 = post_mean2,
+    mu         = mu,
+    mu2        = mu2,
     post_neg   = post_neg,
     post_zero  = post_zero,
     prior_scale_em_update = em_update

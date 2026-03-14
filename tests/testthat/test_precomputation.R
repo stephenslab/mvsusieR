@@ -217,12 +217,12 @@ test_that("posterior_precomputed matches direct computation (K=1)", {
     m_k <- drop(VU %*% Sigma_total_inv %*% betahat[j, ])
     # Mixture-weighted mean
     expected_mean <- 0.1 * rep(0, R) + 0.9 * m_k
-    expect_equal(post$post_mean[j, ], expected_mean, tolerance = 1e-10,
+    expect_equal(post$mu[j, ], expected_mean, tolerance = 1e-10,
                  info = paste("j =", j))
 
     # Mixture-weighted second moment
     expected_m2 <- 0.1 * matrix(0, R, R) + 0.9 * (post_cov + tcrossprod(m_k))
-    expect_equal(post$post_mean2[j, , ], expected_m2, tolerance = 1e-10,
+    expect_equal(post$mu2[j, , ], expected_m2, tolerance = 1e-10,
                  info = paste("j =", j))
   }
 })
@@ -672,8 +672,8 @@ test_that("#5: posterior with BQ_cache matches without (no reduce)", {
   post_yes <- mvsusieR:::posterior_precomputed(betahat, V_scalar, cache,
                                                 pi_V_post, BQ_cache = BQ_cache)
 
-  expect_equal(post_yes$post_mean, post_no$post_mean, tolerance = 1e-10)
-  expect_equal(post_yes$post_mean2, post_no$post_mean2, tolerance = 1e-10)
+  expect_equal(post_yes$mu, post_no$mu, tolerance = 1e-10)
+  expect_equal(post_yes$mu2, post_no$mu2, tolerance = 1e-10)
   expect_equal(post_yes$post_neg, post_no$post_neg, tolerance = 1e-10)
   expect_equal(post_yes$post_zero, post_no$post_zero, tolerance = 1e-10)
   expect_equal(post_yes$prior_scale_em_update,
@@ -719,7 +719,7 @@ test_that("#5: posterior with BQ_cache matches without (reduce)", {
                                                 reduce_params = reduce_params,
                                                 BQ_cache = BQ_cache)
 
-  expect_equal(post_yes$post_mean, post_no$post_mean, tolerance = 1e-10)
+  expect_equal(post_yes$mu, post_no$mu, tolerance = 1e-10)
   expect_equal(post_yes$bxxb, post_no$bxxb, tolerance = 1e-10)
   expect_equal(post_yes$vbxxb, post_no$vbxxb, tolerance = 1e-10)
   expect_equal(post_yes$alpha_mu2_sum, post_no$alpha_mu2_sum, tolerance = 1e-10)
@@ -787,8 +787,8 @@ test_that("#4: posterior_common_rcpp matches R reference (no reduce, no EM)", {
   post_R   <- mvsusieR:::posterior_precomputed_R(betahat, V_scalar, cache,
                                                   pi_V_post)
 
-  expect_equal(post_cpp$post_mean, post_R$post_mean, tolerance = 1e-10)
-  expect_equal(post_cpp$post_mean2, post_R$post_mean2, tolerance = 1e-10)
+  expect_equal(post_cpp$mu, post_R$mu, tolerance = 1e-10)
+  expect_equal(post_cpp$mu2, post_R$mu2, tolerance = 1e-10)
   expect_equal(post_cpp$post_neg, post_R$post_neg, tolerance = 1e-10)
   expect_equal(post_cpp$post_zero, post_R$post_zero, tolerance = 1e-10)
   expect_equal(as.vector(post_cpp$prior_scale_em_update),
@@ -827,8 +827,8 @@ test_that("#4: posterior_common_rcpp matches R reference (with EM weights)", {
                                                   pi_V_post,
                                                   em_var_wt = em_var_wt)
 
-  expect_equal(post_cpp$post_mean, post_R$post_mean, tolerance = 1e-10)
-  expect_equal(post_cpp$post_mean2, post_R$post_mean2, tolerance = 1e-10)
+  expect_equal(post_cpp$mu, post_R$mu, tolerance = 1e-10)
+  expect_equal(post_cpp$mu2, post_R$mu2, tolerance = 1e-10)
   expect_equal(as.vector(post_cpp$prior_scale_em_update),
                as.vector(post_R$prior_scale_em_update), tolerance = 1e-10)
 })
@@ -871,7 +871,7 @@ test_that("#4: posterior_common_rcpp reduce matches R full + reduce", {
   alpha_mu2_sum <- matrix(0, R, R)
   mu2_diag <- matrix(0, J, R)
   for (j in seq_len(J)) {
-    mu2_j <- post_R$post_mean2[j, , ]
+    mu2_j <- post_R$mu2[j, , ]
     if (!is.matrix(mu2_j)) dim(mu2_j) <- c(R, R)
     bxxb <- bxxb + d_var[j] * alpha[j] * mu2_j
     alpha_mu2_sum <- alpha_mu2_sum + alpha[j] * mu2_j
@@ -879,7 +879,7 @@ test_that("#4: posterior_common_rcpp reduce matches R full + reduce", {
   }
   vbxxb <- sum(v_inv * bxxb)
 
-  expect_equal(post_reduce$post_mean, post_R$post_mean, tolerance = 1e-10)
+  expect_equal(post_reduce$mu, post_R$mu, tolerance = 1e-10)
   expect_equal(post_reduce$bxxb, bxxb, tolerance = 1e-10)
   expect_equal(post_reduce$vbxxb, vbxxb, tolerance = 1e-10)
   expect_equal(post_reduce$alpha_mu2_sum, alpha_mu2_sum, tolerance = 1e-10)

@@ -13,8 +13,8 @@ posterior_non_common_rcpp <- function(betahat, V_scalar, components, pi_V_post, 
     .Call('_mvsusieR_posterior_non_common_rcpp', PACKAGE = 'mvsusieR', betahat, V_scalar, components, pi_V_post, em_var_wt)
 }
 
-accumulate_post_mean2_common_rcpp <- function(post_mean2, M_k, C_k, w_k) {
-    .Call('_mvsusieR_accumulate_post_mean2_common_rcpp', PACKAGE = 'mvsusieR', post_mean2, M_k, C_k, w_k)
+accumulate_mu2_common_rcpp <- function(mu2, M_k, C_k, w_k) {
+    .Call('_mvsusieR_accumulate_mu2_common_rcpp', PACKAGE = 'mvsusieR', mu2, M_k, C_k, w_k)
 }
 
 loglik_common_rcpp <- function(betahat, V_scalar, log_det_svs, components, BQ_cache_in) {
@@ -61,7 +61,7 @@ compute_Xbar_from_sums_rcpp <- function(Vinv_list, pattern, raw_sum, n_k, cm, cs
     .Call('_mvsusieR_compute_Xbar_from_sums_rcpp', PACKAGE = 'mvsusieR', Vinv_list, pattern, raw_sum, n_k, cm, csd, Vinvsuminv)
 }
 
-compute_bxxb_correction_3d_rcpp <- function(alpha, mu, mu2_diag, pattern, raw_sq_sum, raw_sum, n_k, cm, csd) {
-    .Call('_mvsusieR_compute_bxxb_correction_3d_rcpp', PACKAGE = 'mvsusieR', alpha, mu, mu2_diag, pattern, raw_sq_sum, raw_sum, n_k, cm, csd)
+precompute_gram_xtx_rcpp <- function(pattern, raw_sq_sum, raw_sum, n_k, cm, csd) {
+    .Call('_mvsusieR_precompute_gram_xtx_rcpp', PACKAGE = 'mvsusieR', pattern, raw_sq_sum, raw_sum, n_k, cm, csd)
 }
 
