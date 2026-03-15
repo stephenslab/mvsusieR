@@ -24,29 +24,30 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
                                top_mixtures = -1,
                                include_outcomes = NULL) {
 
-  # --- Build non-null xUlist ---
+  # --- Build xUlist from Ulist + grid, or use xUlist directly ---
   if (!is.null(Ulist)) {
     if (is.null(grid)) stop("grid is required when Ulist is provided")
     if (any(grid <= 0)) stop("grid values must be positive")
-    for (l in seq_along(Ulist)) {
-      if (all(abs(Ulist[[l]]) < null_tol))
-        Ulist[[l]] <- Ulist[[l]] * 0
+    for (l in seq_along(Ulist))
       check_covmat_basics(Ulist[[l]])
-    }
-    # Remove zero matrices (they would produce redundant null components)
-    nonzero <- !vapply(Ulist, function(m) all(m == 0), logical(1))
-    if (!any(nonzero))
-      stop("All prior covariance matrices are zero or near-zero")
-    Ulist <- Ulist[nonzero]
-    # expand_cov prepends a null component; strip it immediately
+    # expand_cov prepends a null component; strip it
     xUlist <- expand_cov(Ulist, grid, usepointmass = TRUE)[-1]
   } else if (!is.null(xUlist)) {
-    # Strip leading null if present
-    if (all(xUlist[[1]] == 0)) xUlist <- xUlist[-1]
     for (i in seq_along(xUlist))
       check_covmat_basics(xUlist[[i]])
   } else {
     stop("Either Ulist or xUlist must be provided")
+  }
+
+  # --- Default weights (before any filtering) ---
+  if (is.null(prior_weights)) prior_weights <- rep(1 / length(xUlist), length(xUlist))
+  if (length(prior_weights) != length(xUlist))
+    stop(paste("prior_weights length", length(prior_weights),
+               "!= number of matrices", length(xUlist)))
+
+  # --- Subset outcomes first (may turn some matrices near-zero) ---
+  if (!is.null(include_outcomes)) {
+    xUlist <- lapply(xUlist, function(m) m[include_outcomes, include_outcomes])
   }
 
   # --- Dimension check ---
@@ -54,22 +55,13 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
   if (length(unique(dims)) > 1)
     stop("Prior matrices have different dimensions")
 
-  # --- Default weights ---
-  K <- length(xUlist)
-  if (is.null(prior_weights)) prior_weights <- rep(1 / K, K)
-  if (length(prior_weights) != K) {
-    stop(paste("prior_weights length", length(prior_weights),
-               "!= number of matrices", K))
-  }
-
-  # --- Subset outcomes ---
-  if (!is.null(include_outcomes)) {
-    xUlist <- lapply(xUlist, function(m) m[include_outcomes, include_outcomes])
-    nonzero <- vapply(xUlist,
-                      function(m) !all(abs(m) < null_tol), logical(1))
-    xUlist <- xUlist[nonzero]
-    prior_weights <- prior_weights[nonzero]
-  }
+  # --- Remove near-zero matrices (any position) and drop their weights ---
+  is_nonzero <- vapply(xUlist,
+                       function(m) !all(abs(m) < null_tol), logical(1))
+  xUlist <- xUlist[is_nonzero]
+  prior_weights <- prior_weights[is_nonzero]
+  if (length(xUlist) == 0)
+    stop("All prior covariance matrices are zero or near-zero")
 
   # --- Filter by weight threshold ---
   if (weights_tol > 0) {
