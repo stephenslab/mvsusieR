@@ -2,7 +2,6 @@
 
 S3method(coef,mvsusie)
 S3method(predict,mvsusie)
-export(calc_z)
 export(coef.mvsusie)
 export(create_mixture_prior)
 export(mvsusie)

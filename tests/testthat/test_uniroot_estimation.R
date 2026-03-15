@@ -184,7 +184,7 @@ test_that("uniroot converges for R=3 with mixture prior", {
                  estimate_residual_variance = FALSE,
                  max_iter = 30, tol = 1e-3, verbose = FALSE)
   # Model should converge
-  expect_true(fit$convergence$converged)
+  expect_true(fit$converged)
   # ELBO should be monotonically non-decreasing (or very close)
   elbo <- fit$elbo[!is.na(fit$elbo)]
   if (length(elbo) > 1) {

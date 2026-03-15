@@ -169,12 +169,12 @@ expect_equal_mvsusie_objects <- function(dev_obj, ref_obj,
                info = "alpha (posterior inclusion probabilities) differ")
 
   # b1 (posterior first moments)
-  expect_equal(unname(dev_obj$b1), unname(ref_obj$b1),
+  expect_equal(unname(get_b1(dev_obj)), unname(get_b1(ref_obj)),
                tolerance = tolerance,
                info = "b1 (posterior first moments) differ")
 
   # b2 (posterior second moments)
-  expect_equal(unname(dev_obj$b2), unname(ref_obj$b2),
+  expect_equal(unname(get_b2(dev_obj)), unname(get_b2(ref_obj)),
                tolerance = tolerance,
                info = "b2 (posterior second moments) differ")
 
@@ -194,13 +194,16 @@ expect_equal_mvsusie_objects <- function(dev_obj, ref_obj,
   }
 
   # coef (compare non-intercept rows; intercept may differ in NA handling)
-  if (!is.null(dev_obj$coef) && !is.null(ref_obj$coef)) {
-    if (is.null(dim(dev_obj$coef))) {
-      expect_equal(unname(dev_obj$coef[-1]), unname(ref_obj$coef[-1]),
+  # Use coef_R6() which handles both S3 (computes from alpha+mu)
+  # and R6 (reads stored $coef).
+  dev_c <- coef_R6(dev_obj); ref_c <- coef_R6(ref_obj)
+  if (!is.null(dev_c) && !is.null(ref_c)) {
+    if (is.null(dim(dev_c))) {
+      expect_equal(unname(dev_c[-1]), unname(ref_c[-1]),
                    tolerance = tolerance,
                    info = "coef (effects) differ")
     } else {
-      expect_equal(unname(dev_obj$coef[-1, ]), unname(ref_obj$coef[-1, ]),
+      expect_equal(unname(dev_c[-1, ]), unname(ref_c[-1, ]),
                    tolerance = tolerance,
                    info = "coef (effects) differ")
     }
@@ -277,27 +280,10 @@ expect_equal_mvsusie_objects <- function(dev_obj, ref_obj,
                  info = "X_column_scale_factors differ")
   }
 
-  # b1_rescaled: compare non-intercept rows only.
-  # S3 stores intercept row as 0, R6 uses NA; dimensions may also differ.
-  # For L x (J+1) x R arrays, skip row 1 (intercept) of the 2nd dimension.
-  if (!is.null(dev_obj$b1_rescaled) && !is.null(ref_obj$b1_rescaled) &&
-      identical(dim(dev_obj$b1_rescaled), dim(ref_obj$b1_rescaled))) {
-    if (length(dim(dev_obj$b1_rescaled)) == 3) {
-      # L x (J+1) x R array: compare effects rows [, -1, ]
-      dev_eff <- dev_obj$b1_rescaled[, -1, , drop = FALSE]
-      ref_eff <- ref_obj$b1_rescaled[, -1, , drop = FALSE]
-    } else if (is.matrix(dev_obj$b1_rescaled)) {
-      # L x (J+1) matrix (R=1): compare effects rows [, -1]
-      dev_eff <- dev_obj$b1_rescaled[, -1, drop = FALSE]
-      ref_eff <- ref_obj$b1_rescaled[, -1, drop = FALSE]
-    } else {
-      dev_eff <- dev_obj$b1_rescaled
-      ref_eff <- ref_obj$b1_rescaled
-    }
-    expect_equal(unname(dev_eff), unname(ref_eff),
-                 tolerance = tolerance,
-                 info = "b1_rescaled (effects) differs")
-  }
+  # Per-effect coefficients: compare coef output (total coefficients).
+  expect_equal(unname(coef_R6(dev_obj)), unname(coef_R6(ref_obj)),
+               tolerance = tolerance,
+               info = "coef differs")
 
   invisible(TRUE)
 }

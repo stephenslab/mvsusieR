@@ -26,65 +26,21 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
   J <- ncol(s$alpha)
   R <- dim(s$mu)[3]
 
-  # ----- b1: alpha-weighted first moment (L x J x R) -----
-  b1 <- array(0, c(L, J, R))
+  # ----- mu2_diag: diagonal of posterior second moment (L x J x R) -----
+  mu2_diag <- array(0, c(L, J, R))
   for (l in seq_len(L)) {
-    b1[l, , ] <- drop(s$alpha[l, ]) * s$mu[l, , , drop = TRUE]
-  }
-
-  # ----- b2: alpha-weighted diag of second moment (L x J x R) -----
-  b2 <- array(0, c(L, J, R))
-  for (l in seq_len(L)) {
-    # mu2_diag is J x R: diag(E[bb']), the diagonal of the posterior
-    # second moment matrix per variable
     cache_l <- s$mu2_cache[[l]]
     if (!is.null(cache_l) && !is.null(cache_l$mu2_diag)) {
-      b2[l, , ] <- s$alpha[l, ] * cache_l$mu2_diag
+      mu2_diag[l, , ] <- cache_l$mu2_diag
     }
-  }
-
-  # ----- b_sum: total posterior mean (J x R) -----
-  b_sum <- matrix(0, J, R)
-  for (l in seq_len(L)) {
-    for (r in seq_len(R)) {
-      b_sum[, r] <- b_sum[, r] + b1[l, , r]
-    }
-  }
-
-  # ----- coef: rescaled coefficients with intercept row -----
-  # cm and csd can be J-vectors (standard path) or J x R matrices
-  # (missing data 3d path with per-outcome centering/scaling).
-  # colSums(cm * coefs) handles both: J-vector recycles per column,
-  # J x R does element-wise multiplication.
-  coefs_original <- b_sum / csd  # J x R
-  intercept_vec <- Y_mean - colSums(cm * coefs_original)
-  coef <- rbind(matrix(intercept_vec, 1, R), coefs_original)
-
-  # ----- b1_rescaled: per-effect rescaled b1 (L x (J+1) x R) -----
-  b1_rescaled <- array(0, c(L, J + 1, R))
-  for (l in seq_len(L)) {
-    b1_l <- matrix(b1[l, , ], J, R) / csd  # J x R (unscale)
-    intercept_l <- Y_mean - colSums(cm * b1_l)
-    b1_rescaled[l, , ] <- rbind(matrix(intercept_l, 1, R), b1_l)
   }
 
   # ----- Collapse arrays for R = 1 -----
   if (R == 1) {
-    b1 <- b1[, , 1]           # L x J
-    b2 <- b2[, , 1]           # L x J
-    b_sum <- as.vector(b_sum) # J
-    coef <- as.vector(coef)   # J+1
-    b1_rescaled <- drop(b1_rescaled)  # L x (J+1)
+    mu2_diag <- mu2_diag[, , 1]          # L x J
   }
 
-  # ----- Convergence status -----
-  convergence <- list(
-    converged = isTRUE(s$converged),
-    niter     = s$niter
-  )
-
   # ----- Build output list -----
-  # Keep mu/mu2 for susieR coef.susie() compatibility (uses alpha * mu)
   # For R=1, mu needs to be L x J matrix (not L x J x 1 array)
   if (R == 1) {
     mu_out <- s$mu[, , 1, drop = TRUE]  # L x J
@@ -128,24 +84,23 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
   out <- list(
     alpha            = s$alpha,
     mu               = mu_out,
-    b1               = b1,
-    b2               = b2,
+    mu2_diag         = mu2_diag,
     KL               = s$KL,
     lbf              = s$lbf,
     lbf_variable     = s$lbf_variable,
     V                = s$V,
     V_structure      = s$V_structure,
     null_weight      = s$null_weight,
+    pi               = s$pi,
     pi_V             = s$pi_V,
     sigma2           = s[["sigma2"]],
+    Xr               = s$Xr,
     elbo             = s$elbo,
     niter            = s$niter,
-    convergence      = convergence,
-    coef             = coef,
+    converged        = isTRUE(s$converged),
     fitted           = s$fitted,
     intercept        = s$intercept,
-    b1_rescaled      = b1_rescaled,
-    X_column_scale_factors = s$X_column_scale_factors,
+    X_column_scale_factors = csd,
     mixture_weights  = mixture_weights,
     conditional_lfsr = clfsr,
     lfsr             = lfsr,
@@ -179,15 +134,31 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
 #'
 #' @param s Model output from format_mvsusie_output
 #' @keywords internal
-apply_mvsusie_dimnames <- function(s) {
+apply_mvsusie_dimnames <- function(s, variable_names, outcome_names) {
   L <- nrow(s$alpha)
   J <- ncol(s$alpha)
-  vnames <- s$variable_names
-  cnames <- s$outcome_names
+  vnames <- variable_names
+  cnames <- outcome_names
   lnames <- paste0("l", seq_len(L))
 
   # alpha: L x J
   dimnames(s$alpha) <- list(lnames, vnames)
+
+  # mu: L x J (R=1) or L x J x R
+  if (length(dim(s$mu)) == 3) {
+    dimnames(s$mu) <- list(lnames, vnames, cnames)
+  } else {
+    dimnames(s$mu) <- list(lnames, vnames)
+  }
+
+  # mu2_diag: L x J (R=1) or L x J x R
+  if (!is.null(s$mu2_diag)) {
+    if (length(dim(s$mu2_diag)) == 3) {
+      dimnames(s$mu2_diag) <- list(lnames, vnames, cnames)
+    } else if (is.matrix(s$mu2_diag)) {
+      dimnames(s$mu2_diag) <- list(lnames, vnames)
+    }
+  }
 
   # lbf_variable: L x J
   if (!is.null(s$lbf_variable))
@@ -200,6 +171,10 @@ apply_mvsusie_dimnames <- function(s) {
   # pip: J-vector
   if (!is.null(s$pip))
     names(s$pip) <- vnames
+
+  # pi: J-vector (prior inclusion probabilities)
+  if (!is.null(s$pi) && length(s$pi) == J)
+    names(s$pi) <- vnames
 
   # sigma2: R x R matrix
   if (!is.null(s$sigma2) && is.matrix(s$sigma2))
@@ -215,12 +190,6 @@ apply_mvsusie_dimnames <- function(s) {
 
   R <- length(cnames)
   if (R > 1) {
-    # b1, b2: L x J x R arrays
-    if (!is.null(s$b1) && length(dim(s$b1)) == 3)
-      dimnames(s$b1) <- list(lnames, vnames, cnames)
-    if (!is.null(s$b2) && length(dim(s$b2)) == 3)
-      dimnames(s$b2) <- list(lnames, vnames, cnames)
-
     # lfsr: J x R matrix
     if (!is.null(s$lfsr) && is.matrix(s$lfsr))
       dimnames(s$lfsr) <- list(vnames, cnames)
@@ -229,15 +198,13 @@ apply_mvsusie_dimnames <- function(s) {
     if (!is.null(s$single_effect_lfsr) && is.matrix(s$single_effect_lfsr))
       dimnames(s$single_effect_lfsr) <- list(lnames, cnames)
 
-    # coef: (J+1) x R
-    dimnames(s$coef) <- list(c("(Intercept)", vnames), cnames)
-
     # fitted: N x R or J x R
     if (!is.null(dim(s$fitted)) && ncol(s$fitted) == R)
       colnames(s$fitted) <- cnames
-  } else {
-    # R=1: coef is J+1 vector
-    names(s$coef) <- c("(Intercept)", vnames)
+
+    # Xr: N x R
+    if (!is.null(s$Xr) && is.matrix(s$Xr) && ncol(s$Xr) == R)
+      colnames(s$Xr) <- cnames
   }
 
   return(s)

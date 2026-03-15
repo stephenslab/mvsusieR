@@ -18,7 +18,30 @@
 #' @export
 #'
 coef.mvsusie <- function(object, ...) {
-  return(as.matrix(object$coef))
+  L <- nrow(object$alpha)
+  J <- ncol(object$alpha)
+  csd <- object$X_column_scale_factors
+
+  if (length(dim(object$mu)) == 3) {
+    # Multivariate: mu is L x J x R
+    R <- dim(object$mu)[3]
+    b_sum <- matrix(0, J, R)
+    for (l in seq_len(L)) {
+      b_sum <- b_sum + drop(object$alpha[l, ]) * object$mu[l, , , drop = TRUE]
+    }
+    coefs <- b_sum / csd  # J x R (csd recycled or J x R matrix)
+    result <- rbind(matrix(object$intercept, 1, R), coefs)
+  } else {
+    # Univariate: mu is L x J (or vector if L=1)
+    alpha <- object$alpha
+    mu <- object$mu
+    if (!is.matrix(alpha)) alpha <- matrix(alpha, nrow = 1)
+    if (!is.matrix(mu)) mu <- matrix(mu, nrow = 1)
+    b_sum <- colSums(alpha * mu)  # J-vector
+    coefs <- b_sum / csd
+    result <- matrix(c(object$intercept, coefs), J + 1, 1)
+  }
+  return(as.matrix(result))
 }
 
 #' @title Predict Outcomes from mvsusie Fit.

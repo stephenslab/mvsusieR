@@ -138,8 +138,8 @@ p1 <- ggplot(data.frame(pip = fit$pip, pip_rss = fit_rss$pip),
   geom_abline(intercept = 0, slope = 1, color = "black", linetype = "dotted") +
   labs(x = "mvsusie PIP", y = "mvsusie_rss PIP") +
   theme_cowplot(font_size = 12)
-p2 <- ggplot(data.frame(b1 = as.vector(fit$b1),
-                         b1_rss = as.vector(fit_rss$b1)),
+p2 <- ggplot(data.frame(b1 = as.vector(coef(fit)),
+                         b1_rss = as.vector(coef(fit_rss))),
              aes(x = b1, y = b1_rss)) +
   geom_point(shape = 20, size = 2, color = "royalblue") +
   geom_abline(intercept = 0, slope = 1, color = "black", linetype = "dotted") +

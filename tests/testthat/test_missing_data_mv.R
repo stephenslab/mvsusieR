@@ -526,8 +526,8 @@ test_that("Output has all standard fields with missing data", {
   # Check essential output fields
   expect_true(!is.null(fit$pip))
   expect_true(!is.null(fit$alpha))
-  expect_true(!is.null(fit$b1))
-  expect_true(!is.null(fit$b1_rescaled))
+  expect_true(!is.null(fit$mu))
+  expect_true(!is.null(fit$mu2_diag))
   expect_true(!is.null(fit$sigma2))
   expect_true(!is.null(fit$V))
   expect_true(!is.null(fit$elbo))

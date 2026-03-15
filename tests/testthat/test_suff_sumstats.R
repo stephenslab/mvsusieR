@@ -28,8 +28,8 @@ test_that("R=1 individual vs SS agree with default residual_variance", with(simu
                        estimate_prior_variance = FALSE, verbose = FALSE)
   expect_equal(fit_ind$alpha, fit_ss$alpha)
   expect_equal(fit_ind$elbo, fit_ss$elbo)
-  expect_equal(fit_ind$b1, fit_ss$b1)
-  expect_equal(fit_ind$coef, fit_ss$coef)
+  expect_equal(get_b1(fit_ind), get_b1(fit_ss))
+  expect_equal(coef(fit_ind), coef(fit_ss))
   expect_equal(fit_ind$V, fit_ss$V)
 }))
 
@@ -53,8 +53,8 @@ test_that("R>1 individual vs SS agree with default residual_variance", with(simu
                        estimate_prior_variance = FALSE, verbose = FALSE)
   expect_equal(fit_ind$alpha, fit_ss$alpha)
   expect_equal(fit_ind$elbo, fit_ss$elbo)
-  expect_equal(fit_ind$b1, fit_ss$b1)
-  expect_equal(fit_ind$coef, fit_ss$coef)
+  expect_equal(get_b1(fit_ind), get_b1(fit_ss))
+  expect_equal(coef(fit_ind), coef(fit_ss))
   expect_equal(fit_ind$V, fit_ss$V)
 }))
 
@@ -82,8 +82,8 @@ test_that("R>1 individual vs SS agree with optim and default residual_variance",
                        max_iter = 20, verbose = FALSE)
   expect_equal(fit_ind$alpha, fit_ss$alpha)
   expect_equal(fit_ind$elbo, fit_ss$elbo)
-  expect_equal(fit_ind$b1, fit_ss$b1)
-  expect_equal(fit_ind$coef, fit_ss$coef)
+  expect_equal(get_b1(fit_ind), get_b1(fit_ss))
+  expect_equal(coef(fit_ind), coef(fit_ss))
   # V is estimated by iterative optimization (optim); individual data uses
   # crossprod(X, residual) while SS uses XtX %*% b, which accumulate different
   # floating point errors over 20 iterations. Use slightly relaxed tolerance.
@@ -143,10 +143,10 @@ test_that("When R = 1, estimated prior variance with ss data agrees with full da
 
   expect_equal(fit1$alpha, fit2$alpha)
   expect_equal(fit1$lbf, fit2$lbf)
-  expect_equal(fit1$b1, fit2$b1)
-  expect_equal(fit1$b2, fit2$b2)
-  expect_equal(fit1$coef, fit2$coef)
-  expect_equal(fit1$b1_rescaled,fit2$b1_rescaled)
+  expect_equal(get_b1(fit1), get_b1(fit2))
+  expect_equal(get_b2(fit1), get_b2(fit2))
+  expect_equal(coef(fit1), coef(fit2))
+  expect_equal(get_b1(fit1),get_b1(fit2))
   expect_equal(fit1$V, fit2$V)
 }))
 
@@ -173,10 +173,10 @@ test_that("With full observation, the estimated prior variance are same for SSDa
 
   expect_equal(fit1$alpha, fit2$alpha)
   expect_equal(fit1$lbf, fit2$lbf)
-  expect_equal(fit1$b1, fit2$b1)
-  expect_equal(fit1$b2, fit2$b2)
-  expect_equal(fit1$coef, fit2$coef)
-  expect_equal(fit1$b1_rescaled, fit2$b1_rescaled)
+  expect_equal(get_b1(fit1), get_b1(fit2))
+  expect_equal(get_b2(fit1), get_b2(fit2))
+  expect_equal(coef(fit1), coef(fit2))
+  expect_equal(get_b1(fit1), get_b1(fit2))
   expect_equal(fit1$V, fit2$V)
 
   # Mash regression
@@ -189,10 +189,10 @@ test_that("With full observation, the estimated prior variance are same for SSDa
 
   expect_equal(fit1$alpha, fit3$alpha)
   expect_equal(fit1$lbf, fit3$lbf)
-  expect_equal(fit1$b1, fit3$b1)
-  expect_equal(fit1$b2, fit3$b2)
-  expect_equal(fit1$coef, fit3$coef)
-  expect_equal(fit1$b1_rescaled, fit3$b1_rescaled)
+  expect_equal(get_b1(fit1), get_b1(fit3))
+  expect_equal(get_b2(fit1), get_b2(fit3))
+  expect_equal(coef(fit1), coef(fit3))
+  expect_equal(get_b1(fit1), get_b1(fit3))
   expect_equal(fit1$V, fit3$V)
 }))
 
@@ -347,9 +347,9 @@ test_that("When R = 1, estimated prior variance with missing data agrees with fu
 
   expect_equal(fit1$alpha, fit2$alpha, tolerance = 1E-8)
   expect_equal(fit1$lbf, fit2$lbf, tolerance = 1E-8)
-  expect_equal(fit1$b1, fit2$b1, tolerance = 1E-8)
-  expect_equal(fit1$b2, fit2$b2, tolerance = 1E-8)
-  expect_equal(fit1$coef, fit2$coef, tolerance = 1E-8)
+  expect_equal(get_b1(fit1), get_b1(fit2), tolerance = 1E-8)
+  expect_equal(get_b2(fit1), get_b2(fit2), tolerance = 1E-8)
+  expect_equal(coef(fit1), coef(fit2), tolerance = 1E-8)
   expect_equal(fit1$V, fit2$V, tolerance = 1E-8)
 }))
 
@@ -372,9 +372,9 @@ test_that("With full observation, the estimated prior variance: matrix vs mash p
 
   expect_equal(fit4_matrix$alpha,fit4_mash$alpha,tolerance = 1e-8,check.attributes = FALSE)
   expect_equal(fit4_matrix$lbf,fit4_mash$lbf,tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(fit4_matrix$b1,fit4_mash$b1,tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(fit4_matrix$b2,fit4_mash$b2,tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(fit4_matrix$coef,fit4_mash$coef,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(get_b1(fit4_matrix),get_b1(fit4_mash),tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(get_b2(fit4_matrix),get_b2(fit4_mash),tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(coef(fit4_matrix),coef(fit4_mash),tolerance = 1e-8,check.attributes = FALSE)
   expect_equal(fit4_matrix$V,fit4_mash$V,tolerance = 1e-8,check.attributes = FALSE)
 }))
 

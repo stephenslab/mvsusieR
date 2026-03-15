@@ -252,8 +252,8 @@ test_that("E2E: precompute=TRUE matches FALSE for individual data, fixed V", {
                      max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
-  expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
-  expect_equal(fit_yes$b2, fit_no$b2, tolerance = 1e-8)
+  expect_equal(get_b1(fit_yes), get_b1(fit_no), tolerance = 1e-8)
+  expect_equal(get_b2(fit_yes), get_b2(fit_no), tolerance = 1e-8)
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 1e-8)
   expect_equal(fit_yes$lbf, fit_no$lbf, tolerance = 1e-8)
   expect_equal(fit_yes$KL, fit_no$KL, tolerance = 1e-8)
@@ -357,8 +357,8 @@ test_that("E2E: precompute=TRUE matches FALSE for mash prior, fixed V", {
                      max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
-  expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
-  expect_equal(fit_yes$b2, fit_no$b2, tolerance = 1e-8)
+  expect_equal(get_b1(fit_yes), get_b1(fit_no), tolerance = 1e-8)
+  expect_equal(get_b2(fit_yes), get_b2(fit_no), tolerance = 1e-8)
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 1e-8)
   expect_equal(fit_yes$fitted, fit_no$fitted, tolerance = 1e-8)
   expect_equal(fit_yes$lfsr, fit_no$lfsr, tolerance = 1e-8)
@@ -421,8 +421,8 @@ test_that("E2E: precompute=TRUE matches FALSE for sufficient statistics, fixed V
                                 max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
-  expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
-  expect_equal(fit_yes$b2, fit_no$b2, tolerance = 1e-8)
+  expect_equal(get_b1(fit_yes), get_b1(fit_no), tolerance = 1e-8)
+  expect_equal(get_b2(fit_yes), get_b2(fit_no), tolerance = 1e-8)
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 1e-8)
 })
 
@@ -480,8 +480,8 @@ test_that("E2E: precompute=TRUE matches FALSE for R=3, fixed V", {
                      max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
-  expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
-  expect_equal(fit_yes$b2, fit_no$b2, tolerance = 1e-8)
+  expect_equal(get_b1(fit_yes), get_b1(fit_no), tolerance = 1e-8)
+  expect_equal(get_b2(fit_yes), get_b2(fit_no), tolerance = 1e-8)
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 1e-8)
   expect_equal(fit_yes$fitted, fit_no$fitted, tolerance = 1e-8)
   expect_equal(fit_yes$lfsr, fit_no$lfsr, tolerance = 1e-8)
@@ -509,8 +509,8 @@ test_that("E2E: precompute=TRUE matches FALSE for R=1, fixed V", {
                      max_iter = 5, tol = 1e-3, verbose = FALSE)
 
   expect_equal(fit_yes$alpha, fit_no$alpha, tolerance = 1e-8)
-  expect_equal(fit_yes$b1, fit_no$b1, tolerance = 1e-8)
-  expect_equal(fit_yes$b2, fit_no$b2, tolerance = 1e-8)
+  expect_equal(get_b1(fit_yes), get_b1(fit_no), tolerance = 1e-8)
+  expect_equal(get_b2(fit_yes), get_b2(fit_no), tolerance = 1e-8)
   expect_equal(fit_yes$pip, fit_no$pip, tolerance = 1e-8)
 })
 

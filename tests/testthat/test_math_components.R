@@ -119,7 +119,7 @@ test_that("multivariate_regression: R6 function consistency check", {
   for (j in 1:min(5, J)) {
     cov_j <- U %*% solve(diag(R) + S_inv[[j]] %*% U)
     b1_j <- cov_j %*% S_inv[[j]] %*% betahat[j, ]
-    expect_equal(r6_post$b1[j, ], as.vector(b1_j), tolerance = MACH_TOL,
+    expect_equal(get_b1(r6_post)[j, ], as.vector(b1_j), tolerance = MACH_TOL,
                  info = paste0("multivariate_regression: b1[", j, "]"))
   }
 })
@@ -309,14 +309,16 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
                check.attributes = FALSE, info = info("lbf"))
   expect_equal(fit$lbf_variable, ref$lbf_variable, tolerance = tol,
                check.attributes = FALSE, info = info("lbf_variable"))
-  expect_equal(fit$b1, ref$b1, tolerance = tol,
+  expect_equal(get_b1(fit), get_b1(ref), tolerance = tol,
                check.attributes = FALSE, info = info("b1"))
-  expect_equal(fit$b2, ref$b2, tolerance = tol,
+  expect_equal(get_b2(fit), get_b2(ref), tolerance = tol,
                check.attributes = FALSE, info = info("b2"))
 
   # Coefficient (handle NA intercept)
-  fit_coef <- fit$coef; fit_coef[is.na(fit_coef)] <- 0
-  ref_coef <- ref$coef; ref_coef[is.na(ref_coef)] <- 0
+  # Use coef_R6() which handles both S3 (computes from alpha+mu)
+  # and R6 (reads stored $coef).
+  fit_coef <- coef_R6(fit); fit_coef[is.na(fit_coef)] <- 0
+  ref_coef <- coef_R6(ref); ref_coef[is.na(ref_coef)] <- 0
   expect_equal(fit_coef, ref_coef, tolerance = tol,
                check.attributes = FALSE, info = info("coef"))
 
@@ -404,13 +406,13 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fix
     expect_equal(fit_mash$alpha, fit_matrix$alpha,
                  tolerance = MACH_TOL, check.attributes = FALSE,
                  info = "K1_vs_matrix: alpha")
-    expect_equal(fit_mash$b1, fit_matrix$b1,
+    expect_equal(get_b1(fit_mash), get_b1(fit_matrix),
                  tolerance = MACH_TOL, check.attributes = FALSE,
                  info = "K1_vs_matrix: b1")
     expect_equal(fit_mash$lbf, fit_matrix$lbf,
                  tolerance = MACH_TOL, check.attributes = FALSE,
                  info = "K1_vs_matrix: lbf")
-    expect_equal(fit_mash$coef, fit_matrix$coef,
+    expect_equal(coef(fit_mash), coef(fit_matrix),
                  tolerance = MACH_TOL, check.attributes = FALSE,
                  info = "K1_vs_matrix: coef")
     expect_equal(fit_mash$pip, fit_matrix$pip,
@@ -422,7 +424,7 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fix
     expect_equal(tail(fit_mash$elbo, 1), tail(fit_matrix$elbo, 1),
                  tolerance = MACH_TOL, check.attributes = FALSE,
                  info = "K1_vs_matrix: elbo")
-    expect_equal(fit_mash$b2, fit_matrix$b2,
+    expect_equal(get_b2(fit_mash), get_b2(fit_matrix),
                  tolerance = MACH_TOL, check.attributes = FALSE,
                  info = "K1_vs_matrix: b2")
   })
@@ -455,7 +457,7 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, opt
     expect_equal(fit_mash$alpha, fit_matrix$alpha,
                  tolerance = optim_tol, check.attributes = FALSE,
                  info = "K1_vs_matrix_optim: alpha")
-    expect_equal(fit_mash$b1, fit_matrix$b1,
+    expect_equal(get_b1(fit_mash), get_b1(fit_matrix),
                  tolerance = optim_tol, check.attributes = FALSE,
                  info = "K1_vs_matrix_optim: b1")
     expect_equal(fit_mash$lbf, fit_matrix$lbf,
@@ -602,7 +604,7 @@ test_that("mvsusie_workhorse internal params have correct defaults", {
                    max_iter = 2, verbose = FALSE)
     expect_s3_class(fit, "mvsusie")
     expect_true(!is.null(fit$alpha))
-    expect_true(!is.null(fit$coef))
+    expect_true(!is.null(coef(fit)))
     expect_equal(nrow(fit$alpha), 3)  # L = 3
     expect_equal(ncol(fit$alpha), ncol(X))  # J = p
   })

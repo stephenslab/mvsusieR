@@ -148,7 +148,7 @@ tol_exact <- 1e-8
 compare_exact <- function(fit, ref, label) {
   expect_equal(fit$alpha, ref$alpha, tolerance = tol_exact,
                check.attributes = FALSE, info = paste(label, "alpha"))
-  expect_equal(fit$b1, ref$b1, tolerance = tol_exact,
+  expect_equal(get_b1(fit), get_b1(ref), tolerance = tol_exact,
                check.attributes = FALSE, info = paste(label, "b1"))
   if (!is.null(ref$pip))
     expect_equal(fit$pip, ref$pip, tolerance = tol_exact,
@@ -158,8 +158,8 @@ compare_exact <- function(fit, ref, label) {
                  check.attributes = FALSE, info = paste(label, "sigma2"))
   expect_equal(fit$lbf, ref$lbf, tolerance = tol_exact,
                check.attributes = FALSE, info = paste(label, "lbf"))
-  fit_coef <- fit$coef; fit_coef[is.na(fit_coef)] <- 0
-  ref_coef <- ref$coef; ref_coef[is.na(ref_coef)] <- 0
+  fit_coef <- coef_R6(fit); fit_coef[is.na(fit_coef)] <- 0
+  ref_coef <- coef_R6(ref); ref_coef[is.na(ref_coef)] <- 0
   if (is.matrix(fit_coef) && nrow(fit_coef) > 1)
     expect_equal(fit_coef[-1, , drop = FALSE], ref_coef[-1, , drop = FALSE],
                  tolerance = tol_exact, check.attributes = FALSE,
@@ -172,7 +172,7 @@ compare_exact <- function(fit, ref, label) {
 # Helper: verify S3 output structure (for smoke tests)
 check_sane_output <- function(fit, label) {
   expect_true(!is.null(fit$alpha), info = paste(label, "has alpha"))
-  expect_true(!is.null(fit$b1), info = paste(label, "has b1"))
+  expect_true(!is.null(fit$mu), info = paste(label, "has mu"))
   expect_true(!is.null(fit$pip), info = paste(label, "has pip"))
   expect_true(all(fit$pip >= 0 & fit$pip <= 1),
               info = paste(label, "pip in [0,1]"))

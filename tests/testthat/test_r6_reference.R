@@ -166,12 +166,14 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
   # Core fields
   expect_equal(fit$alpha, ref$alpha, tolerance = tol, check.attributes = FALSE)
   expect_equal(fit$lbf,   ref$lbf,   tolerance = tol, check.attributes = FALSE)
-  expect_equal(fit$b1,    ref$b1,    tolerance = tol, check.attributes = FALSE)
+  expect_equal(get_b1(fit),    get_b1(ref),    tolerance = tol, check.attributes = FALSE)
 
   # Coef: compare slopes only (intercept convention differs).
   # When intercept=FALSE, S3 returns 0 and R6 returns NA --treat NAs as 0.
-  fit_coef <- fit$coef; fit_coef[is.na(fit_coef)] <- 0
-  ref_coef <- ref$coef; ref_coef[is.na(ref_coef)] <- 0
+  # Use coef_R6() which handles both S3 (computes from alpha+mu)
+  # and R6 (reads stored $coef).
+  fit_coef <- coef_R6(fit); fit_coef[is.na(fit_coef)] <- 0
+  ref_coef <- coef_R6(ref); ref_coef[is.na(ref_coef)] <- 0
   if (is.matrix(fit_coef) && nrow(fit_coef) > 1) {
     # Skip intercept row (first row)
     expect_equal(fit_coef[-1, , drop = FALSE], ref_coef[-1, , drop = FALSE],
@@ -181,8 +183,8 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
   }
 
   # b2 (alpha-weighted second moment diagonal)
-  if (!is.null(ref$b2))
-    expect_equal(fit$b2, ref$b2, tolerance = tol, check.attributes = FALSE)
+  if (!is.null(get_b2(ref)))
+    expect_equal(get_b2(fit), get_b2(ref), tolerance = tol, check.attributes = FALSE)
 
   # PIP (posterior inclusion probability)
   if (!is.null(ref$pip))
@@ -284,7 +286,7 @@ test_that("R=1, missing data, fixed variance matches R6", {
                  check.attributes = FALSE)
     expect_equal(fit$lbf,   ref$lbf,   tolerance = tol_tight,
                  check.attributes = FALSE)
-    expect_equal(fit$b1,    ref$b1,    tolerance = tol_tight,
+    expect_equal(get_b1(fit),    get_b1(ref),    tolerance = tol_tight,
                  check.attributes = FALSE)
     expect_equal(fit$pip,   ref$pip,   tolerance = tol_tight,
                  check.attributes = FALSE)
@@ -323,7 +325,7 @@ test_that("R=1, missing data, EM (10 iter) matches R6 at tight tol", {
                  check.attributes = FALSE)
     expect_equal(fit$lbf,   ref$lbf,   tolerance = tol_tight,
                  check.attributes = FALSE)
-    expect_equal(fit$b1,    ref$b1,    tolerance = tol_tight,
+    expect_equal(get_b1(fit),    get_b1(ref),    tolerance = tol_tight,
                  check.attributes = FALSE)
     expect_equal(fit$pip,   ref$pip,   tolerance = tol_tight,
                  check.attributes = FALSE)
@@ -549,9 +551,9 @@ test_that("S3 output has expected core fields", {
                  max_iter = 5, verbose = FALSE)
 
   # Core output fields that must always be present
-  required <- c("alpha", "b1", "b2", "coef", "fitted", "intercept",
+  required <- c("alpha", "mu", "mu2_diag", "fitted", "intercept",
                 "pip", "sets", "sigma2", "V", "elbo", "niter",
-                "lbf", "lbf_variable", "KL", "convergence",
+                "lbf", "lbf_variable", "KL", "converged",
                 "outcome_names", "variable_names")
   missing <- setdiff(required, names(dev))
   expect_equal(length(missing), 0,

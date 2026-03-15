@@ -226,18 +226,6 @@ is_numeric_matrix <- function(X, name) {
   return(NULL)
 }
 
-#' @title Computes the z-scores (t-statistics) for association
-#'   between Y and each column of X.
-#'
-#' @description Re-exported from \code{\link[susieR]{calc_z}}.
-#'
-#' @inheritParams susieR::calc_z
-#'
-#' @return A matrix of z-scores.
-#'
-#' @importFrom susieR calc_z
-#' @export
-calc_z <- susieR::calc_z
 
 # Weighted log-sum-exp (softmax).
 #

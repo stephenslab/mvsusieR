@@ -312,3 +312,27 @@ compute_betahat_3d_R <- function(data, XtR) {
   if (R_dim == 1) bhat <- t(bhat)
   return(bhat)
 }
+
+# =============================================================================
+# Coefficient extraction (R6-compatible)
+# =============================================================================
+
+#' Extract coefficients from an mvsusie fit (R6-compatible)
+#'
+#' Uses \code{\link{coef.mvsusie}} for current S3 objects (which compute
+#' coefficients from \code{alpha} and \code{mu}).
+#' Falls back to the stored \code{coef} field for legacy R6 objects
+#' that do not store \code{mu} separately.
+#'
+#' @param fit An mvsusie fit object (S3 or R6).
+#'
+#' @return A coefficient matrix; see \code{\link{coef.mvsusie}}.
+#'
+#' @keywords internal
+coef_R6 <- function(fit) {
+  if (!is.null(fit$mu)) {
+    coef(fit)
+  } else {
+    as.matrix(fit[["coef"]])
+  }
+}

@@ -222,14 +222,18 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' @return A multivariate susie fit, which is a list with some or all
 #' of the following elements:
 #'
-#' \item{alpha}{L by p matrix of posterior inclusion probabilites.}
+#' \item{alpha}{L by p matrix of posterior inclusion probabilities.}
 #'
-#' \item{b1}{L by p matrix of posterior mean single-effect estimates.}
+#' \item{mu}{L by p (R=1) or L by p by R (R>1) array of posterior
+#'   means. Per-effect coefficients can be computed as
+#'   \code{alpha * mu / X_column_scale_factors}.}
 #'
-#' \item{b1_rescaled}{L by p matrix} of posterior mean single-effect
-#'   estimates on the original input scale (same as \code{coef}).
+#' \item{mu2_diag}{L by p (R=1) or L by p by R (R>1) array of
+#'   diagonal of the posterior second moment matrix.}
 #'
-#' \item{b2}{L by p matrix of posterior second moments.}
+#' \item{pi}{Prior inclusion probabilities (length p vector).}
+#'
+#' \item{Xr}{N by R matrix of fitted values on the standardized scale.}
 #'
 #' \item{KL}{Vector of single-effect KL divergences.}
 #'
@@ -238,6 +242,8 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' \item{sigma2}{Residual variance.}
 #'
 #' \item{V}{Prior variance.}
+#'
+#' \item{converged}{Logical indicating whether the algorithm converged.}
 #'
 #' \item{elbo}{Vector storing the the evidence lower bound, or
 #'   \dQuote{ELBO}, achieved at each iteration of the model fitting
@@ -649,7 +655,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
 #' @rdname mvsusie
 #'
 #' @importFrom stats sd var cov cov2cor
-#' @importFrom susieR susie_get_cs
+#' @importFrom susieR susie_get_cs calc_z
 #'
 #' @keywords internal
 #'
@@ -670,7 +676,6 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        n_thread = 1,
                        max_iter = 100, tol = 1e-3, verbose = TRUE,
                        track_fit = FALSE) {
-  start_time <- proc.time()
   reset_warn_once()
   verbose <- isTRUE(verbose)
 
@@ -920,22 +925,15 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
     s$z <- calc_z(X, Y, center = intercept, scale = standardize)
   }
 
-  # Set names
-  if (is.null(colnames(Y))) {
-    s$outcome_names <- paste0("outcome", seq_len(R))
-  } else {
-    s$outcome_names <- colnames(Y)
-  }
-  if (is.null(colnames(X))) {
-    s$variable_names <- paste0("var", seq_len(ncol(X)))
-  } else {
-    s$variable_names <- colnames(X)
-  }
+  # Set canonical names
+  s$outcome_names <- if (is.null(colnames(Y)))
+    paste0("outcome", seq_len(R)) else colnames(Y)
+  s$variable_names <- if (is.null(colnames(X)))
+    paste0("var", seq_len(ncol(X))) else colnames(X)
 
   # Apply dimnames to match standard output format
-  s <- apply_mvsusie_dimnames(s)
+  s <- apply_mvsusie_dimnames(s, s$variable_names, s$outcome_names)
 
-  s$walltime <- proc.time() - start_time
   flush_warn_once(verbose = verbose)
   return(s)
 }
@@ -966,7 +964,6 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   n_thread = 1,
                                   max_iter = 100, tol = 1e-3, verbose = TRUE,
                                   track_fit = FALSE) {
-  start_time <- proc.time()
   reset_warn_once()
 
   XtY <- as.matrix(XtY)
@@ -1071,22 +1068,15 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                               estimate_prior_variance = estimate_prior_variance,
                               is_ss = TRUE)
 
-  # Set names
-  if (is.null(colnames(XtY))) {
-    s$outcome_names <- paste0("outcome", seq_len(R))
-  } else {
-    s$outcome_names <- colnames(XtY)
-  }
-  if (is.null(colnames(XtX))) {
-    s$variable_names <- paste0("var", seq_len(J))
-  } else {
-    s$variable_names <- colnames(XtX)
-  }
+  # Set canonical names
+  s$outcome_names <- if (is.null(colnames(XtY)))
+    paste0("outcome", seq_len(R)) else colnames(XtY)
+  s$variable_names <- if (is.null(colnames(XtX)))
+    paste0("var", seq_len(J)) else colnames(XtX)
 
   # Apply dimnames to match standard output format
-  s <- apply_mvsusie_dimnames(s)
+  s <- apply_mvsusie_dimnames(s, s$variable_names, s$outcome_names)
 
-  s$walltime <- proc.time() - start_time
   flush_warn_once(verbose = verbose)
   return(s)
 }

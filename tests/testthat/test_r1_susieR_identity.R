@@ -35,13 +35,15 @@ compare_r1_fits <- function(fit_susie, fit_mv, tol = 1e-4,
   expect_equal(fit_susie$mu, unname(fit_mv$mu),
                tolerance = tol, info = info("mu"))
 
-  # b1 = alpha * mu (L x J)
-  expect_equal(fit_susie$alpha * fit_susie$mu, unname(fit_mv$b1),
-               tolerance = tol, info = info("b1"))
+  # b1 = alpha * mu (L x J): trivially derivable
+  expect_equal(fit_susie$alpha * fit_susie$mu,
+               unname(fit_mv$alpha * fit_mv$mu),
+               tolerance = tol, info = info("b1 = alpha * mu"))
 
-  # b2 = alpha * mu2 (L x J)
-  expect_equal(fit_susie$alpha * fit_susie$mu2, unname(fit_mv$b2),
-               tolerance = tol, info = info("b2"))
+  # b2 = alpha * mu2_diag (L x J): trivially derivable
+  expect_equal(fit_susie$alpha * fit_susie$mu2,
+               unname(fit_mv$alpha * fit_mv$mu2_diag),
+               tolerance = tol, info = info("b2 = alpha * mu2_diag"))
 
   # KL divergence (length L)
   if (!any(is.na(fit_susie$KL)) && !any(is.na(fit_mv$KL)))
@@ -76,7 +78,7 @@ compare_r1_fits <- function(fit_susie, fit_mv, tol = 1e-4,
                tolerance = tol, info = info("fitted"))
 
   # coef (intercept + J coefficients)
-  expect_equal(as.vector(coef(fit_susie)), as.vector(fit_mv$coef),
+  expect_equal(as.vector(coef(fit_susie)), as.vector(coef(fit_mv)),
                tolerance = tol, info = info("coef"))
 
   # Prior variance (V)
@@ -207,7 +209,7 @@ test_that("R=1: sufficient statistics path matches susieR::susie_ss", {
   # Compare key fields
   expect_equal(fit_ss$alpha, unname(fit_mv$alpha),
                tolerance = 1e-4, info = "ss alpha")
-  expect_equal(fit_ss$alpha * fit_ss$mu, unname(fit_mv$b1),
+  expect_equal(fit_ss$alpha * fit_ss$mu, unname(fit_mv$alpha * fit_mv$mu),
                tolerance = 1e-4, info = "ss b1")
   if (!any(is.na(fit_ss$elbo)) && !any(is.na(fit_mv$elbo)))
     expect_equal(fit_ss$elbo, fit_mv$elbo,
@@ -253,7 +255,7 @@ test_that("R=1: suff stat with estimated prior (EM), fixed residual", {
 
   expect_equal(fit_ss$alpha, unname(fit_mv$alpha),
                tolerance = 1e-4, info = "ss EM alpha")
-  expect_equal(fit_ss$alpha * fit_ss$mu, unname(fit_mv$b1),
+  expect_equal(fit_ss$alpha * fit_ss$mu, unname(fit_mv$alpha * fit_mv$mu),
                tolerance = 1e-4, info = "ss EM b1")
   if (!any(is.na(fit_ss$elbo)) && !any(is.na(fit_mv$elbo)))
     expect_equal(fit_ss$elbo, fit_mv$elbo,

@@ -186,8 +186,7 @@ mvsusie_plot <-
     traits <- outcomes
     r <- length(traits)
     lmax <- nrow(fit$alpha)
-    fit$b1_rescaled <- fit$b1_rescaled[, -1, ]
-    rownames(fit$b1_rescaled) <- paste0("L", 1:lmax)
+    csd <- fit$X_column_scale_factors
     rownames(fit$single_effect_lfsr) <- paste0("L", 1:lmax)
     colnames(fit$single_effect_lfsr) <- traits
     rownames(fit$alpha) <- paste0("L", 1:lmax)
@@ -210,8 +209,10 @@ mvsusie_plot <-
     for (i in seq_len(L)) {
       l <- css[i]
       j <- fit$sets$cs[[l]]
-      b <- fit$b1_rescaled[l, j, ]
+      # Per-effect coefficient on original scale: alpha * mu / csd
+      b <- drop(fit$alpha[l, j]) * fit$mu[l, j, , drop = TRUE] / csd[j]
       if (conditional_effect) {
+        # Conditional posterior mean: mu / csd (divide out alpha)
         b <- b / fit$alpha[l, j]
       }
       marker_names <- markers[j]

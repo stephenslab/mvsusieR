@@ -1,3 +1,43 @@
+# Compute b1 = alpha * mu from mvsusie fit (handles R=1 and R>1).
+# Falls back to fit$b1 for R6 objects that store b1 directly.
+get_b1 <- function(fit) {
+  if (!is.null(fit$alpha) && !is.null(fit$mu)) {
+    L <- nrow(fit$alpha)
+    J <- ncol(fit$alpha)
+    if (length(dim(fit$mu)) == 3) {
+      R <- dim(fit$mu)[3]
+      b1 <- array(0, c(L, J, R))
+      for (l in seq_len(L))
+        b1[l, , ] <- drop(fit$alpha[l, ]) * fit$mu[l, , , drop = TRUE]
+      b1
+    } else {
+      fit$alpha * fit$mu
+    }
+  } else {
+    fit$b1  # R6 objects
+  }
+}
+
+# Compute b2 = alpha * mu2_diag from mvsusie fit (handles R=1 and R>1).
+# Falls back to fit$b2 for R6 objects that store b2 directly.
+get_b2 <- function(fit) {
+  if (!is.null(fit$alpha) && !is.null(fit$mu2_diag)) {
+    L <- nrow(fit$alpha)
+    J <- ncol(fit$alpha)
+    if (length(dim(fit$mu2_diag)) == 3) {
+      R <- dim(fit$mu2_diag)[3]
+      b2 <- array(0, c(L, J, R))
+      for (l in seq_len(L))
+        b2[l, , ] <- drop(fit$alpha[l, ]) * fit$mu2_diag[l, , , drop = TRUE]
+      b2
+    } else {
+      fit$alpha * fit$mu2_diag
+    }
+  } else {
+    fit$b2  # R6 objects
+  }
+}
+
 # @title sets three attributes for matrix X
 # @param X an n by p data matrix that can be either a trend filtering
 #   matrix or a regular dense/sparse matrix
@@ -116,16 +156,21 @@ expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_
   expect_equal(A$lbf, BA$lbf,scale = 1,tolerance = tol)
   if (!any(is.na(A$KL)) && !any(is.na(BA$KL)))
     expect_equal(A$KL, BA$KL,scale = 1,tolerance = tol)
-  expect_equal(A$alpha * A$mu, BA$b1,scale = 1,tolerance = tol)
-  expect_equal(A$alpha * A$mu2, BA$b2,scale = 1,tolerance = tol)
+  # b1 = alpha * mu (trivially derivable)
+  # susieR stores mu as L x J, mvsusie may store as L x J x R
+  expect_equal(A$alpha * A$mu, unname(get_b1(BA)),
+               scale = 1, tolerance = tol)
+  # b2 = alpha * mu2 (susieR) vs alpha * mu2_diag (mvsusie)
+  expect_equal(A$alpha * A$mu2, unname(get_b2(BA)),
+               scale = 1, tolerance = tol)
   if (!any(is.na(A$elbo)) && !any(is.na(BA$elbo)))
     expect_equal(A$elbo, BA$elbo,scale = 1,tolerance = tol)
   if (rss) {
-    expect_equal(coef(A)[-1],BA$coef[-1],scale = 1,tolerance = tol)
+    expect_equal(coef(A)[-1], coef(BA)[-1], scale = 1, tolerance = tol)
   } else {
     expect_equal(as.vector(A$fitted), as.vector(BA$fitted),scale = 1,
                  tolerance = tol)
-    expect_equal(coef(A),BA$coef,scale = 1,tolerance = tol)
+    expect_equal(coef(A), coef(BA), scale = 1, tolerance = tol)
   }
   if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2,scale = 1,
                                                tolerance = tol)
@@ -136,10 +181,10 @@ expect_susie_equal = function(A, B, estimate_prior_variance = FALSE, estimate_re
   expect_equal(A$alpha, B$alpha, tolerance = tol)
   if (!any(is.na(A$elbo)) && !any(is.na(B$elbo)))
     expect_equal(A$lbf,B$lbf,tolerance = tol)
-  expect_equal(A$b1, B$b1, tolerance = tol)
-  expect_equal(A$b2, B$b2, tolerance = tol)
+  expect_equal(get_b1(A), get_b1(B), tolerance = tol)
+  expect_equal(get_b2(A), get_b2(B), tolerance = tol)
   expect_equal(A$fitted, B$fitted, tolerance = tol)
-  expect_equal(A$coef, B$coef, tolerance = tol)
+  expect_equal(coef(A), coef(B), tolerance = tol)
   if (!any(is.na(A$KL)) && !any(is.na(B$KL)))
     expect_equal(A$KL,B$KL,tolerance = tol)
   if (!any(is.na(A$elbo)) && !any(is.na(B$elbo)))
