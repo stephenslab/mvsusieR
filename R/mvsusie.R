@@ -464,7 +464,7 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
         stop("The number of columns of Bhat and Shat do not agree")
       }
     } else {
-      if (length != length(Shat)) {
+      if (length(Bhat) != length(Shat)) {
         stop("The length of Bhat and Shat do not agree")
       }
     }
