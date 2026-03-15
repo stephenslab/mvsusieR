@@ -2,7 +2,7 @@
 % Please edit documentation in R/mvsusie_plot.R
 \name{mvsusie_plot}
 \alias{mvsusie_plot}
-\title{mvSuSiE PIP and Effect Plots}
+\title{mvSuSiE PIP and effect plots}
 \usage{
 mvsusie_plot(
   fit,
@@ -58,10 +58,9 @@ The output includes the PIP plot, effect plot, z-scores
   effect estimates at sentinel markers.
 }
 \description{
-Create the PIP plot and accompanying effect plot
-  showing the effect estimates and significance of the effects for
-  all the traits. A z-scores plot is also created when z-scores are
-  available.
+Creates PIP and effect-size plots showing effect estimates and
+significance across traits. A z-score plot is also created when
+z-scores are available.
 }
 \examples{
 # See the "mvsusie_intro" vignette for examples.

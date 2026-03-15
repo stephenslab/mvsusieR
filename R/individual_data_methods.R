@@ -1,8 +1,3 @@
-# S3 method implementations for multivariate individual-level data.
-#
-# Methods for the mv_individual class, providing implementations of
-# susieR's internal generics for dense (X, Y) data.
-
 #' @importFrom susieR susie_get_cs
 #' @importFrom ashr compute_lfsr
 NULL

@@ -1,7 +1,5 @@
-# Missing data imputation for multivariate SuSiE.
-#
-# Implements variational imputation following the conditional normal
-# approach: for each observation with missing entries, impute using
+# Variational imputation via conditional normal:
+# For each observation with missing entries, impute using
 # E[Y_miss | Y_obs] = mu_miss - Lambda_{MM}^{-1} Lambda_{MO} (Y_obs - mu_obs)
 # where Lambda = V^{-1} is the precision matrix.
 #

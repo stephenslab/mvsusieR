@@ -1,32 +1,24 @@
-# Example datasets and simulation functions for mvsusieR.
-
-#' @title Simulate mvSuSiE Data
+#' Simulate mvSuSiE data
 #'
-#' @description A simple simulation function to simulate some test
-#'   data.
+#' Generates a simple simulated dataset for testing mvSuSiE.
 #'
-#' @param n Number of samples to simulate.
+#' @param n Number of samples.
+#' @param p Number of features.
+#' @param r Number of outcomes.
+#' @param s Number of effect variables per outcome if >= 1; proportion
+#'   of effect variables per outcome if < 1.
+#' @param center_scale If \code{TRUE}, center and scale X and Y.
+#' @param y_missing Fraction of entries in Y to set to \code{NA} (per
+#'   sample, per outcome). If \code{NULL}, no missing values are created.
 #'
-#' @param p Number of features to simulate.
-#'
-#' @param r Number of outcomes to simulate.
-#'
-#' @param s Number of effect variables per outcome if greater than
-#'   1; otherwise, proportion of effect variables per outcome if less
-#'   than 1.
-#'
-#' @param center_scale Describe what input argument "center" is for.
-#'
-#' @param y_missing Describe what input argument "y_missing" is for.
-#'
-#' @return Describe the outputs here.
+#' @return A list with elements \code{X}, \code{y}, \code{y_missing},
+#'   \code{d}, \code{n}, \code{p}, \code{r}, \code{V}, and \code{b}.
 #'
 #' @importFrom stats cov
 #' @importFrom stats runif
 #' @importFrom stats rnorm
 #'
 #' @export
-#'
 mvsusie_sim1 <- function(n = 200, p = 500, r = 2, s = 4,
                          center_scale = FALSE, y_missing = NULL) {
   X <- matrix(rnorm(n * p, 0, 1), n, p)
@@ -58,18 +50,16 @@ mvsusie_sim1 <- function(n = 200, p = 500, r = 2, s = 4,
   ))
 }
 
+#' Simulated multi-trait fine-mapping data
+#'
+#' Simulated fine-mapping data set used to illustrate mvSuSiE.
+#' Includes genotype and phenotype data for 574 samples, 1,001
+#' genetic markers and 20 traits. The traits were simulated from
+#' the mvSuSiE model with coefficients \code{simdata$Btrue} and
+#' residual covariance \code{simdata$par$V}. Three causal genetic
+#' variants at positions 255, 335 and 493 have nonzero coefficients.
+#'
 #' @name simdata
-#'
-#' @title Simulated Multi-trait Fine-Mapping Data Used in Tutorial
-#'
-#' @description Simulated fine-mapping data set used to illustrate
-#'   mvSuSiE in the tutorial. The data set includes genotype and
-#'   phenotype data for 574 samples, 1,001 genetic markers and 20
-#'   traits. The traits were simulated from the mvSuSiE model with
-#'   coefficients \code{simdata$B} and residual \code{simdata$par$V}.
-#'   This is a simulation with three causal genetic variants at
-#'   positions 255, 335 and 493; that is, these are the only genetic
-#'   variants witih nonzero coefficients.
 #'
 #' @docType data
 #'
@@ -83,7 +73,7 @@ mvsusie_sim1 <- function(n = 200, p = 500, r = 2, s = 4,
 #'
 #'   \item{Btrue}{The coefficients used to simulate the data.}
 #'
-#'   \item{par$V}{The residual covariance matrix used to simulated the data.}
+#'   \item{par$V}{The residual covariance matrix used to simulate the data.}
 #'
 #'   \item{par$U}{The collection of covariance matrices specifying the
 #'     mvsusie prior.}

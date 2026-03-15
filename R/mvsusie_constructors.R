@@ -1,8 +1,3 @@
-# Multivariate data constructors and model initialization.
-#
-# Creates data objects (mv_individual, mv_ss) and initializes
-# model/fitted values for susieR's susie_workhorse.
-
 #' @importFrom matrixStats colSds
 #' @importFrom susieR is_symmetric_matrix
 NULL
@@ -384,7 +379,7 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
   K <- length(V_structure)
 
   # Compute ranks for EM update (cheap K-vector).
-  # V_structure_inv (R×R×K array) is deferred to slow-path only — saves
+  # V_structure_inv (R x R x K array) is deferred to slow-path only -- saves
   # K*R^2*8 bytes (17 MB for R=128, K=133) when using eigendecomposition
   # fast path.  V_structure_3d is also deferred (same savings).
   V_structure_rank <- vapply(V_structure, function(U) {

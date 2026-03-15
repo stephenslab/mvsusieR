@@ -1,9 +1,9 @@
-#' @title Extract Coefficient Estimates from mvsusie Fit
+#' Extract coefficient estimates from an mvsusie fit
 #'
 #' @param object An mvsusie fit, such as the output from a call to
 #'   \code{\link{mvsusie}} or \code{\link{mvsusie_rss}}.
 #'
-#' @param \dots Additional arguments (currently unused).
+#' @param \dots Additional arguments (unused).
 #'
 #' @return An (J+1) x R matrix, where J is the number of predictors
 #'   and R is the number of outcomes or response variables. The first
@@ -44,14 +44,14 @@ coef.mvsusie <- function(object, ...) {
   return(as.matrix(result))
 }
 
-#' @title Predict Outcomes from mvsusie Fit.
+#' Predict outcomes from an mvsusie fit
 #'
 #' @param object An mvsusie fit, such as the output from a call to
 #'   \code{\link{mvsusie}} or \code{\link{mvsusie_rss}}.
 #'
 #' @param newx A new X matrix for which to do predictions.
 #'
-#' @param \dots Additional arguments (currently unused).
+#' @param \dots Additional arguments (unused).
 #'
 #' @return A matrix of predicted outcomes, with rows corresponding to
 #'   samples (rows of X), and columns corresponding to outcomes.

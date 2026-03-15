@@ -1,19 +1,3 @@
-// C++ implementations of eigendecomposition-based precomputation for
-// O(R^2) SER evaluation.
-//
-// These functions accelerate the non-common-covariance path, which
-// requires K*J eigendecompositions and K*J matrix-vector products per
-// IBSS iteration.  Moving these nested loops from R to C++ eliminates
-// per-iteration function call overhead and improves cache locality.
-//
-// Functions:
-//   precompute_eigen_cache_non_common_rcpp  - batch eigendecomposition
-//   loglik_non_common_rcpp                  - K*J log-likelihood
-//   posterior_non_common_rcpp               - K*J posterior moments
-//   accumulate_mu2_common_rcpp              - common-cov J-loop helper
-//
-// Each has a corresponding R implementation in R/mvsusie_utils.R.
-
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 using namespace Rcpp;
@@ -452,7 +436,7 @@ Rcpp::List loglik_common_rcpp(
 //
 // betahat:      J x R matrix
 // V_scalar:     scalar prior variance multiplier
-// components:   list of K items (Q, G, eigenvalues — all R x R / R-vector)
+// components:   list of K items (Q, G, eigenvalues -- all R x R / R-vector)
 // pi_V_post:    J x (K+1) posterior mixture weights
 // em_var_wt:    (K+1) x J matrix (or 0x0 if EM not needed)
 // BQ_cache:     list of K J x R matrices (or empty list to compute fresh)

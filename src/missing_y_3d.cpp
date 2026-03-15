@@ -1,20 +1,3 @@
-// C++ implementations of hot loops for the per-condition (3d) missing
-// data methods (approximate and exact).
-//
-// Each function has a corresponding R implementation in R/missing_y_utils.R
-// and R/individual_data_methods.R.  The R dispatchers fall back to R when
-// the C++ versions are unavailable (e.g., during devtools::load_all()
-// without compilation).
-//
-// Functions:
-//   compute_VinvR_3d_rcpp   - per-pattern precision application (N x R)
-//   compute_XtR_3d_rcpp     - V^{-1}-weighted X'R cross-product  (J x R)
-//   compute_Xb_3d_rcpp      - per-condition X*b with optional Xbar correction
-//   compute_betahat_3d_rcpp - batch matrix-vector: betahat[j] = svs[j] * XtR[j]
-//   compute_svs_inv_3d_rcpp - assemble J svs_inv matrices from precomputed sums
-//   compute_vbxxb_rcpp      - sum_j alpha_j tr(svs_inv_j * mu2_j) scalar
-//   precompute_gram_xtx_rcpp - per-outcome Gram matrix J x R x R for 3D path
-
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 using namespace Rcpp;

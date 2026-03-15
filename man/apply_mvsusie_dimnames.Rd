@@ -4,7 +4,7 @@
 \alias{apply_mvsusie_dimnames}
 \title{Apply dimnames to mvsusie output to match standard format}
 \usage{
-apply_mvsusie_dimnames(s)
+apply_mvsusie_dimnames(s, variable_names, outcome_names)
 }
 \arguments{
 \item{s}{Model output from format_mvsusie_output}

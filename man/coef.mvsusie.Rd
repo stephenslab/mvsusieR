@@ -2,7 +2,7 @@
 % Please edit documentation in R/predict.mvsusie.R
 \name{coef.mvsusie}
 \alias{coef.mvsusie}
-\title{Extract Coefficient Estimates from mvsusie Fit}
+\title{Extract coefficient estimates from an mvsusie fit}
 \usage{
 \method{coef}{mvsusie}(object, ...)
 }
@@ -10,7 +10,7 @@
 \item{object}{An mvsusie fit, such as the output from a call to
 \code{\link{mvsusie}} or \code{\link{mvsusie_rss}}.}
 
-\item{\dots}{Additional arguments (currently unused).}
+\item{\dots}{Additional arguments (unused).}
 }
 \value{
 An (J+1) x R matrix, where J is the number of predictors
@@ -18,5 +18,5 @@ An (J+1) x R matrix, where J is the number of predictors
   row gives the intercept estimate.
 }
 \description{
-Extract Coefficient Estimates from mvsusie Fit
+Extract coefficient estimates from an mvsusie fit
 }

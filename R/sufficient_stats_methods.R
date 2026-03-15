@@ -1,8 +1,3 @@
-# S3 method implementations for multivariate sufficient statistics data.
-#
-# Methods for the mv_ss class, providing implementations of
-# susieR's internal generics for sufficient statistics (XtX, XtY, YtY) data.
-
 #' @importFrom susieR susie_get_cs
 NULL
 

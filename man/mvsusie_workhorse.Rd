@@ -29,7 +29,7 @@ mvsusie_workhorse(
 )
 }
 \arguments{
-\item{data}{An S2 data object of class \code{mv_individual} or \code{mv_ss}.}
+\item{data}{An S3 data object of class \code{mv_individual} or \code{mv_ss}.}
 
 \item{L}{Number of single effects.}
 

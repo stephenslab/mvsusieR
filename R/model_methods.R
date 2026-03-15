@@ -1,9 +1,3 @@
-# Model-level S3 methods for the mvsusie model class.
-#
-# These methods provide access to model components (prior variance,
-# posterior means, alpha) and are dispatched by susieR's internal
-# generics during the IBSS algorithm.
-
 #' @keywords internal
 get_prior_variance_l.mvsusie <- function(model, l) {
   # Return the scalar scale. Methods that need the full RxR matrix

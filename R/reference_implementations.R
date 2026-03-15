@@ -1,17 +1,5 @@
-# Pure R reference implementations for functions that have C++ counterparts.
-#
-# These are kept for testing: unit tests compare C++ output against these
-# R implementations to verify correctness. They are NOT used in production
-# code paths.
-#
-# Functions:
-#   precompute_eigen_cache_R   - R reference for precompute_eigen_cache
-#   loglik_precomputed_R       - R reference for loglik_precomputed
-#   posterior_precomputed_R    - R reference for posterior_precomputed
-#   compute_XtR_3d_R           - R reference for compute_XtR_3d
-#   compute_Xb_3d_R            - R reference for compute_Xb_3d
-#   compute_VinvR_3d_R         - R reference for compute_VinvR_3d
-#   compute_betahat_3d_R       - R reference for compute_betahat_3d
+# Pure R reference implementations of functions with C++ counterparts.
+# Used only in unit tests to verify C++ correctness.
 
 # =============================================================================
 # Eigendecomposition precomputation (R reference)
@@ -314,17 +302,16 @@ compute_betahat_3d_R <- function(data, XtR) {
 }
 
 # =============================================================================
-# Coefficient extraction (R6-compatible)
+# Coefficient extraction
 # =============================================================================
 
-#' Extract coefficients from an mvsusie fit (R6-compatible)
+#' Extract coefficients from an mvsusie fit
 #'
-#' Uses \code{\link{coef.mvsusie}} for current S3 objects (which compute
-#' coefficients from \code{alpha} and \code{mu}).
-#' Falls back to the stored \code{coef} field for legacy R6 objects
-#' that do not store \code{mu} separately.
+#' Uses \code{\link{coef.mvsusie}} for current S3 objects. Falls back
+#' to the stored \code{coef} field for legacy objects that do not
+#' store \code{mu} separately.
 #'
-#' @param fit An mvsusie fit object (S3 or R6).
+#' @param fit An mvsusie fit object.
 #'
 #' @return A coefficient matrix; see \code{\link{coef.mvsusie}}.
 #'

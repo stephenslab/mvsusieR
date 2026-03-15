@@ -1,9 +1,3 @@
-# Output formatting and post-hoc extraction functions.
-#
-# Functions for converting internal susie_workhorse output to the
-# standard mvsusie output format, applying dimension names, and
-# computing derived quantities like log Bayes factors and LFSR.
-
 #' @importFrom mvtnorm dmvnorm
 NULL
 
@@ -224,19 +218,16 @@ multivariate_lbf <- function(betahat, S, U) {
   return(lbf)
 }
 
-#' @title Local false sign rate (lfsr) for single effects
+#' Per-effect local false sign rate (lfsr)
 #'
-#' @details This function returns the lfsr for identifying nonzero
-#'   single effects, separately for each outcome.
+#' Returns the lfsr for each single effect and outcome.
 #'
-#' @param alpha L x J matrix.
+#' @param clfsr L x J x R conditional lfsr array.
+#' @param alpha L x J matrix of posterior inclusion probabilities.
 #'
-#' @param clfsr L x J x R conditonal lfsr.
-#'
-#' @return L x R matrix of lfsr
+#' @return L x R matrix of lfsr.
 #'
 #' @export
-#'
 mvsusie_single_effect_lfsr <- function(clfsr, alpha) {
   if (!is.array(clfsr) && is.na(clfsr)) {
     return(as.numeric(NA))
@@ -257,22 +248,18 @@ mvsusie_single_effect_lfsr <- function(clfsr, alpha) {
   }
 }
 
-#' @title Local false sign rate (lfsr) for variables.
+#' Per-variable local false sign rate (lfsr)
 #'
-#' @details This function returns the lfsr for identifying nonzero
-#'   effects for each outcome.
+#' Aggregates single-effect lfsr across effects to produce a
+#' per-variable, per-outcome lfsr.
 #'
-#' @param alpha L x J matrix.
-#'
-#' @param clfsr L x J x R conditonal lfsr.
-#'
-#' @param weighted Set \code{weighted = TRUE} to weight lfsr by PIP;
-#'   otherwise set \code{weighted = FALSE}.
+#' @param clfsr L x J x R conditional lfsr array.
+#' @param alpha L x J matrix of posterior inclusion probabilities.
+#' @param weighted If \code{TRUE} (default), weight by alpha (PIP).
 #'
 #' @return J x R lfsr matrix.
 #'
 #' @export
-#'
 mvsusie_get_lfsr <- function(clfsr, alpha, weighted = TRUE) {
   if (!is.array(clfsr) && is.na(clfsr)) {
     return(as.numeric(NA))
@@ -293,21 +280,20 @@ mvsusie_get_lfsr <- function(clfsr, alpha, weighted = TRUE) {
   }
 }
 
-#' @title Outcome-specific posterior inclusion probabilities.
+#' Outcome-specific posterior inclusion probabilities
 #'
-#' @description Computes the PIP for each variable in each outcome,
-#'   accounting for the mixture structure of the prior. A variable is
-#'   considered "included" in outcome r if its effect has nonzero
-#'   variance in that outcome under the selected mixture component.
+#' Computes the PIP for each variable in each outcome, accounting for
+#' the mixture structure of the prior. A variable is considered
+#' "included" in outcome r if its effect has nonzero variance in
+#' that outcome under the selected mixture component.
 #'
-#' @param m A fitted mvsusie object (output of \code{mvsusie}).
+#' @param m A fitted mvsusie object.
 #' @param prior_obj Optional mash prior object. If not provided, the
 #'   active prior matrices are taken from \code{m$V_structure}.
 #'
 #' @return J x R matrix of outcome-specific PIPs.
 #'
 #' @export
-#'
 mvsusie_get_pip_per_outcome <- function(m, prior_obj = NULL) {
   alpha_out <- mvsusie_get_alpha_per_outcome(m, prior_obj)
   R <- dim(alpha_out)[3]
@@ -317,14 +303,14 @@ mvsusie_get_pip_per_outcome <- function(m, prior_obj = NULL) {
   ))
 }
 
-#' @title Outcome-specific alpha (per-effect inclusion weights).
+#' Outcome-specific alpha (per-effect inclusion weights)
 #'
-#' @description For each single effect l and variable j, computes the
-#'   probability of having a nonzero effect in each outcome r.
-#'   This is the sum of mixture_weights over components that have
-#'   nonzero prior variance in outcome r, multiplied by alpha.
+#' For each single effect l and variable j, computes the probability
+#' of having a nonzero effect in each outcome r by summing
+#' mixture weights over components with nonzero prior variance in
+#' that outcome, multiplied by alpha.
 #'
-#' @param m A fitted mvsusie object (output of \code{mvsusie}).
+#' @param m A fitted mvsusie object.
 #' @param prior_obj Optional mash prior object. If not provided, the
 #'   active prior matrices are taken from \code{m$V_structure}.
 #'
@@ -335,11 +321,9 @@ mvsusie_get_alpha_per_outcome <- function(m, prior_obj = NULL) {
   # Build outcome indicator: which components have nonzero variance
   # in which outcomes.
   #
-  # Use m$V_structure (the *active* prior matrices after estimation/pruning)
-  # rather than prior_obj$xUlist, because the model may have pruned
-
-  # components and m$mixture_weights matches V_structure, not the
-  # original prior.
+  # Use m$V_structure (active after estimation/pruning) rather than
+  # prior_obj$xUlist, because the model may have pruned components
+  # and m$mixture_weights matches V_structure, not the original prior.
   active_matrices <- m$V_structure
   if (is.null(active_matrices) && !is.null(prior_obj)) {
     active_matrices <- prior_obj$xUlist

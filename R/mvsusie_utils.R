@@ -1,7 +1,3 @@
-# Utility functions for mvsusieR.
-#
-# Includes matrix operations, numerical helpers, and lfsr computation functions.
-
 # ============================================================================
 # Warning deduplication: emit each warning type once, summarize at end.
 #

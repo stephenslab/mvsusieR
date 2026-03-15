@@ -3,7 +3,7 @@
 \docType{data}
 \name{simdata}
 \alias{simdata}
-\title{Simulated Multi-trait Fine-Mapping Data Used in Tutorial}
+\title{Simulated multi-trait fine-mapping data}
 \format{
 \code{simdata} is a list with the following elements:
 
@@ -15,7 +15,7 @@
 
   \item{Btrue}{The coefficients used to simulate the data.}
 
-  \item{par$V}{The residual covariance matrix used to simulated the data.}
+  \item{par$V}{The residual covariance matrix used to simulate the data.}
 
   \item{par$U}{The collection of covariance matrices specifying the
     mvsusie prior.}
@@ -37,13 +37,11 @@
     was standardized before computing \code{sehat}.)}}
 }
 \description{
-Simulated fine-mapping data set used to illustrate
-  mvSuSiE in the tutorial. The data set includes genotype and
-  phenotype data for 574 samples, 1,001 genetic markers and 20
-  traits. The traits were simulated from the mvSuSiE model with
-  coefficients \code{simdata$B} and residual \code{simdata$par$V}.
-  This is a simulation with three causal genetic variants at
-  positions 255, 335 and 493; that is, these are the only genetic
-  variants witih nonzero coefficients.
+Simulated fine-mapping data set used to illustrate mvSuSiE.
+Includes genotype and phenotype data for 574 samples, 1,001
+genetic markers and 20 traits. The traits were simulated from
+the mvSuSiE model with coefficients \code{simdata$Btrue} and
+residual covariance \code{simdata$par$V}. Three causal genetic
+variants at positions 255, 335 and 493 have nonzero coefficients.
 }
 \keyword{data}

@@ -2,12 +2,12 @@
 % Please edit documentation in R/mvsusie_get_functions.R
 \name{mvsusie_get_alpha_per_outcome}
 \alias{mvsusie_get_alpha_per_outcome}
-\title{Outcome-specific alpha (per-effect inclusion weights).}
+\title{Outcome-specific alpha (per-effect inclusion weights)}
 \usage{
 mvsusie_get_alpha_per_outcome(m, prior_obj = NULL)
 }
 \arguments{
-\item{m}{A fitted mvsusie object (output of \code{mvsusie}).}
+\item{m}{A fitted mvsusie object.}
 
 \item{prior_obj}{Optional mash prior object. If not provided, the
 active prior matrices are taken from \code{m$V_structure}.}
@@ -16,9 +16,9 @@ active prior matrices are taken from \code{m$V_structure}.}
 L x J x R array of outcome-specific alpha values.
 }
 \description{
-For each single effect l and variable j, computes the
-  probability of having a nonzero effect in each outcome r.
-  This is the sum of mixture_weights over components that have
-  nonzero prior variance in outcome r, multiplied by alpha.
+For each single effect l and variable j, computes the probability
+of having a nonzero effect in each outcome r by summing
+mixture weights over components with nonzero prior variance in
+that outcome, multiplied by alpha.
 }
 \keyword{internal}

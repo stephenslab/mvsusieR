@@ -1,9 +1,8 @@
-#' @title mvSuSiE PIP and Effect Plots
+#' mvSuSiE PIP and effect plots
 #'
-#' @description Create the PIP plot and accompanying effect plot
-#'   showing the effect estimates and significance of the effects for
-#'   all the traits. A z-scores plot is also created when z-scores are
-#'   available.
+#' Creates PIP and effect-size plots showing effect estimates and
+#' significance across traits. A z-score plot is also created when
+#' z-scores are available.
 #'
 #' @param fit The mvSuSiE fitted model.
 #'

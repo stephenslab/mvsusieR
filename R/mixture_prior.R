@@ -1,26 +1,16 @@
-# Mixture prior construction and canonical covariance utilities.
-#
-# This file contains:
-#   create_mixture_prior    - User-facing constructor (exported)
-#   create_cov_canonical    - Canonical covariance matrices (internal)
-#   create_mash_prior       - Low-level mash_prior S3 constructor (internal)
-#   scale_prior_variance    - Scale prior by residual SD (internal)
-#   compute_prior_inv       - Pseudo-inverses for EM (internal)
-#   build_mashr_prior       - Build mashr-compatible arrays (internal)
-
-#' @title Create mash prior object.
+#' Create mash prior object
 #'
-#' @description Constructs a mixture prior for use with \code{mvsusie()}.
-#'   Accepts one of three input types:
-#'   \itemize{
-#'     \item \code{fitted_g}: Output from \code{mashr::mash()}, which
-#'       provides data-driven mixture weights and covariance matrices.
-#'       This is the recommended approach for large R.
-#'     \item \code{mixture_prior}: A list with \code{matrices} (list of
-#'       covariance matrices) and optional \code{weights}.
-#'     \item \code{R}: Number of outcomes, to auto-generate canonical
-#'       covariance matrices (singletons + shared effects).
-#'   }
+#' Constructs a mixture prior for use with \code{mvsusie()}.
+#' Accepts one of three input types:
+#' \itemize{
+#'   \item \code{fitted_g}: Output from \code{mashr::mash()}, which
+#'     provides data-driven mixture weights and covariance matrices.
+#'     This is the recommended approach for large R.
+#'   \item \code{mixture_prior}: A list with \code{matrices} (list of
+#'     covariance matrices) and optional \code{weights}.
+#'   \item \code{R}: Number of outcomes, to auto-generate canonical
+#'     covariance matrices (singletons + shared effects).
+#' }
 #'
 #' @param fitted_g The \code{fitted_g} element from \code{mashr::mash()}
 #'   output. Must contain \code{Ulist}, \code{grid}, \code{pi}, and
@@ -176,10 +166,10 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
   }
 }
 
-#' @title Compute List of Canonical Covariance Matrices
+#' Compute canonical covariance matrices
 #'
-#' @description This function computes canonical covariance matrices
-#'   to be provided to mash.
+#' Generates canonical prior covariance matrices (singletons and
+#' heterogeneity matrices) for use in mixture priors.
 #'
 #' @param R Integer specifying the number of outcomes.
 #'
@@ -190,7 +180,7 @@ create_mixture_prior <- function(mixture_prior, R, null_weight = NULL,
 #'   representing the off-diagonal elements of matrices with 1s on the
 #'   diagonal. If 0 is included, the identity matrix will be returned
 #'   which corresponds to assuming effects are independent across
-#'   outcomes. IF \code{hetgrid = NULL}, these matrices are not
+#'   outcomes. If \code{hetgrid = NULL}, these matrices are not
 #'   returned.
 #'
 #' @return A list of canonical covariance matrices.
@@ -230,7 +220,6 @@ create_cov_canonical <- function(R, singletons = TRUE,
   names(mats) <- nms
   return(mats)
 }
-
 
 #' Create a mash prior object
 #'
@@ -364,7 +353,7 @@ compute_prior_inv.mash_prior <- function(prior) {
 
 #' Construct full prior arrays for mashr C++ (prepend null component)
 #'
-#' @param V_structure_3d R x R x K array of non-null prior components.
+#' @param V_structure List of K R x R matrices or R x R x K array.
 #' @param pi_V K-vector of non-null mixture weights.
 #' @param null_weight Scalar null component weight.
 #' @param V_scalar Scalar to scale the non-null components.
@@ -375,7 +364,7 @@ compute_prior_inv.mash_prior <- function(prior) {
 #' @keywords internal
 build_mashr_prior <- function(V_structure, pi_V, null_weight, V_scalar, R) {
   null_mat <- array(0, c(R, R, 1))
-  # V_structure can be an R×R×K array or a list of K R×R matrices.
+  # V_structure can be an R x R x K array or a list of K R x R matrices.
   # Convert list to array on-the-fly (avoids storing the 3d array permanently).
   if (is.list(V_structure)) V_structure <- matlist2array(V_structure)
   V_scaled <- V_structure * V_scalar

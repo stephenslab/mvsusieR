@@ -1,6 +1,4 @@
-# Utility functions for approximate and exact missing data methods.
-#
-# These methods are described in Zou's PhD thesis, Appendix C.1.2-C.1.3:
+# Missing data methods described in Zou's PhD thesis, Appendix C.1.2-C.1.3:
 #   http://stephenslab.uchicago.edu/assets/papers/yuxin-thesis.pdf
 #
 # When Y has missing entries (R > 1), we construct an N x J x R array

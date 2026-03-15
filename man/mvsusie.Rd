@@ -293,53 +293,51 @@ estimated; otherwise, the intercept is \code{NA}.}
 A multivariate susie fit, which is a list with some or all
 of the following elements:
 
-\item{alpha}{L by p matrix of posterior inclusion probabilites.}
+\item{alpha}{L by p matrix of posterior inclusion probabilities.}
 
-\item{b1}{L by p matrix of posterior mean single-effect estimates.}
+\item{mu}{L by p (R=1) or L by p by R (R>1) array of posterior
+  means. Per-effect coefficients can be computed as
+  \code{alpha * mu / X_column_scale_factors}.}
 
-\item{b1_rescaled}{L by p matrix} of posterior mean single-effect
-  estimates on the original input scale (same as \code{coef}).
+\item{mu2_diag}{L by p (R=1) or L by p by R (R>1) array of the
+  diagonal of the posterior second moment matrix.}
 
-\item{b2}{L by p matrix of posterior second moments.}
+\item{pi}{Prior inclusion probabilities (length p vector).}
+
+\item{Xr}{N by R matrix of fitted values on the standardized scale.}
 
 \item{KL}{Vector of single-effect KL divergences.}
 
 \item{lbf}{Vector of single-effect log-Bayes factors.}
 
-\item{sigma2}{Residual variance.}
+\item{sigma2}{Residual variance (R by R matrix for R > 1).}
 
-\item{V}{Prior variance.}
+\item{V}{Prior variance scalar (per effect).}
 
-\item{elbo}{Vector storing the the evidence lower bound, or
-  \dQuote{ELBO}, achieved at each iteration of the model fitting
-  algorithm, which attempts to maximize the ELBO.}
+\item{converged}{Logical indicating whether the algorithm converged.}
+
+\item{elbo}{Vector of ELBO values at each iteration.}
 
 \item{niter}{Number of iterations performed.}
-
-\item{convergence}{Convergence status.}
 
 \item{sets}{Estimated credible sets.}
 
 \item{pip}{Vector of posterior inclusion probabilities.}
 
-\item{walltime}{Records runtime of the model fitting algorithm.}
+\item{z}{Matrix of univariate z-scores (when requested).}
 
-\item{z}{Vector of univariate z-scores.}
+\item{single_effect_lfsr}{L by R matrix of per-effect lfsr.}
 
-\item{single_effect_lfsr}{Average lfsr (local false sign rate) for
-  each CS.}
+\item{lfsr}{J by R matrix of per-variable lfsr.}
 
-\item{lfsr}{J by R matrix of local false sign rates, averaging
-  over the single-effect posterior assignments.}
+\item{conditional_lfsr}{L by J by R array of conditional lfsr
+  (given variable j is the single effect).}
 
-\item{conditional_lfsr}{The lfsr (local false sign rate) given that
-  the variable is the single effect.}
+\item{pi_V}{Vector of mixture prior weights (only with mixture
+  prior).}
 
-\item{pi_V}{Vector of mixture prior weights (only present when
-  \code{prior_variance} is a mixture prior).}
-
-\item{V_structure}{List of prior covariance matrices (only present
-  when \code{prior_variance} is a mixture prior).}
+\item{V_structure}{List of prior covariance matrices (only with
+  mixture prior).}
 }
 \description{
 Performs a Bayesian multiple linear regression of Y on X.
@@ -373,7 +371,7 @@ res <- mvsusie_ss(XtX, XtY, YtY, n, L = 10, X_colmeans, Y_colmeans)
 
 # RSS example with one response.
 R <- crossprod(X)
-z <- calc_z(X, Y)
+z <- susieR::calc_z(X, Y)
 res <- mvsusie_rss(z, R, N = n, L = 10)
 
 # Example with three responses.

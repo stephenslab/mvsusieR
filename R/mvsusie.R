@@ -1,6 +1,6 @@
 #' Run multivariate SuSiE using susieR's IBSS framework
 #'
-#' @param data An S2 data object of class \code{mv_individual} or \code{mv_ss}.
+#' @param data An S3 data object of class \code{mv_individual} or \code{mv_ss}.
 #' @param L Number of single effects.
 #' @param prior_variance Prior variance: R x R matrix, or scalar for univariate.
 #' @param prior_weights Prior inclusion probability weights (length J).
@@ -95,17 +95,17 @@ mvsusie_workhorse <- function(data, L, prior_variance,
   return(s)
 }
 
-#' @rdname mvsusie
+#' Multivariate SUm of Single Effect (SuSiE) Regression
 #'
-#' @title Multivariate SUm of Single Effect (SuSiE) Regression
-#'
-#' @description Performs a Bayesian multiple linear regression of Y on X.
+#' Performs a Bayesian multiple linear regression of Y on X.
 #'   That is, this function fits the regression model \deqn{Y = \sum_l X
 #'   b_l + e,} where the elements of \eqn{e} are \emph{i.i.d.} normal
 #'   with zero mean and variance \code{residual_variance}, and the sum
 #'   \eqn{\sum_l b_l} is a vector of p effects to be estimated. The
 #'   SuSiE assumption is that each \eqn{b_l} has exactly one non-zero
 #'   element.
+#'
+#' @rdname mvsusie
 #'
 #' @param X N by J matrix of covariates.
 #'
@@ -228,7 +228,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   means. Per-effect coefficients can be computed as
 #'   \code{alpha * mu / X_column_scale_factors}.}
 #'
-#' \item{mu2_diag}{L by p (R=1) or L by p by R (R>1) array of
+#' \item{mu2_diag}{L by p (R=1) or L by p by R (R>1) array of the
 #'   diagonal of the posterior second moment matrix.}
 #'
 #' \item{pi}{Prior inclusion probabilities (length p vector).}
@@ -239,42 +239,34 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'
 #' \item{lbf}{Vector of single-effect log-Bayes factors.}
 #'
-#' \item{sigma2}{Residual variance.}
+#' \item{sigma2}{Residual variance (R by R matrix for R > 1).}
 #'
-#' \item{V}{Prior variance.}
+#' \item{V}{Prior variance scalar (per effect).}
 #'
 #' \item{converged}{Logical indicating whether the algorithm converged.}
 #'
-#' \item{elbo}{Vector storing the the evidence lower bound, or
-#'   \dQuote{ELBO}, achieved at each iteration of the model fitting
-#'   algorithm, which attempts to maximize the ELBO.}
+#' \item{elbo}{Vector of ELBO values at each iteration.}
 #'
 #' \item{niter}{Number of iterations performed.}
-#'
-#' \item{convergence}{Convergence status.}
 #'
 #' \item{sets}{Estimated credible sets.}
 #'
 #' \item{pip}{Vector of posterior inclusion probabilities.}
 #'
-#' \item{walltime}{Records runtime of the model fitting algorithm.}
+#' \item{z}{Matrix of univariate z-scores (when requested).}
 #'
-#' \item{z}{Vector of univariate z-scores.}
+#' \item{single_effect_lfsr}{L by R matrix of per-effect lfsr.}
 #'
-#' \item{single_effect_lfsr}{Average lfsr (local false sign rate) for
-#'   each CS.}
+#' \item{lfsr}{J by R matrix of per-variable lfsr.}
 #'
-#' \item{lfsr}{J by R matrix of local false sign rates, averaging
-#'   over the single-effect posterior assignments.}
+#' \item{conditional_lfsr}{L by J by R array of conditional lfsr
+#'   (given variable j is the single effect).}
 #'
-#' \item{conditional_lfsr}{The lfsr (local false sign rate) given that
-#'   the variable is the single effect.}
+#' \item{pi_V}{Vector of mixture prior weights (only with mixture
+#'   prior).}
 #'
-#' \item{pi_V}{Vector of mixture prior weights (only present when
-#'   \code{prior_variance} is a mixture prior).}
-#'
-#' \item{V_structure}{List of prior covariance matrices (only present
-#'   when \code{prior_variance} is a mixture prior).}
+#' \item{V_structure}{List of prior covariance matrices (only with
+#'   mixture prior).}
 #'
 #' @examples
 #' # Example with one response.
@@ -299,7 +291,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'
 #' # RSS example with one response.
 #' R <- crossprod(X)
-#' z <- calc_z(X, Y)
+#' z <- susieR::calc_z(X, Y)
 #' res <- mvsusie_rss(z, R, N = n, L = 10)
 #'
 #' # Example with three responses.
@@ -810,8 +802,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   #
   # For 3D missing data with estimate_residual_variance, we use block
   # coordinate ascent over two parameter blocks:
-  #   Block A: (alpha, mu, prior_variance) — optimized by IBSS with fixed sigma2
-  #   Block B: sigma2 (residual variance) — closed-form pairwise estimator
+  #   Block A: (alpha, mu, prior_variance) -- optimized by IBSS with fixed sigma2
+  #   Block B: sigma2 (residual variance) -- closed-form pairwise estimator
   #
   # Why not update sigma2 within the IBSS loop (as for non-missing data)?
   # In the 3D missing-data path, each missingness pattern k has its own

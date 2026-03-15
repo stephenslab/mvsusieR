@@ -2,7 +2,7 @@
 % Please edit documentation in R/example_dataset.R
 \name{mvsusie_sim1}
 \alias{mvsusie_sim1}
-\title{Simulate mvSuSiE Data}
+\title{Simulate mvSuSiE data}
 \usage{
 mvsusie_sim1(
   n = 200,
@@ -14,24 +14,24 @@ mvsusie_sim1(
 )
 }
 \arguments{
-\item{n}{Number of samples to simulate.}
+\item{n}{Number of samples.}
 
-\item{p}{Number of features to simulate.}
+\item{p}{Number of features.}
 
-\item{r}{Number of outcomes to simulate.}
+\item{r}{Number of outcomes.}
 
-\item{s}{Number of effect variables per outcome if greater than
-1; otherwise, proportion of effect variables per outcome if less
-than 1.}
+\item{s}{Number of effect variables per outcome if >= 1; proportion
+of effect variables per outcome if < 1.}
 
-\item{center_scale}{Describe what input argument "center" is for.}
+\item{center_scale}{If \code{TRUE}, center and scale X and Y.}
 
-\item{y_missing}{Describe what input argument "y_missing" is for.}
+\item{y_missing}{Fraction of entries in Y to set to \code{NA} (per
+sample, per outcome). If \code{NULL}, no missing values are created.}
 }
 \value{
-Describe the outputs here.
+A list with elements \code{X}, \code{y}, \code{y_missing},
+  \code{d}, \code{n}, \code{p}, \code{r}, \code{V}, and \code{b}.
 }
 \description{
-A simple simulation function to simulate some test
-  data.
+Generates a simple simulated dataset for testing mvSuSiE.
 }

@@ -2,22 +2,18 @@
 % Please edit documentation in R/mvsusie_get_functions.R
 \name{mvsusie_single_effect_lfsr}
 \alias{mvsusie_single_effect_lfsr}
-\title{Local false sign rate (lfsr) for single effects}
+\title{Per-effect local false sign rate (lfsr)}
 \usage{
 mvsusie_single_effect_lfsr(clfsr, alpha)
 }
 \arguments{
-\item{clfsr}{L x J x R conditonal lfsr.}
+\item{clfsr}{L x J x R conditional lfsr array.}
 
-\item{alpha}{L x J matrix.}
+\item{alpha}{L x J matrix of posterior inclusion probabilities.}
 }
 \value{
-L x R matrix of lfsr
+L x R matrix of lfsr.
 }
 \description{
-Local false sign rate (lfsr) for single effects
-}
-\details{
-This function returns the lfsr for identifying nonzero
-  single effects, separately for each outcome.
+Returns the lfsr for each single effect and outcome.
 }

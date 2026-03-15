@@ -2,12 +2,12 @@
 % Please edit documentation in R/mvsusie_get_functions.R
 \name{mvsusie_get_pip_per_outcome}
 \alias{mvsusie_get_pip_per_outcome}
-\title{Outcome-specific posterior inclusion probabilities.}
+\title{Outcome-specific posterior inclusion probabilities}
 \usage{
 mvsusie_get_pip_per_outcome(m, prior_obj = NULL)
 }
 \arguments{
-\item{m}{A fitted mvsusie object (output of \code{mvsusie}).}
+\item{m}{A fitted mvsusie object.}
 
 \item{prior_obj}{Optional mash prior object. If not provided, the
 active prior matrices are taken from \code{m$V_structure}.}
@@ -16,8 +16,8 @@ active prior matrices are taken from \code{m$V_structure}.}
 J x R matrix of outcome-specific PIPs.
 }
 \description{
-Computes the PIP for each variable in each outcome,
-  accounting for the mixture structure of the prior. A variable is
-  considered "included" in outcome r if its effect has nonzero
-  variance in that outcome under the selected mixture component.
+Computes the PIP for each variable in each outcome, accounting for
+the mixture structure of the prior. A variable is considered
+"included" in outcome r if its effect has nonzero variance in
+that outcome under the selected mixture component.
 }
