@@ -2,7 +2,7 @@
 % Please edit documentation in R/mixture_prior.R
 \name{create_mixture_prior}
 \alias{create_mixture_prior}
-\title{Create mash prior object}
+\title{Create mixture prior}
 \usage{
 create_mixture_prior(
   mixture_prior,

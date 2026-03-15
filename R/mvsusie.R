@@ -156,7 +156,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   TRUE}, the prior variance is estimated; otherwise it is
 #'   fixed. Currently \code{estimate_prior_variance = TRUE} only works
 #'   for univariate Y, or for multivariate Y when the prior variance is
-#'   a matrix).
+#'   a matrix.
 #'
 #' @param estimate_prior_method The method used for estimating the
 #'   prior variance; valid choices are \code{"optim"}, \code{"EM"},
@@ -201,7 +201,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'
 #' @param compute_univariate_zscore When
 #'   \code{compute_univariate_zscore = TRUE}, the z-scores from the
-#'   per-variable univariate regressions are outputted. (Note that these
+#'   per-variable univariate regressions are returned. (Note that these
 #'   z-scores are not actually used to fit the multivariate susie
 #'   model.)
 #'
@@ -386,14 +386,14 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
 #'
 #' @param R J x J LD matrix.
 #'
-#' @param N sample size
+#' @param N Sample size.
 #'
 #' @param Bhat Alternative summary data giving the estimated effects
-#'   (J X R matrix). This, together with \code{Shat}, may be
+#'   (J x R matrix). This, together with \code{Shat}, may be
 #'   provided instead of \code{Z}.
 #'
 #' @param Shat Alternative summary data giving the standard errors of
-#'   the estimated effects (J X R matrix). This, together with
+#'   the estimated effects (J x R matrix). This, together with
 #'   \code{Bhat}, may be provided instead of \code{Z}.
 #'
 #' @param varY The sample covariance of Y, defined as \eqn{Y'Y/(N-1)}.

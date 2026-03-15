@@ -16,7 +16,7 @@ mvsusie_sim1(
 \arguments{
 \item{n}{Number of samples.}
 
-\item{p}{Number of features.}
+\item{p}{Number of variables.}
 
 \item{r}{Number of outcomes.}
 
@@ -33,5 +33,5 @@ A list with elements \code{X}, \code{y}, \code{y_missing},
   \code{d}, \code{n}, \code{p}, \code{r}, \code{V}, and \code{b}.
 }
 \description{
-Generates a simple simulated dataset for testing mvSuSiE.
+Generates a simulated dataset for testing mvSuSiE.
 }

@@ -1,9 +1,9 @@
 #' Simulate mvSuSiE data
 #'
-#' Generates a simple simulated dataset for testing mvSuSiE.
+#' Generates a simulated dataset for testing mvSuSiE.
 #'
 #' @param n Number of samples.
-#' @param p Number of features.
+#' @param p Number of variables.
 #' @param r Number of outcomes.
 #' @param s Number of effect variables per outcome if >= 1; proportion
 #'   of effect variables per outcome if < 1.

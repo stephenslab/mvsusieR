@@ -1,4 +1,4 @@
-#' Create mash prior object
+#' Create mixture prior
 #'
 #' Constructs a mixture prior for use with \code{mvsusie()}.
 #' Accepts one of three input types:

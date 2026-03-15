@@ -187,7 +187,7 @@ for imputation uncertainty. Defaults to \code{TRUE} for
 TRUE}, the prior variance is estimated; otherwise it is
 fixed. Currently \code{estimate_prior_variance = TRUE} only works
 for univariate Y, or for multivariate Y when the prior variance is
-a matrix).}
+a matrix.}
 
 \item{estimate_prior_method}{The method used for estimating the
 prior variance; valid choices are \code{"optim"}, \code{"EM"},
@@ -228,7 +228,7 @@ used threshold for genotype data in genetics studies.}
 
 \item{compute_univariate_zscore}{When
 \code{compute_univariate_zscore = TRUE}, the z-scores from the
-per-variable univariate regressions are outputted. (Note that these
+per-variable univariate regressions are returned. (Note that these
 z-scores are not actually used to fit the multivariate susie
 model.)}
 
@@ -257,11 +257,11 @@ which records the algorithm's progress at each iteration.}
 \item{N}{The sample size.}
 
 \item{Bhat}{Alternative summary data giving the estimated effects
-(J X R matrix). This, together with \code{Shat}, may be
+(J x R matrix). This, together with \code{Shat}, may be
 provided instead of \code{Z}.}
 
 \item{Shat}{Alternative summary data giving the standard errors of
-the estimated effects (J X R matrix). This, together with
+the estimated effects (J x R matrix). This, together with
 \code{Bhat}, may be provided instead of \code{Z}.}
 
 \item{varY}{The sample covariance of Y, defined as \eqn{Y'Y/(N-1)}.
