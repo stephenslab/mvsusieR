@@ -28,6 +28,8 @@ check_positive_definite <- NULL
 get_var_y <- NULL
 initialize_susie_model <- NULL
 initialize_fitted <- NULL
+SER_posterior_e_loglik <- NULL
+compute_kl <- NULL
 warning_message <- NULL
 mem_used_gb <- NULL
 
@@ -47,7 +49,8 @@ mem_used_gb <- NULL
 
   # Cache susieR internal functions
   for (fn in c("get_var_y", "initialize_susie_model",
-               "initialize_fitted", "warning_message",
+               "initialize_fitted", "SER_posterior_e_loglik",
+               "compute_kl", "warning_message",
                "mem_used_gb")) {
     assign(fn, get(fn, envir = susie_ns), envir = pkg_ns)
   }
@@ -77,11 +80,9 @@ mem_used_gb <- NULL
     "loglik",
     "neg_loglik",
     "trim_null_effects",
-    "update_derived_quantities",
     "update_fitted_values",
     "update_model_variance",
-    "update_variance_components",
-    "validate_prior"
+    "update_variance_components"
   )
   for (g in mv_generics) {
     method_fn <- get(paste0(g, ".mv_individual"), envir = pkg_ns)
@@ -92,22 +93,16 @@ mem_used_gb <- NULL
   # implementations that cannot fall through to mv_individual)
   mv_ss_generics <- c(
     "SER_posterior_e_loglik",
-    "cleanup_model",
-    "compute_kl",
     "compute_residuals",
     "get_cs",
     "get_fitted",
     "get_intercept",
     "get_objective",
-    "get_scale_factors",
     "get_var_y",
     "get_variable_names",
-    "get_zscore",
-    "update_derived_quantities",
     "update_fitted_values",
     "update_model_variance",
-    "update_variance_components",
-    "validate_prior"
+    "update_variance_components"
   )
   for (g in mv_ss_generics) {
     method_fn <- get(paste0(g, ".mv_ss"), envir = pkg_ns)

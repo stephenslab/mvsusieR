@@ -606,7 +606,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
 compute_kl.mv_individual <- function(data, params, model, l) {
   # KL = -lbf + SER_posterior_e_loglik (relative to null).
   # Also stores bxxb and vbxxb as precomputed quantities
-  result <- SER_posterior_e_loglik.mv_individual(data, params, model, l)
+  result <- SER_posterior_e_loglik(data, params, model, l)
   model$KL[l] <- -model$lbf[l] + result$eloglik
   model$bxxb[[l]] <- result$bxxb
   model$vbxxb[l] <- result$vbxxb
@@ -726,11 +726,6 @@ update_model_variance.mv_individual <- function(data, params, model) {
   # Update mixture prior weights and prune near-zero components
   model <- update_mixture_weights_and_prune(model, params)
 
-  return(model)
-}
-
-#' @keywords internal
-update_derived_quantities.mv_individual <- function(data, params, model) {
   return(model)
 }
 
@@ -953,11 +948,6 @@ prune_mixture_components <- function(model, threshold = 1e-8) {
 # PRIOR VALIDATION
 # =============================================================================
 
-#' @keywords internal
-validate_prior.mv_individual <- function(data, params, model, ...) {
-  invisible(TRUE)
-}
-
 # =============================================================================
 # EFFECT TRIMMING
 # =============================================================================
@@ -1056,6 +1046,8 @@ get_variable_names.mv_individual <- function(data, model, ...) {
 
 #' @keywords internal
 get_zscore.mv_individual <- function(data, params, model, ...) {
+  # Multivariate z-scores are computed by the mvsusie wrapper, not here.
+  # Must override to prevent fallthrough to susieR's get_zscore.individual.
   NULL
 }
 

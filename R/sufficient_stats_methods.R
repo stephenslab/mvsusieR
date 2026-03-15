@@ -26,15 +26,6 @@ compute_residuals.mv_ss <- function(data, params, model, l, ...) {
 }
 
 #' @keywords internal
-compute_kl.mv_ss <- function(data, params, model, l) {
-  result <- SER_posterior_e_loglik.mv_ss(data, params, model, l)
-  model$KL[l] <- -model$lbf[l] + result$eloglik
-  model$bxxb[[l]] <- result$bxxb
-  model$vbxxb[l] <- result$vbxxb
-  return(model)
-}
-
-#' @keywords internal
 SER_posterior_e_loglik.mv_ss <- function(data, params, model, l) {
   v_inv   <- get_v_inv(data, model)
   alpha_l <- model$alpha[l, ]
@@ -104,11 +95,6 @@ update_model_variance.mv_ss <- function(data, params, model) {
   # Update mixture prior weights and prune near-zero components
   model <- update_mixture_weights_and_prune(model, params)
 
-  return(model)
-}
-
-#' @keywords internal
-update_derived_quantities.mv_ss <- function(data, params, model) {
   return(model)
 }
 
@@ -185,16 +171,6 @@ compute_multivariate_elbo_ss <- function(data, model) {
 }
 
 #' @keywords internal
-validate_prior.mv_ss <- function(data, params, model, ...) {
-  invisible(TRUE)
-}
-
-#' @keywords internal
-get_scale_factors.mv_ss <- function(data, params, ...) {
-  data$csd
-}
-
-#' @keywords internal
 get_intercept.mv_ss <- function(data, params, model, ...) {
   if (!is.null(data$X_colmeans) && !is.null(data$Y_colmeans)) {
     b_sum <- compute_posterior_mean_sum_from_model(model)
@@ -238,20 +214,3 @@ get_variable_names.mv_ss <- function(data, model, ...) {
   return(model)
 }
 
-#' @keywords internal
-get_zscore.mv_ss <- function(data, params, model, ...) {
-  NULL
-}
-
-#' @keywords internal
-cleanup_model.mv_ss <- function(data, params, model, ...) {
-  # Final pruning of near-zero mixture components at convergence
-  if (length(model$pi_V) > 1) {
-    model <- prune_mixture_components(model, threshold = 1e-8)
-  }
-  model$residuals  <- NULL
-  model$llik_cache <- NULL
-  model$em_cache   <- NULL
-  model$eigen_cache <- NULL
-  return(model)
-}
