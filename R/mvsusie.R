@@ -882,7 +882,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
     }
 
     s <- block_coordinate_ascent(s, data, sigma2_block_step,
-                                  max_iter = 100, tol = tol,
+                                  max_iter = max_iter, tol = tol,
                                   verbose = verbose)
 
   } else {

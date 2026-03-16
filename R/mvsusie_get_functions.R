@@ -133,7 +133,7 @@ apply_mvsusie_dimnames <- function(s, variable_names, outcome_names) {
   J <- ncol(s$alpha)
   vnames <- variable_names
   cnames <- outcome_names
-  lnames <- paste0("l", seq_len(L))
+  lnames <- paste0("L", seq_len(L))
 
   # alpha: L x J
   dimnames(s$alpha) <- list(lnames, vnames)

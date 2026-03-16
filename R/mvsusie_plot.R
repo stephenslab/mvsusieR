@@ -186,9 +186,7 @@ mvsusie_plot <-
     r <- length(traits)
     lmax <- nrow(fit$alpha)
     csd <- fit$X_column_scale_factors
-    rownames(fit$single_effect_lfsr) <- paste0("L", 1:lmax)
     colnames(fit$single_effect_lfsr) <- traits
-    rownames(fit$alpha) <- paste0("L", 1:lmax)
     effects <- matrix(0, r, L)
     rownames(effects) <- traits
     colnames(effects) <- css
