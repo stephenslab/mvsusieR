@@ -98,7 +98,7 @@ r6_sweep_mvsusie <- function(...) {
     args$approximate <- (args$missing_y_method == "approximate")
     args$missing_y_method <- NULL
   }
-  do.call(r6$mvsusie, args)
+  suppressWarnings(do.call(r6$mvsusie, args))
 }
 
 r6_sweep_mvsusie_ss <- function(...) {
@@ -114,7 +114,7 @@ r6_sweep_mvsusie_ss <- function(...) {
     args$verbose <- NULL
   }
   args$estimate_prior_mixture_weights <- NULL
-  do.call(r6$mvsusie_suff_stat, args)
+  suppressWarnings(do.call(r6$mvsusie_suff_stat, args))
 }
 
 r6_sweep_MashInit <- function(...) {

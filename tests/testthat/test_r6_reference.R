@@ -105,7 +105,7 @@ r6_mvsusie <- function(...) {
   }
   # R6 master doesn't have estimate_prior_mixture_weights; strip it
   args$estimate_prior_mixture_weights <- NULL
-  do.call(r6$mvsusie, args)
+  suppressWarnings(do.call(r6$mvsusie, args))
 }
 
 r6_MashInitializer <- function(...) {

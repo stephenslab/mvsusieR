@@ -274,9 +274,12 @@ test_that("invert_via_chol handles PD, singular, and zero matrices", {
   expect_equal(res_z$inv, Z)
   expect_equal(res_z$rank, 0)
 
-  # Singular matrix -> should fall back to pseudo-inverse
+  # Singular matrix -> should fall back to pseudo-inverse with warning
   S <- matrix(c(1, 1, 1, 1), 2, 2)
-  res_s <- mvsusieR:::invert_via_chol(S)
+  expect_warning(
+    res_s <- mvsusieR:::invert_via_chol(S),
+    "Cholesky failed"
+  )
   expect_true(res_s$rank <= 1)
 })
 
