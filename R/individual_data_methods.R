@@ -161,6 +161,14 @@ ibss_initialize.mv_individual <- function(data, params) {
 
 #' @keywords internal
 compute_residuals.mv_individual <- function(data, params, model, l, ...) {
+  # NOTE: The SuSiE paper (Algorithm 1) describes residual updates as
+  # incremental add/subtract (r <- r + X*b_old - X*b_new) to save one
+  # matrix multiply.  Here we recompute from scratch each time via
+  # R = Y - X*(b_sum - b_l).  The cost of the extra O(NJR) multiply
+  # is negligible compared to the posterior computation, and
+  # recomputing avoids floating-point drift that accumulates over
+  # many incremental updates.
+  #
   # Impute missing Y at start of each IBSS iteration (first SER effect).
   # This is the variational EM E-step: fill in missing entries using
   # E[Y_miss | Y_obs] = mu_miss - Lambda_{MM}^-1 Lambda_{MO} (Y_obs - mu_obs)
@@ -617,30 +625,29 @@ SER_posterior_e_loglik.mv_individual <- function(data, params, model, l) {
   v_inv <- get_v_inv(data, model)
   alpha_l <- model$alpha[l, ]
   mu_l    <- model$mu[l, , , drop = TRUE]  # J x R
-  R <- data$R
+  B1_l <- alpha_l * mu_l  # J x R
 
-  # Weighted contribution: X %*% (alpha * mu)
-  Xb_l <- compute_Xb(data, alpha_l * mu_l)  # N x R
-
-  # E1 = tr(v_inv * (B1'XtR + XtR'B1)) = 2 * tr(v_inv * B1'XtR)
-  # (factor of 2 from v_inv symmetry)
-  # For per-outcome (3d) methods, use V_i^{-1}-weighted inner product.
+  # E1 = tr(v_inv * B1_l' X'R_l), where X'R_l is stored in model$residuals.
+  # The factor of 2 in the final formula accounts for the symmetric
+  # contribution tr(v_inv * (B1'XtR + XtR'B1)) = 2 * tr(v_inv * B1'XtR).
   if (!is.null(data$miss3d)) {
+    # Per-outcome (3d) methods: must use observation-space V_i^{-1}-weighted
+    # inner product because model$residuals is already V_inv-weighted.
+    Xb_l <- compute_Xb(data, B1_l)  # N x R
     VinvXb_l <- compute_VinvR_3d(data, Xb_l)
     term1 <- sum(model$raw_residuals * VinvXb_l)
-  } else if (is.matrix(v_inv)) {
-    term1 <- sum(model$raw_residuals * (Xb_l %*% v_inv))
   } else {
-    term1 <- v_inv * sum(model$raw_residuals * Xb_l)
+    # Standard path: variable-space using cached X'R (model$residuals).
+    # This avoids forming the N x R product X*B1_l, reducing cost from
+    # O(NJR) to O(JR + R^2).
+    term1 <- sum(v_inv * crossprod(B1_l, model$residuals))
   }
 
   # Use precomputed bxxb/vbxxb from calculate_posterior_moments
   cache <- model$mu2_cache[[l]]
-  bxxb_l  <- cache$bxxb
-  vbxxb_l <- cache$vbxxb
 
-  eloglik <- 0.5 * (2 * term1 - vbxxb_l)
-  return(list(eloglik = eloglik, bxxb = bxxb_l, vbxxb = vbxxb_l))
+  eloglik <- 0.5 * (2 * term1 - cache$vbxxb)
+  return(list(eloglik = eloglik, bxxb = cache$bxxb, vbxxb = cache$vbxxb))
 }
 
 # =============================================================================
@@ -1181,11 +1188,7 @@ compute_multivariate_elbo <- function(data, model) {
 
   # Constant: -N*R/2*log(2*pi) - N/2*log|sigma2|
   loglik <- -N * R / 2 * log(2 * pi)
-  if (is.matrix(model$sigma2)) {
-    loglik <- loglik - N / 2 * log_det_sym(model$sigma2)
-  } else {
-    loglik <- loglik - N * R / 2 * log(model$sigma2)
-  }
+  loglik <- loglik - N / 2 * log_det_sym(model$sigma2)
 
   # ESSR = tr(v_inv * (Y-Xr)'(Y-Xr)) - sum_l tr(v_inv * b_l' X'X b_l)
   #        + sum_l sum_j d_j alpha_lj tr(v_inv * mu2_lj)
@@ -1196,11 +1199,7 @@ compute_multivariate_elbo <- function(data, model) {
   R_mat <- Y - Xb
   # Zero out missing entries only for R=1 (complete-case)
   if (data$any_missing && is.null(model$Y_imputed)) R_mat[data$Y_na] <- 0
-  if (is.matrix(v_inv)) {
-    essr <- sum(R_mat * (R_mat %*% v_inv))
-  } else {
-    essr <- v_inv * sum(R_mat^2)
-  }
+  essr <- sum(R_mat * (R_mat %*% v_inv))
 
   # 2. Subtract first moment^2 per effect: -sum_l tr(v_inv * b_l' X'X b_l)
   for (l in seq_len(nrow(model$alpha))) {
@@ -1208,11 +1207,7 @@ compute_multivariate_elbo <- function(data, model) {
     Xb_l <- data$X %*% b_l  # N x R
     # Zero out missing rows only for R=1 (complete-case)
     if (data$any_missing && is.null(model$Y_imputed)) Xb_l[data$Y_na] <- 0
-    if (is.matrix(v_inv)) {
-      essr <- essr - sum(Xb_l * (Xb_l %*% v_inv))
-    } else {
-      essr <- essr - v_inv * sum(Xb_l^2)
-    }
+    essr <- essr - sum(Xb_l * (Xb_l %*% v_inv))
   }
 
   # 3. Add vbxxb: use precomputed per-effect values from compute_kl

@@ -32,6 +32,7 @@ SER_posterior_e_loglik <- NULL
 compute_kl <- NULL
 warning_message <- NULL
 mem_used_gb <- NULL
+check_semi_pd <- NULL
 
 .onLoad <- function(libname, pkgname) {
   susie_ns <- asNamespace("susieR")
@@ -51,7 +52,7 @@ mem_used_gb <- NULL
   for (fn in c("get_var_y", "initialize_susie_model",
                "initialize_fitted", "SER_posterior_e_loglik",
                "compute_kl", "warning_message",
-               "mem_used_gb")) {
+               "mem_used_gb", "check_semi_pd")) {
     assign(fn, get(fn, envir = susie_ns), envir = pkg_ns)
   }
 

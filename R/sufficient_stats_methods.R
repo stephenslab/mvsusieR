@@ -28,11 +28,7 @@ SER_posterior_e_loglik.mv_ss <- function(data, params, model, l) {
   R <- data$R
 
   # E1 = tr(v_inv * (B1'XtR + XtR'B1))
-  if (is.matrix(v_inv)) {
-    term1 <- sum(diag(v_inv %*% t(alpha_l * mu_l) %*% model$residuals))
-  } else {
-    term1 <- v_inv * sum(alpha_l * mu_l * model$residuals)
-  }
+  term1 <- sum(diag(v_inv %*% t(alpha_l * mu_l) %*% model$residuals))
 
   # Use precomputed bxxb/vbxxb from calculate_posterior_moments
   cache <- model$mu2_cache[[l]]
@@ -138,11 +134,7 @@ compute_multivariate_elbo_ss <- function(data, model) {
   v_inv <- get_v_inv(data, model)
 
   loglik <- -N * R / 2 * log(2 * pi)
-  if (is.matrix(model$sigma2)) {
-    loglik <- loglik - N / 2 * log_det_sym(model$sigma2)
-  } else {
-    loglik <- loglik - N * R / 2 * log(model$sigma2)
-  }
+  loglik <- loglik - N / 2 * log_det_sym(model$sigma2)
 
   b_sum <- compute_posterior_mean_sum_from_model(model)
   # ESSR = tr(v_inv * (YtY - E2 - t(E2) + E3))

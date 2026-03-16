@@ -492,6 +492,22 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
 
   is_numeric_matrix(R, "R")
 
+  # Ensure R (LD matrix) is positive semidefinite.
+  # Non-PD LD matrices arise from LD estimates based on different samples,
+  # rounding, or subsetting.  Clip negative eigenvalues to zero,
+  # reusing susieR's check_semi_pd (cached via zzz.R).
+  r_tol <- 1e-08
+  semi_pd <- check_semi_pd(R, r_tol)
+  if (!semi_pd$status) {
+    eig <- attr(semi_pd$matrix, "eigen")
+    eig$values[eig$values < 0] <- 0
+    R <- eig$vectors %*% (eig$values * t(eig$vectors))
+    R <- (R + t(R)) / 2
+    warning("LD matrix is not positive semidefinite; ",
+            "negative eigenvalues have been set to zero.",
+            call. = FALSE)
+  }
+
   if (missing(N)) {
     warning(
       "Providing the sample size (N), or even a rough estimate of N, ",

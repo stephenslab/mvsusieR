@@ -199,18 +199,14 @@ set_mvsusie_residual_variance <- function(data, residual_variance = NULL,
     residual_variance <- matrix(residual_variance, 1, 1)
   }
 
-  # Validate
-  if (is.matrix(residual_variance)) {
-    if (nrow(residual_variance) != R)
-      stop("residual_variance must be ", R, " x ", R)
-    if (anyNA(diag(residual_variance)))
-      stop("Diagonal of residual_variance cannot be NA")
-    residual_variance[is.na(residual_variance)] <- 0
-    check_positive_definite(residual_variance)
-  } else {
-    if (is.na(residual_variance) || is.infinite(residual_variance))
-      stop("Invalid residual_variance")
-  }
+  # Validate (residual_variance is always a matrix at this point:
+  # R=1 scalars are converted to 1x1 matrices above, R>1 is always matrix)
+  if (nrow(residual_variance) != R)
+    stop("residual_variance must be ", R, " x ", R)
+  if (anyNA(diag(residual_variance)))
+    stop("Diagonal of residual_variance cannot be NA")
+  residual_variance[is.na(residual_variance)] <- 0
+  check_positive_definite(residual_variance)
 
   # Inverse
   data$residual_variance     <- residual_variance
@@ -377,6 +373,13 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
   }
 
   K <- length(V_structure)
+
+  # Validate prior matrix dimensions match number of outcomes
+  prior_dim <- nrow(V_structure[[1]])
+  if (prior_dim != R) {
+    stop("Prior covariance matrices are ", prior_dim, " x ", prior_dim,
+         " but data has R = ", R, " outcomes")
+  }
 
   # Compute ranks for EM update (cheap K-vector).
   # V_structure_inv (R x R x K array) is deferred to slow-path only -- saves
