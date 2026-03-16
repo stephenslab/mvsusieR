@@ -14,3 +14,4 @@ src/*.o
 src/*.so
 src/*.dll
 .claude
+docs

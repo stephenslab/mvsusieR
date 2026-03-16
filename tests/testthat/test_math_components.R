@@ -264,7 +264,7 @@ test_that("create_mash_prior matches MashInitializer (Ulist + grid)", {
   r6_nonnull_xUlist <- r6_pv$xUlist[-1]
   for (k in seq_along(r6_nonnull_xUlist)) {
     expect_equal(r6_nonnull_xUlist[[k]], s3_prior$xUlist[[k]],
-                 tolerance = MACH_TOL, check.attributes = FALSE)
+                 tolerance = MACH_TOL, ignore_attr = TRUE)
   }
 
   # Compare n_outcome and n_component
@@ -282,7 +282,7 @@ test_that("create_mash_prior K=1: matches single matrix", {
   expect_equal(prior$n_component, 1)
   expect_equal(prior$null_weight, 0)
   # The single xUlist should be V * 1 (grid=1)
-  expect_equal(prior$xUlist[[1]], V, tolerance = MACH_TOL, check.attributes = FALSE)
+  expect_equal(prior$xUlist[[1]], V, tolerance = MACH_TOL, ignore_attr = TRUE)
 })
 
 # ============================================================================
@@ -304,15 +304,15 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
 
   # Core fields (always present)
   expect_equal(fit$alpha, ref$alpha, tolerance = tol,
-               check.attributes = FALSE, info = info("alpha"))
+               ignore_attr = TRUE, info = info("alpha"))
   expect_equal(fit$lbf, ref$lbf, tolerance = tol,
-               check.attributes = FALSE, info = info("lbf"))
+               ignore_attr = TRUE, info = info("lbf"))
   expect_equal(fit$lbf_variable, ref$lbf_variable, tolerance = tol,
-               check.attributes = FALSE, info = info("lbf_variable"))
+               ignore_attr = TRUE, info = info("lbf_variable"))
   expect_equal(get_b1(fit), get_b1(ref), tolerance = tol,
-               check.attributes = FALSE, info = info("b1"))
+               ignore_attr = TRUE, info = info("b1"))
   expect_equal(get_b2(fit), get_b2(ref), tolerance = tol,
-               check.attributes = FALSE, info = info("b2"))
+               ignore_attr = TRUE, info = info("b2"))
 
   # Coefficient (handle NA intercept)
   # Use coef_R6() which handles both S3 (computes from alpha+mu)
@@ -320,34 +320,34 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
   fit_coef <- coef_R6(fit); fit_coef[is.na(fit_coef)] <- 0
   ref_coef <- coef_R6(ref); ref_coef[is.na(ref_coef)] <- 0
   expect_equal(fit_coef, ref_coef, tolerance = tol,
-               check.attributes = FALSE, info = info("coef"))
+               ignore_attr = TRUE, info = info("coef"))
 
   # PIP
   expect_equal(fit$pip, ref$pip, tolerance = tol,
-               check.attributes = FALSE, info = info("pip"))
+               ignore_attr = TRUE, info = info("pip"))
 
   # KL divergence
   if (!is.null(ref$KL) && !all(is.na(ref$KL))) {
     expect_equal(fit$KL, ref$KL, tolerance = tol,
-                 check.attributes = FALSE, info = info("KL"))
+                 ignore_attr = TRUE, info = info("KL"))
   }
 
   # ELBO
   if (!is.null(ref$elbo) && length(ref$elbo) > 0 && !all(is.na(ref$elbo))) {
     expect_equal(tail(fit$elbo, 1), tail(ref$elbo, 1), tolerance = tol,
-                 check.attributes = FALSE, info = info("elbo"))
+                 ignore_attr = TRUE, info = info("elbo"))
   }
 
   # sigma2 (residual variance)
   if (!is.null(ref$sigma2)) {
     expect_equal(fit$sigma2, ref$sigma2, tolerance = tol,
-                 check.attributes = FALSE, info = info("sigma2"))
+                 ignore_attr = TRUE, info = info("sigma2"))
   }
 
   # V (only when explicitly requested --see NOTE above)
   if (check_V && !is.null(ref$V)) {
     expect_equal(fit$V, ref$V, tolerance = tol,
-                 check.attributes = FALSE, info = info("V"))
+                 ignore_attr = TRUE, info = info("V"))
   }
 
   # niter
@@ -358,22 +358,22 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
   # LFSR fields (only for mash/mixture priors)
   if (is.array(ref$lfsr) || (is.matrix(ref$lfsr))) {
     expect_equal(fit$lfsr, ref$lfsr, tolerance = tol,
-                 check.attributes = FALSE, info = info("lfsr"))
+                 ignore_attr = TRUE, info = info("lfsr"))
   }
   if (is.array(ref$single_effect_lfsr) || is.matrix(ref$single_effect_lfsr)) {
     expect_equal(fit$single_effect_lfsr, ref$single_effect_lfsr,
-                 tolerance = tol, check.attributes = FALSE,
+                 tolerance = tol, ignore_attr = TRUE,
                  info = info("single_effect_lfsr"))
   }
   if (is.array(ref$mixture_weights)) {
     expect_equal(fit$mixture_weights, ref$mixture_weights, tolerance = tol,
-                 check.attributes = FALSE, info = info("mixture_weights"))
+                 ignore_attr = TRUE, info = info("mixture_weights"))
   }
 
   # Fitted values (only when explicitly requested --see NOTE above)
   if (check_fitted && !is.null(ref$fitted) && !is.null(fit$fitted)) {
     expect_equal(fit$fitted, ref$fitted, tolerance = tol,
-                 check.attributes = FALSE, info = info("fitted"))
+                 ignore_attr = TRUE, info = info("fitted"))
   }
 }
 
@@ -404,28 +404,28 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, fix
 
     # Core posterior quantities must match
     expect_equal(fit_mash$alpha, fit_matrix$alpha,
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: alpha")
     expect_equal(get_b1(fit_mash), get_b1(fit_matrix),
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: b1")
     expect_equal(fit_mash$lbf, fit_matrix$lbf,
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: lbf")
     expect_equal(coef(fit_mash), coef(fit_matrix),
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: coef")
     expect_equal(fit_mash$pip, fit_matrix$pip,
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: pip")
     expect_equal(fit_mash$KL, fit_matrix$KL,
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: KL")
     expect_equal(tail(fit_mash$elbo, 1), tail(fit_matrix$elbo, 1),
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: elbo")
     expect_equal(get_b2(fit_mash), get_b2(fit_matrix),
-                 tolerance = MACH_TOL, check.attributes = FALSE,
+                 tolerance = MACH_TOL, ignore_attr = TRUE,
                  info = "K1_vs_matrix: b2")
   })
 })
@@ -455,19 +455,19 @@ test_that("Mash K=1 null_weight=0 produces same result as matrix prior (R=3, opt
     # code paths (mashr C++ vs multivariate_lbf).
     optim_tol <- 1e-7
     expect_equal(fit_mash$alpha, fit_matrix$alpha,
-                 tolerance = optim_tol, check.attributes = FALSE,
+                 tolerance = optim_tol, ignore_attr = TRUE,
                  info = "K1_vs_matrix_optim: alpha")
     expect_equal(get_b1(fit_mash), get_b1(fit_matrix),
-                 tolerance = optim_tol, check.attributes = FALSE,
+                 tolerance = optim_tol, ignore_attr = TRUE,
                  info = "K1_vs_matrix_optim: b1")
     expect_equal(fit_mash$lbf, fit_matrix$lbf,
-                 tolerance = optim_tol, check.attributes = FALSE,
+                 tolerance = optim_tol, ignore_attr = TRUE,
                  info = "K1_vs_matrix_optim: lbf")
     expect_equal(fit_mash$pip, fit_matrix$pip,
-                 tolerance = optim_tol, check.attributes = FALSE,
+                 tolerance = optim_tol, ignore_attr = TRUE,
                  info = "K1_vs_matrix_optim: pip")
     expect_equal(tail(fit_mash$elbo, 1), tail(fit_matrix$elbo, 1),
-                 tolerance = optim_tol, check.attributes = FALSE,
+                 tolerance = optim_tol, ignore_attr = TRUE,
                  info = "K1_vs_matrix_optim: elbo")
   })
 })

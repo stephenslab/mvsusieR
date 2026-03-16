@@ -147,26 +147,26 @@ tol_exact <- 1e-8
 # --------------------------------------------------------------------------
 compare_exact <- function(fit, ref, label) {
   expect_equal(fit$alpha, ref$alpha, tolerance = tol_exact,
-               check.attributes = FALSE, info = paste(label, "alpha"))
+               ignore_attr = TRUE, info = paste(label, "alpha"))
   expect_equal(get_b1(fit), get_b1(ref), tolerance = tol_exact,
-               check.attributes = FALSE, info = paste(label, "b1"))
+               ignore_attr = TRUE, info = paste(label, "b1"))
   if (!is.null(ref$pip))
     expect_equal(fit$pip, ref$pip, tolerance = tol_exact,
-                 check.attributes = FALSE, info = paste(label, "pip"))
+                 ignore_attr = TRUE, info = paste(label, "pip"))
   if (!is.null(ref$sigma2))
     expect_equal(fit$sigma2, ref$sigma2, tolerance = tol_exact,
-                 check.attributes = FALSE, info = paste(label, "sigma2"))
+                 ignore_attr = TRUE, info = paste(label, "sigma2"))
   expect_equal(fit$lbf, ref$lbf, tolerance = tol_exact,
-               check.attributes = FALSE, info = paste(label, "lbf"))
+               ignore_attr = TRUE, info = paste(label, "lbf"))
   fit_coef <- coef_R6(fit); fit_coef[is.na(fit_coef)] <- 0
   ref_coef <- coef_R6(ref); ref_coef[is.na(ref_coef)] <- 0
   if (is.matrix(fit_coef) && nrow(fit_coef) > 1)
     expect_equal(fit_coef[-1, , drop = FALSE], ref_coef[-1, , drop = FALSE],
-                 tolerance = tol_exact, check.attributes = FALSE,
+                 tolerance = tol_exact, ignore_attr = TRUE,
                  info = paste(label, "coef_slopes"))
   if (!is.null(ref$KL) && !all(is.na(ref$KL)))
     expect_equal(fit$KL, ref$KL, tolerance = tol_exact,
-                 check.attributes = FALSE, info = paste(label, "KL"))
+                 ignore_attr = TRUE, info = paste(label, "KL"))
 }
 
 # Helper: verify S3 output structure (for smoke tests)

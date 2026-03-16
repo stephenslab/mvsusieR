@@ -164,9 +164,9 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
                              check_elbo = FALSE, check_V = FALSE,
                              check_lfsr = TRUE) {
   # Core fields
-  expect_equal(fit$alpha, ref$alpha, tolerance = tol, check.attributes = FALSE)
-  expect_equal(fit$lbf,   ref$lbf,   tolerance = tol, check.attributes = FALSE)
-  expect_equal(get_b1(fit),    get_b1(ref),    tolerance = tol, check.attributes = FALSE)
+  expect_equal(fit$alpha, ref$alpha, tolerance = tol, ignore_attr = TRUE)
+  expect_equal(fit$lbf,   ref$lbf,   tolerance = tol, ignore_attr = TRUE)
+  expect_equal(get_b1(fit),    get_b1(ref),    tolerance = tol, ignore_attr = TRUE)
 
   # Coef: compare slopes only (intercept convention differs).
   # When intercept=FALSE, S3 returns 0 and R6 returns NA --treat NAs as 0.
@@ -177,26 +177,26 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
   if (is.matrix(fit_coef) && nrow(fit_coef) > 1) {
     # Skip intercept row (first row)
     expect_equal(fit_coef[-1, , drop = FALSE], ref_coef[-1, , drop = FALSE],
-                 tolerance = tol, check.attributes = FALSE)
+                 tolerance = tol, ignore_attr = TRUE)
   } else {
-    expect_equal(fit_coef, ref_coef, tolerance = tol, check.attributes = FALSE)
+    expect_equal(fit_coef, ref_coef, tolerance = tol, ignore_attr = TRUE)
   }
 
   # b2 (alpha-weighted second moment diagonal)
   if (!is.null(get_b2(ref)))
-    expect_equal(get_b2(fit), get_b2(ref), tolerance = tol, check.attributes = FALSE)
+    expect_equal(get_b2(fit), get_b2(ref), tolerance = tol, ignore_attr = TRUE)
 
   # PIP (posterior inclusion probability)
   if (!is.null(ref$pip))
-    expect_equal(fit$pip, ref$pip, tolerance = tol, check.attributes = FALSE)
+    expect_equal(fit$pip, ref$pip, tolerance = tol, ignore_attr = TRUE)
 
   # KL divergence
   if (!is.null(ref$KL) && !all(is.na(ref$KL)))
-    expect_equal(fit$KL, ref$KL, tolerance = tol, check.attributes = FALSE)
+    expect_equal(fit$KL, ref$KL, tolerance = tol, ignore_attr = TRUE)
 
   # sigma2 (residual variance)
   if (!is.null(ref$sigma2))
-    expect_equal(fit$sigma2, ref$sigma2, tolerance = tol, check.attributes = FALSE)
+    expect_equal(fit$sigma2, ref$sigma2, tolerance = tol, ignore_attr = TRUE)
 
   # niter: NOT compared. S3 and R6 have identical per-iteration math
   # (verified in test_math_components.R) but differ in procedural
@@ -211,7 +211,7 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
     fit_centered <- sweep(f, 2, colMeans(f))
     ref_centered <- sweep(r, 2, colMeans(r))
     expect_equal(fit_centered, ref_centered, tolerance = tol,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
   }
 
   # LFSR fields (mash/mixture priors only).
@@ -219,13 +219,13 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
   # differences that cause R6 to zero out borderline effects.
   if (check_lfsr) {
     if (is.array(ref$lfsr) || is.matrix(ref$lfsr))
-      expect_equal(fit$lfsr, ref$lfsr, tolerance = tol, check.attributes = FALSE)
+      expect_equal(fit$lfsr, ref$lfsr, tolerance = tol, ignore_attr = TRUE)
     if (is.array(ref$single_effect_lfsr) || is.matrix(ref$single_effect_lfsr))
       expect_equal(fit$single_effect_lfsr, ref$single_effect_lfsr,
-                   tolerance = tol, check.attributes = FALSE)
+                   tolerance = tol, ignore_attr = TRUE)
     if (is.array(ref$mixture_weights))
       expect_equal(fit$mixture_weights, ref$mixture_weights,
-                   tolerance = tol, check.attributes = FALSE)
+                   tolerance = tol, ignore_attr = TRUE)
   }
 
   # V (prior variance) and ELBO.
@@ -236,7 +236,7 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
   # check_V = "effective": compare effective prior V*V_structure matrices;
   #   reconstructs S3 V_scalar from output, compares against R6 V_scalar.
   if (identical(check_V, TRUE) && !is.null(ref$V))
-    expect_equal(fit$V, ref$V, tolerance = tol, check.attributes = FALSE)
+    expect_equal(fit$V, ref$V, tolerance = tol, ignore_attr = TRUE)
   if (identical(check_V, "effective") && !is.null(ref$V) &&
       !is.null(fit$V_structure)) {
     V_struct <- fit$V_structure
@@ -245,21 +245,21 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
       s3_V_scalar <- fit$V / V_struct[[1]][1, 1]
       r6_V_scalar <- ref$V
       expect_equal(s3_V_scalar, r6_V_scalar, tolerance = tol,
-                   check.attributes = FALSE,
+                   ignore_attr = TRUE,
                    info = "V_scalar (from effective V comparison)")
       # Also compare effective prior matrices for each effect
       for (l in seq_along(s3_V_scalar)) {
         s3_eff <- s3_V_scalar[l] * V_struct[[1]]
         r6_eff <- r6_V_scalar[l] * V_struct[[1]]
         expect_equal(s3_eff, r6_eff, tolerance = tol,
-                     check.attributes = FALSE,
+                     ignore_attr = TRUE,
                      info = paste0("Effective prior V*V_structure, effect ", l))
       }
     }
   }
   if (check_elbo && !is.null(ref$elbo))
     expect_equal(tail(fit$elbo, 1), tail(ref$elbo, 1),
-                 tolerance = tol, check.attributes = FALSE)
+                 tolerance = tol, ignore_attr = TRUE)
 }
 
 # ============================================================================
@@ -283,22 +283,22 @@ test_that("R=1, missing data, fixed variance matches R6", {
     # missing observations (convention: R6 zeros missing rows).
     # Compare math fields individually, skip fitted for missing data.
     expect_equal(fit$alpha, ref$alpha, tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(fit$lbf,   ref$lbf,   tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(get_b1(fit),    get_b1(ref),    tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(fit$pip,   ref$pip,   tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(fit$sigma2, ref$sigma2, tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(tail(fit$elbo, 1), tail(ref$elbo, 1),
-                 tolerance = tol_tight, check.attributes = FALSE)
+                 tolerance = tol_tight, ignore_attr = TRUE)
     # Fitted: compare only observed rows
     obs <- !is.na(y_missing)
     expect_equal(fit$fitted[obs] - mean(fit$fitted[obs]),
                  ref$fitted[obs] - mean(ref$fitted[obs]),
-                 tolerance = tol_tight, check.attributes = FALSE)
+                 tolerance = tol_tight, ignore_attr = TRUE)
   })
 })
 
@@ -322,19 +322,19 @@ test_that("R=1, missing data, EM (10 iter) matches R6 at tight tol", {
     # Compare math fields; fitted only for observed rows (convention differs
     # for missing observations: R6 zeros them, S3 doesn't).
     expect_equal(fit$alpha, ref$alpha, tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(fit$lbf,   ref$lbf,   tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(get_b1(fit),    get_b1(ref),    tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(fit$pip,   ref$pip,   tolerance = tol_tight,
-                 check.attributes = FALSE)
+                 ignore_attr = TRUE)
     expect_equal(tail(fit$elbo, 1), tail(ref$elbo, 1),
-                 tolerance = tol_tight, check.attributes = FALSE)
+                 tolerance = tol_tight, ignore_attr = TRUE)
     obs <- !is.na(y_missing)
     expect_equal(fit$fitted[obs] - mean(fit$fitted[obs]),
                  ref$fitted[obs] - mean(ref$fitted[obs]),
-                 tolerance = tol_tight, check.attributes = FALSE)
+                 tolerance = tol_tight, ignore_attr = TRUE)
   })
 })
 
@@ -483,12 +483,12 @@ test_that("fitted_g prior structure matches R6 MashInitializer", {
   r6_pi_nonnull <- r6_pv$pi[-1]
   r6_pi_nonnull <- r6_pi_nonnull / sum(r6_pi_nonnull)
   expect_equal(as.vector(s3_prior$pi), as.vector(r6_pi_nonnull),
-               tolerance = 1e-10, check.attributes = FALSE)
+               tolerance = 1e-10, ignore_attr = TRUE)
 
   # Compare actual prior matrices (non-null only)
   for (k in seq_along(s3_prior$xUlist)) {
     expect_equal(s3_prior$xUlist[[k]], r6_nonnull[[k]],
-                 tolerance = 1e-14, check.attributes = FALSE)
+                 tolerance = 1e-14, ignore_attr = TRUE)
   }
 })
 

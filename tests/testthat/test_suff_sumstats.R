@@ -370,12 +370,12 @@ test_that("With full observation, the estimated prior variance: matrix vs mash p
                       estimate_residual_variance=F, estimate_prior_variance=T,
                       estimate_prior_method='EM')
 
-  expect_equal(fit4_matrix$alpha,fit4_mash$alpha,tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(fit4_matrix$lbf,fit4_mash$lbf,tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(get_b1(fit4_matrix),get_b1(fit4_mash),tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(get_b2(fit4_matrix),get_b2(fit4_mash),tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(coef(fit4_matrix),coef(fit4_mash),tolerance = 1e-8,check.attributes = FALSE)
-  expect_equal(fit4_matrix$V,fit4_mash$V,tolerance = 1e-8,check.attributes = FALSE)
+  expect_equal(fit4_matrix$alpha,fit4_mash$alpha,tolerance = 1e-8,ignore_attr = TRUE)
+  expect_equal(fit4_matrix$lbf,fit4_mash$lbf,tolerance = 1e-8,ignore_attr = TRUE)
+  expect_equal(get_b1(fit4_matrix),get_b1(fit4_mash),tolerance = 1e-8,ignore_attr = TRUE)
+  expect_equal(get_b2(fit4_matrix),get_b2(fit4_mash),tolerance = 1e-8,ignore_attr = TRUE)
+  expect_equal(coef(fit4_matrix),coef(fit4_mash),tolerance = 1e-8,ignore_attr = TRUE)
+  expect_equal(fit4_matrix$V,fit4_mash$V,tolerance = 1e-8,ignore_attr = TRUE)
 }))
 
 test_that("When R = 1, the elbo with missing data agrees with full data", with(simulate_multivariate(r=1, center_scale = F, y_missing = 0.5), {
