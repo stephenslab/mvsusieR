@@ -487,6 +487,13 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
     Z <- sqrt(adj) * Z
   }
 
+  if (estimate_residual_variance && missing(varY)) {
+    warning_message(paste0(
+      "Estimating residual variance from summary statistics without ",
+      "providing varY may be inaccurate. Consider providing varY ",
+      "or setting estimate_residual_variance = FALSE."))
+  }
+
   if (!is.null(dim(Z)) && ncol(Z) > 1 && is_numeric_prior) {
     stop("Please specify prior variance for the multivariate z-scores")
   }
@@ -516,23 +523,9 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
       "N is large (Inf) and the effect sizes are small (close to zero)."
     )
     if (!missing(varY)) {
-      if (!is.null(dim(Z))) {
-        varY <- cov2cor(varY)
-      }
+      if (!is.null(dim(varY))) varY <- cov2cor(varY)
     } else {
-      if (is.null(residual_variance)) {
-        if (is.null(dim(Z))) {
-          varY <- 1
-        } else {
-          varY <- diag(ncol(Z))
-        }
-      } else {
-        if (is.null(dim(residual_variance))) {
-          varY <- residual_variance
-        } else {
-          varY <- cov2cor(residual_variance)
-        }
-      }
+      varY <- estimate_cov_z(Z)
     }
     s <- mvsusie_ss(
       XtX = R, XtY = Z, YtY = varY, N = 2,
@@ -568,23 +561,9 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
       XtX <- (N - 1) * R
       XtY <- sqrt(N - 1) * Z
       if (!missing(varY)) {
-        if (!is.null(dim(Z))) {
-          varY <- cov2cor(varY)
-        }
+        if (!is.null(dim(varY))) varY <- cov2cor(varY)
       } else {
-        if (is.null(residual_variance)) {
-          if (is.null(dim(Z))) {
-            varY <- 1
-          } else {
-            varY <- diag(ncol(Z))
-          }
-        } else {
-          if (is.null(dim(residual_variance))) {
-            varY <- residual_variance
-          } else {
-            varY <- cov2cor(residual_variance)
-          }
-        }
+        varY <- estimate_cov_z(Z)
       }
     }
     s <- mvsusie_ss(

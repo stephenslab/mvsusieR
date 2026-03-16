@@ -10,7 +10,7 @@ vignette: >
 ---
 
 This vignette walks through the steps of a basic mvSuSiE multi-trait
-fine-mapping analysis using individual-level and summary data. 
+fine-mapping analysis using individual-level and summary data.
 
 For detailed interpretation of the output including PIP, credible sets,
 LFSR, outcome-specific PIPs, and per-effect coefficient
@@ -146,9 +146,9 @@ The PIPs are close but not identical because `mvsusie()` defaults to
 `estimate_residual_variance = TRUE` (re-estimating the residual
 variance from the data), whereas `mvsusie_rss()` defaults to `FALSE`
 (since the residual variance is difficult to estimate reliably from
-summary statistics alone). For a detailed comparison of all input
-formats---including how to obtain identical PIPs and coefficients on
-the original scale---see the
+summary statistics alone, as noted in [Zou *et al.*][susie-rss]).
+For a detailed comparison of all input formats and the effect of
+estimating the residual variance, see the
 [input data formats](input_data_format.html) vignette.
 
 Of course, the results are also not always expected to be the same

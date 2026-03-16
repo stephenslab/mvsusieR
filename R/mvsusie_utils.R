@@ -146,6 +146,38 @@ makePD <- function(x, e = NULL) {
   result
 }
 
+# Estimate cor(Y) from z-scores using near-null SNPs.
+#
+# For null SNPs (no true effect on any trait), cov(Z) approximates
+# the outcome covariance cor(Y). This selects SNPs where max(|Z|)
+# < z_thresh as approximately null and computes their sample
+# correlation matrix. Returns 1 for univariate input. Falls back
+# to diag(R) with a warning if too few null SNPs are found.
+#
+# @param Z J x R matrix of z-scores, or a length-J vector (univariate).
+# @param z_thresh Threshold for identifying null SNPs (default 2).
+# @return R x R correlation matrix estimating cor(Y), or 1 (univariate).
+#
+# @importFrom stats cov cov2cor
+#
+# @keywords internal
+estimate_cov_z <- function(Z, z_thresh = 2) {
+  if (is.null(dim(Z))) return(1)
+  R <- ncol(Z)
+  min_null <- max(2 * R, 20)
+  null_idx <- which(apply(abs(Z), 1, max) < z_thresh)
+  if (length(null_idx) < min_null) {
+    warning_message(paste0(
+      "Only ", length(null_idx), " near-null SNPs found (need ",
+      min_null, "); using identity for varY. ",
+      "Consider providing varY directly for more accurate results."))
+    return(diag(R))
+  }
+  varY <- cov2cor(cov(Z[null_idx, , drop = FALSE]))
+  if (!is_pd(varY)) varY <- makePD(varY)
+  return(varY)
+}
+
 # Pseudoinverse of matrix.
 pseudo_inverse <- function(x, tol = sqrt(.Machine$double.eps)) {
   xsvd <- svd(x)

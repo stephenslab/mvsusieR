@@ -119,6 +119,12 @@ estimate_residual_variance_mv_ss <- function(data, model) {
 
   V_est <- (RtR + bxxb - b1_XtX_b1) / N
   V_est <- (V_est + t(V_est)) / 2
+  # Ensure positive-definiteness.  When YtY is approximate (e.g. the
+
+  # z-score path where cor(Y) is estimated from null z-scores), the
+  # formula can produce a non-PD result.  Add a small ridge as a
+  # safety net, mirroring the individual-data imputation path.
+  if (!is_pd(V_est)) V_est <- makePD(V_est)
   return(V_est)
 }
 
