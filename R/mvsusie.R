@@ -417,6 +417,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
 mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
                         prior_variance = 0.2,
                         residual_variance = NULL,
+                        estimate_residual_variance = FALSE,
                         ...) {
   is_numeric_prior <-
     !(is.matrix(prior_variance) || class(prior_variance)[1] == "mash_prior")
@@ -537,6 +538,7 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
       XtX = R, XtY = Z, YtY = varY, N = 2,
       prior_variance = prior_variance,
       standardize = FALSE,
+      estimate_residual_variance = estimate_residual_variance,
       residual_variance = residual_variance, ...
     )
   } else {
@@ -588,6 +590,7 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
     s <- mvsusie_ss(
       XtX = XtX, XtY = XtY, YtY = (N - 1) * varY, N = N,
       prior_variance = prior_variance,
+      estimate_residual_variance = estimate_residual_variance,
       residual_variance = residual_variance, ...
     )
   }
@@ -623,7 +626,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                               Y_colmeans = NULL, prior_variance = 0.2,
                               residual_variance = NULL, prior_weights = NULL,
                               standardize = TRUE,
-                              estimate_residual_variance = FALSE,
+                              estimate_residual_variance = TRUE,
                               estimate_prior_variance = TRUE,
                               estimate_prior_method = "optim",
                               estimate_prior_mixture_weights = TRUE,
@@ -966,7 +969,7 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   residual_variance = NULL,
                                   prior_weights = NULL,
                                   standardize = TRUE,
-                                  estimate_residual_variance = FALSE,
+                                  estimate_residual_variance = TRUE,
                                   estimate_prior_variance = TRUE,
                                   estimate_prior_method = "optim",
                                   estimate_prior_mixture_weights = TRUE,

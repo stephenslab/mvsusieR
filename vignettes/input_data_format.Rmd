@@ -185,9 +185,18 @@ fit_rss_bhat <- mvsusie_rss(Bhat = Bhat, Shat = Shat, R = LD,
 
 ## Verifying agreement across interfaces
 
-When the LD matrix and summary statistics are computed from the same
-individual-level data, all interfaces should produce (near-)identical
-results.
+All fits above use `estimate_residual_variance = FALSE` so that
+each interface uses the same fixed residual variance. This makes the
+interfaces directly comparable. Note that the default settings differ:
+`mvsusie()` and `mvsusie_ss()` default to `estimate_residual_variance
+= TRUE`, while `mvsusie_rss()` defaults to `FALSE` (because the
+residual variance is difficult to estimate reliably from summary
+statistics alone). When using the defaults, PIPs will differ slightly
+as illustrated in the [introduction vignette](mvsusie_intro.html).
+
+With `estimate_residual_variance = FALSE` and the LD matrix and
+summary statistics computed from the same individual-level data,
+all interfaces produce (near-)identical results.
 
 ### PIPs
 
@@ -265,3 +274,77 @@ ggplot(pdat, aes(x = coef_raw, y = coef_other)) +
   labs(x = "coef (mvsusie)", y = "coef (other interface)") +
   theme_cowplot(font_size = 12)
 ```
+
+## Effect of estimating the residual variance
+
+The comparisons above fix `estimate_residual_variance = FALSE` in all
+calls. Here we show what happens when `mvsusie()` uses its default
+(`estimate_residual_variance = TRUE`) while `mvsusie_rss()` keeps
+its default (`FALSE`).
+
+```{r est-resvar-true}
+fit_erv <- mvsusie(X, Y, L = 10,
+                   prior_variance = prior,
+                   residual_variance = resid_var,
+                   estimate_residual_variance = TRUE,
+                   estimate_prior_variance = TRUE,
+                   standardize = TRUE)
+```
+
+```{r compare-erv, fig.height=3, fig.width=7}
+p1 <- ggplot(data.frame(pip_false = fit$pip, pip_true = fit_erv$pip),
+             aes(x = pip_false, y = pip_true)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "PIP (est_resvar = FALSE)",
+       y = "PIP (est_resvar = TRUE)") +
+  ggtitle("mvsusie") +
+  theme_cowplot(font_size = 12)
+p2 <- ggplot(data.frame(pip_ind = fit_erv$pip, pip_rss = fit_rss$pip),
+             aes(x = pip_ind, y = pip_rss)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "PIP mvsusie (TRUE)",
+       y = "PIP mvsusie_rss (FALSE)") +
+  ggtitle("Defaults") +
+  theme_cowplot(font_size = 12)
+plot_grid(p1, p2, nrow = 1)
+```
+
+The left panel shows that estimating the residual variance changes
+PIPs slightly even with individual-level data. The right panel shows
+the PIP comparison under default settings---this is what users see in
+the [introduction vignette](mvsusie_intro.html). The PIPs remain
+highly concordant; minor differences arise because `mvsusie()` refines
+its residual variance estimate while `mvsusie_rss()` holds it fixed.
+
+```{r compare-erv-coef, fig.height=3, fig.width=7}
+coef_erv <- coef(fit_erv)
+p1 <- ggplot(data.frame(b_false = as.vector(coef_ind[-1, ]),
+                         b_true  = as.vector(coef_erv[-1, ])),
+             aes(x = b_false, y = b_true)) +
+  geom_point(shape = 20, size = 1, color = "royalblue", alpha = 0.4) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "coef (est_resvar = FALSE)",
+       y = "coef (est_resvar = TRUE)") +
+  ggtitle("mvsusie") +
+  theme_cowplot(font_size = 12)
+p2 <- ggplot(data.frame(b_ind = as.vector(coef_erv[-1, ]),
+                         b_rss = as.vector(coef_rss[-1, ])),
+             aes(x = b_ind, y = b_rss)) +
+  geom_point(shape = 20, size = 1, color = "royalblue", alpha = 0.4) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "coef mvsusie (TRUE)",
+       y = "coef mvsusie_rss (FALSE)") +
+  ggtitle("Defaults") +
+  theme_cowplot(font_size = 12)
+plot_grid(p1, p2, nrow = 1)
+```
+
+The left panel confirms that coefficients from `mvsusie()` are nearly
+identical regardless of whether the residual variance is estimated.
+The right panel shows coefficients under default settings: the
+z-score-only RSS coefficients are on a *standardized* scale and
+therefore not directly comparable in magnitude. To obtain coefficients
+on the original scale, use the `Bhat`/`Shat`/`varY` interface as
+shown above.

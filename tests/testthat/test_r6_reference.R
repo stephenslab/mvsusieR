@@ -593,13 +593,16 @@ test_that("S3 output has outcome_names (replaces R6 condition_names)", {
   expect_equal(length(dev$outcome_names), R)
 })
 
-test_that("estimate_residual_variance defaults: TRUE for individual, FALSE for ss", {
+test_that("estimate_residual_variance defaults: TRUE for individual/ss, FALSE for rss", {
   # Verify by checking the function formals directly
   mvsusie_formals <- formals(mvsusie)
   expect_true(mvsusie_formals$estimate_residual_variance)
 
   mvsusie_ss_formals <- formals(mvsusie_ss)
-  expect_false(mvsusie_ss_formals$estimate_residual_variance)
+  expect_true(mvsusie_ss_formals$estimate_residual_variance)
+
+  mvsusie_rss_formals <- formals(mvsusie_rss)
+  expect_false(mvsusie_rss_formals$estimate_residual_variance)
 })
 
 test_that("create_mixture_prior backward compatibility: R and mixture_prior paths", {

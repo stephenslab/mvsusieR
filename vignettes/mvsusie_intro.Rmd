@@ -126,10 +126,12 @@ fit_rss <- mvsusie_rss(Z,R,n,
                        estimate_prior_variance = TRUE)
 ```
 
+## Comparing individual-level and summary data results
+
 When the genotypes are standardized in `mvsusie` (`standardize =
 TRUE`) and the LD estimates are obtained from the same data that were
 used to compute the *z*-scores, both `mvsusie` and `mvsusie_rss`
-should give the same PIPs:
+give similar PIPs:
 
 ```{r raw-vs-summary, fig.height=3, fig.width=3.5}
 ggplot(data.frame(pip = fit$pip, pip_rss = fit_rss$pip),
@@ -140,15 +142,17 @@ ggplot(data.frame(pip = fit$pip, pip_rss = fit_rss$pip),
   theme_cowplot(font_size = 12)
 ```
 
-Note that when only *z*-scores and the LD matrix are provided, the
-effect estimates from `coef()` are on the *standardized* scale.
-To obtain coefficients on the original scale that exactly match
-`mvsusie()`, provide effect estimates (`Bhat`), standard errors
-(`Shat`), and the sample variance of Y (`varY`). See the
-[input data formats](input_data_format.html) vignette for details.
+The PIPs are close but not identical because `mvsusie()` defaults to
+`estimate_residual_variance = TRUE` (re-estimating the residual
+variance from the data), whereas `mvsusie_rss()` defaults to `FALSE`
+(since the residual variance is difficult to estimate reliably from
+summary statistics alone). For a detailed comparison of all input
+formats---including how to obtain identical PIPs and coefficients on
+the original scale---see the
+[input data formats](input_data_format.html) vignette.
 
-Of course, the result is not always expected to be the same---for
-example, when the LD is estimated from an external reference panel.
+Of course, the results are also not always expected to be the same
+when the LD is estimated from an external reference panel.
 
 ## Estimating the residual variance
 
