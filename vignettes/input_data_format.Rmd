@@ -165,23 +165,9 @@ cat("  max |PIP diff|:", max(abs(fit$pip - fit_rss_zv$pip)), "\n")
 ```
 
 The z-score path with `varY` also produces PIPs that match at near
-machine precision.  Note that the coefficients are on a standardized
-scale in this case (they differ from the individual-level coefficients
-by a factor related to $\sqrt{N}$), so only PIP agreement is checked.
-
-```{r compare-3a-plot, fig.height=3, fig.width=7}
-pdat <- data.frame(
-  pip_ind = rep(fit$pip, 2),
-  pip_rss = c(fit_rss_bhat$pip, fit_rss_zv$pip),
-  interface = rep(c("Bhat/Shat/varY", "Z + varY"), each = p)
-)
-ggplot(pdat, aes(x = pip_ind, y = pip_rss)) +
-  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
-  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
-  facet_wrap(~interface) +
-  labs(x = "PIP (mvsusie)", y = "PIP (mvsusie_rss)") +
-  theme_cowplot(font_size = 12)
-```
+machine precision.  The coefficients from this path are on a
+standardized scale (see the coefficient section below), so only PIP
+agreement is checked here.
 
 ## Interface 3b: RSS with z-scores only (no varY)
 
@@ -236,18 +222,13 @@ cat("  PIP correlation:", round(cor(fit_rss_zv$pip, fit_rss_t$pip), 4), "\n")
 
 With the default `estimate_residual_variance = FALSE`, the z-score-only
 path gives PIPs that are nearly identical to the individual-level fit
-(PIP correlation $\approx 1$).  Enabling residual variance estimation
-(`TRUE`) without `varY` can lead to noticeably different results: the
-estimated outcome correlation from null z-scores may not perfectly
-capture the true `cor(Y)`, causing the iterative residual variance
-updates to drift.  In this simulation the `TRUE` path finds an
-additional credible set and the PIP correlation with the
-individual-level fit drops substantially.
+(PIP correlation $\approx 1$).  In fact, when the residual
+variance is fixed, the internally estimated `varY` has **no effect**
+on PIPs or coefficients --- only $X^TX$ and $X^TY$ matter for the
+posterior.
 
-This illustrates the recommendation from
-[Zou *et al.* (2022)][susie-rss]: when only z-scores and LD are
-available, fixing the residual variance
-(`estimate_residual_variance = FALSE`) is the safer default.
+Enabling residual variance estimation (`TRUE`) without `varY` can
+lead to noticeably different results. 
 
 ```{r compare-3b-plot, fig.height=3, fig.width=10}
 pdat <- data.frame(
@@ -264,88 +245,149 @@ ggplot(pdat, aes(x = pip_ref, y = pip_rss)) +
   theme_cowplot(font_size = 12)
 ```
 
-The left panel (`FALSE`, the default) shows tight agreement with the
-individual-level fit.  The middle panel (`TRUE`, no `varY`) shows
-scatter away from the diagonal --- the residual variance estimator
-is unreliable without `varY`.  The right panel (`TRUE` with `varY`)
-recovers the individual-level PIPs, confirming that the divergence in
-the middle panel is due to the missing `varY`, not the estimation
-procedure itself.
+The inflated PIPs from the z-score `TRUE` path introduce **false discoveries**:
+
+```{r cs-fdr}
+check_cs <- function(fit, label) {
+  cat(label, ":", length(fit$sets$cs), "credible sets\n")
+  for (i in seq_along(fit$sets$cs)) {
+    cs <- fit$sets$cs[[i]]
+    hit <- intersect(cs, causal)
+    status <- if (length(hit) > 0) paste("causal", paste(hit, collapse = ","))
+              else "FALSE POSITIVE"
+    cat(sprintf("  CS%d: size=%d, purity=%.3f  -> %s\n",
+                i, length(cs), fit$sets$purity[i, "min.abs.corr"], status))
+  }
+  cat("\n")
+}
+check_cs(fit,       "Individual (TRUE)")
+check_cs(fit_rss_f, "Z-only (FALSE)")
+check_cs(fit_rss_t, "Z-only (TRUE)")
+```
+
+```{r fp-snps}
+fp <- which(fit_rss_t$pip > 0.5 & fit$pip < 0.1)
+if (length(fp) > 0) {
+  cat("Non-causal SNPs with PIP > 0.5 in z-only TRUE path:\n")
+  for (s in fp)
+    cat(sprintf("  SNP %d: PIP_ind=%.4f, PIP_z(F)=%.4f, PIP_z(T)=%.4f\n",
+                s, fit$pip[s], fit_rss_f$pip[s], fit_rss_t$pip[s]))
+}
+```
+
+The individual-level fit and the z-score `FALSE` path both identify
+the same three causal SNPs with no false discoveries.  The z-score
+`TRUE` path finds an additional credible set that does **not** contain
+a causal SNP, and assigns high PIPs to non-causal SNPs.  
+
+This illustrates the recommendation from
+[Zou *et al.* (2022)][susie-rss]: when only z-scores and LD are
+available, fixing the residual variance
+(`estimate_residual_variance = FALSE`) is the safer default.
 
 ## Coefficient estimates across interfaces
 
-The z-score path works on a standardized scale: internally,
-$X^TX = (N-1)\,R$ and $X^TY = \sqrt{N-1}\,Z$, so the posterior mean
-coefficients differ from the individual-level coefficients by a
-factor related to $\sqrt{N}$.  Despite the scale difference, when
-both interfaces use the same `estimate_residual_variance` setting,
-the coefficients should be perfectly correlated because the
-underlying model is the same up to a constant rescaling.
+The `Bhat`/`Shat`/`varY` interface (3a) produces coefficients on
+the **original** scale, identical to `mvsusie()`, because the standard
+errors `Shat` carry the genotype scale information needed to
+reconstruct the exact sufficient statistics.
 
-To isolate this, we re-fit `mvsusie()` with
-`estimate_residual_variance = FALSE` so that it matches the RSS
-default:
+The z-score path works on a **doubly standardized** scale: the
+z-score $Z_{jr} = \hat\beta_{jr}/\mathrm{se}_{jr}$ absorbs both
+$\mathrm{sd}(X_j)$ and $\mathrm{sd}(Y_r)$.  Internally the path
+constructs $X^TX = (N-1)\,R$ (correlation matrix) and
+$X^TY = \sqrt{N-1}\,Z$, so the fitted coefficients relate to the
+individual-level ones as
 
-```{r fit-ind-false}
-fit_f <- mvsusie(X, Y, L = 10,
-                 prior_variance = prior,
-                 residual_variance = resid_var,
-                 estimate_residual_variance = FALSE,
-                 estimate_prior_variance = TRUE,
-                 standardize = TRUE)
-```
+$$\hat\beta^{\text{ind}}_{jr}
+  \;\approx\;
+  \hat\beta^{Z}_{jr}\;\times\;
+  \frac{\mathrm{sd}(Y_r)}{\mathrm{sd}(X_j)}.$$
+
+This is **not** a single constant factor --- it varies by both SNP
+$j$ (through $\mathrm{sd}(X_j)$) and trait $r$ (through
+$\mathrm{sd}(Y_r)$) --- so the raw correlation between the
+vectorized coefficient matrices is less than one even when the PIPs
+match perfectly.
 
 ```{r coef-compare}
-coef_ind_true  <- coef(fit)[-1, ]       # individual, TRUE (default)
-coef_ind_false <- coef(fit_f)[-1, ]     # individual, FALSE
-coef_rss_false <- coef(fit_rss_f)[-1, ] # RSS z-only, FALSE (default)
+coef_ind  <- coef(fit)[-1, ]
+coef_bhat <- coef(fit_rss_bhat)[-1, ]
+coef_z    <- coef(fit_rss_f)[-1, ]
 
-cat("=== Coefficient correlations (vectorized over all J x R entries) ===\n\n")
-cat("Both FALSE (ind vs RSS z-only):\n")
-cat("  correlation:", round(cor(as.vector(coef_ind_false),
-                                as.vector(coef_rss_false)), 6), "\n\n")
-cat("ind TRUE vs RSS z-only FALSE (both defaults):\n")
-cat("  correlation:", round(cor(as.vector(coef_ind_true),
-                                as.vector(coef_rss_false)), 6), "\n")
+# Rescale z-score coefficients to original scale
+csd <- sqrt(colSums(Xc^2) / (n - 1))  # genotype column SDs
+sdY <- apply(Y, 2, sd)
+coef_z_rescaled <- coef_z
+for (j in seq_len(p))
+  for (rr in seq_len(r))
+    coef_z_rescaled[j, rr] <- coef_z[j, rr] * sdY[rr] / csd[j]
+
+cat("=== Bhat/Shat/varY vs mvsusie (original scale) ===\n")
+cat("  max |coef diff|:", max(abs(coef_ind - coef_bhat)), "\n")
+cat("  correlation:", round(cor(as.vector(coef_ind),
+                                as.vector(coef_bhat)), 6), "\n\n")
+
+cat("=== Z-score vs mvsusie (raw, standardized scale) ===\n")
+cat("  correlation:", round(cor(as.vector(coef_ind),
+                                as.vector(coef_z)), 4), "\n")
+cat("  max |coef| individual:", round(max(abs(coef_ind)), 4), "\n")
+cat("  max |coef| z-score:", round(max(abs(coef_z)), 4), "\n\n")
+
+cat("=== Z-score vs mvsusie (after rescaling by sd(Y)/sd(X)) ===\n")
+cat("  correlation:", round(cor(as.vector(coef_ind),
+                                as.vector(coef_z_rescaled)), 6), "\n")
+cat("  max |coef diff|:", round(max(abs(coef_ind - coef_z_rescaled)), 4), "\n")
 ```
 
-When both interfaces use the same `estimate_residual_variance`
-setting (`FALSE`), the coefficients are strongly correlated even though
-they live on different scales.  The z-score path coefficients are
-roughly $1/\sqrt{N}$ times the individual-level coefficients, because
-the sufficient statistics are constructed from standardized quantities
-($X^TX = (N-1)\,R$, $X^TY \propto Z$).  Comparing the defaults ---
-individual-level with `TRUE` and RSS with `FALSE` --- gives a similar
-correlation, because the residual variance estimation primarily
-affects convergence and the ELBO, with only a modest effect on the
-posterior means.
+The `Bhat`/`Shat`/`varY` coefficients match `mvsusie()` at machine
+precision.  The raw z-score coefficients are on a doubly-standardized
+scale with correlation $\approx 0.96$ against `mvsusie()`.  After
+rescaling by $\mathrm{sd}(Y_r)/\mathrm{sd}(X_j)$ the agreement is
+near-perfect (correlation $> 0.9999$).  The small residual comes from
+the PVE adjustment applied to z-scores.  In practice this rescaling
+requires $\mathrm{sd}(X)$ and $\mathrm{sd}(Y)$ which are not
+available from summary statistics alone.
 
-```{r coef-plot, fig.height=3, fig.width=7}
+```{r coef-plot, fig.height=3, fig.width=10}
 pdat <- data.frame(
-  coef_ind = c(as.vector(coef_ind_false), as.vector(coef_ind_true)),
-  coef_rss = rep(as.vector(coef_rss_false), 2),
-  setting  = rep(c("Both FALSE", "ind TRUE vs RSS FALSE (defaults)"),
-                 each = length(coef_ind_false))
+  coef_ind = rep(as.vector(coef_ind), 3),
+  coef_rss = c(as.vector(coef_bhat),
+               as.vector(coef_z),
+               as.vector(coef_z_rescaled)),
+  interface = factor(rep(c("Bhat/Shat/varY\n(original scale)",
+                            "Z-score\n(standardized)",
+                            "Z-score rescaled\n(sd(Y)/sd(X))"),
+                         each = length(coef_ind)),
+                     levels = c("Bhat/Shat/varY\n(original scale)",
+                                "Z-score\n(standardized)",
+                                "Z-score rescaled\n(sd(Y)/sd(X))"))
 )
 ggplot(pdat, aes(x = coef_ind, y = coef_rss)) +
   geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
   geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
-  facet_wrap(~setting, scales = "free") +
-  labs(x = "Coefficient (mvsusie)", y = "Coefficient (mvsusie_rss, z-only)") +
+  facet_wrap(~interface, scales = "free") +
+  labs(x = "Coefficient (mvsusie)", y = "Coefficient (mvsusie_rss)") +
   theme_cowplot(font_size = 12)
 ```
 
-In the left panel (both `FALSE`), the coefficients fall along a line
-with slope less than one, reflecting the standardized scale of the
-z-score path.  In the right panel (default settings: individual `TRUE`
-vs RSS `FALSE`), the pattern is similar --- the individual-level
-coefficients are slightly larger because re-estimating the residual
-variance adjusts the posterior shrinkage, but the overall agreement
-remains strong.
+The left panel confirms that `Bhat`/`Shat`/`varY` recovers the exact
+coefficients.  The middle panel shows the z-score coefficients are
+attenuated due to the doubly-standardized scale.  The right panel
+shows that rescaling by $\mathrm{sd}(Y_r)/\mathrm{sd}(X_j)$ recovers
+the original coefficients almost exactly.
 
-For applications where the coefficient magnitude matters (e.g.,
-polygenic prediction), `mvsusie_rss()` with `Bhat`/`Shat`/`varY`
-(Interface 3a) is preferred, as it produces coefficients on the
-original scale identical to `mvsusie()`.
+We can also verify this at causal SNPs:
+
+```{r coef-causal}
+cat("Coefficients at causal SNPs (first 3 traits):\n\n")
+for (j in causal) {
+  cat(sprintf("SNP %d:\n", j))
+  cat("  individual:    ", round(coef_ind[j, 1:3], 4), "\n")
+  cat("  Bhat/Shat/varY:", round(coef_bhat[j, 1:3], 4), "\n")
+  cat("  z-score raw:   ", round(coef_z[j, 1:3], 4), "\n")
+  cat("  z-score rescaled:", round(coef_z_rescaled[j, 1:3], 4), "\n\n")
+}
+```
 
 [susie-rss]: https://doi.org/10.1371/journal.pgen.1010299
