@@ -164,7 +164,9 @@ get_intercept.mv_ss <- function(data, params, model, ...) {
     coefs_original <- b_sum / data$csd
     data$Y_colmeans - as.vector(t(data$X_colmeans) %*% coefs_original)
   } else {
-    rep(NA_real_, data$R)
+    # Without column means, the intercept is 0 on the centered scale
+    # (the model operates on centered sufficient statistics).
+    rep(0, data$R)
   }
 }
 

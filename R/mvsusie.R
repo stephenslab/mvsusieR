@@ -550,10 +550,16 @@ mvsusie_rss <- function(Z, R, N, Bhat, Shat, varY,
         XtX <- (XtX + t(XtX)) / 2
         XtY <- Z * sqrt(adj) * varY / Shat
       } else {
-        XtXdiag <- colMeans(diag(varY) * adj / t(Shat^2))
+        # Multivariate: adj, Shat are J x R; diag(varY) is R-vector.
+        # Use t(t(...) * vec) idiom to broadcast the R-vector correctly
+        # across columns (outcomes) of the J x R matrix.
+        # XtXdiag[j] = mean over r of: varY[r,r] * adj[j,r] / Shat[j,r]^2
+        XtXdiag <- rowMeans(t(t(adj / Shat^2) * diag(varY)))
         XtX <- t(R * sqrt(XtXdiag)) * sqrt(XtXdiag)
         XtX <- (XtX + t(XtX)) / 2
-        XtY <- Z * sqrt(adj) * diag(varY) / Shat
+        # XtY[j,r] = Z_adj[j,r] * sqrt(adj[j,r]) * varY[r,r] / Shat[j,r]
+        # where Z_adj = z_orig * sqrt(adj) (from line 486 above).
+        XtY <- t(t(Z * sqrt(adj) / Shat) * diag(varY))
       }
     } else {
       # The effects are on the *standardized* X, y scale.

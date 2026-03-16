@@ -415,3 +415,128 @@ test_that("With full observation, the elbo: matrix vs mash prior agree", with(si
 
   expect_equal(fit1$elbo, fit4$elbo)
 }))
+
+# =============================================================================
+# RSS with Bhat/Shat/varY: slope coefficients match individual data exactly
+# =============================================================================
+
+test_that("R>1 mvsusie_rss with Bhat/Shat/varY gives same slopes as mvsusie", {
+  set.seed(42)
+  n <- 200; p <- 50; R <- 2
+  X <- matrix(rnorm(n * p), n, p)
+  B <- matrix(0, p, R)
+  B[1, ] <- c(1, 0.5)
+  B[2, ] <- c(0.5, 1)
+  Y <- X %*% B + matrix(rnorm(n * R), n, R)
+
+  prior_var <- diag(R) * 0.2
+  resid_var <- cov(Y)
+
+  # Individual data fit
+  fit_ind <- mvsusie(X, Y, L = 5, prior_variance = prior_var,
+                     residual_variance = resid_var,
+                     estimate_prior_variance = FALSE,
+                     estimate_residual_variance = FALSE,
+                     max_iter = 100, verbose = FALSE)
+
+  # Compute Bhat/Shat
+  Xc <- scale(X, center = TRUE, scale = FALSE)
+  Yc <- scale(Y, center = TRUE, scale = FALSE)
+  Bhat <- matrix(0, p, R)
+  Shat <- matrix(0, p, R)
+  for (r in seq_len(R)) {
+    reg <- susieR:::univariate_regression(Xc, Yc[, r])
+    Bhat[, r] <- reg$betahat
+    Shat[, r] <- reg$sebetahat
+  }
+
+  # RSS fit with Bhat/Shat/varY
+  fit_rss <- mvsusie_rss(Bhat = Bhat, Shat = Shat, R = cor(X),
+                          N = n, varY = cov(Y),
+                          L = 5, prior_variance = prior_var,
+                          residual_variance = resid_var,
+                          estimate_prior_variance = FALSE,
+                          estimate_residual_variance = FALSE,
+                          max_iter = 100, verbose = FALSE)
+
+  # Slope coefficients should match to machine precision
+  coef_ind <- coef(fit_ind)
+  coef_rss <- coef(fit_rss)
+  expect_equal(coef_ind[-1, ], coef_rss[-1, ], tolerance = 1e-10)
+  expect_equal(fit_ind$alpha, fit_rss$alpha, tolerance = 1e-10)
+  expect_equal(fit_ind$pip, fit_rss$pip, tolerance = 1e-10)
+})
+
+test_that("R=1 mvsusie_rss with Bhat/Shat/varY gives same slopes as mvsusie", {
+  set.seed(42)
+  n <- 200; p <- 50
+  X <- matrix(rnorm(n * p), n, p)
+  b <- rep(0, p); b[1:2] <- 1
+  y <- X %*% b + rnorm(n)
+
+  prior_var <- 0.2
+  resid_var <- var(as.vector(y))
+
+  fit_ind <- mvsusie(X, y, L = 5, prior_variance = prior_var,
+                     residual_variance = resid_var,
+                     estimate_prior_variance = FALSE,
+                     estimate_residual_variance = FALSE,
+                     max_iter = 100, verbose = FALSE)
+
+  Xc <- scale(X, center = TRUE, scale = FALSE)
+  yc <- y - mean(y)
+  reg <- susieR:::univariate_regression(Xc, yc)
+
+  fit_rss <- mvsusie_rss(Bhat = reg$betahat, Shat = reg$sebetahat,
+                          R = cor(X), N = n, varY = var(as.vector(y)),
+                          L = 5, prior_variance = prior_var,
+                          residual_variance = resid_var,
+                          estimate_prior_variance = FALSE,
+                          estimate_residual_variance = FALSE,
+                          max_iter = 100, verbose = FALSE)
+
+  coef_ind <- coef(fit_ind)
+  coef_rss <- coef(fit_rss)
+  expect_equal(coef_ind[-1, ], coef_rss[-1, ], tolerance = 1e-10)
+  expect_equal(fit_ind$alpha, fit_rss$alpha, tolerance = 1e-10)
+  expect_equal(fit_ind$pip, fit_rss$pip, tolerance = 1e-10)
+})
+
+test_that("R>1 mvsusie_rss with z-scores only gives same PIPs as mvsusie", {
+  set.seed(42)
+  n <- 200; p <- 50; R <- 2
+  X <- matrix(rnorm(n * p), n, p)
+  B <- matrix(0, p, R)
+  B[1, ] <- c(1, 0.5)
+  B[2, ] <- c(0.5, 1)
+  Y <- X %*% B + matrix(rnorm(n * R), n, R)
+
+  prior_var <- diag(R) * 0.2
+  resid_var <- cov(Y)
+
+  fit_ind <- mvsusie(X, Y, L = 5, prior_variance = prior_var,
+                     residual_variance = resid_var,
+                     estimate_prior_variance = FALSE,
+                     estimate_residual_variance = FALSE,
+                     max_iter = 100, verbose = FALSE)
+
+  Z <- calc_z(X, Y, center = TRUE, scale = TRUE)
+  LD <- cor(X)
+
+  fit_rss <- mvsusie_rss(Z, LD, N = n,
+                          L = 5, prior_variance = prior_var,
+                          residual_variance = resid_var,
+                          estimate_prior_variance = FALSE,
+                          estimate_residual_variance = FALSE,
+                          max_iter = 100, verbose = FALSE)
+
+  # When only z-scores and LD are provided (without varY), the RSS path
+  # uses cov2cor(residual_variance) as YtY, which is an approximation.
+  # PIPs should be highly correlated but not necessarily identical.
+  expect_gt(cor(fit_ind$pip, fit_rss$pip), 0.95)
+  # Slopes are on different scales: standardized vs original.
+  # Check high correlation for non-trivial coefficients.
+  slopes_ind <- as.vector(coef(fit_ind)[-1, ])
+  slopes_rss <- as.vector(coef(fit_rss)[-1, ])
+  expect_gt(cor(slopes_ind, slopes_rss), 0.95)
+})

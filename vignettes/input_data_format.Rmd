@@ -154,20 +154,67 @@ fit_rss <- mvsusie_rss(Z, LD, N = n, L = 10,
         )
 ```
 
+## Interface 3b: RSS with effect estimates (original scale)
+
+When effect estimates (`Bhat`), standard errors (`Shat`), the sample
+covariance of Y (`varY`), and the sample size are all provided,
+`mvsusie_rss()` can reconstruct the sufficient statistics on the
+original scale. This gives coefficients that are numerically identical
+to `mvsusie()`.
+
+```{r compute-bhat-shat}
+# Compute per-SNP univariate regression statistics
+Bhat <- matrix(0, p, r)
+Shat <- matrix(0, p, r)
+for (outcome in seq_len(r)) {
+  reg <- susieR:::univariate_regression(Xc, Yc[, outcome])
+  Bhat[, outcome] <- reg$betahat
+  Shat[, outcome] <- reg$sebetahat
+}
+varY <- cov(Y)
+```
+
+```{r fit-mvsusie-rss-bhat}
+fit_rss_bhat <- mvsusie_rss(Bhat = Bhat, Shat = Shat, R = LD,
+                             N = n, varY = varY, L = 10,
+                             prior_variance = prior,
+                             residual_variance = resid_var,
+                             estimate_residual_variance = FALSE,
+                             estimate_prior_variance = TRUE)
+```
+
 ## Verifying agreement across interfaces
 
-When the LD matrix and *z*-scores are computed from the same
-individual-level data, all three interfaces should produce
-(near-)identical results.
+When the LD matrix and summary statistics are computed from the same
+individual-level data, all interfaces should produce (near-)identical
+results.
 
-```{r compare-results}
+### PIPs
+
+```{r compare-pip}
 cat("mvsusie vs mvsusie_ss:\n")
-cat("  max |PIP diff|:", max(abs(fit$pip - fit_ss$pip)), "\n")
-cat("  PIP correlation:", cor(fit$pip, fit_ss$pip), "\n\n")
+cat("  max |PIP diff|:", max(abs(fit$pip - fit_ss$pip)), "\n\n")
 
-cat("mvsusie vs mvsusie_rss:\n")
-cat("  max |PIP diff|:", max(abs(fit$pip - fit_rss$pip)), "\n")
-cat("  PIP correlation:", cor(fit$pip, fit_rss$pip), "\n")
+cat("mvsusie vs mvsusie_rss (z-scores only):\n")
+cat("  max |PIP diff|:", max(abs(fit$pip - fit_rss$pip)), "\n\n")
+
+cat("mvsusie vs mvsusie_rss (Bhat/Shat/varY):\n")
+cat("  max |PIP diff|:", max(abs(fit$pip - fit_rss_bhat$pip)), "\n")
+```
+
+```{r compare-pip-plot, fig.height=3, fig.width=10}
+pdat <- data.frame(
+  pip_raw = rep(fit$pip, 3),
+  pip_other = c(fit_ss$pip, fit_rss$pip, fit_rss_bhat$pip),
+  interface = rep(c("mvsusie_ss", "mvsusie_rss (z-scores)",
+                     "mvsusie_rss (Bhat/Shat)"), each = p)
+)
+ggplot(pdat, aes(x = pip_raw, y = pip_other)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~interface) +
+  labs(x = "PIP (mvsusie)", y = "PIP (other interface)") +
+  theme_cowplot(font_size = 12)
 ```
 
 The individual-level and sufficient statistics interfaces agree to
@@ -175,16 +222,46 @@ machine precision. The RSS interface shows slightly larger differences
 due to the *z*-score approximation, but the results remain nearly
 identical.
 
-```{r compare-plot, fig.height=3, fig.width=7}
+### Coefficients
+
+The coefficient comparison reveals an important distinction between
+the RSS input formats. When only *z*-scores and the LD matrix are
+provided, coefficients are on the *standardized* scale (as if each
+column of X had unit variance). When `Bhat`, `Shat`, and `varY` are
+all provided, `mvsusie_rss()` reconstructs the sufficient statistics
+on the original scale and the slope coefficients match `mvsusie()`
+to machine precision.
+
+```{r compare-coef}
+coef_ind <- coef(fit)
+coef_ss  <- coef(fit_ss)
+coef_rss <- coef(fit_rss)
+coef_rss_bhat <- coef(fit_rss_bhat)
+
+cat("mvsusie vs mvsusie_ss (slopes):\n")
+cat("  max |diff|:", max(abs(coef_ind[-1, ] - coef_ss[-1, ])), "\n\n")
+
+cat("mvsusie vs mvsusie_rss, z-scores only (slopes):\n")
+cat("  correlation:", cor(as.vector(coef_ind[-1, ]),
+                          as.vector(coef_rss[-1, ])), "\n")
+cat("  (on standardized scale -- see below)\n\n")
+
+cat("mvsusie vs mvsusie_rss, Bhat/Shat/varY (slopes):\n")
+cat("  max |diff|:", max(abs(coef_ind[-1, ] - coef_rss_bhat[-1, ])), "\n")
+```
+
+```{r compare-coef-plot, fig.height=3, fig.width=7}
 pdat <- data.frame(
-  pip_raw = rep(fit$pip, 2),
-  pip_other = c(fit_ss$pip, fit_rss$pip),
-  interface = rep(c("mvsusie_ss", "mvsusie_rss"), each = p)
+  coef_raw = rep(as.vector(coef_ind[-1, ]), 2),
+  coef_other = c(as.vector(coef_ss[-1, ]),
+                 as.vector(coef_rss_bhat[-1, ])),
+  interface = rep(c("mvsusie_ss", "mvsusie_rss (Bhat/Shat)"),
+                  each = p * r)
 )
-ggplot(pdat, aes(x = pip_raw, y = pip_other)) +
-  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.6) +
+ggplot(pdat, aes(x = coef_raw, y = coef_other)) +
+  geom_point(shape = 20, size = 1, color = "royalblue", alpha = 0.4) +
   geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
   facet_wrap(~interface) +
-  labs(x = "PIP (mvsusie)", y = "PIP (other interface)") +
+  labs(x = "coef (mvsusie)", y = "coef (other interface)") +
   theme_cowplot(font_size = 12)
 ```
