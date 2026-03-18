@@ -90,6 +90,7 @@ articles:
       - prior_specification
       - linkage_vs_pleiotropy
       - missing_data
+      - per_trait_sample_size
       - large_scale_analysis
   - title: "Methods Developers"
     desc: "Algorithm internals and verification for methods developers."
