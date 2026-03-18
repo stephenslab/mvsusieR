@@ -18,20 +18,16 @@ test_that("predict() gives accurate estimates in 1 outcome",{
   fit <- mvsusie(X,Y,L = 10,standardize = TRUE)
 
   # The mvsusie model predictions should be close to the true values
-  # (an RMSE close to 1).
+  # (an RMSE close to 1, since noise sd = 1).
   Yest <- predict(fit,X)
   rmse <- sqrt(mean((Y - Yest)^2))
   expect_lt(rmse,1.1)
-  # 
-  # plot(Y,Yest,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
 
-  # Note that the "fitted" output currently seems to be incorrect:
-  #
-  #   print(sqrt(mean((Y - fit$fitted)^2)))
-  #   plot(Y,fit$fitted,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  #   abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
-  #
+  # fit$fitted and predict(fit, X) should agree at machine precision
+  # (regression test for https://github.com/stephenslab/mvsusieR/issues/48)
+  expect_equal(as.numeric(predict(fit, X)),
+               as.numeric(fit$fitted),
+               tolerance = 1e-10)
 })
 
 test_that("predict() gives accurate estimates in 3 outcomes",{
@@ -66,18 +62,14 @@ test_that("predict() gives accurate estimates in 3 outcomes",{
                  estimate_prior_method = "EM")
 
   # The mvsusie model predictions should be close to the true values
-  # (an RMSE close to 1).
+  # (an RMSE close to 1, since noise sd = 1).
   Yest <- predict(fit,X)
   rmse <- sqrt(mean((Y - Yest)^2))
   expect_lt(rmse,1.1)
-  # 
-  # plot(Y,Yest,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
 
-  # Note that the "fitted" output currently seems to be incorrect:
-  #
-  #   print(sqrt(mean((Y - fit$fitted)^2)))
-  #   plot(Y,fit$fitted,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  #   abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
-  #
+  # fit$fitted and predict(fit, X) should agree at machine precision
+  # (regression test for https://github.com/stephenslab/mvsusieR/issues/48)
+  expect_equal(as.numeric(predict(fit, X)),
+               as.numeric(fit$fitted),
+               tolerance = 1e-10)
 })
