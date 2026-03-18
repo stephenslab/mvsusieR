@@ -223,8 +223,8 @@ expect_ref_equal <- function(fit, ref, tol = tol_tight,
     if (is.array(ref$single_effect_lfsr) || is.matrix(ref$single_effect_lfsr))
       expect_equal(fit$single_effect_lfsr, ref$single_effect_lfsr,
                    tolerance = tol, ignore_attr = TRUE)
-    if (is.array(ref$mixture_weights))
-      expect_equal(fit$mixture_weights, ref$mixture_weights,
+    if (is.array(ref$posterior_mixture_weights))
+      expect_equal(fit$posterior_mixture_weights, ref$posterior_mixture_weights,
                    tolerance = tol, ignore_attr = TRUE)
   }
 

@@ -48,13 +48,20 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
                  !is.null(s$pi_V_posterior[[1]])
 
   if (has_mixture) {
-    # mixture_weights: L x J x (K+1) array
+    # posterior_mixture_weights: L x J x K array (or L x J x (K+1) if null_weight > 0)
     K_plus_1 <- ncol(s$pi_V_posterior[[1]])
-    mixture_weights <- array(NA, c(L, J, K_plus_1))
+    raw_weights <- array(NA, c(L, J, K_plus_1))
     for (l in seq_len(L)) {
       if (!is.null(s$pi_V_posterior[[l]])) {
-        mixture_weights[l, , ] <- s$pi_V_posterior[[l]]
+        raw_weights[l, , ] <- s$pi_V_posterior[[l]]
       }
+    }
+    # Drop null column when null_weight == 0 (it's all zeros)
+    has_null <- !is.null(s$null_weight) && s$null_weight > 0
+    if (has_null) {
+      posterior_mixture_weights <- raw_weights
+    } else {
+      posterior_mixture_weights <- raw_weights[, , -1, drop = FALSE]
     }
 
     # conditional_lfsr: L x J x R array
@@ -69,7 +76,7 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
     lfsr <- mvsusie_get_lfsr(clfsr, s$alpha)
     single_effect_lfsr <- mvsusie_single_effect_lfsr(clfsr, s$alpha)
   } else {
-    mixture_weights <- as.numeric(NA)
+    posterior_mixture_weights <- as.numeric(NA)
     clfsr <- as.numeric(NA)
     lfsr <- as.numeric(NA)
     single_effect_lfsr <- as.numeric(NA)
@@ -86,7 +93,7 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
     V_structure      = s$V_structure,
     null_weight      = s$null_weight,
     pi               = s$pi,
-    pi_V             = s$pi_V,
+    prior_mixture_weights = s$pi_V,
     sigma2           = s[["sigma2"]],
     Xr               = s$Xr,
     elbo             = s$elbo,
@@ -95,7 +102,7 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
     fitted           = s$fitted,
     intercept        = s$intercept,
     X_column_scale_factors = csd,
-    mixture_weights  = mixture_weights,
+    posterior_mixture_weights = posterior_mixture_weights,
     conditional_lfsr = clfsr,
     lfsr             = lfsr,
     single_effect_lfsr = single_effect_lfsr,
@@ -323,7 +330,7 @@ mvsusie_get_alpha_per_outcome <- function(m, prior_obj = NULL) {
   #
   # Use m$V_structure (active after estimation/pruning) rather than
   # prior_obj$xUlist, because the model may have pruned components
-  # and m$mixture_weights matches V_structure, not the original prior.
+  # and m$posterior_mixture_weights matches V_structure, not the original prior.
   active_matrices <- m$V_structure
   if (is.null(active_matrices) && !is.null(prior_obj)) {
     active_matrices <- prior_obj$xUlist
@@ -340,18 +347,20 @@ mvsusie_get_alpha_per_outcome <- function(m, prior_obj = NULL) {
     )
   )  # K x R
 
-  # m$mixture_weights is L x J x (K+1) where column 1 is the null component.
-  # We need the K non-null columns (columns 2:(K+1)).
+  # m$posterior_mixture_weights is L x J x K (null_weight=0, the default)
+  # or L x J x (K+1) with null in slice 1 (null_weight > 0).
   L <- nrow(m$alpha)
   J <- ncol(m$alpha)
   R <- ncol(outcome_indicator)
+  K <- nrow(outcome_indicator)
+  has_null <- !is.null(m$null_weight) && m$null_weight > 0
 
   alpha_out <- array(0, c(L, J, R))
   for (r in seq_len(R)) {
-    for (k in seq_len(nrow(outcome_indicator))) {
-      # k-th non-null component = column k+1 in mixture_weights
+    for (k in seq_len(K)) {
+      col_idx <- if (has_null) k + 1 else k
       alpha_out[, , r] <- alpha_out[, , r] +
-        m$mixture_weights[, , k + 1] * outcome_indicator[k, r]
+        m$posterior_mixture_weights[, , col_idx] * outcome_indicator[k, r]
     }
     alpha_out[, , r] <- alpha_out[, , r] * m$alpha
   }

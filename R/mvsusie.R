@@ -262,8 +262,14 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' \item{conditional_lfsr}{L by J by R array of conditional lfsr
 #'   (given variable j is the single effect).}
 #'
-#' \item{pi_V}{Vector of mixture prior weights (only with mixture
+#' \item{prior_mixture_weights}{Vector of estimated prior mixture
+#'   weights across the K covariance components (only with mixture
 #'   prior).}
+#'
+#' \item{posterior_mixture_weights}{L by J by K array of posterior
+#'   mixture component assignments (L by J by (K+1) when
+#'   \code{null_weight > 0}, with the first slice being the null
+#'   component).}
 #'
 #' \item{V_structure}{List of prior covariance matrices (only with
 #'   mixture prior).}

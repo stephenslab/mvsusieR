@@ -365,9 +365,10 @@ expect_all_fields_equal <- function(fit, ref, tol, label = "",
                  tolerance = tol, ignore_attr = TRUE,
                  info = info("single_effect_lfsr"))
   }
-  if (is.array(ref$mixture_weights)) {
-    expect_equal(fit$mixture_weights, ref$mixture_weights, tolerance = tol,
-                 ignore_attr = TRUE, info = info("mixture_weights"))
+  if (is.array(ref$posterior_mixture_weights)) {
+    expect_equal(fit$posterior_mixture_weights, ref$posterior_mixture_weights,
+                 tolerance = tol, ignore_attr = TRUE,
+                 info = info("posterior_mixture_weights"))
   }
 
   # Fitted values (only when explicitly requested --see NOTE above)

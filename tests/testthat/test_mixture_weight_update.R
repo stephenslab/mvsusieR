@@ -520,7 +520,7 @@ test_that("K=1 single matrix prior: no weight update triggered", with(simulate_m
                  estimate_prior_mixture_weights = TRUE,
                  )
   # pi_V should still be 1.0 (single component)
-  expect_equal(fit$pi_V, 1.0)
+  expect_equal(fit$prior_mixture_weights, 1.0)
 }))
 
 test_that("estimate_prior_mixture_weights = FALSE: pi_V unchanged", with(simulate_multivariate(r=2), {
@@ -535,7 +535,7 @@ test_that("estimate_prior_mixture_weights = FALSE: pi_V unchanged", with(simulat
                  estimate_prior_mixture_weights = FALSE,
                  )
   # pi_V should be unchanged
-  expect_equal(fit$pi_V, pi_V_init)
+  expect_equal(fit$prior_mixture_weights, pi_V_init)
 }))
 
 test_that("EM weight update changes pi_V with mash prior", with(simulate_multivariate(r=2), {
@@ -551,9 +551,9 @@ test_that("EM weight update changes pi_V with mash prior", with(simulate_multiva
                  mixture_weight_method = "EM",
                  )
   # pi_V should have changed from initial
-  expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
+  expect_false(isTRUE(all.equal(fit$prior_mixture_weights, pi_V_init)))
   # Weights should sum to 1
-  expect_equal(sum(fit$pi_V), 1, tolerance = 1e-10)
+  expect_equal(sum(fit$prior_mixture_weights), 1, tolerance = 1e-10)
 }))
 
 test_that("mixsqp weight update changes pi_V with mash prior", with(simulate_multivariate(r=2), {
@@ -569,9 +569,9 @@ test_that("mixsqp weight update changes pi_V with mash prior", with(simulate_mul
                  mixture_weight_method = "mixsqp",
                  )
   # pi_V should have changed from initial
-  expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
+  expect_false(isTRUE(all.equal(fit$prior_mixture_weights, pi_V_init)))
   # Weights should sum to 1
-  expect_equal(sum(fit$pi_V), 1, tolerance = 1e-10)
+  expect_equal(sum(fit$prior_mixture_weights), 1, tolerance = 1e-10)
 }))
 
 test_that("EM and mixsqp both produce valid updated weights", with(simulate_multivariate(r=2), {
@@ -596,17 +596,17 @@ test_that("EM and mixsqp both produce valid updated weights", with(simulate_mult
                       )
 
   # Both produce valid probability vectors
-  expect_equal(sum(fit_em$pi_V), 1, tolerance = 1e-10)
-  expect_equal(sum(fit_msqp$pi_V), 1, tolerance = 1e-10)
-  expect_true(all(fit_em$pi_V >= 0))
-  expect_true(all(fit_msqp$pi_V >= 0))
+  expect_equal(sum(fit_em$prior_mixture_weights), 1, tolerance = 1e-10)
+  expect_equal(sum(fit_msqp$prior_mixture_weights), 1, tolerance = 1e-10)
+  expect_true(all(fit_em$prior_mixture_weights >= 0))
+  expect_true(all(fit_msqp$prior_mixture_weights >= 0))
 
   # Both change from initial uniform weights
-  expect_false(isTRUE(all.equal(fit_em$pi_V, pi_V_init)))
-  expect_false(isTRUE(all.equal(fit_msqp$pi_V, pi_V_init)))
+  expect_false(isTRUE(all.equal(fit_em$prior_mixture_weights, pi_V_init)))
+  expect_false(isTRUE(all.equal(fit_msqp$prior_mixture_weights, pi_V_init)))
 
   # Same number of components (after pruning)
-  expect_equal(length(fit_em$pi_V), length(fit_msqp$pi_V))
+  expect_equal(length(fit_em$prior_mixture_weights), length(fit_msqp$prior_mixture_weights))
 }))
 
 # =============================================================================
@@ -683,14 +683,14 @@ test_that("EM and mixsqp produce similar pi_V weights", with(simulate_multivaria
                       max_iter = 5))
 
   # After final pruning, both should have the same number of components
-  expect_equal(length(fit_em$pi_V), length(fit_msqp$pi_V))
+  expect_equal(length(fit_em$prior_mixture_weights), length(fit_msqp$prior_mixture_weights))
 
   # pi_V weights should be similar (both solve the same concave problem)
-  if (length(fit_em$pi_V) == length(fit_msqp$pi_V) && length(fit_em$pi_V) > 1) {
-    expect_true(cor(fit_em$pi_V, fit_msqp$pi_V) > 0.95,
-                info = paste("Weight correlation:", cor(fit_em$pi_V, fit_msqp$pi_V)))
-    expect_true(max(abs(fit_em$pi_V - fit_msqp$pi_V)) < 0.1,
-                info = paste("Max weight diff:", max(abs(fit_em$pi_V - fit_msqp$pi_V))))
+  if (length(fit_em$prior_mixture_weights) == length(fit_msqp$prior_mixture_weights) && length(fit_em$prior_mixture_weights) > 1) {
+    expect_true(cor(fit_em$prior_mixture_weights, fit_msqp$prior_mixture_weights) > 0.95,
+                info = paste("Weight correlation:", cor(fit_em$prior_mixture_weights, fit_msqp$prior_mixture_weights)))
+    expect_true(max(abs(fit_em$prior_mixture_weights - fit_msqp$prior_mixture_weights)) < 0.1,
+                info = paste("Max weight diff:", max(abs(fit_em$prior_mixture_weights - fit_msqp$prior_mixture_weights))))
   }
 }))
 
@@ -765,7 +765,7 @@ test_that("estimate_residual_variance=FALSE + weight update works", with(simulat
                  estimate_prior_mixture_weights = TRUE,
                  )
   # pi_V should have changed
-  expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
+  expect_false(isTRUE(all.equal(fit$prior_mixture_weights, pi_V_init)))
   # sigma2 should be unchanged (residual variance not estimated)
   expect_equal(unname(fit$sigma2), unname(residual_var), tolerance = 1e-10)
 }))
@@ -782,7 +782,7 @@ test_that("Both residual variance and weight update work together", with(simulat
                  estimate_prior_mixture_weights = TRUE,
                  )
   # pi_V should have changed
-  expect_false(isTRUE(all.equal(fit$pi_V, pi_V_init)))
+  expect_false(isTRUE(all.equal(fit$prior_mixture_weights, pi_V_init)))
   # sigma2 should also have changed
   expect_false(isTRUE(all.equal(fit$sigma2, residual_var)))
 }))
@@ -834,8 +834,8 @@ test_that("mvsusie_ss with mixture weight updates runs and converges", with(simu
                        estimate_prior_mixture_weights = TRUE,
                        )
   # pi_V should have changed
-  expect_false(isTRUE(all.equal(fit_ss$pi_V, pi_V_init)))
-  expect_equal(sum(fit_ss$pi_V), 1, tolerance = 1e-10)
+  expect_false(isTRUE(all.equal(fit_ss$prior_mixture_weights, pi_V_init)))
+  expect_equal(sum(fit_ss$prior_mixture_weights), 1, tolerance = 1e-10)
 }))
 
 test_that("mvsusie_rss with weight updates via ... passthrough", with(simulate_multivariate(r=2), {
@@ -855,7 +855,7 @@ test_that("mvsusie_rss with weight updates via ... passthrough", with(simulate_m
                          estimate_prior_mixture_weights = TRUE,
                          )
   # pi_V should have changed (forwarded via ...)
-  expect_false(isTRUE(all.equal(fit_rss$pi_V, pi_V_init)))
+  expect_false(isTRUE(all.equal(fit_rss$prior_mixture_weights, pi_V_init)))
 }))
 
 test_that("SS and individual data produce similar pi_V", with(simulate_multivariate(r=2, center_scale=TRUE), {
@@ -885,9 +885,9 @@ test_that("SS and individual data produce similar pi_V", with(simulate_multivari
                        )
 
   # Both paths should produce valid updated weights
-  expect_equal(sum(fit_ind$pi_V), 1, tolerance = 1e-10)
-  expect_equal(sum(fit_ss$pi_V), 1, tolerance = 1e-10)
-  expect_equal(length(fit_ind$pi_V), length(fit_ss$pi_V))
+  expect_equal(sum(fit_ind$prior_mixture_weights), 1, tolerance = 1e-10)
+  expect_equal(sum(fit_ss$prior_mixture_weights), 1, tolerance = 1e-10)
+  expect_equal(length(fit_ind$prior_mixture_weights), length(fit_ss$prior_mixture_weights))
 }))
 
 # =============================================================================
@@ -925,10 +925,10 @@ test_that("Final pruning removes near-zero components at convergence", with(simu
                  )
 
   # All remaining weights should be above the pruning threshold
-  expect_true(all(fit$pi_V >= 1e-8))
+  expect_true(all(fit$prior_mixture_weights >= 1e-8))
   # Weights should sum to 1
-  expect_equal(sum(fit$pi_V), 1, tolerance = 1e-10)
+  expect_equal(sum(fit$prior_mixture_weights), 1, tolerance = 1e-10)
   # Number of remaining components should be consistent across structures
-  K_final <- length(fit$pi_V)
+  K_final <- length(fit$prior_mixture_weights)
   expect_equal(length(fit$V_structure), K_final)
 }))
