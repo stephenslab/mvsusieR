@@ -34,7 +34,8 @@ mvsusie(
   max_iter = 100,
   tol = 0.001,
   verbose = TRUE,
-  track_fit = FALSE
+  track_fit = FALSE,
+  min_outcome_lbf = 0
 )
 
 mvsusie_rss(
@@ -77,7 +78,8 @@ mvsusie_ss(
   max_iter = 100,
   tol = 0.001,
   verbose = TRUE,
-  track_fit = FALSE
+  track_fit = FALSE,
+  min_outcome_lbf = 0
 )
 
 mvsusie_core(
@@ -106,7 +108,8 @@ mvsusie_core(
   max_iter = 100,
   tol = 0.001,
   verbose = TRUE,
-  track_fit = FALSE
+  track_fit = FALSE,
+  min_outcome_lbf = 0
 )
 
 mvsusie_ss_core(
@@ -136,7 +139,8 @@ mvsusie_ss_core(
   max_iter = 100,
   tol = 0.001,
   verbose = TRUE,
-  track_fit = FALSE
+  track_fit = FALSE,
+  min_outcome_lbf = 0
 )
 }
 \arguments{
@@ -333,6 +337,12 @@ of the following elements:
 
 \item{conditional_lfsr}{L by J by R array of conditional lfsr
   (given variable j is the single effect).}
+
+\item{lbf_outcome}{L by R matrix of per-outcome conditional log
+  Bayes factors.  Measures per-outcome evidence from the conditional
+  (residualized) data, without cross-outcome borrowing.  Used to
+  filter \code{single_effect_lfsr}: outcomes with \code{lbf_outcome < 0}
+  (BF < 1) have their lfsr set to 1.}
 
 \item{prior_mixture_weights}{Vector of estimated prior mixture
   weights across the K covariance components (only with mixture

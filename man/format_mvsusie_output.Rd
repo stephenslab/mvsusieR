@@ -10,7 +10,8 @@ format_mvsusie_output(
   cm,
   Y_mean,
   estimate_prior_variance = TRUE,
-  is_ss = FALSE
+  is_ss = FALSE,
+  min_outcome_lbf = 0
 )
 }
 \arguments{

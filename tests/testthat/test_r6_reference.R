@@ -393,7 +393,8 @@ test_that("R=3, fitted_g prior, fixed variance matches R6", {
                    estimate_prior_variance = FALSE,
                    estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbose = FALSE)
+                   precompute_cache = TRUE, verbose = FALSE,
+                   min_outcome_lbf = NULL)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
@@ -419,7 +420,8 @@ test_that("R=3, fitted_g prior, EM (10 iter) matches R6", {
                    estimate_prior_mixture_weights = FALSE,
                    max_iter = 10,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_cache = FALSE, verbose = FALSE)
+                   precompute_cache = FALSE, verbose = FALSE,
+                   min_outcome_lbf = NULL)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,
@@ -446,7 +448,8 @@ test_that("R=3, fitted_g prior, null_weight override matches R6", {
                    estimate_prior_variance = FALSE,
                    estimate_prior_mixture_weights = FALSE,
                    intercept = TRUE, standardize = TRUE,
-                   precompute_cache = TRUE, verbose = FALSE)
+                   precompute_cache = TRUE, verbose = FALSE,
+                   min_outcome_lbf = NULL)
     ref <- r6_mvsusie(X, y, L = L, prior_variance = r6_prior,
                       residual_variance = cov(y),
                       estimate_residual_variance = FALSE,

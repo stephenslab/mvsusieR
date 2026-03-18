@@ -460,6 +460,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
       alpha_mu2_sum = matrix(0, R, R), mu2_diag = matrix(0, J, R)
     )
     model$conditional_lfsr[l] <- list(NULL)
+    model$lbf_outcome[l] <- list(NULL)
     model$em_cache <- NULL
     return(model)
   }
@@ -499,6 +500,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
       mu2_diag = post$mu2_diag
     )
     model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
+    model$lbf_outcome[[l]] <- compute_per_outcome_lbf(betahat, model, data, V, l)
 
     if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM") {
       model$em_cache <- list(
@@ -589,6 +591,7 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
 
   # LFSR from posterior sign probabilities
   model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
+  model$lbf_outcome[[l]] <- compute_per_outcome_lbf(betahat, model, data, V, l)
 
   # Cache EM statistics (no recomputation needed)
   if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM") {
@@ -599,6 +602,65 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   }
 
   return(model)
+}
+
+# =============================================================================
+# PER-OUTCOME CONDITIONAL LOG BF
+# =============================================================================
+
+# Compute per-outcome univariate approximate log Bayes factor from the
+# residualized betahat.  This gives a per-outcome evidence measure that
+# is conditional on other effects (residualized) but NOT contaminated by
+# cross-outcome borrowing (computed before the multivariate posterior).
+#
+# Used to filter inflated single_effect_lfsr: outcomes with lbf_outcome < 0
+# (BF < 1, data favors the null) get lfsr set to 1.
+#
+# @param betahat J x R residualized effect estimates
+# @param model   Model list with alpha, svs, V, V_structure, pi_V
+# @param data    Data object (for d, R, p)
+# @param V       Prior scalar for this effect
+# @param l       Effect index
+# @return R-vector of alpha-weighted per-outcome log ABFs
+compute_per_outcome_lbf <- function(betahat, model, data, V, l) {
+  R <- data$R
+  J <- data$p
+
+  # Guard: if V is near zero, no signal -- log BF = 0 for all outcomes
+  if (is.na(V) || V < 1e-15) return(rep(0, R))
+
+  # Per-outcome prior variance: W_r = V * sum_k pi_V[k] * U_k[r,r]
+  W_r <- V * sapply(seq_len(R), function(r) {
+    sum(model$pi_V * sapply(model$V_structure, function(U) U[r, r]))
+  })
+
+  # Per-outcome se^2 from svs diagonal
+  svs <- if (!is.null(model$svs)) model$svs else data$svs
+  alpha_l <- model$alpha[l, ]
+
+  # For common-cov: svs is length 1, se^2 = diag(svs[[1]])
+  # For non-common-cov: svs varies by j, use sentinel (which.max(alpha))
+  if (length(svs) == 1) {
+    se2 <- diag(svs[[1]])  # R-vector, same for all j
+    # z^2 for all j: betahat[j,r]^2 / se2[r]
+    z2 <- t(t(betahat^2) / se2)  # J x R
+    # tau = W_r / se2[r], same for all j
+    tau <- W_r / se2  # R-vector
+    # log ABF: 0.5 * z2 * tau/(1+tau) - 0.5 * log(1+tau)
+    lbf_mat <- t(0.5 * t(z2) * tau / (1 + tau) - 0.5 * log(1 + tau))
+  } else {
+    # Non-common-cov: se^2 varies by j
+    lbf_mat <- matrix(0, J, R)
+    for (j in seq_len(J)) {
+      se2_j <- diag(svs[[j]])
+      z2_j <- betahat[j, ]^2 / se2_j
+      tau_j <- W_r / se2_j
+      lbf_mat[j, ] <- 0.5 * z2_j * tau_j / (1 + tau_j) - 0.5 * log(1 + tau_j)
+    }
+  }
+
+  # Aggregate weighted by alpha
+  colSums(alpha_l * lbf_mat)
 }
 
 # =============================================================================
@@ -975,6 +1037,7 @@ trim_null_effects.mv_individual <- function(data, params, model) {
       # Reset mixture-specific fields (use list(NULL) to avoid removing element)
       model$pi_V_posterior[l]    <- list(NULL)
       model$conditional_lfsr[l] <- list(NULL)
+      model$lbf_outcome[l]      <- list(NULL)
     }
   }
   return(model)

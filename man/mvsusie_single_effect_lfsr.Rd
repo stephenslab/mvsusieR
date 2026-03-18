@@ -4,16 +4,31 @@
 \alias{mvsusie_single_effect_lfsr}
 \title{Per-effect local false sign rate (lfsr)}
 \usage{
-mvsusie_single_effect_lfsr(clfsr, alpha)
+mvsusie_single_effect_lfsr(clfsr, alpha, lbf_outcome = NULL, min_lbf = NULL)
 }
 \arguments{
 \item{clfsr}{L x J x R conditional lfsr array.}
 
 \item{alpha}{L x J matrix of posterior inclusion probabilities.}
+
+\item{lbf_outcome}{L x R matrix of per-outcome conditional log BFs
+(from \code{compute_per_outcome_lbf}).  If \code{NULL} (default),
+no filtering is applied.}
+
+\item{min_lbf}{Minimum per-outcome log BF threshold.  Effects with
+\code{lbf_outcome < min_lbf} get lfsr set to 1.  Default is
+\code{NULL} (no filtering).  Set to 0 to filter when BF < 1
+(data favors the null).}
 }
 \value{
 L x R matrix of lfsr.
 }
 \description{
 Returns the lfsr for each single effect and outcome.
+}
+\details{
+When \code{lbf_outcome} is provided, outcomes where the per-outcome
+conditional log Bayes factor falls below \code{min_lbf} are set to
+lfsr = 1 (no evidence).  This filters outcomes whose low lfsr comes
+purely from cross-outcome borrowing rather than per-outcome signal.
 }

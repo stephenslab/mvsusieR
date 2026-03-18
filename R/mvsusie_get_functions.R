@@ -15,7 +15,8 @@ NULL
 #' @keywords internal
 format_mvsusie_output <- function(s, csd, cm, Y_mean,
                                   estimate_prior_variance = TRUE,
-                                  is_ss = FALSE) {
+                                  is_ss = FALSE,
+                                  min_outcome_lbf = 0) {
   L <- nrow(s$alpha)
   J <- ncol(s$alpha)
   R <- dim(s$mu)[3]
@@ -73,11 +74,19 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
       }
     }
 
+    # Per-outcome conditional log BF: L x R matrix
+    lbf_out <- matrix(0, L, R)
+    for (l in seq_len(L))
+      if (!is.null(s$lbf_outcome[[l]]))
+        lbf_out[l, ] <- s$lbf_outcome[[l]]
+
     lfsr <- mvsusie_get_lfsr(clfsr, s$alpha)
-    single_effect_lfsr <- mvsusie_single_effect_lfsr(clfsr, s$alpha)
+    single_effect_lfsr <- mvsusie_single_effect_lfsr(
+      clfsr, s$alpha, lbf_outcome = lbf_out, min_lbf = min_outcome_lbf)
   } else {
     posterior_mixture_weights <- as.numeric(NA)
     clfsr <- as.numeric(NA)
+    lbf_out <- as.numeric(NA)
     lfsr <- as.numeric(NA)
     single_effect_lfsr <- as.numeric(NA)
   }
@@ -103,6 +112,7 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
     intercept        = s$intercept,
     X_column_scale_factors = csd,
     posterior_mixture_weights = posterior_mixture_weights,
+    lbf_outcome      = lbf_out,
     conditional_lfsr = clfsr,
     lfsr             = lfsr,
     single_effect_lfsr = single_effect_lfsr,
@@ -229,17 +239,31 @@ multivariate_lbf <- function(betahat, S, U) {
 #'
 #' Returns the lfsr for each single effect and outcome.
 #'
+#' When \code{lbf_outcome} is provided, outcomes where the per-outcome
+#' conditional log Bayes factor falls below \code{min_lbf} are set to
+#' lfsr = 1 (no evidence).  This filters outcomes whose low lfsr comes
+#' purely from cross-outcome borrowing rather than per-outcome signal.
+#'
 #' @param clfsr L x J x R conditional lfsr array.
 #' @param alpha L x J matrix of posterior inclusion probabilities.
+#' @param lbf_outcome L x R matrix of per-outcome conditional log BFs
+#'   (from \code{compute_per_outcome_lbf}).  If \code{NULL} (default),
+#'   no filtering is applied.
+#' @param min_lbf Minimum per-outcome log BF threshold.  Effects with
+#'   \code{lbf_outcome < min_lbf} get lfsr set to 1.  Default is
+#'   \code{NULL} (no filtering).  Set to 0 to filter when BF < 1
+#'   (data favors the null).
 #'
 #' @return L x R matrix of lfsr.
 #'
 #' @export
-mvsusie_single_effect_lfsr <- function(clfsr, alpha) {
+mvsusie_single_effect_lfsr <- function(clfsr, alpha,
+                                        lbf_outcome = NULL,
+                                        min_lbf = NULL) {
   if (!is.array(clfsr) && is.na(clfsr)) {
     return(as.numeric(NA))
   } else {
-    return(do.call(
+    result <- do.call(
       cbind,
       lapply(
         1:dim(clfsr)[3],
@@ -251,7 +275,12 @@ mvsusie_single_effect_lfsr <- function(clfsr, alpha) {
           return(pmax(0, rowSums(alpha * clfsrr)))
         }
       )
-    ))
+    )
+    # Filter: set lfsr to 1 for outcomes with weak per-outcome evidence
+    if (!is.null(min_lbf) && !is.null(lbf_outcome) && is.matrix(lbf_outcome)) {
+      result[lbf_outcome < min_lbf] <- 1.0
+    }
+    return(result)
   }
 }
 

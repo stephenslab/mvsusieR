@@ -407,6 +407,7 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
     per_effect_llik  = vector("list", L), # per-effect Jx(K+1) log-likelihoods (for mixsqp)
     ibss_iter        = 0,                 # iteration counter (for pruning schedule)
     conditional_lfsr  = vector("list", L), # per-effect JxR LFSR
+    lbf_outcome       = vector("list", L), # per-effect R-vector of per-outcome conditional log BF
     KL           = rep(as.numeric(NA), L),
     lbf          = rep(as.numeric(NA), L),
     lbf_variable = matrix(as.numeric(NA), L, J),

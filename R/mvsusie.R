@@ -262,6 +262,12 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' \item{conditional_lfsr}{L by J by R array of conditional lfsr
 #'   (given variable j is the single effect).}
 #'
+#' \item{lbf_outcome}{L by R matrix of per-outcome conditional log
+#'   Bayes factors.  Measures per-outcome evidence from the conditional
+#'   (residualized) data, without cross-outcome borrowing.  Used to
+#'   filter \code{single_effect_lfsr}: outcomes with \code{lbf_outcome < 0}
+#'   (BF < 1) have their lfsr set to 1.}
+#'
 #' \item{prior_mixture_weights}{Vector of estimated prior mixture
 #'   weights across the K covariance components (only with mixture
 #'   prior).}
@@ -355,7 +361,8 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     compute_univariate_zscore = FALSE,
                     precompute_cache = TRUE, n_thread = 1,
                     max_iter = 100, tol = 1e-3, verbose = TRUE,
-                    track_fit = FALSE) {
+                    track_fit = FALSE,
+                    min_outcome_lbf = 0) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
   Y_ncol <- if (is.null(dim(Y))) 1L else ncol(Y)
@@ -383,7 +390,8 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              precompute_cache = precompute_cache,
              n_thread = n_thread,
              max_iter = max_iter, tol = tol,
-             verbose = verbose, track_fit = track_fit)
+             verbose = verbose, track_fit = track_fit,
+             min_outcome_lbf = min_outcome_lbf)
 }
 
 #' @rdname mvsusie
@@ -620,7 +628,8 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                               precompute_cache = TRUE, model_init = NULL,
                               coverage = 0.95, min_abs_corr = 0.5, n_thread = 1,
                               max_iter = 100, tol = 1e-3, verbose = TRUE,
-                              track_fit = FALSE) {
+                              track_fit = FALSE,
+                              min_outcome_lbf = 0) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
   XtY <- as.matrix(XtY)
@@ -651,7 +660,8 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                        precompute_cache = precompute_cache,
                        n_thread = n_thread,
                        max_iter = max_iter, tol = tol,
-                       verbose = verbose, track_fit = track_fit)
+                       verbose = verbose, track_fit = track_fit,
+                       min_outcome_lbf = min_outcome_lbf)
 }
 
 #' @rdname mvsusie
@@ -677,7 +687,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        precompute_cache = TRUE,
                        n_thread = 1,
                        max_iter = 100, tol = 1e-3, verbose = TRUE,
-                       track_fit = FALSE) {
+                       track_fit = FALSE,
+                       min_outcome_lbf = 0) {
   reset_warn_once()
   verbose <- isTRUE(verbose)
 
@@ -920,7 +931,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   s <- format_mvsusie_output(s, csd = out_csd, cm = out_cm,
                               Y_mean = data$Y_mean,
                               estimate_prior_variance = estimate_prior_variance,
-                              is_ss = FALSE)
+                              is_ss = FALSE,
+                              min_outcome_lbf = min_outcome_lbf)
 
   # Report z-scores from univariate regression
   if (compute_univariate_zscore) {
@@ -965,7 +977,8 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   precompute_cache = TRUE,
                                   n_thread = 1,
                                   max_iter = 100, tol = 1e-3, verbose = TRUE,
-                                  track_fit = FALSE) {
+                                  track_fit = FALSE,
+                                  min_outcome_lbf = 0) {
   reset_warn_once()
 
   XtY <- as.matrix(XtY)
@@ -1068,7 +1081,8 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
   s <- format_mvsusie_output(s, csd = data$csd, cm = ss_cm,
                               Y_mean = ss_Y_mean,
                               estimate_prior_variance = estimate_prior_variance,
-                              is_ss = TRUE)
+                              is_ss = TRUE,
+                              min_outcome_lbf = min_outcome_lbf)
 
   # Set canonical names
   s$outcome_names <- if (is.null(colnames(XtY)))
