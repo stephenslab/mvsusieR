@@ -16,6 +16,7 @@ mvsusie_plot(
   cs_plot = names(fit$sets$cs),
   add_cs = FALSE,
   conditional_effect = TRUE,
+  sort_by_cs = FALSE,
   cs_colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00", "#6a3d9a", "#b15928",
     "#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#e6ab02", "gray", "#66c2a5")
 )
@@ -49,6 +50,11 @@ effect plot showing CS membership.}
 \item{conditional_effect}{If \code{TRUE}, plot the conditional
 effect. If \code{FALSE}, plot the marginal effect.
 \code{conditional_effect = TRUE} is recommended.}
+
+\item{sort_by_cs}{If \code{TRUE}, group markers by CS on the
+x-axis of the effect and z-score plots.  This prevents CSs from
+interlocking when their members are interleaved in genomic
+position.  The default is \code{FALSE} (genomic order).}
 
 \item{cs_colors}{The color palette for CSs.}
 }

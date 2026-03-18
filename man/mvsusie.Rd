@@ -46,6 +46,7 @@ mvsusie_rss(
   varY,
   prior_variance = 0.2,
   residual_variance = NULL,
+  estimate_residual_variance = FALSE,
   ...
 )
 
@@ -61,7 +62,7 @@ mvsusie_ss(
   residual_variance = NULL,
   prior_weights = NULL,
   standardize = TRUE,
-  estimate_residual_variance = FALSE,
+  estimate_residual_variance = TRUE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
   estimate_prior_mixture_weights = TRUE,
@@ -120,7 +121,7 @@ mvsusie_ss_core(
   residual_variance = NULL,
   prior_weights = NULL,
   standardize = TRUE,
-  estimate_residual_variance = FALSE,
+  estimate_residual_variance = TRUE,
   estimate_prior_variance = TRUE,
   estimate_prior_method = "optim",
   estimate_prior_mixture_weights = TRUE,

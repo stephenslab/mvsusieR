@@ -33,6 +33,11 @@
 #'   effect. If \code{FALSE}, plot the marginal effect.
 #'   \code{conditional_effect = TRUE} is recommended.
 #'
+#' @param sort_by_cs If \code{TRUE}, group markers by CS on the
+#'   x-axis of the effect and z-score plots.  This prevents CSs from
+#'   interlocking when their members are interleaved in genomic
+#'   position.  The default is \code{FALSE} (genomic order).
+#'
 #' @param cs_colors The color palette for CSs.
 #'
 #' @return The output includes the PIP plot, effect plot, z-scores
@@ -82,6 +87,7 @@ mvsusie_plot <-
            cs_plot = names(fit$sets$cs),
            add_cs = FALSE,
            conditional_effect = TRUE,
+           sort_by_cs = FALSE,
            cs_colors = c(
              "#1f78b4", "#33a02c", "#e31a1c", "#ff7f00",
              "#6a3d9a", "#b15928", "#a6cee3", "#b2df8a", "#fb9a99",
@@ -248,6 +254,16 @@ mvsusie_plot <-
     }
     effect_dat$cs <- factor(effect_dat$cs, levels = css)
     effect_dat$trait <- factor(effect_dat$trait, traits)
+
+    # Optionally reorder x-axis so markers are grouped by CS
+    # (prevents interlocking when CS members are interleaved in
+    # genomic position).
+    if (sort_by_cs) {
+      mc_order <- order(effect_dat$cs, effect_dat$pos)
+      mc_levels <- unique(effect_dat$marker_cs[mc_order])
+      effect_dat$marker_cs <- factor(effect_dat$marker_cs,
+                                     levels = mc_levels)
+    }
 
     # Remove from the effects plot any effects that don't meet the lfsr
     # cutoff.
