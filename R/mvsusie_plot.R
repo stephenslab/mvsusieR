@@ -99,6 +99,19 @@ mvsusie_plot <-
         "the output of calling function \"mvsusie\""
       )
     }
+    if (is.null(fit$outcome_names) || length(fit$outcome_names) < 2) {
+      stop(
+        "mvsusie_plot requires a multivariate fit (R >= 2). ",
+        "For univariate fits, use susieR plotting functions."
+      )
+    }
+    if (is.null(fit$single_effect_lfsr)) {
+      stop(
+        "mvsusie_plot requires single_effect_lfsr in the fit object. ",
+        "This is computed automatically when using a mixture prior ",
+        "(create_mixture_prior or create_mash_prior)."
+      )
+    }
     if (length(pos) != length(fit$variable_names)) {
       stop("Input \"pos\" should have same length as \"fit$variable_names\"")
     }
