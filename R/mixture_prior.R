@@ -307,12 +307,7 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
   structure(list(
     null_weight  = null_weight,
     pi           = setNames(prior_weights, names(xUlist)),
-    xUlist       = xUlist,
-    xUlist_3d    = matlist2array(xUlist),
-    xUlist_inv   = NULL,
-    xUlist_rank  = NULL,
-    n_outcome    = nrow(xUlist[[1]]),
-    n_component  = K
+    xUlist       = xUlist
   ), class = "mash_prior")
 }
 
@@ -325,31 +320,8 @@ create_mash_prior <- function(Ulist = NULL, grid = NULL, xUlist = NULL,
 #' @keywords internal
 scale_prior_variance.mash_prior <- function(prior, sigma) {
   prior$xUlist <- lapply(prior$xUlist, function(U) scale_covariance(U, sigma))
-  prior$xUlist_3d <- matlist2array(prior$xUlist)
-  # Invalidate cached inverses since matrices changed
-  prior$xUlist_inv <- NULL
-  prior$xUlist_rank <- NULL
   return(prior)
 }
-
-#' Compute pseudo-inverses and ranks for prior matrices
-#'
-#' Required for EM update of prior variance scalar.
-#'
-#' @param prior A \code{mash_prior} object.
-#'
-#' @return Modified \code{mash_prior} object with \code{xUlist_inv} and
-#'   \code{xUlist_rank} populated.
-#' @keywords internal
-compute_prior_inv.mash_prior <- function(prior) {
-  my_lapply <- if (requireNamespace("future.apply", quietly = TRUE))
-    future.apply::future_lapply else lapply
-  inv_list <- my_lapply(prior$xUlist, pseudo_inverse)
-  prior$xUlist_inv <- matlist2array(lapply(inv_list, `[[`, "inv"))
-  prior$xUlist_rank <- vapply(inv_list, `[[`, numeric(1), "rank")
-  return(prior)
-}
-
 
 #' Construct full prior arrays for mashr C++ (prepend null component)
 #'

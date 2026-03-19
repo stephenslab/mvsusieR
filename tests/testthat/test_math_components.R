@@ -267,9 +267,9 @@ test_that("create_mash_prior matches MashInitializer (Ulist + grid)", {
                  tolerance = MACH_TOL, ignore_attr = TRUE)
   }
 
-  # Compare n_outcome and n_component
-  expect_equal(r6_prior$n_condition, s3_prior$n_outcome)
-  expect_equal(r6_prior$n_component - 1, s3_prior$n_component)  # R6 includes null
+  # Compare structure
+  expect_equal(r6_prior$n_condition, nrow(s3_prior$xUlist[[1]]))
+  expect_equal(r6_prior$n_component - 1, length(s3_prior$xUlist))  # R6 includes null
 })
 
 test_that("create_mash_prior K=1: matches single matrix", {
@@ -279,7 +279,7 @@ test_that("create_mash_prior K=1: matches single matrix", {
 
   # Should have exactly 1 non-null component
 
-  expect_equal(prior$n_component, 1)
+  expect_equal(length(prior$xUlist), 1)
   expect_equal(prior$null_weight, 0)
   # The single xUlist should be V * 1 (grid=1)
   expect_equal(prior$xUlist[[1]], V, tolerance = MACH_TOL, ignore_attr = TRUE)

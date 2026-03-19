@@ -477,7 +477,7 @@ test_that("fitted_g prior structure matches R6 MashInitializer", {
 
   # R6 xUlist[1] is null, R6 xUlist[2:end] are non-null
   r6_nonnull <- r6_pv$xUlist[-1]
-  expect_equal(s3_prior$n_component, length(r6_nonnull))
+  expect_equal(length(s3_prior$xUlist), length(r6_nonnull))
 
   # Compare null weights: R6 pi[1] = null weight
   expect_equal(s3_prior$null_weight, unname(r6_pv$pi[1]), tolerance = 1e-10)
@@ -615,7 +615,7 @@ test_that("create_mixture_prior backward compatibility: R and mixture_prior path
   s3_prior <- create_mixture_prior(R = 3)
 
   # Both should have the same number of components
-  expect_equal(s3_prior$n_component,
+  expect_equal(length(s3_prior$xUlist),
                length(r6_prior$prior_variance$xUlist) - 1)  # R6 includes null
 
   # S3 xUlist should match R6 xUlist (excluding null at position 1)

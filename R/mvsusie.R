@@ -794,12 +794,6 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
             " [mem: ", sprintf("%.2f", mem_used_gb()), " GB]")
   }
 
-  # Compute prior inverses for EM (mixture priors)
-  if (is_mash_prior && estimate_prior_variance &&
-      estimate_prior_method == "EM") {
-    prior_variance <- compute_prior_inv.mash_prior(prior_variance)
-  }
-
   if (verbose && is_mash_prior) {
     message("Prior: K=", length(prior_variance$xUlist),
             " mixture components [mem: ", sprintf("%.2f", mem_used_gb()), " GB]")
@@ -1017,12 +1011,6 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
   # For R=1 scalar prior, convert to 1x1 matrix for uniform MV treatment
   if (R == 1 && is_numeric_prior) {
     prior_variance <- matrix(prior_variance, 1, 1)
-  }
-
-  # Compute prior inverses for EM (mixture priors)
-  if (is_mash_prior && estimate_prior_variance &&
-      estimate_prior_method == "EM") {
-    prior_variance <- compute_prior_inv.mash_prior(prior_variance)
   }
 
   # Default residual variance: sample covariance YtY/(N-1)
