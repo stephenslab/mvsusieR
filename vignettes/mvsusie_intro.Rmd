@@ -106,7 +106,7 @@ Z <- simdata$sumstats$z
 dim(Z)
 ```
 
-In addition to the *z*-scores, the sample size and $R \times R$ LD
+In addition to the *z*-scores, the sample size and $J \times J$ LD
 (correlation) matrix are needed. (Strictly speaking, the sample size
 is not required, but the estimates may be less accurate if the sample
 size is not provided.)
