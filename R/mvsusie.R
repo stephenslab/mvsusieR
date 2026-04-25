@@ -37,7 +37,9 @@ mvsusie_workhorse <- function(data, L, prior_variance,
                                min_abs_corr = 0.5,
                                precompute_covariances = FALSE,
                                n_thread = 1,
-                               model_init = NULL) {
+                               model_init = NULL,
+                               L_greedy = NULL,
+                               lbf_min = 0.1) {
 
   J <- data$p
   R <- data$R
@@ -86,7 +88,10 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     n_thread                 = n_thread,
     estimate_prior_mixture_weights = estimate_prior_mixture_weights,
     mixture_weight_method    = mixture_weight_method,
-    convergence_method       = convergence_method
+    convergence_method       = convergence_method,
+    # Greedy-L (handed to susieR::susie_workhorse). NULL = fixed-L IBSS.
+    L_greedy                 = L_greedy,
+    lbf_min                  = lbf_min
   )
 
   # Call susieR's workhorse
@@ -362,7 +367,8 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     precompute_cache = TRUE, n_thread = 1,
                     max_iter = 100, tol = 1e-3, verbose = TRUE,
                     track_fit = FALSE,
-                    min_outcome_lbf = 0) {
+                    min_outcome_lbf = 0,
+                    L_greedy = NULL, lbf_min = 0.1) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
   Y_ncol <- if (is.null(dim(Y))) 1L else ncol(Y)
@@ -391,7 +397,8 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              n_thread = n_thread,
              max_iter = max_iter, tol = tol,
              verbose = verbose, track_fit = track_fit,
-             min_outcome_lbf = min_outcome_lbf)
+             min_outcome_lbf = min_outcome_lbf,
+             L_greedy = L_greedy, lbf_min = lbf_min)
 }
 
 #' @rdname mvsusie
