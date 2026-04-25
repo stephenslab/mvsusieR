@@ -695,7 +695,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        n_thread = 1,
                        max_iter = 100, tol = 1e-3, verbose = TRUE,
                        track_fit = FALSE,
-                       min_outcome_lbf = 0) {
+                       min_outcome_lbf = 0,
+                       L_greedy = NULL, lbf_min = 0.1) {
   reset_warn_once()
   verbose <- isTRUE(verbose)
 
