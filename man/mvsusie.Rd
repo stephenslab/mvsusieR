@@ -35,7 +35,9 @@ mvsusie(
   tol = 0.001,
   verbose = TRUE,
   track_fit = FALSE,
-  min_outcome_lbf = 0
+  min_outcome_lbf = 0,
+  L_greedy = NULL,
+  lbf_min = 0.1
 )
 
 mvsusie_rss(
@@ -79,7 +81,9 @@ mvsusie_ss(
   tol = 0.001,
   verbose = TRUE,
   track_fit = FALSE,
-  min_outcome_lbf = 0
+  min_outcome_lbf = 0,
+  L_greedy = NULL,
+  lbf_min = 0.1
 )
 
 mvsusie_core(
@@ -109,7 +113,9 @@ mvsusie_core(
   tol = 0.001,
   verbose = TRUE,
   track_fit = FALSE,
-  min_outcome_lbf = 0
+  min_outcome_lbf = 0,
+  L_greedy = NULL,
+  lbf_min = 0.1
 )
 
 mvsusie_ss_core(
@@ -140,7 +146,9 @@ mvsusie_ss_core(
   tol = 0.001,
   verbose = TRUE,
   track_fit = FALSE,
-  min_outcome_lbf = 0
+  min_outcome_lbf = 0,
+  L_greedy = NULL,
+  lbf_min = 0.1
 )
 }
 \arguments{
@@ -254,6 +262,19 @@ fitting. Default is \code{TRUE}.}
 
 \item{track_fit}{Add attribute \code{trace} to the return value
 which records the algorithm's progress at each iteration.}
+
+\item{L_greedy}{Integer or \code{NULL}. When non-\code{NULL}, run
+a greedy outer loop that grows the effect count from
+\code{L_greedy} up to \code{L} in linear steps of size
+\code{L_greedy} until the fit saturates (\code{min(lbf) <
+lbf_min}) or reaches \code{L}. \code{NULL} (the default) runs a
+single fixed-\code{L} IBSS, output bit-identical to non-greedy
+susieR. Passes through to \code{susieR::susie_workhorse}.}
+
+\item{lbf_min}{Numeric saturation threshold for the greedy outer
+loop. The fit is considered saturated as soon as any effect's
+log Bayes factor falls below this value. Default \code{0.1}.
+Ignored when \code{L_greedy = NULL}.}
 
 \item{Z}{J x R matrix of z-scores.}
 

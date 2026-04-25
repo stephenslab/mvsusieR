@@ -25,7 +25,9 @@ mvsusie_workhorse(
   min_abs_corr = 0.5,
   precompute_covariances = FALSE,
   n_thread = 1,
-  model_init = NULL
+  model_init = NULL,
+  L_greedy = NULL,
+  lbf_min = 0.1
 )
 }
 \arguments{
@@ -58,6 +60,18 @@ mvsusie_workhorse(
 \item{coverage}{CS coverage.}
 
 \item{min_abs_corr}{Minimum absolute correlation for CS.}
+
+\item{L_greedy}{Integer or NULL. When non-NULL, run a greedy
+outer loop that grows the effect count `L` in linear steps of
+`L_greedy` until the fit saturates (`min(lbf) < lbf_min`) or
+`L_greedy` reaches `L`. NULL (default) runs a single fixed-`L`
+IBSS, output bit-identical to non-greedy susieR. Forwarded to
+`susieR::susie_workhorse`.}
+
+\item{lbf_min}{Numeric, the saturation threshold for the greedy
+outer loop. The fit is considered saturated as soon as any
+effect's log Bayes factor falls below this value. Default 0.1.
+Ignored when `L_greedy = NULL`.}
 }
 \value{
 A fitted mvsusie model.
