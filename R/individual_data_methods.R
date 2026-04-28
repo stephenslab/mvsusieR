@@ -1089,17 +1089,6 @@ get_fitted.mv_individual <- function(data, params, model, ...) {
 }
 
 #' @keywords internal
-get_cs.mv_individual <- function(data, params, model, ...) {
-  if (is.null(params$coverage) || is.null(params$min_abs_corr))
-    return(NULL)
-  susie_get_cs(model,
-    X            = data$X,
-    coverage     = params$coverage,
-    min_abs_corr = params$min_abs_corr
-  )
-}
-
-#' @keywords internal
 get_variable_names.mv_individual <- function(data, model, ...) {
   vnames <- colnames(data$X)
   if (!is.null(vnames)) {

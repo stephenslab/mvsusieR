@@ -185,19 +185,6 @@ get_fitted.mv_ss <- function(data, params, model, ...) {
   data$XtX %*% b_sum
 }
 
-#' @keywords internal
-get_cs.mv_ss <- function(data, params, model, ...) {
-  if (is.null(params$coverage) || is.null(params$min_abs_corr))
-    return(NULL)
-  # Use correlation from XtX
-  Xcorr <- tryCatch(cov2cor(data$XtX), error = function(e) NULL)
-  if (is.null(Xcorr)) return(NULL)
-  susie_get_cs(model,
-    Xcorr        = Xcorr,
-    coverage     = params$coverage,
-    min_abs_corr = params$min_abs_corr
-  )
-}
 
 #' @keywords internal
 get_variable_names.mv_ss <- function(data, model, ...) {

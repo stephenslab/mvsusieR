@@ -68,7 +68,6 @@ check_semi_pd <- NULL
     "compute_residuals",
     "compute_ser_statistics",
     "em_update_prior_variance",
-    "get_cs",
     "get_fitted",
     "get_intercept",
     "get_objective",
@@ -95,7 +94,6 @@ check_semi_pd <- NULL
   mv_ss_generics <- c(
     "SER_posterior_e_loglik",
     "compute_residuals",
-    "get_cs",
     "get_fitted",
     "get_intercept",
     "get_objective",
@@ -112,12 +110,9 @@ check_semi_pd <- NULL
 
   # Register S3 methods for the mvsusie model class
   mvsusie_generics <- c(
-    "get_alpha_l",
     "get_posterior_mean_l",
     "get_posterior_mean_sum",
-    "get_posterior_moments_l",
-    "get_prior_variance_l",
-    "set_prior_variance_l"
+    "get_posterior_moments_l"
   )
   for (g in mvsusie_generics) {
     method_fn <- get(paste0(g, ".mvsusie"), envir = pkg_ns)
