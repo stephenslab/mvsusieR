@@ -22,13 +22,10 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
   R <- dim(s$mu)[3]
 
   # ----- mu2_diag: diagonal of posterior second moment (L x J x R) -----
-  mu2_diag <- array(0, c(L, J, R))
-  for (l in seq_len(L)) {
-    cache_l <- s$mu2_cache[[l]]
-    if (!is.null(cache_l) && !is.null(cache_l$mu2_diag)) {
-      mu2_diag[l, , ] <- cache_l$mu2_diag
-    }
-  }
+  # Now stored directly on the model as a 3D array (lifted out of
+  # mu2_cache so the (L, J, R) shape is uniform with conditional_lfsr
+  # and lbf_variable_outcome).
+  mu2_diag <- if (!is.null(s$mu2_diag)) s$mu2_diag else array(0, c(L, J, R))
 
   # ----- Collapse arrays for R = 1 -----
   if (R == 1) {
@@ -65,20 +62,27 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
       posterior_mixture_weights <- raw_weights[, , -1, drop = FALSE]
     }
 
-    # conditional_lfsr: L x J x R array
-    # Trimmed effects (NULL clfsr) get lfsr = 1 (no signal)
-    clfsr <- array(1, c(L, J, R))
-    for (l in seq_len(L)) {
-      if (!is.null(s$conditional_lfsr[[l]])) {
-        clfsr[l, , ] <- s$conditional_lfsr[[l]]
-      }
-    }
+    # conditional_lfsr is now stored as a top-level (L, J, R) array.
+    # Trimmed effects were filled with 1 in trim_null_effects, so no
+    # NULL handling needed.
+    clfsr <- if (!is.null(s$conditional_lfsr)) s$conditional_lfsr
+             else array(1, c(L, J, R))
 
-    # Per-outcome conditional log BF: L x R matrix
-    lbf_out <- matrix(0, L, R)
-    for (l in seq_len(L))
-      if (!is.null(s$lbf_outcome[[l]]))
-        lbf_out[l, ] <- s$lbf_outcome[[l]]
+    # Per-CS per-outcome log BF (L x R matrix), derived from the
+    # per-(variant, outcome) array via alpha-weighting:
+    #   lbf_out[l, r] = sum_j alpha[l, j] * lbf_variable_outcome[l, j, r]
+    # When the user opted out of `attach_lbf_variable_outcome`, the
+    # array is NULL and the LFSR filter degrades gracefully (lbf_out = 0
+    # disables the per-outcome BF gate in mvsusie_single_effect_lfsr).
+    if (!is.null(s$lbf_variable_outcome)) {
+      lbf_out <- matrix(0, L, R)
+      for (l in seq_len(L)) {
+        lbf_out[l, ] <- as.vector(crossprod(s$alpha[l, ],
+                                             s$lbf_variable_outcome[l, , ]))
+      }
+    } else {
+      lbf_out <- matrix(0, L, R)
+    }
 
     lfsr <- mvsusie_get_lfsr(clfsr, s$alpha)
     single_effect_lfsr <- mvsusie_single_effect_lfsr(
@@ -112,8 +116,9 @@ format_mvsusie_output <- function(s, csd, cm, Y_mean,
     intercept        = s$intercept,
     X_column_scale_factors = csd,
     posterior_mixture_weights = posterior_mixture_weights,
-    lbf_outcome      = lbf_out,
-    conditional_lfsr = clfsr,
+    lbf_outcome          = lbf_out,                 # L x R, alpha-weighted aggregate
+    lbf_variable_outcome = s$lbf_variable_outcome,  # L x J x R or NULL
+    conditional_lfsr     = clfsr,
     lfsr             = lfsr,
     single_effect_lfsr = single_effect_lfsr,
     sets             = s$sets,

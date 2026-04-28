@@ -455,12 +455,15 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
   # When V ~= 0 or NA, posterior is null: mu = 0, cache = zeros
   if (is.na(V) || V < params$prior_tol) {
     model$mu[l, , ] <- 0
+    model$mu2_diag[l, , ] <- 0
     model$mu2_cache[[l]] <- list(
       bxxb = matrix(0, R, R), vbxxb = 0,
-      alpha_mu2_sum = matrix(0, R, R), mu2_diag = matrix(0, J, R)
+      alpha_mu2_sum = matrix(0, R, R)
     )
-    model$conditional_lfsr[l] <- list(NULL)
-    model$lbf_outcome[l] <- list(NULL)
+    # Null effect: lfsr = 1 (max uncertainty), log BF = 0 (BF = 1).
+    model$conditional_lfsr[l, , ] <- 1
+    if (!is.null(model$lbf_variable_outcome))
+      model$lbf_variable_outcome[l, , ] <- 0
     model$em_cache <- NULL
     return(model)
   }
@@ -493,14 +496,17 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
     model$BQ_cache <- NULL  # free memory after use
 
     model$mu[l, , ] <- post$mu
-    # Store reduced statistics (no J x R x R array)
+    model$mu2_diag[l, , ] <- post$mu2_diag
+    # Store reduced statistics (no J x R x R array). mu2_diag was lifted
+    # to top-level so the (L, J, R) shape is uniform with conditional_lfsr
+    # and lbf_variable_outcome.
     model$mu2_cache[[l]] <- list(
       bxxb = post$bxxb, vbxxb = post$vbxxb,
-      alpha_mu2_sum = post$alpha_mu2_sum,
-      mu2_diag = post$mu2_diag
+      alpha_mu2_sum = post$alpha_mu2_sum
     )
-    model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
-    model$lbf_outcome[[l]] <- compute_per_outcome_lbf(betahat, model, data, V, l)
+    model$conditional_lfsr[l, , ] <- compute_lfsr(post$post_neg, post$post_zero)
+    if (!is.null(model$lbf_variable_outcome))
+      model$lbf_variable_outcome[l, , ] <- compute_per_outcome_lbf(betahat, model, data, V, l)
 
     if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM") {
       model$em_cache <- list(
@@ -584,14 +590,16 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
     vbxxb           <- vbxxb + a_j * sum(svs_inv[[min(j, length(svs_inv))]] * mu2_j)
     mu2_diag[j, ] <- diag(mu2_j)
   }
+  model$mu2_diag[l, , ] <- mu2_diag
   model$mu2_cache[[l]] <- list(
     bxxb = bxxb, vbxxb = vbxxb,
-    alpha_mu2_sum = alpha_mu2_sum, mu2_diag = mu2_diag
+    alpha_mu2_sum = alpha_mu2_sum
   )
 
   # LFSR from posterior sign probabilities
-  model$conditional_lfsr[[l]] <- compute_lfsr(post$post_neg, post$post_zero)
-  model$lbf_outcome[[l]] <- compute_per_outcome_lbf(betahat, model, data, V, l)
+  model$conditional_lfsr[l, , ] <- compute_lfsr(post$post_neg, post$post_zero)
+  if (!is.null(model$lbf_variable_outcome))
+    model$lbf_variable_outcome[l, , ] <- compute_per_outcome_lbf(betahat, model, data, V, l)
 
   # Cache EM statistics (no recomputation needed)
   if (!is.null(params$estimate_prior_method) && params$estimate_prior_method == "EM") {
@@ -620,14 +628,16 @@ calculate_posterior_moments.mv_individual <- function(data, params, model,
 # @param model   Model list with alpha, svs, V, V_structure, pi_V
 # @param data    Data object (for d, R, p)
 # @param V       Prior scalar for this effect
-# @param l       Effect index
-# @return R-vector of alpha-weighted per-outcome log ABFs
+# @param l       Effect index (unused; kept for back-compatibility)
+# @return J x R matrix of per-(variant, outcome) log ABFs. The
+#   alpha-weighted per-CS aggregate is `colSums(model$alpha[l, ] * lbf_mat)`
+#   when needed downstream (e.g., LFSR filter).
 compute_per_outcome_lbf <- function(betahat, model, data, V, l) {
   R <- data$R
   J <- data$p
 
-  # Guard: if V is near zero, no signal -- log BF = 0 for all outcomes
-  if (is.na(V) || V < 1e-15) return(rep(0, R))
+  # Guard: if V is near zero, no signal -- log BF = 0 everywhere.
+  if (is.na(V) || V < 1e-15) return(matrix(0, J, R))
 
   # Per-outcome prior variance: W_r = V * sum_k pi_V[k] * U_k[r,r]
   W_r <- V * sapply(seq_len(R), function(r) {
@@ -636,10 +646,9 @@ compute_per_outcome_lbf <- function(betahat, model, data, V, l) {
 
   # Per-outcome se^2 from svs diagonal
   svs <- if (!is.null(model$svs)) model$svs else data$svs
-  alpha_l <- model$alpha[l, ]
 
   # For common-cov: svs is length 1, se^2 = diag(svs[[1]])
-  # For non-common-cov: svs varies by j, use sentinel (which.max(alpha))
+  # For non-common-cov: svs varies by j.
   if (length(svs) == 1) {
     se2 <- diag(svs[[1]])  # R-vector, same for all j
     # z^2 for all j: betahat[j,r]^2 / se2[r]
@@ -659,8 +668,9 @@ compute_per_outcome_lbf <- function(betahat, model, data, V, l) {
     }
   }
 
-  # Aggregate weighted by alpha
-  colSums(alpha_l * lbf_mat)
+  # Return per-(variant, outcome) log ABFs unaggregated. Alpha-weighting
+  # to the per-CS aggregate is now done at the call site when needed.
+  lbf_mat
 }
 
 # =============================================================================
@@ -1027,17 +1037,21 @@ trim_null_effects.mv_individual <- function(data, params, model) {
       model$V[l]               <- 0
       model$alpha[l, ]         <- 1 / J
       model$mu[l, , ]          <- 0
+      model$mu2_diag[l, , ]    <- 0
       model$mu2_cache[[l]]     <- list(
         bxxb = matrix(0, R, R), vbxxb = 0,
-        alpha_mu2_sum = matrix(0, R, R), mu2_diag = matrix(0, J, R)
+        alpha_mu2_sum = matrix(0, R, R)
       )
       model$lbf_variable[l, ]  <- 0
       model$lbf[l]             <- 0
       model$KL[l]              <- 0
-      # Reset mixture-specific fields (use list(NULL) to avoid removing element)
-      model$pi_V_posterior[l]    <- list(NULL)
-      model$conditional_lfsr[l] <- list(NULL)
-      model$lbf_outcome[l]      <- list(NULL)
+      # Reset mixture-specific fields. pi_V_posterior is still per-l list
+      # (carries K mixture component dim); conditional_lfsr and
+      # lbf_variable_outcome are now (L, J, R) arrays so we slice-zero.
+      model$pi_V_posterior[l] <- list(NULL)
+      model$conditional_lfsr[l, , ] <- 1   # null lfsr = 1 (max uncertainty)
+      if (!is.null(model$lbf_variable_outcome))
+        model$lbf_variable_outcome[l, , ] <- 0
     }
   }
   return(model)

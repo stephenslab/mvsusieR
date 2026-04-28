@@ -17,11 +17,11 @@
 #' @param min_abs_corr Minimum absolute correlation for CS.
 #' @param L_greedy Integer or NULL. When non-NULL, run a greedy
 #'   outer loop that grows the effect count `L` in linear steps of
-#'   `L_greedy` until the fit saturates (`min(lbf) < lbf_min`) or
+#'   `L_greedy` until the fit saturates (`min(lbf) < greedy_lbf_cutoff`) or
 #'   `L_greedy` reaches `L`. NULL (default) runs a single fixed-`L`
 #'   IBSS, output bit-identical to non-greedy susieR. Forwarded to
 #'   `susieR::susie_workhorse`.
-#' @param lbf_min Numeric, the saturation threshold for the greedy
+#' @param greedy_lbf_cutoff Numeric, the saturation threshold for the greedy
 #'   outer loop. The fit is considered saturated as soon as any
 #'   effect's log Bayes factor falls below this value. Default 0.1.
 #'   Ignored when `L_greedy = NULL`.
@@ -49,7 +49,8 @@ mvsusie_workhorse <- function(data, L, prior_variance,
                                n_thread = 1,
                                model_init = NULL,
                                L_greedy = NULL,
-                               lbf_min = 0.1) {
+                               greedy_lbf_cutoff = 0.1,
+                               attach_lbf_variable_outcome = TRUE) {
 
   J <- data$p
   R <- data$R
@@ -101,7 +102,11 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     convergence_method       = convergence_method,
     # Greedy-L (handed to susieR::susie_workhorse). NULL = fixed-L IBSS.
     L_greedy                 = L_greedy,
-    lbf_min                  = lbf_min
+    greedy_lbf_cutoff                  = greedy_lbf_cutoff,
+    # Whether to populate model$lbf_variable_outcome (L x J x R) during
+    # IBSS. Consumed by `susieR::susie_post_outcome_configuration(fit,
+    # by = "outcome")`. NULL skips storage; TRUE allocates L*J*R doubles.
+    attach_lbf_variable_outcome = isTRUE(attach_lbf_variable_outcome)
   )
 
   # Call susieR's workhorse
@@ -238,11 +243,11 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #'   a greedy outer loop that grows the effect count from
 #'   \code{L_greedy} up to \code{L} in linear steps of size
 #'   \code{L_greedy} until the fit saturates (\code{min(lbf) <
-#'   lbf_min}) or reaches \code{L}. \code{NULL} (the default) runs a
+#'   greedy_lbf_cutoff}) or reaches \code{L}. \code{NULL} (the default) runs a
 #'   single fixed-\code{L} IBSS, output bit-identical to non-greedy
 #'   susieR. Passes through to \code{susieR::susie_workhorse}.
 #'
-#' @param lbf_min Numeric saturation threshold for the greedy outer
+#' @param greedy_lbf_cutoff Numeric saturation threshold for the greedy outer
 #'   loop. The fit is considered saturated as soon as any effect's
 #'   log Bayes factor falls below this value. Default \code{0.1}.
 #'   Ignored when \code{L_greedy = NULL}.
@@ -391,7 +396,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     max_iter = 100, tol = 1e-3, verbose = TRUE,
                     track_fit = FALSE,
                     min_outcome_lbf = 0,
-                    L_greedy = NULL, lbf_min = 0.1) {
+                    L_greedy = NULL, greedy_lbf_cutoff = 0.1) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
   Y_ncol <- if (is.null(dim(Y))) 1L else ncol(Y)
@@ -421,7 +426,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              max_iter = max_iter, tol = tol,
              verbose = verbose, track_fit = track_fit,
              min_outcome_lbf = min_outcome_lbf,
-             L_greedy = L_greedy, lbf_min = lbf_min)
+             L_greedy = L_greedy, greedy_lbf_cutoff = greedy_lbf_cutoff)
 }
 
 #' @rdname mvsusie
@@ -660,7 +665,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                               max_iter = 100, tol = 1e-3, verbose = TRUE,
                               track_fit = FALSE,
                               min_outcome_lbf = 0,
-                              L_greedy = NULL, lbf_min = 0.1) {
+                              L_greedy = NULL, greedy_lbf_cutoff = 0.1) {
   # For R=1 with scalar prior, convert from susieR "scaled prior variance"
   # convention to absolute prior variance: actual_V = scaled_V * sigma2.
   XtY <- as.matrix(XtY)
@@ -693,7 +698,7 @@ mvsusie_ss <- function(XtX, XtY, YtY, N, L = 10, X_colmeans = NULL,
                        max_iter = max_iter, tol = tol,
                        verbose = verbose, track_fit = track_fit,
                        min_outcome_lbf = min_outcome_lbf,
-                       L_greedy = L_greedy, lbf_min = lbf_min)
+                       L_greedy = L_greedy, greedy_lbf_cutoff = greedy_lbf_cutoff)
 }
 
 #' @rdname mvsusie
@@ -721,7 +726,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        max_iter = 100, tol = 1e-3, verbose = TRUE,
                        track_fit = FALSE,
                        min_outcome_lbf = 0,
-                       L_greedy = NULL, lbf_min = 0.1) {
+                       L_greedy = NULL, greedy_lbf_cutoff = 0.1,
+                       attach_lbf_variable_outcome = TRUE) {
   reset_warn_once()
   verbose <- isTRUE(verbose)
 
@@ -888,7 +894,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
       precompute_covariances = precompute_cache,
       n_thread = n_thread,
       model_init = model_init,
-      L_greedy = L_greedy, lbf_min = lbf_min)
+      L_greedy = L_greedy, greedy_lbf_cutoff = greedy_lbf_cutoff,
+      attach_lbf_variable_outcome = attach_lbf_variable_outcome)
 
     # Initial fit with fixed sigma2 (Block A, first pass)
     s <- do.call(mvsusie_workhorse, c(list(data = data), wh_args))
@@ -938,7 +945,8 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                             precompute_covariances = precompute_cache,
                             n_thread = n_thread,
                             model_init = model_init,
-                            L_greedy = L_greedy, lbf_min = lbf_min)
+                            L_greedy = L_greedy, greedy_lbf_cutoff = greedy_lbf_cutoff,
+                            attach_lbf_variable_outcome = attach_lbf_variable_outcome)
   }
 
   # Compute CSs using original X
@@ -1008,7 +1016,7 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                                   max_iter = 100, tol = 1e-3, verbose = TRUE,
                                   track_fit = FALSE,
                                   min_outcome_lbf = 0,
-                                  L_greedy = NULL, lbf_min = 0.1) {
+                                  L_greedy = NULL, greedy_lbf_cutoff = 0.1) {
   reset_warn_once()
 
   XtY <- as.matrix(XtY)
@@ -1083,7 +1091,7 @@ mvsusie_ss_core <- function(XtX, XtY, YtY, N, L = 10,
                           precompute_covariances = precompute_cache,
                           n_thread = n_thread,
                           model_init = model_init,
-                          L_greedy = L_greedy, lbf_min = lbf_min)
+                          L_greedy = L_greedy, greedy_lbf_cutoff = greedy_lbf_cutoff)
 
   # Compute CSs using XtX correlation
   if (!is.null(coverage) && !is.null(min_abs_corr)) {

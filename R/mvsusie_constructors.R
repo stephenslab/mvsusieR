@@ -390,10 +390,30 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
     sum(svd_d > max(sqrt(.Machine$double.eps) * svd_d[1], 0))
   }, numeric(1))
 
+  # `lbf_variable_outcome` is per-(effect, variant, outcome) log Bayes
+  # factor (L x J x R). Parallels susieR's `lbf_variable` (L x J, joint
+  # composite over outcomes); the `_outcome` array keeps the R axis
+  # intact. Consumed by `susieR::susie_post_outcome_configuration(fit,
+  # by = "outcome")`. Gated by `attach_lbf_variable_outcome` so users
+  # who don't need the post-hoc configuration analysis can drop the
+  # L*J*R doubles. NULL when opt-out.
+  attach_lbf_variable_outcome <- isTRUE(params$attach_lbf_variable_outcome)
+  lbf_variable_outcome <- if (attach_lbf_variable_outcome) {
+    array(NA_real_, c(L, J, R))
+  } else {
+    NULL
+  }
+
   model <- list(
     alpha        = matrix(1 / J, L, J),
     mu           = array(0, c(L, J, R)),
-    mu2_cache    = vector("list", L),  # bxxb/vbxxb accumulated during SER
+    # Top-level per-(effect, variant, outcome) diagonal of E[bb'].
+    # Lifted out of `mu2_cache[[l]]` so the (L, J, R) shape is uniform
+    # with `lbf_variable_outcome` and `conditional_lfsr`. The remaining
+    # `mu2_cache[[l]]` fields (bxxb, vbxxb, alpha_mu2_sum) are R x R or
+    # scalar and stay in the per-effect list.
+    mu2_diag     = array(0, c(L, J, R)),
+    mu2_cache    = vector("list", L),  # bxxb / vbxxb / alpha_mu2_sum (R x R + scalar)
     V            = rep(V_scalar_init, L),
     # Mixture prior fields (unified for single-matrix and mixture)
     V_structure       = V_structure,       # list of K RxR matrices (non-null)
@@ -406,8 +426,8 @@ initialize_susie_model.mv_individual <- function(data, params, var_y, ...) {
     llik_cache       = NULL,              # last-effect Jx(K+1) log-likelihoods (for EM V update)
     per_effect_llik  = vector("list", L), # per-effect Jx(K+1) log-likelihoods (for mixsqp)
     ibss_iter        = 0,                 # iteration counter (for pruning schedule)
-    conditional_lfsr  = vector("list", L), # per-effect JxR LFSR
-    lbf_outcome       = vector("list", L), # per-effect R-vector of per-outcome conditional log BF
+    conditional_lfsr     = array(NA_real_, c(L, J, R)),  # L x J x R LFSR
+    lbf_variable_outcome = lbf_variable_outcome,         # L x J x R or NULL
     KL           = rep(as.numeric(NA), L),
     lbf          = rep(as.numeric(NA), L),
     lbf_variable = matrix(as.numeric(NA), L, J),
