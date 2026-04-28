@@ -487,12 +487,14 @@ test_that("R=1 mash K=1: S3 matches R6 at machine precision", {
                         residual_variance = cov(y),
                         estimate_residual_variance = FALSE,
                         estimate_prior_variance = FALSE,
+                        tol = 1e-3,
                         intercept = TRUE, standardize = TRUE,
                         precompute_cache = TRUE, verbose = FALSE)
     ref_mash <- r6$mvsusie(X, y, L = L, prior_variance = r6_prior,
                             residual_variance = cov(y),
                             estimate_residual_variance = FALSE,
                             estimate_prior_variance = FALSE,
+                            tol = 1e-3,
                             intercept = TRUE, standardize = TRUE,
                             precompute_covariances = TRUE, verbosity = 0)
     expect_all_fields_equal(fit_mash, ref_mash, tol = MACH_TOL,
@@ -578,14 +580,19 @@ test_that("mvsusie_ss = mvsusie at machine precision (R=1, centered inputs)", {
 # Section 5: Workhorse defaults sanity
 # ============================================================================
 
-test_that("mvsusie_workhorse defaults match R6 master reference values", {
-  # These are the original values from commit aaed0d9 mvsusie_workhorse.
-  # Any change to these defaults is a regression.
+test_that("mvsusie_workhorse defaults match the canonical reference values", {
+  # `tol` was deliberately tightened from 1e-3 to 1e-4 (2026-04-28) to
+  # align mvsusieR's IBSS convergence with susieR's default. The R=1
+  # mvsusie-vs-susieR identity contract requires the two packages take
+  # the same number of IBSS iterations on the same fixture; the slacker
+  # 1e-3 default would stop one iteration earlier than susieR and drift
+  # by ~1e-3 on `mu` / `lbf_variable`. The remaining defaults stay at
+  # the original commit-aaed0d9 values.
   args <- formals(mvsusie_workhorse)
 
   expect_equal(eval(args$check_null_threshold), 0)
   expect_equal(eval(args$max_iter), 100)
-  expect_equal(eval(args$tol), 1e-3)
+  expect_equal(eval(args$tol), 1e-4)
   expect_equal(eval(args$prior_tol), 1e-9)
   expect_equal(eval(args$verbose), TRUE)
   expect_equal(eval(args$coverage), 0.95)

@@ -273,11 +273,13 @@ test_that("R=1, missing data, fixed variance matches R6", {
                    residual_variance = as.numeric(var(y)),
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
+                   tol = 1e-3,
                    intercept = TRUE, standardize = TRUE, verbose = FALSE)
     ref <- r6_mvsusie(X, y_missing, L = L, prior_variance = V[1, 1],
                       residual_variance = as.numeric(var(y)),
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
+                      tol = 1e-3,
                       intercept = TRUE, standardize = TRUE, verbose = FALSE)
     # Core math fields match at tight tolerance; fitted differs for
     # missing observations (convention: R6 zeros missing rows).
@@ -392,6 +394,7 @@ test_that("R=3, fitted_g prior, fixed variance matches R6", {
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
                    estimate_prior_mixture_weights = FALSE,
+                   tol = 1e-3,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = TRUE, verbose = FALSE,
                    min_outcome_lbf = NULL)
@@ -400,6 +403,7 @@ test_that("R=3, fitted_g prior, fixed variance matches R6", {
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = FALSE,
+                      tol = 1e-3,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = TRUE, verbose = FALSE)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)
@@ -447,6 +451,7 @@ test_that("R=3, fitted_g prior, null_weight override matches R6", {
                    estimate_residual_variance = FALSE,
                    estimate_prior_variance = FALSE,
                    estimate_prior_mixture_weights = FALSE,
+                   tol = 1e-3,
                    intercept = TRUE, standardize = TRUE,
                    precompute_cache = TRUE, verbose = FALSE,
                    min_outcome_lbf = NULL)
@@ -455,6 +460,7 @@ test_that("R=3, fitted_g prior, null_weight override matches R6", {
                       estimate_residual_variance = FALSE,
                       estimate_prior_variance = FALSE,
                       estimate_prior_mixture_weights = FALSE,
+                      tol = 1e-3,
                       intercept = TRUE, standardize = TRUE,
                       precompute_cache = TRUE, verbose = FALSE)
     expect_ref_equal(fit, ref, tol = tol_tight, check_elbo = TRUE)

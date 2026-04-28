@@ -215,7 +215,7 @@ test_that("EXACT: R=1 matrix prior, EM, all est_pv × est_rv × intercept", {
                 estimate_residual_variance = cfg$est_rv,
                 estimate_prior_variance = cfg$est_pv,
                 estimate_prior_method = "EM",
-                max_iter = 10,
+                max_iter = 10, tol = 1e-3,
                 intercept = cfg$intercept, standardize = TRUE, verbose = FALSE)
       )
       ref <- suppressWarnings(
@@ -224,7 +224,7 @@ test_that("EXACT: R=1 matrix prior, EM, all est_pv × est_rv × intercept", {
                          estimate_residual_variance = cfg$est_rv,
                          estimate_prior_variance = cfg$est_pv,
                          estimate_prior_method = "EM",
-                         max_iter = 10,
+                         max_iter = 10, tol = 1e-3,
                          intercept = cfg$intercept, standardize = TRUE,
                          verbose = FALSE)
       )
@@ -255,7 +255,7 @@ test_that("EXACT: R=3 matrix prior, EM, all est_pv × est_rv × intercept", {
                 estimate_residual_variance = cfg$est_rv,
                 estimate_prior_variance = cfg$est_pv,
                 estimate_prior_method = "EM",
-                max_iter = 10,
+                max_iter = 10, tol = 1e-3,
                 intercept = cfg$intercept, standardize = TRUE, verbose = FALSE)
       )
       ref <- suppressWarnings(
@@ -264,7 +264,7 @@ test_that("EXACT: R=3 matrix prior, EM, all est_pv × est_rv × intercept", {
                          estimate_residual_variance = cfg$est_rv,
                          estimate_prior_variance = cfg$est_pv,
                          estimate_prior_method = "EM",
-                         max_iter = 10,
+                         max_iter = 10, tol = 1e-3,
                          intercept = cfg$intercept, standardize = TRUE,
                          verbose = FALSE)
       )
@@ -308,7 +308,7 @@ test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept"
                 estimate_residual_variance = cfg$est_rv,
                 estimate_prior_variance = cfg$est_pv,
                 estimate_prior_method = "EM",
-                max_iter = 10,
+                max_iter = 10, tol = 1e-3,
                 intercept = cfg$intercept, standardize = TRUE,
                 precompute_cache = cfg$precompute, verbose = FALSE)
       )
@@ -323,7 +323,7 @@ test_that("EXACT: R=3 mash K=1, all est_pv × est_rv × precompute × intercept"
                          estimate_residual_variance = cfg$est_rv,
                          estimate_prior_variance = cfg$est_pv,
                          estimate_prior_method = "EM",
-                         max_iter = 10,
+                         max_iter = 10, tol = 1e-3,
                          intercept = cfg$intercept, standardize = TRUE,
                          precompute_cache = r6_precomp, verbose = FALSE)
       )
@@ -364,7 +364,7 @@ test_that("EXACT: R=3 sufficient statistics, matrix prior, all est_pv × est_rv"
                         estimate_residual_variance = cfg$est_rv,
                         estimate_prior_variance = cfg$est_pv,
                         estimate_prior_method = "EM",
-                        max_iter = 10,
+                        max_iter = 10, tol = 1e-3,
                         verbose = FALSE)
       ref <- r6_sweep_mvsusie_ss(XtX = XtX, XtY = XtY, YtY = YtY, N = N,
                                  L = 10, prior_variance = V,
@@ -372,7 +372,7 @@ test_that("EXACT: R=3 sufficient statistics, matrix prior, all est_pv × est_rv"
                                  estimate_residual_variance = cfg$est_rv,
                                  estimate_prior_variance = cfg$est_pv,
                                  estimate_prior_method = "EM",
-                                 max_iter = 10,
+                                 max_iter = 10, tol = 1e-3,
                                  verbose = FALSE)
       compare_exact(fit, ref, label)
     }
@@ -415,7 +415,7 @@ test_that("EXACT: R=3 sufficient statistics, mash K=1, all est_pv × est_rv × p
                         estimate_residual_variance = cfg$est_rv,
                         estimate_prior_variance = cfg$est_pv,
                         estimate_prior_method = "EM",
-                        max_iter = 10,
+                        max_iter = 10, tol = 1e-3,
                         precompute_cache = cfg$precompute, verbose = FALSE)
       # R6 precompute is buggy when est_rv=TRUE + est_pv=FALSE
       r6_precomp <- cfg$precompute
@@ -426,7 +426,7 @@ test_that("EXACT: R=3 sufficient statistics, mash K=1, all est_pv × est_rv × p
                                  estimate_residual_variance = cfg$est_rv,
                                  estimate_prior_variance = cfg$est_pv,
                                  estimate_prior_method = "EM",
-                                 max_iter = 10,
+                                 max_iter = 10, tol = 1e-3,
                                  precompute_cache = r6_precomp,
                                  verbose = FALSE)
       compare_exact(fit, ref, label)
@@ -458,14 +458,14 @@ test_that("EXACT: L=1 matrix prior EM, all est_pv × est_rv", {
                      estimate_residual_variance = cfg$est_rv,
                      estimate_prior_variance = cfg$est_pv,
                      estimate_prior_method = "EM",
-                     max_iter = 10,
+                     max_iter = 10, tol = 1e-3,
                      intercept = TRUE, standardize = TRUE, verbose = FALSE)
       ref <- r6_sweep_mvsusie(X, y, L = 1, prior_variance = V,
                               residual_variance = cov(y),
                               estimate_residual_variance = cfg$est_rv,
                               estimate_prior_variance = cfg$est_pv,
                               estimate_prior_method = "EM",
-                              max_iter = 10,
+                              max_iter = 10, tol = 1e-3,
                               intercept = TRUE, standardize = TRUE, verbose = FALSE)
       compare_exact(fit, ref, label)
     }
@@ -516,7 +516,7 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
                 estimate_prior_variance = cfg$est_pv,
                 estimate_prior_method = "EM",
                 estimate_prior_mixture_weights = FALSE,
-                max_iter = 10,
+                max_iter = 10, tol = 1e-3,
                 intercept = cfg$intercept, standardize = TRUE,
                 precompute_cache = cfg$precompute, verbose = FALSE)
       )
@@ -529,7 +529,7 @@ test_that("EXACT: R=3 mixture K>1, all est_pv × est_rv × precompute × interce
                          estimate_residual_variance = cfg$est_rv,
                          estimate_prior_variance = cfg$est_pv,
                          estimate_prior_method = "EM",
-                         max_iter = 10,
+                         max_iter = 10, tol = 1e-3,
                          intercept = cfg$intercept, standardize = TRUE,
                          precompute_cache = r6_precomp, verbose = FALSE)
       )
