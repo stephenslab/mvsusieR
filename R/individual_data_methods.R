@@ -11,6 +11,16 @@ get_var_y.mv_individual <- function(data, ...) {
   if (data$R > 1) cov(data$Y) else var(data$Y)
 }
 
+#' @keywords internal
+format_sigma2_summary.mvsusie <- function(model) {
+  sigma2 <- model$sigma2
+  if (is.matrix(sigma2)) {
+    d <- diag(sigma2)
+    return(sprintf("diag[%.3g,%.3g]", min(d), max(d)))
+  }
+  sprintf("%.4f", sigma2)
+}
+
 # =============================================================================
 # IBSS INITIALIZATION (overrides susieR's ibss_initialize for MV data)
 #

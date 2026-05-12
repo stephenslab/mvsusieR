@@ -618,6 +618,11 @@ test_that("mvsusie_workhorse internal params have correct defaults", {
   })
 })
 
+test_that("mvsusie verbose sigma2 summary is compact for matrix sigma2", {
+  fit <- structure(list(sigma2 = diag(c(1, 2))), class = c("mvsusie", "susie"))
+  expect_equal(format_sigma2_summary.mvsusie(fit), "diag[1,2]")
+})
+
 # ============================================================================
 # Section 6: Edge cases
 # ============================================================================

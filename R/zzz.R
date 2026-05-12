@@ -110,6 +110,7 @@ check_semi_pd <- NULL
 
   # Register S3 methods for the mvsusie model class
   mvsusie_generics <- c(
+    "format_sigma2_summary",
     "get_posterior_mean_l",
     "get_posterior_mean_sum",
     "get_posterior_moments_l"

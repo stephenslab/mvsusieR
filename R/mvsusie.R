@@ -93,7 +93,7 @@ mvsusie_workhorse <- function(data, L, prior_variance,
     model_init               = model_init,
     unmappable_effects       = "none",
     n_purity                 = 100,
-    use_servin_stephens      = FALSE,  # required by susieR::ibss_finalize
+    use_NIG                  = FALSE,
     # Multivariate-specific
     precompute_eigendecomp   = precompute_covariances,  # from caller's precompute_cache
     n_thread                 = n_thread,
