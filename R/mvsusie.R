@@ -233,6 +233,9 @@ mvsusie_workhorse <- function(data, L, prior_variance,
 #' @param tol The model fitting will terminate when the increase in
 #'   ELBOs between two successive iterations is less than \code{tol}.
 #'
+#' @param convergence_method Method for checking convergence; \code{"elbo"}
+#'   uses the objective and \code{"pip"} uses PIP/alpha stability.
+#'
 #' @param verbose If \code{TRUE}, print progress messages during model
 #'   fitting. Default is \code{TRUE}.
 #'
@@ -394,6 +397,7 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
                     compute_univariate_zscore = FALSE,
                     precompute_cache = TRUE, n_thread = 1,
                     max_iter = 100, tol = 1e-4, verbose = TRUE,
+                    convergence_method = NULL,
                     track_fit = FALSE,
                     min_outcome_lbf = 0,
                     L_greedy = NULL, greedy_lbf_cutoff = 0.1) {
@@ -424,7 +428,8 @@ mvsusie <- function(X, Y, L = 10, prior_variance = 0.2,
              precompute_cache = precompute_cache,
              n_thread = n_thread,
              max_iter = max_iter, tol = tol,
-             verbose = verbose, track_fit = track_fit,
+             verbose = verbose, convergence_method = convergence_method,
+             track_fit = track_fit,
              min_outcome_lbf = min_outcome_lbf,
              L_greedy = L_greedy, greedy_lbf_cutoff = greedy_lbf_cutoff)
 }
@@ -724,6 +729,7 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
                        precompute_cache = TRUE,
                        n_thread = 1,
                        max_iter = 100, tol = 1e-4, verbose = TRUE,
+                       convergence_method = NULL,
                        track_fit = FALSE,
                        min_outcome_lbf = 0,
                        L_greedy = NULL, greedy_lbf_cutoff = 0.1,
@@ -842,7 +848,9 @@ mvsusie_core <- function(X, Y, L = 10, prior_variance = 0.2,
   # convergence for the imputation missing data method where ELBO is
   # not exact (doi:10.1038/s41588-025-02486-7). The approximate and exact
   # methods compute a valid ELBO so ELBO convergence is appropriate.
-  if (Y_has_missing && R > 1 && missing_y_method == "impute") {
+  if (!is.null(convergence_method)) {
+    convergence_method <- match.arg(convergence_method, c("elbo", "pip"))
+  } else if (Y_has_missing && R > 1 && missing_y_method == "impute") {
     convergence_method <- "pip"
     warning_message(
       "Using PIP-based convergence (instead of ELBO) for impute method: ",
