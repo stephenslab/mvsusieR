@@ -28,6 +28,7 @@
 #'
 #' @return A fitted mvsusie model.
 #'
+#' @importFrom susieR susie_workhorse
 #' @keywords internal
 mvsusie_workhorse <- function(data, L, prior_variance,
                                prior_weights = NULL,

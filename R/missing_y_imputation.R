@@ -8,7 +8,7 @@
 # once per pattern instead of once per observation.
 
 #' @importFrom Rcpp evalCpp
-#' @useDynLib mvsusieR
+#' @useDynLib mvsusieR, .registration = TRUE
 NULL
 
 # ============================================================================

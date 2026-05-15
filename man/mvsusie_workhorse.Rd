@@ -17,7 +17,7 @@ mvsusie_workhorse(
   check_null_threshold = 0,
   convergence_method = "elbo",
   max_iter = 100,
-  tol = 0.001,
+  tol = 1e-04,
   prior_tol = 1e-09,
   track_fit = FALSE,
   verbose = TRUE,
@@ -27,7 +27,8 @@ mvsusie_workhorse(
   n_thread = 1,
   model_init = NULL,
   L_greedy = NULL,
-  lbf_min = 0.1
+  greedy_lbf_cutoff = 0.1,
+  attach_lbf_variable_outcome = TRUE
 )
 }
 \arguments{
@@ -63,12 +64,12 @@ mvsusie_workhorse(
 
 \item{L_greedy}{Integer or NULL. When non-NULL, run a greedy
 outer loop that grows the effect count `L` in linear steps of
-`L_greedy` until the fit saturates (`min(lbf) < lbf_min`) or
+`L_greedy` until the fit saturates (`min(lbf) < greedy_lbf_cutoff`) or
 `L_greedy` reaches `L`. NULL (default) runs a single fixed-`L`
 IBSS, output bit-identical to non-greedy susieR. Forwarded to
 `susieR::susie_workhorse`.}
 
-\item{lbf_min}{Numeric, the saturation threshold for the greedy
+\item{greedy_lbf_cutoff}{Numeric, the saturation threshold for the greedy
 outer loop. The fit is considered saturated as soon as any
 effect's log Bayes factor falls below this value. Default 0.1.
 Ignored when `L_greedy = NULL`.}

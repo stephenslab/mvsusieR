@@ -32,12 +32,13 @@ mvsusie(
   precompute_cache = TRUE,
   n_thread = 1,
   max_iter = 100,
-  tol = 0.001,
+  tol = 1e-04,
   verbose = TRUE,
+  convergence_method = NULL,
   track_fit = FALSE,
   min_outcome_lbf = 0,
   L_greedy = NULL,
-  lbf_min = 0.1
+  greedy_lbf_cutoff = 0.1
 )
 
 mvsusie_rss(
@@ -78,12 +79,12 @@ mvsusie_ss(
   min_abs_corr = 0.5,
   n_thread = 1,
   max_iter = 100,
-  tol = 0.001,
+  tol = 1e-04,
   verbose = TRUE,
   track_fit = FALSE,
   min_outcome_lbf = 0,
   L_greedy = NULL,
-  lbf_min = 0.1
+  greedy_lbf_cutoff = 0.1
 )
 
 mvsusie_core(
@@ -110,12 +111,14 @@ mvsusie_core(
   precompute_cache = TRUE,
   n_thread = 1,
   max_iter = 100,
-  tol = 0.001,
+  tol = 1e-04,
   verbose = TRUE,
+  convergence_method = NULL,
   track_fit = FALSE,
   min_outcome_lbf = 0,
   L_greedy = NULL,
-  lbf_min = 0.1
+  greedy_lbf_cutoff = 0.1,
+  attach_lbf_variable_outcome = TRUE
 )
 
 mvsusie_ss_core(
@@ -143,12 +146,12 @@ mvsusie_ss_core(
   precompute_cache = TRUE,
   n_thread = 1,
   max_iter = 100,
-  tol = 0.001,
+  tol = 1e-04,
   verbose = TRUE,
   track_fit = FALSE,
   min_outcome_lbf = 0,
   L_greedy = NULL,
-  lbf_min = 0.1
+  greedy_lbf_cutoff = 0.1
 )
 }
 \arguments{
@@ -260,6 +263,9 @@ ELBOs between two successive iterations is less than \code{tol}.}
 \item{verbose}{If \code{TRUE}, print progress messages during model
 fitting. Default is \code{TRUE}.}
 
+\item{convergence_method}{Method for checking convergence; \code{"elbo"}
+uses the objective and \code{"pip"} uses PIP/alpha stability.}
+
 \item{track_fit}{Add attribute \code{trace} to the return value
 which records the algorithm's progress at each iteration.}
 
@@ -267,11 +273,11 @@ which records the algorithm's progress at each iteration.}
 a greedy outer loop that grows the effect count from
 \code{L_greedy} up to \code{L} in linear steps of size
 \code{L_greedy} until the fit saturates (\code{min(lbf) <
-lbf_min}) or reaches \code{L}. \code{NULL} (the default) runs a
+greedy_lbf_cutoff}) or reaches \code{L}. \code{NULL} (the default) runs a
 single fixed-\code{L} IBSS, output bit-identical to non-greedy
 susieR. Passes through to \code{susieR::susie_workhorse}.}
 
-\item{lbf_min}{Numeric saturation threshold for the greedy outer
+\item{greedy_lbf_cutoff}{Numeric saturation threshold for the greedy outer
 loop. The fit is considered saturated as soon as any effect's
 log Bayes factor falls below this value. Default \code{0.1}.
 Ignored when \code{L_greedy = NULL}.}
