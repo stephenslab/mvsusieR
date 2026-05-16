@@ -586,9 +586,9 @@ test_that("track_fit produces trace in output", {
                      max_iter = 5, verbose = FALSE, track_fit = TRUE)
   expect_false(is.null(fit_yes$trace))
   expect_true(length(fit_yes$trace) > 0)
-  # Each trace entry should have key model fields
+  # Each trace entry is a data frame with per-iteration alpha snapshots
   entry <- fit_yes$trace[[1]]
-  expect_true(all(c("alpha", "V", "sigma2") %in% names(entry)))
+  expect_true(all(c("iteration", "effect", "variable", "alpha") %in% names(entry)))
 })
 
 test_that("S3 output has outcome_names (replaces R6 condition_names)", {
