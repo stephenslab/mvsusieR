@@ -14,6 +14,6 @@ if (!is.null(repo_dir)) {
     system2("git", c("-C", repo_dir, "worktree", "remove", "--force",
                      ref_source), stdout = FALSE, stderr = FALSE)
     system2("git", c("-C", repo_dir, "worktree", "add", "--detach",
-                     ref_source, "master"), stdout = FALSE, stderr = FALSE)
+                     ref_source, "origin/master"), stdout = FALSE, stderr = FALSE)
   }
 }

@@ -41,7 +41,7 @@ load_r6_env <- function() {
     system2("git", c("-C", repo_dir, "worktree", "remove", "--force", ref_source),
             stdout = FALSE, stderr = FALSE)
     ret <- system2("git", c("-C", repo_dir, "worktree", "add", "--detach",
-                            ref_source, "master"),
+                            ref_source, "origin/master"),
                    stdout = FALSE, stderr = FALSE)
     if (ret != 0) stop("Failed to create worktree from master")
   }
