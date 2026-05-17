@@ -34,7 +34,8 @@
 repo_dir <- tryCatch({
   gcd <- system2("git", c("rev-parse", "--git-common-dir"),
                  stdout = TRUE, stderr = FALSE)
-  normalizePath(file.path(gcd, ".."))
+  if (length(gcd) == 0 || !nzchar(gcd[1])) NULL
+  else normalizePath(file.path(gcd, ".."), mustWork = FALSE)
 }, error = function(e) NULL)
 
 # Cached R6 reference functions
@@ -83,6 +84,9 @@ load_r6_reference <- function() {
 # Load R6 eagerly --these tests require the master branch R6 reference.
 # Fail hard if R6 can't be loaded (master should always be available).
 ensure_r6_loaded <- function() {
+  if (is.null(repo_dir)) {
+    testthat::skip("R6 reference comparison requires a git repository")
+  }
   load_r6_reference()
 }
 

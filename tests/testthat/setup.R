@@ -5,7 +5,8 @@
 repo_dir <- tryCatch({
   gcd <- system2("git", c("rev-parse", "--git-common-dir"),
                   stdout = TRUE, stderr = FALSE)
-  normalizePath(file.path(gcd, ".."))
+  if (length(gcd) == 0 || !nzchar(gcd[1])) NULL
+  else normalizePath(file.path(gcd, ".."), mustWork = FALSE)
 }, error = function(e) NULL)
 
 if (!is.null(repo_dir)) {

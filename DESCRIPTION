@@ -35,6 +35,9 @@ LinkingTo:
     Rcpp,
     RcppArmadillo (>= 0.9.700.2)
 Suggests:
+    MASS,
+    pkgload,
+    rprojroot,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
