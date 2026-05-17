@@ -5,7 +5,8 @@
 repo_dir <- tryCatch({
   gcd <- system2("git", c("rev-parse", "--git-common-dir"),
                   stdout = TRUE, stderr = FALSE)
-  normalizePath(file.path(gcd, ".."))
+  if (length(gcd) == 0 || !nzchar(gcd[1])) NULL
+  else normalizePath(file.path(gcd, ".."), mustWork = FALSE)
 }, error = function(e) NULL)
 
 if (!is.null(repo_dir)) {
@@ -14,6 +15,6 @@ if (!is.null(repo_dir)) {
     system2("git", c("-C", repo_dir, "worktree", "remove", "--force",
                      ref_source), stdout = FALSE, stderr = FALSE)
     system2("git", c("-C", repo_dir, "worktree", "add", "--detach",
-                     ref_source, "master"), stdout = FALSE, stderr = FALSE)
+                     ref_source, "origin/master"), stdout = FALSE, stderr = FALSE)
   }
 }

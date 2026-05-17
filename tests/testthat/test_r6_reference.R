@@ -34,7 +34,8 @@
 repo_dir <- tryCatch({
   gcd <- system2("git", c("rev-parse", "--git-common-dir"),
                  stdout = TRUE, stderr = FALSE)
-  normalizePath(file.path(gcd, ".."))
+  if (length(gcd) == 0 || !nzchar(gcd[1])) NULL
+  else normalizePath(file.path(gcd, ".."), mustWork = FALSE)
 }, error = function(e) NULL)
 
 # Cached R6 reference functions
@@ -49,7 +50,7 @@ load_r6_reference <- function() {
     system2("git", c("-C", repo_dir, "worktree", "remove", "--force", ref_source),
             stdout = FALSE, stderr = FALSE)
     ret <- system2("git", c("-C", repo_dir, "worktree", "add", "--detach",
-                            ref_source, "master"),
+                            ref_source, "origin/master"),
                    stdout = FALSE, stderr = FALSE)
     if (ret != 0) stop("Failed to create worktree from master")
   }
@@ -83,6 +84,9 @@ load_r6_reference <- function() {
 # Load R6 eagerly --these tests require the master branch R6 reference.
 # Fail hard if R6 can't be loaded (master should always be available).
 ensure_r6_loaded <- function() {
+  if (is.null(repo_dir)) {
+    testthat::skip("R6 reference comparison requires a git repository")
+  }
   load_r6_reference()
 }
 
@@ -586,9 +590,9 @@ test_that("track_fit produces trace in output", {
                      max_iter = 5, verbose = FALSE, track_fit = TRUE)
   expect_false(is.null(fit_yes$trace))
   expect_true(length(fit_yes$trace) > 0)
-  # Each trace entry should have key model fields
+  # Each trace entry is a data frame with per-iteration alpha snapshots
   entry <- fit_yes$trace[[1]]
-  expect_true(all(c("alpha", "V", "sigma2") %in% names(entry)))
+  expect_true(all(c("iteration", "effect", "variable", "alpha") %in% names(entry)))
 })
 
 test_that("S3 output has outcome_names (replaces R6 condition_names)", {

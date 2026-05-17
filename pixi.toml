@@ -8,8 +8,8 @@ libc = { family="glibc", version="2.17" }
 
 [tasks]
 devtools_document = "cd $GITHUB_WORKSPACE; R -e 'devtools::document()'"
-devtools_test = "cd $GITHUB_WORKSPACE; R -e 'devtools::test()'"
-codecov = "cd $GITHUB_WORKSPACE; R -e 'covr::codecov(quiet = FALSE)'"
+devtools_test = "cd $GITHUB_WORKSPACE; R -e 'pkgbuild::compile_dll(quiet = TRUE); devtools::test()'"
+codecov = "cd $GITHUB_WORKSPACE; R -e 'pkgbuild::compile_dll(quiet = TRUE); covr::codecov(quiet = FALSE)'"
 build = "cd $GITHUB_WORKSPACE; R -e 'devtools::build(vignettes = TRUE)'"
 rcmdcheck = "cd $GITHUB_WORKSPACE; R -e 'pkg <- list.files(\"..\", pattern = \".tar.gz\", full.names = TRUE); rcmdcheck::rcmdcheck(path = pkg[1], args = c(\"--as-cran\", \"--no-manual\"))'"
 use_major_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"major\", push = FALSE)'"

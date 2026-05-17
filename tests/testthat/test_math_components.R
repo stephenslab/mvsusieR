@@ -24,10 +24,12 @@
 # --------------------------------------------------------------------------
 
 repo_dir <- tryCatch({
-  gcd <- system2("git", c("rev-parse", "--git-common-dir"),
-                 stdout = TRUE, stderr = FALSE)
-  normalizePath(file.path(gcd, ".."))
-}, error = function(e) NULL)
+  gcd <- suppressWarnings(system2("git",
+    c("rev-parse", "--git-common-dir"),
+    stdout = TRUE, stderr = FALSE))
+  if (length(gcd) == 0 || !nzchar(gcd[1])) NULL
+  else normalizePath(file.path(gcd, ".."), mustWork = FALSE)
+}, error = function(e) NULL, warning = function(w) NULL)
 
 # Cached R6 reference functions
 .r6_env <- NULL
@@ -41,7 +43,7 @@ load_r6_env <- function() {
     system2("git", c("-C", repo_dir, "worktree", "remove", "--force", ref_source),
             stdout = FALSE, stderr = FALSE)
     ret <- system2("git", c("-C", repo_dir, "worktree", "add", "--detach",
-                            ref_source, "master"),
+                            ref_source, "origin/master"),
                    stdout = FALSE, stderr = FALSE)
     if (ret != 0) stop("Failed to create worktree from master")
   }
@@ -77,6 +79,11 @@ load_r6_env <- function() {
 }
 
 skip_if_no_r6 <- function() {
+  # Skip cleanly in non-git environments (R CMD check, covr) where the
+  # R6 reference worktree cannot be created.
+  if (is.null(repo_dir)) {
+    testthat::skip("R6 reference comparison requires a git repository")
+  }
   load_r6_env()
 }
 

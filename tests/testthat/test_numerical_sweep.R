@@ -37,14 +37,21 @@
 # --------------------------------------------------------------------------
 
 repo_dir <- tryCatch({
-  gcd <- system2("git", c("rev-parse", "--git-common-dir"),
-                 stdout = TRUE, stderr = FALSE)
-  normalizePath(file.path(gcd, ".."))
-}, error = function(e) NULL)
+  gcd <- suppressWarnings(system2("git",
+    c("rev-parse", "--git-common-dir"),
+    stdout = TRUE, stderr = FALSE))
+  if (length(gcd) == 0 || !nzchar(gcd[1])) NULL
+  else normalizePath(file.path(gcd, ".."), mustWork = FALSE)
+}, error = function(e) NULL, warning = function(w) NULL)
 
 .r6_sweep_funcs <- NULL
 
 load_r6_sweep <- function() {
+  # Skip cleanly in non-git environments (R CMD check, covr) where the
+  # R6 reference worktree cannot be created.
+  if (is.null(repo_dir)) {
+    testthat::skip("R6 reference comparison requires a git repository")
+  }
   if (!is.null(.r6_sweep_funcs)) return(.r6_sweep_funcs)
   if (is.null(repo_dir)) stop("Cannot determine git repository root")
 
@@ -53,7 +60,7 @@ load_r6_sweep <- function() {
     system2("git", c("-C", repo_dir, "worktree", "remove", "--force", ref_source),
             stdout = FALSE, stderr = FALSE)
     ret <- system2("git", c("-C", repo_dir, "worktree", "add", "--detach",
-                            ref_source, "master"),
+                            ref_source, "origin/master"),
                    stdout = FALSE, stderr = FALSE)
     if (ret != 0) stop("Failed to create worktree from master")
   }
