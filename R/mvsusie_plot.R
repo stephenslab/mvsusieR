@@ -1,9 +1,8 @@
-#' @title mvSuSiE PIP and Effect Plots
+#' mvSuSiE PIP and effect plots
 #'
-#' @description Create the PIP plot and accompanying effect plot
-#'   showing the effect estimates and significance of the effects for
-#'   all the traits. A z-scores plot is also created when z-scores are
-#'   available.
+#' Creates PIP and effect-size plots showing effect estimates and
+#' significance across traits. A z-score plot is also created when
+#' z-scores are available.
 #'
 #' @param fit The mvSuSiE fitted model.
 #'
@@ -14,7 +13,7 @@
 #'
 #' @param markers The names of the genetic markers (usually SNPs).
 #'
-#' @param conditions The names of the conditions.
+#' @param outcomes The names of the outcomes.
 #'
 #' @param poslim The range of positions to show in the PIP plot.
 #'
@@ -34,6 +33,11 @@
 #'   effect. If \code{FALSE}, plot the marginal effect.
 #'   \code{conditional_effect = TRUE} is recommended.
 #'
+#' @param sort_by_cs If \code{TRUE}, group markers by CS on the
+#'   x-axis of the effect and z-score plots.  This prevents CSs from
+#'   interlocking when their members are interleaved in genomic
+#'   position.  The default is \code{FALSE} (genomic order).
+#'
 #' @param cs_colors The color palette for CSs.
 #'
 #' @return The output includes the PIP plot, effect plot, z-scores
@@ -46,7 +50,8 @@
 #' @importFrom stats quantile
 #' @importFrom stats median
 #' @importFrom ggplot2 ggplot
-#' @importFrom ggplot2 aes_string
+#' @importFrom ggplot2 aes
+#' @importFrom rlang .data
 #' @importFrom ggplot2 geom_point
 #' @importFrom ggplot2 xlim
 #' @importFrom ggplot2 scale_x_discrete
@@ -65,6 +70,8 @@
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom cowplot theme_cowplot
 #' @importFrom cowplot plot_grid
+#' @importFrom cowplot background_grid
+#' @importFrom cowplot panel_border
 #'
 #' @export
 #'
@@ -73,22 +80,36 @@ mvsusie_plot <-
            chr = 1,
            pos = seq(1, length(fit$variable_names)),
            markers = fit$variable_names,
-           conditions = fit$condition_names,
+           outcomes = fit$outcome_names,
            poslim = range(pos),
            lfsr_cutoff = 0.01,
            sentinel_only = TRUE,
            cs_plot = names(fit$sets$cs),
            add_cs = FALSE,
            conditional_effect = TRUE,
+           sort_by_cs = FALSE,
            cs_colors = c(
              "#1f78b4", "#33a02c", "#e31a1c", "#ff7f00",
              "#6a3d9a", "#b15928", "#a6cee3", "#b2df8a", "#fb9a99",
-             "#fdbf6f", "#cab2d6", "#ffff99", "gray", "cyan"
+             "#fdbf6f", "#cab2d6", "#e6ab02", "gray", "#66c2a5"
            )) {
     if (!inherits(fit, "mvsusie")) {
       stop(
         "Input argument \"fit\" should be a mvsusie fit object, such as ",
         "the output of calling function \"mvsusie\""
+      )
+    }
+    if (is.null(fit$outcome_names) || length(fit$outcome_names) < 2) {
+      stop(
+        "mvsusie_plot requires a multivariate fit (R >= 2). ",
+        "For univariate fits, use susieR plotting functions."
+      )
+    }
+    if (is.null(fit$single_effect_lfsr)) {
+      stop(
+        "mvsusie_plot requires single_effect_lfsr in the fit object. ",
+        "This is computed automatically when using a mixture prior ",
+        "(create_mixture_prior or create_mash_prior)."
       )
     }
     if (length(pos) != length(fit$variable_names)) {
@@ -100,10 +121,10 @@ mvsusie_plot <-
         "\"fit$variable_names\""
       )
     }
-    if (length(conditions) != length(fit$condition_names)) {
+    if (length(outcomes) != length(fit$outcome_names)) {
       stop(
-        "Input \"conditions\" should have same length as ",
-        "\"fit$condition_names\""
+        "Input \"outcomes\" should have same length as ",
+        "\"fit$outcome_names\""
       )
     }
 
@@ -116,9 +137,6 @@ mvsusie_plot <-
     )
 
     # Add the CS assignments to the data frame.
-    #
-    # POSSIBLE BUG: What if no identified CS?
-    #
     css <- names(fit$sets$cs)
     for (i in css) {
       j <- fit$sets$cs[[i]]
@@ -147,9 +165,27 @@ mvsusie_plot <-
     css <- css[order(cs_pos)]
     pdat_cs$cs <- factor(pdat_cs$cs, levels = css)
 
+    # Handle case when no CS is identified.
+    if (L == 0) {
+      pip_plot <- ggplot(pdat, aes(x = .data$pos, y = .data$pip)) +
+        geom_point(color = "darkblue", shape = 20, size = 1.25) +
+        xlim(poslim[1], poslim[2]) +
+        labs(
+          x = sprintf("chromosome %d position (Mb)", chr),
+          y = "PIP"
+        ) +
+        theme_cowplot(font_size = 9)
+      return(list(
+        pip_plot = pip_plot,
+        effect_plot = NULL,
+        z_plot = NULL,
+        effects = NULL
+      ))
+    }
+
     # Add key CS statistics to the legend (size, purity).
     cs_size <- sapply(fit$sets$cs[css], length)
-    for (i in 1:L) {
+    for (i in seq_len(L)) {
       j <- css[i]
       if (cs_size[i] == 1) {
         levels(pdat_cs$cs)[i] <- sprintf("%s (1 SNP)", j)
@@ -165,35 +201,34 @@ mvsusie_plot <-
     # Create a data frame containing data about the genetic markers
     # (SNPs) in the CSs (trait-specific effects, lfsr's, sentinel
     # SNPs).
-    traits <- conditions
+    traits <- outcomes
     r <- length(traits)
     lmax <- nrow(fit$alpha)
-    fit$b1_rescaled <- fit$b1_rescaled[, -1, ]
-    rownames(fit$b1_rescaled) <- paste0("L", 1:lmax)
-    rownames(fit$single_effect_lfsr) <- paste0("L", 1:lmax)
+    csd <- fit$X_column_scale_factors
     colnames(fit$single_effect_lfsr) <- traits
-    rownames(fit$alpha) <- paste0("L", 1:lmax)
     effects <- matrix(0, r, L)
     rownames(effects) <- traits
     colnames(effects) <- css
     effect_dat <-
       data.frame(matrix(
         as.numeric(NA),
-        prod(length(conditions) * length(markers)), 8
+        prod(length(outcomes) * length(markers)), 8
       ))
     names(effect_dat) <- c(
       "trait", "marker", "pos", "effect", "z", "lfsr", "cs",
       "sentinel"
     )
-    effect_dat$trait <- rep(conditions, length(markers))
-    effect_dat$marker <- rep(markers, each = length(conditions))
-    effect_dat$pos <- rep(pos, each = length(conditions))
+    effect_dat$trait <- rep(outcomes, length(markers))
+    effect_dat$marker <- rep(markers, each = length(outcomes))
+    effect_dat$pos <- rep(pos, each = length(outcomes))
     effect_dat$sentinel <- 0
-    for (i in 1:L) {
+    for (i in seq_len(L)) {
       l <- css[i]
       j <- fit$sets$cs[[l]]
-      b <- fit$b1_rescaled[l, j, ]
+      # Per-effect coefficient on original scale: alpha * mu / csd
+      b <- drop(fit$alpha[l, j]) * fit$mu[l, j, , drop = TRUE] / csd[j]
       if (conditional_effect) {
+        # Conditional posterior mean: mu / csd (divide out alpha)
         b <- b / fit$alpha[l, j]
       }
       marker_names <- markers[j]
@@ -233,21 +268,31 @@ mvsusie_plot <-
     effect_dat$cs <- factor(effect_dat$cs, levels = css)
     effect_dat$trait <- factor(effect_dat$trait, traits)
 
+    # Optionally reorder x-axis so markers are grouped by CS
+    # (prevents interlocking when CS members are interleaved in
+    # genomic position).
+    if (sort_by_cs) {
+      mc_order <- order(effect_dat$cs, effect_dat$pos)
+      mc_levels <- unique(effect_dat$marker_cs[mc_order])
+      effect_dat$marker_cs <- factor(effect_dat$marker_cs,
+                                     levels = mc_levels)
+    }
+
     # Remove from the effects plot any effects that don't meet the lfsr
     # cutoff.
     rows <- which(effect_dat$lfsr < lfsr_cutoff)
     effect_dat <- effect_dat[rows, ]
 
     # Create the PIP plot.
-    pip_plot <- ggplot(pdat, aes_string(x = "pos", y = "pip")) +
+    pip_plot <- ggplot(pdat, aes(x = .data$pos, y = .data$pip)) +
       geom_point(color = "darkblue", shape = 20, size = 1.25) +
       geom_point(
         shape = 1, size = 1.25, stroke = 1.25, data = pdat_cs,
-        mapping = aes_string(x = "pos", y = "pip", color = "cs")
+        mapping = aes(x = .data$pos, y = .data$pip, color = .data$cs)
       ) +
       geom_text_repel(
         data = pdat_sentinel,
-        mapping = aes_string(x = "pos", y = "pip", label = "marker_cs"),
+        mapping = aes(x = .data$pos, y = .data$pip, label = .data$marker_cs),
         size = 2.2, segment.size = 0.35, max.overlaps = Inf,
         min.segment.length = 0
       ) +
@@ -270,9 +315,9 @@ mvsusie_plot <-
       levels(effect_dat$effect_sign) <- c("-1", "+1")
       effect_plot <- ggplot(
         effect_dat,
-        aes_string(
-          x = "marker_cs", y = "trait", fill = "effect_sign",
-          size = "effect_size"
+        aes(
+          x = .data$marker_cs, y = .data$trait, fill = .data$effect_sign,
+          size = .data$effect_size
         )
       ) +
         geom_point(shape = 21, stroke = 0.5, color = "white") +
@@ -295,12 +340,11 @@ mvsusie_plot <-
           ))
         ) +
         theme_cowplot(font_size = 9) +
+        background_grid(major = "xy", minor = "none",
+                        size.major = 0.3, colour.major = "grey85") +
+        panel_border(colour = "grey70") +
         theme(
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-          panel.grid = element_line(
-            color = "lightgray", size = 0.3,
-            linetype = "dotted"
-          )
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
         )
 
       # If requested, add colored dots to the top of the plot showing CS
@@ -309,7 +353,7 @@ mvsusie_plot <-
         effect_dat$one <- 1
         p_cs <- ggplot(
           effect_dat,
-          aes_string(x = "marker_cs", y = "one", color = "cs")
+          aes(x = .data$marker_cs, y = .data$one, color = .data$cs)
         ) +
           geom_point(shape = 20, size = 2.5) +
           scale_x_discrete(drop = FALSE) +
@@ -339,9 +383,9 @@ mvsusie_plot <-
       levels(effect_dat$z_sign) <- c("-1", "+1")
       z_plot <- ggplot(
         effect_dat,
-        aes_string(
-          x = "marker", y = "trait", fill = "z_sign",
-          size = "z_size"
+        aes(
+          x = .data$marker, y = .data$trait, fill = .data$z_sign,
+          size = .data$z_size
         )
       ) +
         geom_point(shape = 21, stroke = 0.5, color = "white") +
@@ -365,12 +409,11 @@ mvsusie_plot <-
           ))
         ) +
         theme_cowplot(font_size = 9) +
+        background_grid(major = "xy", minor = "none",
+                        size.major = 0.3, colour.major = "grey85") +
+        panel_border(colour = "grey70") +
         theme(
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-          panel.grid = element_line(
-            color = "lightgray", size = 0.3,
-            linetype = "dotted"
-          )
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
         )
       if (add_cs) {
         z_plot <- plot_grid(p_cs, z_plot,

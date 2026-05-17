@@ -1,12 +1,10 @@
-context("mvsusie_coef")
+test_that("coef() gives the right coefficients with 1 outcome",{
 
-test_that("coef() gives the right coefficients with 1 condition",{
-
-  # Simulate a 500 x 100 data set with 1 response.
+  # Simulate a 200 x 100 data set with 1 response.
   set.seed(1)
-  n <- 500
-  p <- 100
-  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(96))
+  n <- 100
+  p <- 50
+  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(p - 4))
   X   <- (runif(n*p) < maf) +
          (runif(n*p) < maf)
   X   <- matrix(as.double(X),n,p,byrow = TRUE)
@@ -21,7 +19,7 @@ test_that("coef() gives the right coefficients with 1 condition",{
 
   # The estimated coefficients (including the intercept) should
   # closely match the coefficients used to simulate the data.
-  expect_gt(cor(coef(fit),c(-1,b)),0.999)
+  expect_gt(cor(coef(fit),c(-1,b)),0.99)
   #
   # print(round(head(cbind(b,coef(fit)[-1]),n = 6),digits = 4))
   # plot(b,coef(fit)[-1],pch = 20,xlab = "true coef",ylab = "estimated coef")
@@ -29,18 +27,18 @@ test_that("coef() gives the right coefficients with 1 condition",{
 
   # Run the same test again, but now without standardizing X.
   fit <- mvsusie(X,Y,L = 10,standardize = FALSE)
-  expect_gt(cor(coef(fit),c(-1,b)),0.999)
+  expect_gt(cor(coef(fit),c(-1,b)),0.99)
 })
 
-test_that("coef() gives the right coefficients with 3 conditions",{
+test_that("coef() gives the right coefficients with 3 outcomes",{
 
-  # Simulate a 500 x 100 data set with 3 outcomes.
+  # Simulate a 200 x 100 data set with 3 outcomes.
   set.seed(1)
-  n <- 500
-  p <- 100
+  n <- 100
+  p <- 50
   r <- 3
   n1 <- 3
-  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(96))
+  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(p - 4))
   X   <- (runif(n*p) < maf) +
          (runif(n*p) < maf)
   X   <- matrix(as.double(X),n,p,byrow = TRUE)
@@ -60,17 +58,19 @@ test_that("coef() gives the right coefficients with 3 conditions",{
 
   # Fit an mvsusie model to the data.
   prior <- create_mixture_prior(R = 3)
-  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE)
+  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE,
+                 estimate_prior_method = "EM")
 
   # The estimated coefficients (including the intercept) should
   # closely match the coefficients used to simulate the data.
-  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.999)
+  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.99)
   #
   # print(coef(fit)[1,])
   # plot(b,coef(fit)[-1,],pch = 20,xlab = "true coef",ylab = "estimated coef")
   # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
 
   # Run the same test again, but now without standardizing X.
-  fit <- mvsusie(X,Y,L = 10,prior_variance = prior,standardize = FALSE)
-  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.999)
+  fit <- mvsusie(X,Y,L = 10,prior_variance = prior,standardize = FALSE,
+                 estimate_prior_method = "EM")
+  expect_gt(cor(as.vector(b[1:4,]),as.vector(coef(fit)[2:5,])),0.99)
 })

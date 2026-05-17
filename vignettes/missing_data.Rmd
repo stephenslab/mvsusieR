@@ -1,0 +1,274 @@
+---
+title: Handling missing data in mvSuSiE
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Handling missing data in mvSuSiE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+mvSuSiE can handle missing values in the phenotype matrix $Y$. This
+is useful in two common scenarios:
+
+1. **Random missing data** (MCAR): individual measurements are
+   randomly missing across samples and traits.
+
+2. **Block missing data**: entire traits are unobserved for subsets
+   of samples. This arises naturally in cross-population or
+   cross-ancestry analyses where different cohorts measure different
+   traits.
+
+The default method `missing_y_method = "approximate"` as described in [Zou's thesis (2021)](https://stephenslab.uchicago.edu/assets/papers/yuxin-thesis.pdf) handles both
+scenarios. An alternative `"impute"` method, as discussed in [Zou et al (2026)](https://www.nature.com/articles/s41588-025-02486-7) is available and may perform well for 
+MCAR with lower missing values, but loses power for block-structured missingness (see below).
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+```{r load-pkgs, message=FALSE}
+library(mvsusieR)
+library(susieR)
+library(ggplot2)
+library(cowplot)
+set.seed(1)
+```
+
+## Simulate complete data
+
+```{r simulate-data}
+data(simdata)
+X <- simdata$raw$X
+n <- nrow(X); p <- ncol(X); r <- 10
+
+causal <- sort(sample(p, 4))
+B <- matrix(0, p, r)
+for (j in causal) B[j, ] <- rnorm(r, 0, 0.5)
+Y_complete <- X %*% B + matrix(rnorm(n * r), n, r)
+cat(sprintf("Complete data: %d x %d x %d (N x J x R)\n", n, p, r))
+cat("True causal SNPs:", causal, "\n")
+```
+
+Fit the model on complete data for reference.
+
+```{r fit-complete}
+prior <- create_mixture_prior(R = r)
+fit_complete <- mvsusie(X, Y_complete, L = 10,
+                        prior_variance = prior)
+cat("Complete data: CS =", length(fit_complete$sets$cs), "\n")
+```
+
+We evaluate performance at the credible set (CS) level: a true
+positive is a CS that contains at least one causal SNP; a false
+positive is a CS containing no causal SNP.
+
+```{r cs-eval-helper}
+check_cs <- function(fit, causal, label) {
+  cs_list <- fit$sets$cs
+  n_cs <- if (is.null(cs_list)) 0 else length(cs_list)
+  tp <- 0; fp <- 0
+  if (n_cs > 0) {
+    for (i in seq_along(cs_list)) {
+      if (any(cs_list[[i]] %in% causal)) tp <- tp + 1
+      else fp <- fp + 1
+    }
+  }
+  captured <- sapply(causal, function(c) {
+    any(sapply(cs_list, function(cs) c %in% cs))
+  })
+  cat(sprintf("%s: %d CS (%d true, %d false), %d/%d causal captured\n",
+              label, n_cs, tp, fp, sum(captured), length(causal)))
+}
+check_cs(fit_complete, causal, "Complete")
+```
+
+## Random missing data (MCAR)
+
+We introduce missing values completely at random at three rates:
+5%, 20%, and 50%.
+
+```{r random-missing}
+insert_random_na <- function(Y, frac) {
+  Y_miss <- Y
+  n_miss <- round(frac * length(Y))
+  idx <- sample(length(Y), n_miss)
+  Y_miss[idx] <- NA
+  Y_miss
+}
+
+Y_miss_05 <- insert_random_na(Y_complete, 0.05)
+Y_miss_20 <- insert_random_na(Y_complete, 0.20)
+Y_miss_50 <- insert_random_na(Y_complete, 0.50)
+cat("Missing values: 5% =", sum(is.na(Y_miss_05)),
+    ", 20% =", sum(is.na(Y_miss_20)),
+    ", 50% =", sum(is.na(Y_miss_50)), "\n")
+```
+
+### Default method (approximate)
+
+```{r fit-random-approx}
+fit_05 <- mvsusie(X, Y_miss_05, L = 10, prior_variance = prior)
+fit_20 <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior)
+fit_50 <- mvsusie(X, Y_miss_50, L = 10, prior_variance = prior)
+check_cs(fit_05, causal, "5% missing (approx)")
+check_cs(fit_20, causal, "20% missing (approx)")
+check_cs(fit_50, causal, "50% missing (approx)")
+```
+
+```{r compare-random-approx, fig.height=3, fig.width=7}
+pdat <- data.frame(
+  complete = rep(fit_complete$pip, 3),
+  missing = c(fit_05$pip, fit_20$pip, fit_50$pip),
+  frac = rep(c("5% missing", "20% missing", "50% missing"), each = p)
+)
+ggplot(pdat, aes(x = complete, y = missing)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~frac) +
+  labs(x = "PIP (complete data)", y = "PIP (approximate)") +
+  theme_cowplot(font_size = 10)
+```
+
+With moderate amounts of missing data, the default `"approximate"`
+method gives results largely similar to the complete data analysis,
+although some signs of inflation in PIP can be observed in this experiments.
+
+### Impute method
+
+The `"impute"` method also handles MCAR data well:
+
+```{r fit-random-impute}
+fit_imp_05 <- mvsusie(X, Y_miss_05, L = 10, prior_variance = prior,
+                      missing_y_method = "impute")
+fit_imp_20 <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
+                      missing_y_method = "impute")
+fit_imp_50 <- mvsusie(X, Y_miss_50, L = 10, prior_variance = prior,
+                      missing_y_method = "impute")
+check_cs(fit_imp_05, causal, "5% missing (impute)")
+check_cs(fit_imp_20, causal, "20% missing (impute)")
+check_cs(fit_imp_50, causal, "50% missing (impute)")
+```
+
+```{r compare-random-impute, fig.height=3, fig.width=7}
+pdat <- data.frame(
+  complete = rep(fit_complete$pip, 3),
+  missing = c(fit_imp_05$pip, fit_imp_20$pip, fit_imp_50$pip),
+  frac = rep(c("5% missing", "20% missing", "50% missing"), each = p)
+)
+ggplot(pdat, aes(x = complete, y = missing)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~frac) +
+  labs(x = "PIP (complete data)", y = "PIP (impute)") +
+  theme_cowplot(font_size = 10)
+```
+
+It performs well in terms of FDR but there is power loss particularly as missing rate goes higher.
+
+## Block missing data (cross-population scenario)
+
+In a cross-population analysis, different cohorts may measure
+different subsets of traits. We simulate this by making the first
+5 traits observed only in the first half of samples, and the last
+5 traits only in the second half.
+
+```{r block-missing}
+Y_block <- Y_complete
+half <- n %/% 2
+Y_block[1:half, 6:10] <- NA
+Y_block[(half + 1):n, 1:5] <- NA
+cat("Block missing pattern:\n")
+cat("  Samples 1-", half, ": traits 1-5 observed, 6-10 missing\n")
+cat("  Samples", half + 1, "-", n, ": traits 6-10 observed, 1-5 missing\n")
+cat("  Total missing:", sum(is.na(Y_block)), "/", length(Y_block),
+    sprintf("(%.0f%%)\n", 100 * mean(is.na(Y_block))))
+```
+
+The default `"approximate"` method handles this well:
+
+```{r fit-block}
+fit_block <- mvsusie(X, Y_block, L = 10,
+                     prior_variance = prior)
+check_cs(fit_block, causal, "Block (approximate)")
+```
+
+```{r compare-block, fig.height=3, fig.width=4}
+pdat <- data.frame(complete = fit_complete$pip,
+                   block = fit_block$pip)
+ggplot(pdat, aes(x = complete, y = block)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  labs(x = "PIP (complete data)", y = "PIP (block missing)") +
+  theme_cowplot(font_size = 12)
+```
+
+mvSuSiE borrows information across the observed portions to identify
+causal signals even when no single sample has all traits observed.
+
+### Why not use impute for block missing?
+
+The `"impute"` method struggles with block-structured missingness
+because traits from different blocks are never observed together,
+making it impossible to impute correctly:
+
+```{r fit-block-impute}
+fit_block_imp <- mvsusie(X, Y_block, L = 10,
+                         prior_variance = prior,
+                         missing_y_method = "impute")
+check_cs(fit_block_imp, causal, "Block (impute)")
+```
+
+```{r compare-block-methods, fig.height=3, fig.width=7}
+pdat <- data.frame(
+  complete = rep(fit_complete$pip, 2),
+  missing = c(fit_block$pip, fit_block_imp$pip),
+  method = rep(c("approximate (default)", "impute"), each = p)
+)
+ggplot(pdat, aes(x = complete, y = missing)) +
+  geom_point(shape = 20, size = 1.5, color = "royalblue", alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dotted") +
+  facet_wrap(~method) +
+  labs(x = "PIP (complete data)", y = "PIP (block missing)") +
+  theme_cowplot(font_size = 10)
+```
+
+The `"approximate"` method recovers complete-data PIPs well, while
+`"impute"` loses substantial power. 
+
+## Missing data methods
+
+mvSuSiE provides three methods for handling missing data, controlled
+by the `missing_y_method` argument:
+
+- `"approximate"` (default): per-outcome centering with per-pattern
+  residual variance correction. Fast and accurate; designed for the
+  block-structured missingness common in multi-population analyses.
+
+- `"exact"`: uses full residual covariance correction to account for intercepts. Produces
+  similiar results to `"approximate"` at higher computational cost.
+
+- `"impute"`: variational imputation that iteratively estimates
+  missing values. Works well for scattered (MCAR) missing data
+  at low missing rate but loses power for high or block-structured missingness.
+
+```{r method-comparison}
+fit_approx <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
+                      estimate_prior_variance = TRUE,
+                      missing_y_method = "approximate",
+                      standardize = TRUE, verbose = FALSE)
+fit_exact <- mvsusie(X, Y_miss_20, L = 10, prior_variance = prior,
+                     estimate_prior_variance = TRUE,
+                     missing_y_method = "exact",
+                     standardize = TRUE, verbose = FALSE)
+
+cat("20% MCAR:\n")
+check_cs(fit_approx, causal, "  approximate")
+check_cs(fit_exact, causal, "  exact")
+cat("  PIP correlation (approx vs exact):", round(cor(fit_approx$pip, fit_exact$pip), 6), "\n")
+```
+
+For most applications, the default `"approximate"` method provides
+a good balance of speed and accuracy.

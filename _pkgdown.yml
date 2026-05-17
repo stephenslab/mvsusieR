@@ -50,7 +50,7 @@ navbar:
     news:
       icon: fa fa-newspaper
       text: News
-      href: news/index.html
+      href: articles/announcements.html
       aria-label: Package news
     github:
       icon: fab fa-github
@@ -76,20 +76,31 @@ navbar:
 #    contents:
 #      - has_concept("utilities")
 
-# Optional: Organize articles/vignettes
 articles:
   - title: "Getting Started"
     navbar: ~
     contents:
       - ends_with("_intro")
-  #- title: "Examples"
-  #  desc: "Example analyses and use cases"
-  #  contents:
-  #    - starts_with("example")
-  #- title: "Advanced Topics"
-  #  desc: "Advanced usage and methodology"
-  #  contents:
-  #    - matches("advanced|technical")
+      - visualization_and_interpretation
+      - input_data_format
+      - prediction
+  - title: "Advanced Users"
+    desc: "Detailed tutorials for customizing and scaling mvSuSiE analyses."
+    contents:
+      - prior_specification
+      - linkage_vs_pleiotropy
+      - missing_data
+      - per_trait_sample_size
+      - large_scale_analysis
+  - title: "Methods Developers"
+    desc: "Algorithm internals and verification for methods developers."
+    contents:
+      - univariate_multivariate_agreement
+      - elbo_and_convergence
+  - title: "Package Information"
+    navbar: ~
+    contents:
+      - announcements
 
 # Optional: Footer customization
 footer:

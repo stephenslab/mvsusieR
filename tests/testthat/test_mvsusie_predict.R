@@ -1,12 +1,10 @@
-context("mvsusie_predict")
+test_that("predict() gives accurate estimates in 1 outcome",{
 
-test_that("predict() gives accurate estimates in 1 condition",{
-
-  # Simulate a 500 x 100 data set with 1 response.
+  # Simulate a 200 x 100 data set with 1 response.
   set.seed(1)
-  n <- 500
-  p <- 100
-  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(96))
+  n <- 100
+  p <- 50
+  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(p - 4))
   X   <- (runif(n*p) < maf) +
          (runif(n*p) < maf)
   X   <- matrix(as.double(X),n,p,byrow = TRUE)
@@ -20,31 +18,27 @@ test_that("predict() gives accurate estimates in 1 condition",{
   fit <- mvsusie(X,Y,L = 10,standardize = TRUE)
 
   # The mvsusie model predictions should be close to the true values
-  # (an RMSE close to 1).
+  # (an RMSE close to 1, since noise sd = 1).
   Yest <- predict(fit,X)
   rmse <- sqrt(mean((Y - Yest)^2))
   expect_lt(rmse,1.1)
-  # 
-  # plot(Y,Yest,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
 
-  # Note that the "fitted" output currently seems to be incorrect:
-  #
-  #   print(sqrt(mean((Y - fit$fitted)^2)))
-  #   plot(Y,fit$fitted,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  #   abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
-  #
+  # fit$fitted and predict(fit, X) should agree at machine precision
+  # (regression test for https://github.com/stephenslab/mvsusieR/issues/48)
+  expect_equal(as.numeric(predict(fit, X)),
+               as.numeric(fit$fitted),
+               tolerance = 1e-10)
 })
 
-test_that("predict() gives accurate estimates in 3 conditions",{
+test_that("predict() gives accurate estimates in 3 outcomes",{
 
-  # Simulate a 500 x 100 data set with 3 outcomes.
+  # Simulate a 200 x 100 data set with 3 outcomes.
   set.seed(1)
-  n <- 500
-  p <- 100
+  n <- 100
+  p <- 50
   r <- 3
   n1 <- 3
-  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(96))
+  maf <- c(c(0.5,0.2,0.1,0.05),0.05 + 0.45*runif(p - 4))
   X   <- (runif(n*p) < maf) +
          (runif(n*p) < maf)
   X   <- matrix(as.double(X),n,p,byrow = TRUE)
@@ -64,21 +58,18 @@ test_that("predict() gives accurate estimates in 3 conditions",{
 
   # Fit an mvsusie model to the data.
   prior <- create_mixture_prior(R = 3)
-  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE)
+  fit <- mvsusie(X,Y,prior_variance = prior,standardize = TRUE,
+                 estimate_prior_method = "EM")
 
   # The mvsusie model predictions should be close to the true values
-  # (an RMSE close to 1).
+  # (an RMSE close to 1, since noise sd = 1).
   Yest <- predict(fit,X)
   rmse <- sqrt(mean((Y - Yest)^2))
   expect_lt(rmse,1.1)
-  # 
-  # plot(Y,Yest,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  # abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
 
-  # Note that the "fitted" output currently seems to be incorrect:
-  #
-  #   print(sqrt(mean((Y - fit$fitted)^2)))
-  #   plot(Y,fit$fitted,pch = 20,xlab = "true Y",ylab = "estimated Y")
-  #   abline(a = 0,b = 1,pch = 20,lty = "dotted",col = "magenta")
-  #
+  # fit$fitted and predict(fit, X) should agree at machine precision
+  # (regression test for https://github.com/stephenslab/mvsusieR/issues/48)
+  expect_equal(as.numeric(predict(fit, X)),
+               as.numeric(fit$fitted),
+               tolerance = 1e-10)
 })

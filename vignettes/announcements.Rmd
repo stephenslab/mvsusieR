@@ -1,0 +1,66 @@
+---
+title: News and updates
+author: Gao Wang
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{News and updates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+## Version 0.2.0
+
+### S3 implementation
+
+mvsusieR has been re-implemented using R's S3 object system, replacing
+the previous R6-based architecture (in production during 2019--2025). 
+The S3 implementation provides the same functionality with a cleaner, more maintainable codebase
+with core algorithmatic implementation shared with [`susieR`](https://github.com/stephenslab/susieR),
+making it a required dependency for this package.
+
+### Rcpp/C++ acceleration
+
+Performance-critical operations are
+implemented in C++ via Rcpp/RcppArmadillo to
+provide substantial speedups.
+
+### Changed defaults
+
+Users upgrading from 0.1.x (R6) should note the following
+changes to default parameter values:
+
+- `estimate_residual_variance` now defaults to `TRUE` in
+  `mvsusie()` (was `FALSE`). The residual variance is estimated
+  from the data unless explicitly set. The default remains
+  `FALSE` in `mvsusie_ss()`.
+- `estimate_prior_method` now defaults to `"optim"` (was
+  `"EM"`). The optimization-based method is now faster and more
+  accurate for mixture priors.
+- `estimate_prior_mixture_weights` now defaults to `TRUE`.
+  Mixture prior component weights are re-estimated during
+  fitting via the `"mixsqp"` algorithm by default (can also be `"EM"`).
+- `precompute_cache` now defaults to `TRUE` (was `FALSE`;
+  previously named `precompute_covariances`). Caches
+  eigendecompositions and other intermediate quantities to
+  accelerate the IBSS fitting algorithm. If memory is a concern
+  with very large numbers of mixture components, set to `FALSE`
+  at the cost of slower computation.
+- `missing_y_method` with default to `"approximate"`, replacing the previous
+  `approximate` boolean parameter (also default to `TRUE`).
+- `verbose` replaces the numeric `verbosity` parameter and
+  defaults to `TRUE` (logical).
+- `model_init` replaces `s_init` for model initialization (consistent with current `susieR`).
+
+## References
+
+- Y. Zou, P. Carbonetto, D. Xie, G. Wang & M. Stephens (2026).
+  *Fine-mapping across multiple traits with summary statistics.*
+  Nature Genetics. <https://doi.org/10.1038/s41588-025-02486-7>
+
+- GitHub: <https://github.com/stephenslab/mvsusieR>

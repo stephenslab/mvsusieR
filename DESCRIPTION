@@ -1,13 +1,13 @@
 Encoding: UTF-8
 Type: Package
 Package: mvsusieR
-Date: 2025-12-04
-Version: 0.1.10
+Date: 2026-05-12
+Version: 0.2.1
 Title: Multivariate Sum of Single Effects Regression
 Description: Implements a multivariate generalization of the "Sum of
   Single Effects" (SuSiE) model for variable selection in multivariate
-  linear regression as described in Y. Zhou, P. Carbonetto, D. Xie, 
-  G. Wang & M. Stephens (2025) <doi:10.1101/2023.04.14.536893>.
+  linear regression as described in Y. Zou, P. Carbonetto, D. Xie, 
+  G. Wang & M. Stephens (2026) <doi:10.5281/zenodo.8088040>.
 Authors@R: c(person("Gao","Wang",role=c("aut","cre"),
                     email="wang.gao@columbia.edu"),
              person("Yuxin","Zou",role="aut"),
@@ -18,29 +18,36 @@ BugReports: https://github.com/stephenslab/mvsusieR/issues
 License: BSD_3_clause + file LICENSE
 Depends: R (>= 3.5.0),
     mashr (>= 0.2.43),
-    susieR (>= 0.10.1)
+    susieR (>= 0.15.54)
 Imports:
-    R6,
     stats,
-    Matrix,
+    Rcpp (>= 1.0.1),
     abind,
     mvtnorm,
     matrixStats,
-    progress,
     ashr,
     ggplot2,
     ggrepel,
-    cowplot
+    cowplot,
+    mixsqp,
+    rlang
+LinkingTo:
+    Rcpp,
+    RcppArmadillo (>= 0.9.700.2)
 Suggests:
-    reshape,
-    pryr,
-    testthat,
-    microbenchmark,
+    MASS,
+    pkgload,
+    rprojroot,
+    testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    future.apply
 LazyData: true
 LazyDataCompression: xz
-NeedsCompilation: no
-RoxygenNote: 7.3.3
+NeedsCompilation: yes
 VignetteBuilder: knitr
-Roxygen: list(r6 = FALSE)
+Config/testthat/edition: 3
+Config/testthat/parallel: true
+Config/testthat/start-first: test_r6_reference, test_numerical_sweep, test_mixture_weight_update, test_susie_regression
+Roxygen: list()
+Config/roxygen2/version: 8.0.0

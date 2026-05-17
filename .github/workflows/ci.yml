@@ -18,15 +18,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment: ["r43", "r44"]
+        environment: ["r44", "r45"]
 
     steps:
       - name: Checkout pull request branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Copy TOML to /tmp
+      - name: Copy TOML
         run: |
           mkdir /tmp/pixi
           cp ${GITHUB_WORKSPACE}/pixi.toml /tmp/pixi
@@ -34,7 +34,7 @@ jobs:
       - name: Setup pixi
         uses: prefix-dev/setup-pixi@v0.9.5
         with:
-          manifest-path: /tmp/pixi/pixi.toml
+          run-install: false
 
       - name: Run unit tests
         run: pixi run --environment ${{ matrix.environment }} --manifest-path /tmp/pixi/pixi.toml devtools_test
@@ -45,23 +45,24 @@ jobs:
           pixi run --environment ${{ matrix.environment }} --manifest-path /tmp/pixi/pixi.toml rcmdcheck
 
       - name: Check unit test code coverage
+        if: ${{ matrix.environment == 'r44' }}
         run: pixi run --environment ${{ matrix.environment }} --manifest-path /tmp/pixi/pixi.toml codecov
 
   ci_osx-arm64:
     name: osx-arm64 CI
-    runs-on: macos-14
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        environment: ["r43", "r44"]
+        environment: ["r44", "r45"]
 
     steps:
       - name: Checkout pull request branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Copy TOML to /tmp
+      - name: Copy TOML
         run: |
           mkdir /tmp/pixi
           cp ${GITHUB_WORKSPACE}/pixi.toml /tmp/pixi
@@ -69,7 +70,7 @@ jobs:
       - name: Setup pixi
         uses: prefix-dev/setup-pixi@v0.9.5
         with:
-          manifest-path: /tmp/pixi/pixi.toml
+          run-install: false
 
       - name: Run unit tests
         run: pixi run --environment ${{ matrix.environment }} --manifest-path /tmp/pixi/pixi.toml devtools_test

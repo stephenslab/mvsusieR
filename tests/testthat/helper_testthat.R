@@ -1,3 +1,43 @@
+# Compute b1 = alpha * mu from mvsusie fit (handles R=1 and R>1).
+# Falls back to fit$b1 for R6 objects that store b1 directly.
+get_b1 <- function(fit) {
+  if (!is.null(fit$alpha) && !is.null(fit$mu)) {
+    L <- nrow(fit$alpha)
+    J <- ncol(fit$alpha)
+    if (length(dim(fit$mu)) == 3) {
+      R <- dim(fit$mu)[3]
+      b1 <- array(0, c(L, J, R))
+      for (l in seq_len(L))
+        b1[l, , ] <- drop(fit$alpha[l, ]) * fit$mu[l, , , drop = TRUE]
+      b1
+    } else {
+      fit$alpha * fit$mu
+    }
+  } else {
+    fit$b1  # R6 objects
+  }
+}
+
+# Compute b2 = alpha * mu2_diag from mvsusie fit (handles R=1 and R>1).
+# Falls back to fit$b2 for R6 objects that store b2 directly.
+get_b2 <- function(fit) {
+  if (!is.null(fit$alpha) && !is.null(fit$mu2_diag)) {
+    L <- nrow(fit$alpha)
+    J <- ncol(fit$alpha)
+    if (length(dim(fit$mu2_diag)) == 3) {
+      R <- dim(fit$mu2_diag)[3]
+      b2 <- array(0, c(L, J, R))
+      for (l in seq_len(L))
+        b2[l, , ] <- drop(fit$alpha[l, ]) * fit$mu2_diag[l, , , drop = TRUE]
+      b2
+    } else {
+      fit$alpha * fit$mu2_diag
+    }
+  } else {
+    fit$b2  # R6 objects
+  }
+}
+
 # @title sets three attributes for matrix X
 # @param X an n by p data matrix that can be either a trend filtering
 #   matrix or a regular dense/sparse matrix
@@ -14,12 +54,12 @@
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
 set_X_attributes = function (X, center = TRUE, scale = TRUE) {
-    
+
   # if X is a trend filtering matrix
   if (!is.null(attr(X,"matrix.type"))) {
     order = attr(X,"order")
     n = ncol(X)
-    
+
     # Set three attributes for X.
     attr(X,"scaled:center") = compute_tf_cm(order,n)
     attr(X,"scaled:scale") = compute_tf_csd(order,n)
@@ -30,22 +70,22 @@ set_X_attributes = function (X, center = TRUE, scale = TRUE) {
     if (!scale)
       attr(X,"scaled:scale") = rep(1,n)
   } else {
-      
+
     # If X is either a dense or sparse ordinary matrix.
     # Get column means.
     cm = colMeans(X,na.rm = TRUE)
-    
+
     # Get column standard deviations.
     csd = susieR:::compute_colSds(X)
-    
+
     # Set sd = 1 when the column has variance 0.
     csd[csd == 0] = 1
     if (!center)
       cm = rep(0,length = length(cm))
-    if (!scale) 
+    if (!scale)
       csd = rep(1,length = length(cm))
     X.std = (t(X) - cm)/csd
-    
+
     # Set three attributes for X.
     attr(X,"d") = rowSums(X.std * X.std)
     attr(X,"scaled:center") = cm
@@ -91,25 +131,11 @@ simulate_univariate = function(n=100, p=200, sparse=F, summary = F) {
            Xr=rep(5,n), KL=rep(1.2,L),
            sigma2=residual_variance,
            V=scaled_prior_variance * as.numeric(var(y)))
-  if (sparse) {
-    # FIXME: sparse data not supported
-    data = NA
-  } else if(summary){
-    adj = (n-1)/(z^2 + n - 2)
-    ztilde = sqrt(adj) * z
-    data = SSData$new((n-1)*R, sqrt(n-1)*ztilde, n-1, n, NULL, NULL)
-    data$set_residual_variance(residual_variance)
-  }else {
-    data = DenseData$new(X,y)
-    data$standardize(TRUE,TRUE)
-    data$set_residual_variance(residual_variance)
-  }
   if(summary){
-    return(list(X=X, X.sparse=X.sparse, z = z, R = R, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
+    return(list(X=X, X.sparse=X.sparse, z = z, R = R, s=s, y=y, n=n, p=p, V=s$V, b=beta, L=L))
   }else{
-    return(list(X=X, X.sparse=X.sparse, s=s, d=data, y=y, n=n, p=p, V=s$V, b=beta, L=L))
+    return(list(X=X, X.sparse=X.sparse, s=s, y=y, n=n, p=p, V=s$V, b=beta, L=L))
   }
-
 }
 
 simulate_multivariate = function(n=100,p=100,r=2,center_scale=TRUE,y_missing=0) {
@@ -124,22 +150,27 @@ compute_cov_diag <- function(Y){
   return(covar)
 }
 
-expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE, 
+expect_susieR_equal = function(A, BA, estimate_prior_variance = FALSE, estimate_residual_variance = FALSE,
                                tol = 1E-8, rss = FALSE) {
   expect_equal(A$alpha, BA$alpha,scale = 1,tolerance = tol)
   expect_equal(A$lbf, BA$lbf,scale = 1,tolerance = tol)
   if (!any(is.na(A$KL)) && !any(is.na(BA$KL)))
     expect_equal(A$KL, BA$KL,scale = 1,tolerance = tol)
-  expect_equal(A$alpha * A$mu, BA$b1,scale = 1,tolerance = tol)
-  expect_equal(A$alpha * A$mu2, BA$b2,scale = 1,tolerance = tol)
+  # b1 = alpha * mu (trivially derivable)
+  # susieR stores mu as L x J, mvsusie may store as L x J x R
+  expect_equal(A$alpha * A$mu, unname(get_b1(BA)),
+               scale = 1, tolerance = tol)
+  # b2 = alpha * mu2 (susieR) vs alpha * mu2_diag (mvsusie)
+  expect_equal(A$alpha * A$mu2, unname(get_b2(BA)),
+               scale = 1, tolerance = tol)
   if (!any(is.na(A$elbo)) && !any(is.na(BA$elbo)))
     expect_equal(A$elbo, BA$elbo,scale = 1,tolerance = tol)
   if (rss) {
-    expect_equal(coef(A)[-1],BA$coef[-1],scale = 1,tolerance = tol)
+    expect_equal(coef(A)[-1], coef(BA)[-1], scale = 1, tolerance = tol)
   } else {
     expect_equal(as.vector(A$fitted), as.vector(BA$fitted),scale = 1,
                  tolerance = tol)
-    expect_equal(coef(A),BA$coef,scale = 1,tolerance = tol)
+    expect_equal(coef(A), coef(BA), scale = 1, tolerance = tol)
   }
   if (estimate_residual_variance) expect_equal(A$sigma2, BA$sigma2,scale = 1,
                                                tolerance = tol)
@@ -150,10 +181,10 @@ expect_susie_equal = function(A, B, estimate_prior_variance = FALSE, estimate_re
   expect_equal(A$alpha, B$alpha, tolerance = tol)
   if (!any(is.na(A$elbo)) && !any(is.na(B$elbo)))
     expect_equal(A$lbf,B$lbf,tolerance = tol)
-  expect_equal(A$b1, B$b1, tolerance = tol)
-  expect_equal(A$b2, B$b2, tolerance = tol)
+  expect_equal(get_b1(A), get_b1(B), tolerance = tol)
+  expect_equal(get_b2(A), get_b2(B), tolerance = tol)
   expect_equal(A$fitted, B$fitted, tolerance = tol)
-  expect_equal(A$coef, B$coef, tolerance = tol)
+  expect_equal(coef(A), coef(B), tolerance = tol)
   if (!any(is.na(A$KL)) && !any(is.na(B$KL)))
     expect_equal(A$KL,B$KL,tolerance = tol)
   if (!any(is.na(A$elbo)) && !any(is.na(B$elbo)))

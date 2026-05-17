@@ -2,22 +2,23 @@
 % Please edit documentation in R/mvsusie_plot.R
 \name{mvsusie_plot}
 \alias{mvsusie_plot}
-\title{mvSuSiE PIP and Effect Plots}
+\title{mvSuSiE PIP and effect plots}
 \usage{
 mvsusie_plot(
   fit,
   chr = 1,
   pos = seq(1, length(fit$variable_names)),
   markers = fit$variable_names,
-  conditions = fit$condition_names,
+  outcomes = fit$outcome_names,
   poslim = range(pos),
   lfsr_cutoff = 0.01,
   sentinel_only = TRUE,
   cs_plot = names(fit$sets$cs),
   add_cs = FALSE,
   conditional_effect = TRUE,
+  sort_by_cs = FALSE,
   cs_colors = c("#1f78b4", "#33a02c", "#e31a1c", "#ff7f00", "#6a3d9a", "#b15928",
-    "#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#ffff99", "gray", "cyan")
+    "#a6cee3", "#b2df8a", "#fb9a99", "#fdbf6f", "#cab2d6", "#e6ab02", "gray", "#66c2a5")
 )
 }
 \arguments{
@@ -30,7 +31,7 @@ same length as \code{fit$variable_names}.}
 
 \item{markers}{The names of the genetic markers (usually SNPs).}
 
-\item{conditions}{The names of the conditions.}
+\item{outcomes}{The names of the outcomes.}
 
 \item{poslim}{The range of positions to show in the PIP plot.}
 
@@ -50,6 +51,11 @@ effect plot showing CS membership.}
 effect. If \code{FALSE}, plot the marginal effect.
 \code{conditional_effect = TRUE} is recommended.}
 
+\item{sort_by_cs}{If \code{TRUE}, group markers by CS on the
+x-axis of the effect and z-score plots.  This prevents CSs from
+interlocking when their members are interleaved in genomic
+position.  The default is \code{FALSE} (genomic order).}
+
 \item{cs_colors}{The color palette for CSs.}
 }
 \value{
@@ -58,10 +64,9 @@ The output includes the PIP plot, effect plot, z-scores
   effect estimates at sentinel markers.
 }
 \description{
-Create the PIP plot and accompanying effect plot
-  showing the effect estimates and significance of the effects for
-  all the traits. A z-scores plot is also created when z-scores are
-  available.
+Creates PIP and effect-size plots showing effect estimates and
+significance across traits. A z-score plot is also created when
+z-scores are available.
 }
 \examples{
 # See the "mvsusie_intro" vignette for examples.

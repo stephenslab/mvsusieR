@@ -1,6 +1,6 @@
 ---
 title: Introduction to mvSuSiE for multi-trait fine-mapping
-author: Yuxin Zou, Gao Wang, Peter Carbonetto and Matthew Stephens
+author: Gao Wang
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -9,9 +9,13 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The aim of this vignette is to work through the steps of a basic
-mvSuSiE multi-trait fine-mapping analysis. We analyze a simulated
-fine-mapping data set with realistic genotypes.
+This vignette walks through the steps of a basic mvSuSiE multi-trait
+fine-mapping analysis using individual-level and summary data.
+
+For detailed interpretation of the output including PIP, credible sets,
+LFSR, outcome-specific PIPs, and per-effect coefficient
+estimates, see the [Interpreting and visualizing mvSuSiE
+results](visualization_and_interpretation.html) vignette.
 
 ```{r knitr-opts, include=FALSE}
 knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
@@ -35,8 +39,8 @@ data(simdata)
 ```
 
 The data consist of an $N \times J$ genotype matrix `X` and an $N
-\times R$ phenotype matrix `Y` where $N$ is the number of samples, $J$
-is the number of SNPs, and $R$ is the number of traits/phenotypes.
+\times R$ phenotype matrix `Y` where $N=574$ is the number of samples, $J=1001$
+is the number of SNPs, and $R=20$ is the number of traits/phenotypes.
 
 ```{r inspect-data}
 X <- simdata$raw$X
@@ -45,8 +49,7 @@ dim(X)
 dim(Y)
 ```
 
-Specify the prior
------------------
+## Specify the prior
 
 Some care should be taken to choose the prior for your mvSuSiE
 analysis. To simplify the example we have defined the prior for you:
@@ -56,7 +59,7 @@ prior <- create_mixture_prior(list(matrices = simdata$par$U,
                                    weights = simdata$par$w),
                               null_weight = 0)
 ```
-							  
+
 More generally, we recommend taking a "data-driven" approach to
 estimating the weights and the covariance matrices in the prior. For
 example, when there are many candidate fine-mapping regions in your
@@ -64,9 +67,9 @@ study, you could fit the prior to all the top associations from each
 of the candidate fine-mapping regions. This data-driven approach is
 quite similar to the approach used in [mashr][mashr], and we recommend
 looking through the vignettes in the mashr package for further guidance.
+See also the [prior specification](prior_specification.html) vignette.
 
-Fit the mvSuSiE model
----------------------
+## Fit the mvSuSiE model
 
 Now that we have set up the prior, we are ready to run mvsusie:
 
@@ -74,123 +77,22 @@ Now that we have set up the prior, we are ready to run mvsusie:
 fit <- mvsusie(X,Y,standardize = TRUE,
                prior_variance = prior,
                residual_variance = simdata$par$V,
-			   estimate_prior_variance = TRUE,
-			   tol = 0.01)
+               estimate_prior_variance = TRUE)
 ```
 
 In this call, we have provided mvSuSiE with the four key pieces of
-information need to run the analysis: (1) the genotype matrix; (2) the
-phenotype matrix, (3) the prior on the effects; and (4) the residual
-variance-covariance matrix (an $R \times R$ matrix).
+information needed to run the analysis: (1) the genotype matrix; (2)
+the phenotype matrix; (3) the prior on the effects; and (4) the
+residual variance-covariance matrix (an $R \times R$ matrix).
 
-The "tol" parameter tells the IBSS model fitting algorithm when to stop
-iterating; for a final analysis, you may want to set a more stringent
-tolerance (a number closer to zero).
-
-Identifying the causal SNPs: Credible Sets 
-------------------------------------------
-
-By default, the "mvsusie" function fits a model with L = 10 single
-effects. mvSuSiE is generally robust to misspecification of L so long
-as L is chosen to be larger than the true number of effects. mvSuSiE
-prunes unneeded single effects by estimating a scaling coefficient in
-the prior; we set `estimate_prior_variance = TRUE` to turn on this
-pruning step. Indeed, mvsusie pruned 7 out of 10 of the single effects,
-resulting in three 95% credible sets (CSs), each of which contain
-exactly one of the true causal SNPs:
+The model identified the following credible sets:
 
 ```{r credible-sets}
+cat("Credible sets:", length(fit$sets$cs), "\n")
 fit$sets$cs
 ```
 
-In the third CS, mvSuSiE cannot decide which SNP is the causal SNP
-because the candidate SNPs are strongly correlated with each other:
-
-```{r cs-purity}
-fit$sets$purity
-```
-
-Examining the posterior inclusion probabilties (PIPs) for these SNPs,
-there is a subset of 3 SNPs that account for >58% of probability for
-being causal:
-
-```{r cs-3}
-markers <- fit$sets$cs$L3
-fit$pip[markers]
-```
-
-Additionally, the "sentinel" SNP---the SNP with the highest PIP---as a
-PIP of nearly 40%.
-
-This is all summarized visually in a "PIP plot":
-
-```{r pip-plot, fig.height=2, fig.width=6}
-mvsusie_plot(fit)$pip_plot
-```
-
-Determining which traits are affected
--------------------------------------
-
-In a multi-trait analysis, we are not just interested in identifying
-the causal SNPs, but also _which traits_ are affected by these causal
-SNPs.
-
-Let's take the first CS as an example. This is an example of a causal
-SNP that affects most traits:
-
-```{r, fig.height=2.5, fig.width=3.5}
-l <- 1
-i <- 335
-pdat <- data.frame(bhat = simdata$Btrue[i,],
-                   coef = fit$b1_rescaled[l,i+1,],
-                   lfsr = fit$single_effect_lfsr[l,])
-ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
-  geom_point(shape = 20,size = 2.5) +
-  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
-  scale_color_gradient2(low = "lightskyblue",mid = "gold",high = "orangered",
-                        midpoint = -40) +
-  labs(x = "true coef",y = "mvsusie estimate") +
-  theme_cowplot(font_size = 12)
-```
-
-Indeed, the effects of this causal SNP are significant---*i.e.,* small
-local false sign rates---for most of the 20 traits. (A local false
-sign rate can be thought of as an alternative to a *p*-value, but is
-typically slightly more conservative than a *p*-value.)
-
-Also, it is reassuring that the mvsusie estimates of the coefficients
-align well with the coefficients used to simulate the data.
-
-By contrast, the causal SNP identified by the third CS only affects
-one trait, and the affected trait was correctly identified by mvsusie:
-
-```{r, fig.height=2.5, fig.width=3.5}
-l <- 3
-i <- 493
-pdat <- data.frame(bhat = simdata$Btrue[i,],
-                   coef = fit$b1_rescaled[l,i+1,],
-                   lfsr = fit$single_effect_lfsr[l,])
-ggplot(pdat,aes(x = bhat,y = coef,color = log10(lfsr),pch = 20)) +
-  geom_point(shape = 20,size = 2.5) +
-  scale_color_gradient2(low = "lightskyblue",mid = "gold",high = "orangered",
-                        midpoint = -3) +
-  labs(x = "true coef",y = "mvsusie estimate") +
-  theme_cowplot(font_size = 12)
-```
-
-Notice that the lfsr is very small for the first trait (<1e-6) whereas
-the lfsrs for the rest of the traits are all close to 1.
-
-The information about which traits are affected by the causal SNP is
-summarized in the "effect plot":
-
-```{r effect-plot, fig.height=3.25, fig.width=2.5}
-out <- mvsusie_plot(fit,add_cs = TRUE)
-out$effect_plot
-```
-
-mvSuSiE with summary data: mvSuSiE-RSS
---------------------------------------
+## mvSuSiE with summary data
 
 mvsusieR also provides a "summary data" interface, building on the
 ideas developed in the [susie-rss paper][susie-rss]. Different
@@ -204,7 +106,7 @@ Z <- simdata$sumstats$z
 dim(Z)
 ```
 
-In addition to the *z*-scores, the sample size and $R \times R$ LD
+In addition to the *z*-scores, the sample size and $J \times J$ LD
 (correlation) matrix are needed. (Strictly speaking, the sample size
 is not required, but the estimates may be less accurate if the sample
 size is not provided.)
@@ -220,38 +122,42 @@ Now we can fit an mvSuSiE model to these summary data via the
 ```{r mvsusie-rss}
 fit_rss <- mvsusie_rss(Z,R,n,
                        prior_variance = prior,
-					   residual_variance = simdata$par$V,
-					   estimate_prior_variance = TRUE,
-					   tol = 0.01)
+                       residual_variance = simdata$par$V,
+                       estimate_prior_variance = TRUE)
 ```
 
-The call to `mvsusie_rss` is very similar to the call to `mvsusie`
-above, except that the individual-level data are replaced with summary
-data.
+## Comparing individual-level and summary data results
 
 When the genotypes are standardized in `mvsusie` (`standardize =
 TRUE`) and the LD estimates are obtained from the same data that were
 used to compute the *z*-scores, both `mvsusie` and `mvsusie_rss`
-should give the same result:
+give similar PIPs:
 
-```{r raw-vs-summary, fig.height=2.5, fig.width=2.5}
-pdat <- data.frame(b1     = as.vector(fit$b1),
-                   b1_rss = as.vector(fit_rss$b1))
-ggplot(pdat,aes(x = b1,y = b1_rss)) +
-  geom_point(shape = 20,size = 2,color = "royalblue") +
-  geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
-  labs(x = "mvsusie",y = "mvsusie_rss") +
+```{r raw-vs-summary, fig.height=3, fig.width=3.5}
+ggplot(data.frame(pip = fit$pip, pip_rss = fit_rss$pip),
+       aes(x = pip, y = pip_rss)) +
+  geom_point(shape = 20, size = 2, color = "royalblue") +
+  geom_abline(intercept = 0, slope = 1, color = "black", linetype = "dotted") +
+  labs(x = "mvsusie PIP", y = "mvsusie_rss PIP") +
   theme_cowplot(font_size = 12)
 ```
 
-Of course, the result is not always expected to be the same---for
-example, when the LD is estimated from an external reference panel.
+The PIPs are close but not identical because `mvsusie()` defaults to
+`estimate_residual_variance = TRUE` (re-estimating the residual
+variance from the data), whereas `mvsusie_rss()` defaults to `FALSE`
+(since the residual variance is difficult to estimate reliably from
+summary statistics alone, as noted in [Zou *et al.*][susie-rss]).
+For a detailed comparison of all input formats and the effect of
+estimating the residual variance, see the
+[input data formats](input_data_format.html) vignette.
 
-Estimating the residual variance
---------------------------------
+Of course, the results are also not always expected to be the same
+when the LD is estimated from an external reference panel.
+
+## Estimating the residual variance
 
 In the above examples, we set the residual variance to the value that
-was used to simulated the data. In practice of course we will not have
+was used to simulate the data. In practice of course we will not have
 access to this so we will have to estimate the residual variance somehow.
 
 When one has access to the summary data (specifically, the z-scores)
