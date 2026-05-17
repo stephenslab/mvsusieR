@@ -49,7 +49,7 @@ jobs:
           ref: master
 
       - name: Setup pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
 
       - name: Update version
         run: |
@@ -65,7 +65,7 @@ jobs:
 
       - name: Commit changes to version
         id: commit-changes
-        uses: EndBug/add-and-commit@v9
+        uses: EndBug/add-and-commit@v10
         with:
           push: true
           message: Update version
@@ -119,11 +119,14 @@ jobs:
       - name: Check if major or minor version changed
         id: check-version-change
         run: |
+          # Strip optional v prefix so legacy v-prefixed tags compare correctly
           new_version="${{ steps.set-tag.outputs.tag }}"
+          new_version="${new_version#v}"
           new_major_minor=$(echo "$new_version" | cut -d. -f1,2)
 
-          # Get the latest existing tag (by version sort)
-          latest_tag=$(git tag --sort=-v:refname | head -n1 || echo "")
+          # Normalize all tags (strip v) before version-sorting, otherwise
+          # git's v:refname sort ranks v-prefixed tags ahead of plain ones.
+          latest_tag=$(git tag | sed 's/^v//' | sort -V | tail -n1 || echo "")
 
           if [[ -z "$latest_tag" ]]; then
             echo "No existing tags found — treating as new release"

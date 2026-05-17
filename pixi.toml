@@ -9,7 +9,7 @@ libc = { family="glibc", version="2.17" }
 [tasks]
 devtools_document = "cd $GITHUB_WORKSPACE; R -e 'devtools::document()'"
 devtools_test = "cd $GITHUB_WORKSPACE; R -e 'pkgbuild::compile_dll(quiet = TRUE); devtools::test()'"
-codecov = "cd $GITHUB_WORKSPACE; R -e 'pkgbuild::compile_dll(quiet = TRUE); covr::codecov(quiet = FALSE)'"
+coverage = "cd $GITHUB_WORKSPACE; R -e 'pkgbuild::compile_dll(quiet = TRUE); cov <- covr::package_coverage(quiet = TRUE); print(cov); cat(sprintf(\"\\nTotal coverage: %.2f%%\\n\", covr::percent_coverage(cov)))'"
 build = "cd $GITHUB_WORKSPACE; R -e 'devtools::build(vignettes = TRUE)'"
 rcmdcheck = "cd $GITHUB_WORKSPACE; R -e 'pkg <- list.files(\"..\", pattern = \".tar.gz\", full.names = TRUE); rcmdcheck::rcmdcheck(path = pkg[1], args = c(\"--as-cran\", \"--no-manual\"))'"
 use_major_version = "cd $GITHUB_WORKSPACE; R -e 'usethis::use_version(which = \"major\", push = FALSE)'"
@@ -42,7 +42,7 @@ r45 = {features = ["r45"]}
 "r-mixsqp" = "*"
 "r-mvtnorm" = "*"
 "r-rlang" = "*"
-"r-susier" = "*"
+"r-rfast" = "*"  # required by GitHub susieR NAMESPACE
 "r-ggplot2" = "*"
 "r-ggrepel" = "*"
 "r-cowplot" = "*"
@@ -58,5 +58,7 @@ r45 = {features = ["r45"]}
 "r-covr" = "*"
 "r-rcmdcheck" = "*"
 "r-pkgdown" = "*"
+"r-remotes" = "*"
+"r-jsonlite" = "*"
 "r-usethis" = "*"
 "qpdf" = "*"

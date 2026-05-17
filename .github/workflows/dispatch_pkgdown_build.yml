@@ -6,6 +6,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
 
 permissions:
@@ -22,15 +23,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout master
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: master
 
       - name: Setup pixi
         uses: prefix-dev/setup-pixi@v0.9.5
 
+      - name: Install susieR from GitHub master
+        # mvsusieR uses susieR S3 workhorse APIs that may be ahead of conda.
+        run: pixi run -e r44 R -e 'remotes::install_github("stephenslab/susieR", upgrade = "never")'
+
+      - name: Generate coverage badge data
+        run: |
+          pixi run -e r44 R -e '
+          pkgbuild::compile_dll(quiet = TRUE);
+          cov <- covr::package_coverage(quiet = TRUE);
+          pct <- covr::percent_coverage(cov);
+          cat(sprintf("Computed coverage: %.2f%%\n", pct));
+          color <- if (pct >= 90) "brightgreen" else if (pct >= 80) "green" else if (pct >= 70) "yellowgreen" else if (pct >= 60) "yellow" else if (pct >= 50) "orange" else "red";
+          jsonlite::write_json(list(schemaVersion = 1L, label = "coverage", message = sprintf("%.1f%%", pct), color = color), path = "/tmp/coverage.json", auto_unbox = TRUE);
+          cat("Wrote /tmp/coverage.json:\n", readLines("/tmp/coverage.json"), "\n", sep = "")
+          '
+
       - name: Update pkgdown site
         run: pixi run -e r44 pkgdown_build
+
+      - name: Copy coverage badge data into docs
+        run: |
+          mkdir -p docs
+          cp /tmp/coverage.json docs/coverage.json
+          echo "docs/coverage.json contents:"
+          cat docs/coverage.json
+          echo
 
       - name: Setup Pages
         uses: actions/configure-pages@v6

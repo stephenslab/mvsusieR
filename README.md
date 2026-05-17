@@ -1,6 +1,10 @@
 # mvsusieR
 
-[![Continuous Integration](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml/badge.svg)](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml)
+[![CI](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/stephenslab/mvsusieR/actions/workflows/ci.yml)
+[![Website](https://github.com/stephenslab/mvsusieR/actions/workflows/dispatch_pkgdown_build.yml/badge.svg?branch=master)](https://stephenslab.github.io/mvsusieR/)
+[![Coverage](https://img.shields.io/endpoint?url=https://stephenslab.github.io/mvsusieR/coverage.json)](https://github.com/stephenslab/mvsusieR/actions/workflows/dispatch_pkgdown_build.yml)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![GitHub release](https://img.shields.io/github/v/release/stephenslab/mvsusieR?include_prereleases&sort=semver)](https://github.com/stephenslab/mvsusieR/releases)
 
 Implements a multivariate generalization of the "Sum of Single
 Effects" (SuSiE) model for variable selection in multivariate linear
