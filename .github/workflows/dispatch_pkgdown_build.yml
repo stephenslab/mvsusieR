@@ -28,7 +28,7 @@ jobs:
           ref: master
 
       - name: Setup pixi
-        uses: prefix-dev/setup-pixi@v0.10.1
+        uses: prefix-dev/setup-pixi@v0.10.2
 
       - name: Install susieR from GitHub master
         # mvsusieR uses susieR S3 workhorse APIs that may be ahead of conda.
