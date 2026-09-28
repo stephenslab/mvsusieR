@@ -145,7 +145,7 @@ jobs:
       - name: Create new tag
         if: steps.check-tag.outputs.exists == 'false' && steps.check-version-change.outputs.is_major_minor == 'true'
         id: tag-version
-        uses: mathieudutour/github-tag-action@v6.2
+        uses: mathieudutour/github-tag-action@v7
         with:
           default_bump: false
           default_prerelease_bump: false
